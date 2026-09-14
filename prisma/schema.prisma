@@ -1,0 +1,284 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  role          String   @default("buyer") // "buyer" | "developer" | "seller" | "admin"
+  emailVerified Boolean  @default(false)
+  name          String?  // display name, set via profile page
+  phone         String?  // personal phone number, set via profile page
+  createdAt     DateTime @default(now())
+
+  buyerProfile              BuyerProfile?
+  developerProfile          DeveloperProfile?
+  sellerProfile             SellerProfile?
+  projects                  Project[]
+  unitTypes                 UnitType[]
+  matchResults              MatchResult[]      @relation("BuyerMatches")
+  transcripts               Transcript[]
+  offersAsBuyer             Offer[]            @relation("BuyerOffers")
+  offersAsDeveloper         Offer[]            @relation("DeveloperOffers")
+  leverageGroupsAsDeveloper LeverageGroup[]       @relation("DeveloperLeverageGroups")
+  leverageGroupsAsBuyer     LeverageGroup[]       @relation("BuyerLeverageGroups")
+  groupMemberships          LeverageGroupMember[] @relation("BuyerGroupMemberships")
+  verificationTokens        VerificationToken[]
+  interviewAttempts         InterviewAttempt[]
+}
+
+model VerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  type      String    // "email_verify" | "password_reset"
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model BuyerProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expectedScore       Float    // ēj — buyer's expected/target score
+  minAcceptanceScore  Float    // āj — minimum acceptable score
+  preferences         String   // JSON blob of additional preference attributes
+  updatedAt           DateTime @updatedAt
+
+  // Psychometric scores (0–100 each) derived from interview transcript.
+  // All nullable — only populated from characterization v2 onwards.
+  verbalReasoning    Float?   // Clarity and precision in expressing requirements
+  numericalReasoning Float?   // Comfort discussing prices, areas, and figures
+  spatialReasoning   Float?   // Ability to conceptualise floor plans and layouts
+  abstractReasoning  Float?   // Identifying patterns in priorities and trade-offs
+  memory             Float?   // Recall of prior viewings / stated requirements
+  attention          Float?   // Focus and depth when describing must-haves
+  processingSpeed    Float?   // Decisiveness in answering; low hedging
+  executiveFunction  Float?   // Goal-setting, planning, and sequencing signals
+
+  // Cached Claude-generated recommendation blurbs (JSON: { legal, moving, insurance, furniture })
+  recommendationBlurbs String?
+}
+
+// Developer / contractor profile
+model DeveloperProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName  String
+  crn          String   @unique
+  contactName  String
+  phone        String
+  crnStatus             String   @default("pending") // "pending" | "approved" | "rejected"
+  qualityScore          Int      @default(82)
+  baselineScore         Float    @default(0)
+  behaviorScore         Float    @default(0)
+  questionnaireAnswers  String   @default("{}") // JSON: { yearsExperience, completedProjects, companyDescription }
+  webResearchSummary    String   @default("") // JSON: { summary, foundOnlinePresence, flagsOrConcerns } — populated after registration
+  registryLookupResult  String   @default("") // JSON: { found, registeredName, registeredNameEn, status, incorporationDate, entityType, nameMismatch, statusFlag, flags } — populated after registration
+  // Google OAuth — for Google Meet scheduling
+  googleAccessToken     String?
+  googleRefreshToken    String?
+  googleTokenExpiry     DateTime?
+  googleConnected       Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model SellerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// A developer's project (building/development)
+model Project {
+  id          String     @id @default(cuid())
+  developerId String
+  developer   User       @relation(fields: [developerId], references: [id], onDelete: Cascade)
+  name        String
+  location    String     @default("")
+  description     String     @default("")
+  video_url       String?
+  teaserVideoData String?
+  building_3d_url String?
+  amenities       String[]
+  ownerType       String     @default("developer") // "developer" | "seller"
+  status          String     @default("active") // "active" | "inactive"
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  unitTypes   UnitType[]
+}
+
+// A unit type within a project — this IS the matchable/sellable AOM
+model UnitType {
+  id                String   @id @default(cuid())
+  projectId         String
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sellerId          String   // the listing owner's User.id (developer or seller)
+  seller            User     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  ownerType         String   @default("developer") // "developer" | "seller"
+  unitLabel         String   // e.g. "3-room", "4-room", "Penthouse"
+  price             Float    @default(0)
+  quantityTotal     Int      @default(1)
+  quantityAvailable Int      @default(1)
+  description       String   @default("")
+  eil               Float    // seller's minimum listing score (lower bound)
+  ail               Float    // seller's acceptance (asking) score (upper bound)
+  attributes        String   @default("{}") // JSON blob
+  image_urls        String[]
+  floor_plan_url    String?
+  video_url         String?
+  active            Boolean  @default(true)
+  aomStatus         String   @default("available") // "available" | "in_negotiation" | "sold"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  matchResults   MatchResult[]
+  offers         Offer[]
+  leverageGroups LeverageGroup[]
+  images         ListingImage[]
+}
+
+// Images and 360° panorama scenes for a listing (UnitType).
+// imageData stored as a base64 data URL — pragmatic choice while file storage
+// is not finalised.  Warn clients to keep uploads under 5 MB.
+model ListingImage {
+  id         String   @id @default(cuid())
+  unitTypeId String
+  unitType   UnitType @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+  type       String   // "gallery" | "panorama"
+  label      String   @default("") // room label for panorama type
+  imageData  String   // base64 data URL (e.g. "data:image/jpeg;base64,...")
+  order      Int      @default(0)  // display / tour sequencing order
+  createdAt  DateTime @default(now())
+
+  @@index([unitTypeId, type, order])
+}
+
+model MatchResult {
+  id         String   @id @default(cuid())
+  buyerId    String
+  buyer      User     @relation("BuyerMatches", fields: [buyerId], references: [id], onDelete: Cascade)
+  unitTypeId String
+  unitType   UnitType @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+  pfij       Float    // proposed fair/final price (the optimal matched score)
+  zij        Float    // match quality score
+  valid      Boolean  // whether constraints were satisfied
+  createdAt  DateTime @default(now())
+}
+
+model LedgerBlock {
+  id           String   @id @default(cuid())
+  chain        String   // "buyer" | "seller" | "aom_rating"
+  index        Int
+  timestamp    DateTime @default(now())
+  data         String   // JSON blob
+  previousHash String
+  hash         String
+  createdAt    DateTime @default(now())
+
+  @@index([chain, index])
+}
+
+// Caches the ElevenLabs secret_id registered with LiveAvatar (single-row).
+model LiveAvatarSecret {
+  id         String   @id @default("singleton")
+  secretId   String   // secret_id returned by LiveAvatar /v1/secrets
+  createdAt  DateTime @default(now())
+}
+
+// Tracks each time a buyer starts a new avatar interview session.
+// Used to enforce the 2-per-rolling-24-hour rate limit.
+model InterviewAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt DateTime @default(now())
+
+  @@index([userId, startedAt])
+}
+
+// Stores the raw interview transcript associated with a buyer.
+model Transcript {
+  id        String   @id @default(cuid())
+  buyerId   String
+  buyer     User     @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  raw       String   // JSON array of { role, text, ts } objects
+  createdAt DateTime @default(now())
+}
+
+// Individual buyer offer on a specific unit type
+model Offer {
+  id           String   @id @default(cuid())
+  buyerId      String
+  buyer        User     @relation("BuyerOffers", fields: [buyerId], references: [id], onDelete: Cascade)
+  unitTypeId   String
+  unitType     UnitType @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+  developerId  String
+  developer    User     @relation("DeveloperOffers", fields: [developerId], references: [id], onDelete: Cascade)
+  offeredPrice Float    // £ price offered by buyer
+  matchScore   Float?   // server-computed Zij pfij — developer context only, never shown to buyer
+  terms        String
+  status              String   @default("pending") // "pending" | "countered" | "accepted" | "rejected"
+  counterPrice        Float?   // £ counter-price from developer
+  counterTerms        String?
+  // Negotiation tracking (added 2026-08-26)
+  roundNumber         Int      @default(0)   // 0=initial, 1=dev countered, 2=buyer countered (max)
+  counterExplanation  String?               // developer's required explanation when countering
+  negotiationHistory  String   @default("[]") // JSON [{actor,price,explanation?,ts}] — immutable log
+  meetingLink         String?               // Google Meet URL if developer scheduled a meeting
+  depositPaid         Boolean  @default(false) // simulation: buyer clicked "Pay deposit" in Deal Room
+  ledgerBlockHash     String?               // hash of the seller-chain block written when offer was accepted
+  buyerSignature      String?               // JSON: { signatureDataUrl, typedName, signedAt }
+  developerSignature  String?               // JSON: { signatureDataUrl, typedName, signedAt }
+  contractEmailSentAt DateTime?             // set once the "both signed" email has been dispatched (idempotency guard)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Multi-buyer leverage group negotiating a group discount on a unit type
+model LeverageGroup {
+  id                       String   @id @default(cuid())
+  unitTypeId               String
+  unitType                 UnitType @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+  developerId              String
+  developer                User     @relation("DeveloperLeverageGroups", fields: [developerId], references: [id], onDelete: Cascade)
+  buyerId                  String?  // buyer who created the group request
+  buyer                    User?    @relation("BuyerLeverageGroups", fields: [buyerId], references: [id], onDelete: SetNull)
+  memberCount              Int      @default(0) // DEPRECATED — use _count.members (LeverageGroupMember rows) for the live count
+  requestedDiscountPercent Float
+  requestedTerms           String
+  status                   String   @default("pending") // "pending" | "countered" | "accepted" | "rejected"
+  counterDiscountPercent   Float?
+  counterTerms             String?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  members LeverageGroupMember[]
+}
+
+// One row per buyer who has joined a leverage group.
+// The unique constraint prevents a buyer from joining the same group twice.
+model LeverageGroupMember {
+  id              String        @id @default(cuid())
+  leverageGroupId String
+  leverageGroup   LeverageGroup @relation(fields: [leverageGroupId], references: [id], onDelete: Cascade)
+  buyerId         String
+  buyer           User          @relation("BuyerGroupMemberships", fields: [buyerId], references: [id], onDelete: Cascade)
+  joinedAt        DateTime      @default(now())
+
+  @@unique([leverageGroupId, buyerId])
+}

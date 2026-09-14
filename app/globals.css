@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ── Design token system ──────────────────────────────────────────────────── */
+@theme {
+  /* Palette */
+  --color-paper:       #F7F5F1;
+  --color-paper-card:  #FFFFFF;
+  --color-ink:         #1C1B19;
+  --color-ink-muted:   #6B6860;
+  --color-teal:        #1F4B4A;
+  --color-teal-light:  #E8F0EF;
+  --color-gold:        #C89B3C;
+  --color-gold-light:  #FBF4E4;
+  --color-gold-hover:  #B8892C;
+  --color-danger:      #B04040;
+  --color-danger-light:#FAE8E8;
+
+  /* Field fill */
+  --color-field:       #F0EDE8;
+  --color-field-border:#DDD9D3;
+
+  /* Typography — mapped from next/font CSS variables */
+  --font-heading: var(--font-fraunces);
+  --font-sans:    var(--font-inter);
+  --font-mono:    var(--font-jetbrains);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ── Base resets ──────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  color: #1C1B19;
+  background-color: #F7F5F1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Power-off transition ─────────────────────────────────────────────────── */
+
+/*
+ * Phase 1 (0–30%):  rapid screen flicker — white/dark alternation
+ * Phase 2 (30–65%): CRT vertical-collapse — screen squishes to a centre line
+ * Phase 3 (65–100%): the line fades out to pure black
+ */
+@keyframes power-off-flicker {
+  0%   { opacity: 1; }
+  8%   { opacity: 0.05; }   /* flash dark */
+  14%  { opacity: 1; }      /* bright */
+  20%  { opacity: 0.08; }   /* flash dark */
+  26%  { opacity: 0.7; }    /* partial bright */
+  30%  { opacity: 1; }      /* settle — hand off to collapse */
+}
+
+@keyframes power-off-collapse {
+  0%   { transform: scaleY(1);    opacity: 1; }
+  55%  { transform: scaleY(0.06); opacity: 1; }   /* crushed to thin line */
+  75%  { transform: scaleY(0.02); opacity: 0.9; }
+  100% { transform: scaleY(0);    opacity: 0; }
+}
+
+/* The full-screen overlay that plays the flicker animation */
+.power-off-overlay {
+  position: fixed;
+  inset: 0;
+  background: #F7F5F1;
+  z-index: 9999;
+  animation: power-off-flicker 0.55s ease-in-out forwards;
+}
+
+/* The inner element that collapses vertically after the flicker settles.
+ * opacity: 0 in base styles so it is invisible during the flicker phase
+ * (0 → 0.55 s).  The animation snaps it to opacity:1 / scaleY:1 the
+ * instant it fires at 0.55 s, then crushes it to a line and fades out. */
+.power-off-collapse {
+  position: absolute;
+  inset: 0;
+  background: #ddd; /* bright line — mimics phosphor glow on CRT shut-off */
+  transform-origin: center center;
+  opacity: 0;       /* invisible during flicker phase */
+  animation: power-off-collapse 1.1s 0.55s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
