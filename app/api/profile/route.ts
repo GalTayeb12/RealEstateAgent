@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { id: auth.userId },
-    select: { email: true, role: true, name: true, phone: true },
+    select: { email: true, role: true, name: true, phone: true, locale: true },
   });
 
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -34,15 +34,16 @@ export async function PATCH(req: NextRequest) {
   if (!parsedBody.success) return zodError(parsedBody.error);
   const body = parsedBody.data;
 
-  // Only allow updating name and phone — email and role are immutable here.
-  const data: { name?: string | null; phone?: string | null } = {};
+  // Email and role are immutable here. Locale is the saved UI/email language.
+  const data: { name?: string | null; phone?: string | null; locale?: "he" | "en" } = {};
   if ("name" in body)  data.name  = typeof body.name  === "string" ? body.name.trim()  || null : null;
   if ("phone" in body) data.phone = typeof body.phone === "string" ? body.phone.trim() || null : null;
+  if (body.locale === "he" || body.locale === "en") data.locale = body.locale;
 
   const user = await prisma.user.update({
     where: { id: auth.userId },
     data,
-    select: { email: true, role: true, name: true, phone: true },
+    select: { email: true, role: true, name: true, phone: true, locale: true },
   });
 
   return NextResponse.json(user);

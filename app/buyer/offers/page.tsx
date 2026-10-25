@@ -10,6 +10,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Money } from "@/components/Money";
+import { useI18n } from "@/components/LocaleProvider";
 
 interface OfferUnit {
   unitLabel: string;
@@ -115,7 +117,7 @@ function NegotiationHistory({ offer }: { offer: Offer }) {
                 {entry.actor === "developer" ? "Developer's counter" : "Your counter"}
               </span>
               <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 700, fontSize: "0.9375rem", color: "#1C1B19" }}>
-                £{entry.price.toLocaleString()}
+                <Money amount={entry.price} />
               </span>
               <span style={{ fontSize: "0.75rem", color: "#9A958F" }}>
                 {new Date(entry.ts).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
@@ -144,6 +146,7 @@ function OfferCard({
   onUpdated: (id: string, patch: Partial<Offer>) => void;
   onToast: (msg: string) => void;
 }) {
+  const { m } = useI18n();
   const unit = offer.unitType;
   const router = useRouter();
   const isCountered = offer.status === "countered" && offer.counterPrice != null;
@@ -237,7 +240,7 @@ function OfferCard({
             </h3>
             <div style={{ fontSize: "0.8125rem", color: "#6B6860" }}>
               {unit.project.location}
-              {unit.price > 0 && ` · Listed at £${unit.price.toLocaleString()}`}
+              {unit.price > 0 && <> · <Money amount={unit.price} /></>}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", flexWrap: "wrap" }}>
@@ -263,7 +266,7 @@ function OfferCard({
           <div>
             <div style={{ fontSize: "0.6875rem", color: "#6B6860", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>Your offer</div>
             <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 700, fontSize: "1rem", color: "#1C1B19" }}>
-              £{offer.offeredPrice.toLocaleString()}
+              <Money amount={offer.offeredPrice} />
             </div>
           </div>
           {offer.terms && (
@@ -286,7 +289,7 @@ function OfferCard({
             <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", alignItems: "baseline", marginBottom: offer.counterExplanation ? "0.375rem" : 0 }}>
               <div>
                 <span style={{ fontSize: "0.8125rem", color: "#6B6860" }}>Counter price </span>
-                <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 700, color: "#C89B3C", fontSize: "1rem" }}>£{offer.counterPrice!.toLocaleString()}</span>
+                <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 700, color: "#C89B3C", fontSize: "1rem" }}><Money amount={offer.counterPrice!} /></span>
               </div>
               {offer.counterTerms && (
                 <div style={{ fontSize: "0.875rem", color: "#1C1B19" }}>&ldquo;{offer.counterTerms}&rdquo;</div>
@@ -336,7 +339,7 @@ function OfferCard({
               <div style={{ marginTop: "0.625rem", display: "flex", flexDirection: "column", gap: "0.625rem" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, color: "#6B6860", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>
-                    Your counter price (£)
+                    מחיר נגד (₪) / Counter (ILS)
                   </label>
                   <input
                     type="number"
@@ -447,6 +450,37 @@ function OfferCard({
             >
               {dealComplete ? "View signed contract →" : "View Deal Room →"}
             </Link>
+            {!dealComplete && (
+              <button
+                type="button"
+                onClick={async () => {
+                  const token = localStorage.getItem("token") ?? "";
+                  const res = await fetch(`/api/offers/${offer.id}/cancel`, {
+                    method: "POST",
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+                  if (!res.ok) {
+                    const data = await res.json().catch(() => ({}));
+                    onToast(data.error ?? "Could not release the reservation");
+                    return;
+                  }
+                  onUpdated(offer.id, { status: "cancelled" });
+                }}
+                style={{
+                  marginInlineStart: "0.75rem",
+                  padding: "0.5rem 0.875rem",
+                  borderRadius: 999,
+                  border: "1px solid #DDD9D3",
+                  background: "#fff",
+                  color: "#6B6860",
+                  fontSize: "0.8125rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {m.results.release}
+              </button>
+            )}
           </div>
         )}
 

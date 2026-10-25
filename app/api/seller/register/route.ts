@@ -10,6 +10,7 @@ import { createVerificationToken } from "@/lib/tokens";
 import { emailVerificationLink } from "@/lib/email";
 import { sellerRegisterSchema } from "@/lib/validation/seller";
 import { zodError } from "@/lib/validation";
+import { getRequestLocale } from "@/lib/i18n/request";
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,11 +29,13 @@ export async function POST(req: NextRequest) {
 
     const passwordHash = await hashPassword(password);
 
+    const locale = await getRequestLocale();
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         role: "seller",
+        locale,
         name,
         sellerProfile: {
           create: { phone },

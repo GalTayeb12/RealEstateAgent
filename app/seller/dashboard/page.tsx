@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { EstimatedPriceNote, Money } from "@/components/Money";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -150,7 +151,7 @@ function UnitTypeForm({
             <input style={inputStyle} value={form.unitLabel} onChange={f("unitLabel")} placeholder="3-room" />
           </FormField>
         </div>
-        <FormField label="Price (£)">
+        <FormField label="מחיר (₪) / Price (ILS)">
           <input type="number" style={inputStyle} value={form.price} onChange={f("price")} placeholder="450000" />
         </FormField>
         <FormField label="Total quantity">
@@ -523,7 +524,7 @@ export default function SellerDashboardPage() {
                                       </span>
                                       {ut.price > 0 && (
                                         <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 700, color: "#1C1B19" }}>
-                                          £{ut.price.toLocaleString()}
+                                          <Money amount={ut.price} />
                                         </span>
                                       )}
                                       {ut.quantityTotal > 0 && (
@@ -619,7 +620,7 @@ export default function SellerDashboardPage() {
                         </div>
                         <div style={{ textAlign: "right" }}>
                           <div style={{ fontSize: "0.6875rem", color: "#6B6860", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Offered price</div>
-                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 700, color: "#1F4B4A" }}>£{offer.offeredPrice.toLocaleString()}</div>
+                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 700, color: "#1F4B4A" }}><Money amount={offer.offeredPrice} /><EstimatedPriceNote /></div>
                           {offer.matchScore != null && (
                             <div style={{ fontSize: "0.75rem", color: "#6B6860", marginTop: "0.25rem" }}>
                               Match score: <strong style={{ color: "#1C1B19" }}>{offer.matchScore.toFixed(1)}</strong>
@@ -635,7 +636,7 @@ export default function SellerDashboardPage() {
                       {(offer.roundNumber ?? 0) >= 2 && offer.status === "pending" && (
                         <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#EAF3F2", borderRadius: "0.5rem", borderLeft: "3px solid #1F4B4A" }}>
                           <div style={{ fontSize: "0.6875rem", fontWeight: 700, color: "#1F4B4A", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
-                            Buyer&apos;s counter — £{offer.offeredPrice.toLocaleString()}
+                            <Money amount={offer.offeredPrice} />
                           </div>
                           <p style={{ margin: 0, fontSize: "0.8125rem", color: "#6B6860", fontStyle: "italic" }}>
                             Final round — accept or reject only
@@ -646,7 +647,7 @@ export default function SellerDashboardPage() {
                       {offer.counterPrice != null && (
                         <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#FBF4E4", borderRadius: "0.5rem", borderLeft: "3px solid #C89B3C" }}>
                           <div style={{ fontSize: "0.6875rem", fontWeight: 700, color: "#C89B3C", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
-                            Your counter — £{offer.counterPrice?.toLocaleString()}
+                            <Money amount={offer.counterPrice ?? 0} />
                           </div>
                           <p style={{ margin: 0, fontSize: "0.875rem", color: "#1C1B19" }}>{offer.counterTerms}</p>
                           {offer.counterExplanation && (
@@ -692,7 +693,7 @@ export default function SellerDashboardPage() {
                       <div style={{ borderTop: "1px solid #F0EDE8", padding: "1.125rem 1.375rem", background: "#FDFCFB", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                         <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#C89B3C" }}>Counter offer</div>
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "8rem 1fr", gap: "0.75rem" }}>
-                          <FormField label="Counter price (£)">
+                          <FormField label="מחיר נגד (₪) / Counter (ILS)">
                             <input type="number" step={1000} value={offerCounter.counterPrice} onChange={e => setOfferCounter(f => ({ ...f, counterPrice: e.target.value }))}
                               style={{ ...inputStyle, fontFamily: "var(--font-jetbrains, monospace)" }} />
                           </FormField>

@@ -14,6 +14,7 @@ import { createVerificationToken } from "@/lib/tokens";
 import { emailVerificationLink } from "@/lib/email";
 import { devRegisterSchema } from "@/lib/validation/admin";
 import { zodError } from "@/lib/validation";
+import { getRequestLocale } from "@/lib/i18n/request";
 
 const BASELINE_PROMPT = `You are evaluating a real estate developer's registration questionnaire for a property marketplace platform. Assess their professionalism, credibility, and buyer-friendliness based solely on the answers provided.
 
@@ -107,11 +108,13 @@ export async function POST(req: NextRequest) {
       baselineRationale: rationale,
     });
 
+    const locale = await getRequestLocale();
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         role: "developer",
+        locale,
         developerProfile: {
           create: {
             companyName,

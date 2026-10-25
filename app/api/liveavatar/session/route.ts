@@ -12,8 +12,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
+import { LIVEAVATAR_BASE } from "@/lib/liveavatar";
 
-const LIVEAVATAR_BASE = "https://api.liveavatar.com";
 const HEYGEN_API_KEY = process.env.HEYGEN_API_KEY ?? "";
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY ?? "";
 const ELEVENLABS_AGENT_ID = process.env.ELEVENLABS_AGENT_ID ?? "";
@@ -51,13 +51,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Record this attempt immediately — counts even if external APIs fail,
-    // to prevent abuse where users repeatedly retry to get free quota resets.
-    await prisma.interviewAttempt.create({
-      data: { userId: payload.userId },
-    });
-
-    if (!HEYGEN_API_KEY || !ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID) {
+    if (!HEYGEN_API_KEY || !ELEVENLABS_API_KEY || !ELEVENLABS_AGENT_ID || !LIVEAVATAR_AVATAR_ID) {
       return NextResponse.json(
         { error: "Missing API key configuration" },
         { status: 500 }
@@ -119,7 +113,7 @@ export async function POST(req: NextRequest) {
     // FULL mode only accepts a reference to a pre-stored voice agent UUID — not applicable here.
     const tokenBody: Record<string, unknown> = {
       mode: "LITE",
-      avatar_id: LIVEAVATAR_AVATAR_ID || undefined,
+      avatar_id: LIVEAVATAR_AVATAR_ID,
       video_settings: { encoding: "H264", quality: "high" },
       elevenlabs_agent_config: {
         secret_id: secretId,
@@ -190,6 +184,12 @@ export async function POST(req: NextRequest) {
         { status: 502 }
       );
     }
+
+    // Count only after the avatar room is actually up — failed provider calls
+    // must not burn the buyer's daily quota.
+    await prisma.interviewAttempt.create({
+      data: { userId: payload.userId },
+    });
 
     return NextResponse.json({ livekit_url, livekit_client_token, session_id });
   } catch (err) {

@@ -17,6 +17,9 @@
  */
 
 import nodemailer from "nodemailer";
+import { prisma } from "@/lib/prisma";
+import { formatMoney } from "@/lib/i18n/currency";
+import { parseLocale, type Locale } from "@/lib/i18n/locale";
 
 // ─── Transporter ─────────────────────────────────────────────────────────────
 // Created once and reused. Nodemailer manages the connection pool internally.
@@ -95,6 +98,26 @@ export async function sendEmail(payload: EmailPayload): Promise<void> {
   }
 }
 
+async function recipientLocale(email: string): Promise<Locale> {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { locale: true },
+    });
+    return parseLocale(user?.locale);
+  } catch {
+    return "he";
+  }
+}
+
+function money(amountIls: number, locale: Locale): string {
+  const formatted = formatMoney(amountIls, locale);
+  if (locale === "en") {
+    return `${formatted} (estimated; converted from ILS at a fixed rate)`;
+  }
+  return formatted;
+}
+
 // ─── Event helpers ────────────────────────────────────────────────────────────
 
 /** Developer accepted a buyer's offer → email the buyer */
@@ -104,12 +127,24 @@ export async function emailOfferAccepted(opts: {
   unitLabel: string;
   offeredPrice: number;
 }) {
+  const locale = await recipientLocale(opts.buyerEmail);
+  const price = money(opts.offeredPrice, locale);
   await sendEmail({
     to: opts.buyerEmail,
-    subject: `Your offer on ${opts.projectName} — ${opts.unitLabel} has been accepted`,
-    text: `Hi,
+    subject: locale === "he"
+      ? `ההצעה שלך על ${opts.projectName} — ${opts.unitLabel} התקבלה`
+      : `Your offer on ${opts.projectName} — ${opts.unitLabel} has been accepted`,
+    text: locale === "he"
+      ? `שלום,
 
-Great news — your offer of £${opts.offeredPrice.toLocaleString()} on ${opts.projectName} (${opts.unitLabel}) has been accepted.
+ההצעה שלך על ${opts.projectName} (${opts.unitLabel}) בסך ${price} התקבלה.
+
+היכנסו ל-Haveniq כדי להמשיך את התהליך.
+
+— Haveniq`
+      : `Hi,
+
+Great news — your offer of ${price} on ${opts.projectName} (${opts.unitLabel}) has been accepted.
 
 Log in to Haveniq to review next steps and finalise the transaction.
 
@@ -123,10 +158,21 @@ export async function emailOfferRejected(opts: {
   projectName: string;
   unitLabel: string;
 }) {
+  const locale = await recipientLocale(opts.buyerEmail);
   await sendEmail({
     to: opts.buyerEmail,
-    subject: `Update on your offer — ${opts.projectName} — ${opts.unitLabel}`,
-    text: `Hi,
+    subject: locale === "he"
+      ? `עדכון להצעה — ${opts.projectName} — ${opts.unitLabel}`
+      : `Update on your offer — ${opts.projectName} — ${opts.unitLabel}`,
+    text: locale === "he"
+      ? `שלום,
+
+בעל המודעה החליט לא להמשיך עם ההצעה על ${opts.projectName} (${opts.unitLabel}).
+
+אפשר להמשיך לעיין ביחידות אחרות ב-Haveniq.
+
+— Haveniq`
+      : `Hi,
 
 Unfortunately the listing owner has decided not to proceed with your offer on ${opts.projectName} (${opts.unitLabel}).
 
@@ -144,14 +190,29 @@ export async function emailOfferCountered(opts: {
   counterPrice: number;
   counterTerms: string;
 }) {
+  const locale = await recipientLocale(opts.buyerEmail);
+  const price = money(opts.counterPrice, locale);
   await sendEmail({
     to: opts.buyerEmail,
-    subject: `Counter-offer received — ${opts.projectName} — ${opts.unitLabel}`,
-    text: `Hi,
+    subject: locale === "he"
+      ? `התקבלה הצעת נגד — ${opts.projectName} — ${opts.unitLabel}`
+      : `Counter-offer received — ${opts.projectName} — ${opts.unitLabel}`,
+    text: locale === "he"
+      ? `שלום,
+
+התקבלה הצעת נגד על ${opts.projectName} (${opts.unitLabel}):
+
+  מחיר : ${price}
+  תנאים : ${opts.counterTerms}
+
+היכנסו ל-Haveniq כדי לאשר, לדחות או להציע נגד.
+
+— Haveniq`
+      : `Hi,
 
 You've received a counter-offer on ${opts.projectName} (${opts.unitLabel}):
 
-  Counter price : £${opts.counterPrice.toLocaleString()}
+  Counter price : ${price}
   Terms         : ${opts.counterTerms}
 
 Log in to Haveniq to accept, reject, or send your own counter.
@@ -165,10 +226,21 @@ export async function emailDeveloperApproved(opts: {
   developerEmail: string;
   companyName: string;
 }) {
+  const locale = await recipientLocale(opts.developerEmail);
   await sendEmail({
     to: opts.developerEmail,
-    subject: "Your developer account has been approved — Haveniq",
-    text: `Hi ${opts.companyName},
+    subject: locale === "he"
+      ? "חשבון היזם אושר — Haveniq"
+      : "Your developer account has been approved — Haveniq",
+    text: locale === "he"
+      ? `שלום ${opts.companyName},
+
+חשבון היזם ב-Haveniq אושר. אפשר לפרסם פרויקטים ולהשיב להצעות.
+
+היכנסו כדי להתחיל.
+
+— Haveniq`
+      : `Hi ${opts.companyName},
 
 Your developer account on Haveniq has been approved. You can now list projects and respond to buyer offers.
 
@@ -183,10 +255,21 @@ export async function emailDeveloperRejected(opts: {
   developerEmail: string;
   companyName: string;
 }) {
+  const locale = await recipientLocale(opts.developerEmail);
   await sendEmail({
     to: opts.developerEmail,
-    subject: "Update on your developer account application — Haveniq",
-    text: `Hi ${opts.companyName},
+    subject: locale === "he"
+      ? "עדכון לבקשת חשבון היזם — Haveniq"
+      : "Update on your developer account application — Haveniq",
+    text: locale === "he"
+      ? `שלום ${opts.companyName},
+
+לאחר בדיקת פרטי הרישום לא ניתן לאשר את חשבון היזם בשלב זה.
+
+אם זו טעות, פנו לתמיכה.
+
+— Haveniq`
+      : `Hi ${opts.companyName},
 
 After reviewing your company registration details we are unable to approve your developer account at this time.
 
@@ -203,12 +286,24 @@ export async function emailDevOfferAcceptedByBuyer(opts: {
   unitLabel: string;
   finalPrice: number;
 }) {
+  const locale = await recipientLocale(opts.developerEmail);
+  const price = money(opts.finalPrice, locale);
   await sendEmail({
     to: opts.developerEmail,
-    subject: `Offer accepted — ${opts.projectName} — ${opts.unitLabel}`,
-    text: `Hi,
+    subject: locale === "he"
+      ? `ההצעה אושרה — ${opts.projectName} — ${opts.unitLabel}`
+      : `Offer accepted — ${opts.projectName} — ${opts.unitLabel}`,
+    text: locale === "he"
+      ? `שלום,
 
-A buyer has accepted your counter-offer on ${opts.projectName} (${opts.unitLabel}) at £${opts.finalPrice.toLocaleString()}.
+קונה אישר את הצעת הנגד על ${opts.projectName} (${opts.unitLabel}) בסך ${price}.
+
+היכנסו ל-Haveniq לפרטים.
+
+— Haveniq`
+      : `Hi,
+
+A buyer has accepted your counter-offer on ${opts.projectName} (${opts.unitLabel}) at ${price}.
 
 Log in to Haveniq to review the details.
 
@@ -222,10 +317,21 @@ export async function emailDevOfferRejectedByBuyer(opts: {
   projectName: string;
   unitLabel: string;
 }) {
+  const locale = await recipientLocale(opts.developerEmail);
   await sendEmail({
     to: opts.developerEmail,
-    subject: `Buyer declined your counter-offer — ${opts.projectName} — ${opts.unitLabel}`,
-    text: `Hi,
+    subject: locale === "he"
+      ? `הקונה דחה את הצעת הנגד — ${opts.projectName} — ${opts.unitLabel}`
+      : `Buyer declined your counter-offer — ${opts.projectName} — ${opts.unitLabel}`,
+    text: locale === "he"
+      ? `שלום,
+
+הקונה דחה את הצעת הנגד על ${opts.projectName} (${opts.unitLabel}).
+
+היכנסו ל-Haveniq כדי לראות הצעות אחרות.
+
+— Haveniq`
+      : `Hi,
 
 The buyer has declined your counter-offer on ${opts.projectName} (${opts.unitLabel}).
 
@@ -242,12 +348,24 @@ export async function emailDevBuyerCountered(opts: {
   unitLabel: string;
   buyerPrice: number;
 }) {
+  const locale = await recipientLocale(opts.developerEmail);
+  const price = money(opts.buyerPrice, locale);
   await sendEmail({
     to: opts.developerEmail,
-    subject: `Buyer counter-offer received — ${opts.projectName} — ${opts.unitLabel}`,
-    text: `Hi,
+    subject: locale === "he"
+      ? `התקבלה הצעת נגד מהקונה — ${opts.projectName} — ${opts.unitLabel}`
+      : `Buyer counter-offer received — ${opts.projectName} — ${opts.unitLabel}`,
+    text: locale === "he"
+      ? `שלום,
 
-The buyer has responded with a counter-offer of £${opts.buyerPrice.toLocaleString()} on ${opts.projectName} (${opts.unitLabel}).
+הקונה השיב בהצעת נגד של ${price} על ${opts.projectName} (${opts.unitLabel}).
+
+זהו סבב המשא ומתן האחרון — צריך לאשר או לדחות. היכנסו ל-Haveniq.
+
+— Haveniq`
+      : `Hi,
+
+The buyer has responded with a counter-offer of ${price} on ${opts.projectName} (${opts.unitLabel}).
 
 This is the final negotiation round — you must now accept or reject. Log in to Haveniq to respond.
 
@@ -265,10 +383,21 @@ export async function emailVerificationLink(opts: {
   token: string;
 }) {
   const link = `${appUrl()}/verify-email?token=${opts.token}`;
+  const locale = await recipientLocale(opts.to);
   await sendEmail({
     to: opts.to,
-    subject: "Verify your email — Haveniq",
-    text: `Hi,
+    subject: locale === "he" ? "אימות הדוא״ל — Haveniq" : "Verify your email — Haveniq",
+    text: locale === "he"
+      ? `שלום,
+
+תודה על ההרשמה ל-Haveniq. לאימות הדוא״ל לחצו על הקישור:
+
+${link}
+
+הקישור תקף ל־24 שעות. אם לא יצרתם חשבון, אפשר להתעלם מההודעה.
+
+— Haveniq`
+      : `Hi,
 
 Thanks for registering on Haveniq. Please verify your email address by clicking the link below:
 
@@ -286,10 +415,23 @@ export async function emailPasswordResetLink(opts: {
   token: string;
 }) {
   const link = `${appUrl()}/reset-password?token=${opts.token}`;
+  const locale = await recipientLocale(opts.to);
   await sendEmail({
     to: opts.to,
-    subject: "Reset your password — Haveniq",
-    text: `Hi,
+    subject: locale === "he" ? "איפוס סיסמה — Haveniq" : "Reset your password — Haveniq",
+    text: locale === "he"
+      ? `שלום,
+
+קיבלנו בקשה לאיפוס הסיסמה בחשבון Haveniq.
+
+לבחירת סיסמה חדשה לחצו על הקישור:
+
+${link}
+
+הקישור תקף לשעה. אם לא ביקשתם איפוס, אפשר להתעלם — הסיסמה לא תשתנה.
+
+— Haveniq`
+      : `Hi,
 
 We received a request to reset the password for your Haveniq account.
 
@@ -310,12 +452,24 @@ export async function emailReservationConfirmed(opts: {
   unitLabel: string;
   reservedPrice: number;
 }) {
+  const locale = await recipientLocale(opts.buyerEmail);
+  const price = money(opts.reservedPrice, locale);
   await sendEmail({
     to: opts.buyerEmail,
-    subject: `Reservation confirmed — ${opts.projectName} — ${opts.unitLabel}`,
-    text: `Hi,
+    subject: locale === "he"
+      ? `ההזמנה אושרה — ${opts.projectName} — ${opts.unitLabel}`
+      : `Reservation confirmed — ${opts.projectName} — ${opts.unitLabel}`,
+    text: locale === "he"
+      ? `שלום,
 
-Your reservation for ${opts.projectName} (${opts.unitLabel}) at £${opts.reservedPrice.toLocaleString()} has been confirmed.
+ההזמנה ל-${opts.projectName} (${opts.unitLabel}) בסך ${price} אושרה.
+
+אפשר להמשיך לחדר העסקה לתשלום פקדון מדומה ולחתימה.
+
+— Haveniq`
+      : `Hi,
+
+Your reservation for ${opts.projectName} (${opts.unitLabel}) at ${price} has been confirmed.
 
 You can now proceed to the Deal Room to pay your reservation deposit and sign the contract.
 

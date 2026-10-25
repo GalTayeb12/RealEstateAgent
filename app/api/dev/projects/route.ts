@@ -33,6 +33,12 @@ export async function GET(req: NextRequest) {
         createdAt: true, updatedAt: true,
         // teaserVideoData deliberately omitted
         unitTypes: { orderBy: { createdAt: "asc" } },
+        buildings: {
+          orderBy: { sortIndex: "asc" },
+          include: {
+            units: { orderBy: [{ floor: "asc" }, { positionIndex: "asc" }] },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     }),

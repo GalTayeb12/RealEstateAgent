@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { formatMoneyPlain } from "@/lib/i18n/currency";
+import { parseLocale } from "@/lib/i18n/locale";
 
 export async function GET(
   req: NextRequest,
@@ -21,6 +23,12 @@ export async function GET(
     if (!auth) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const viewer = await prisma.user.findUnique({
+      where: { id: auth.userId },
+      select: { locale: true },
+    });
+    const viewerLocale = parseLocale(viewer?.locale);
 
     const offer = await prisma.offer.findUnique({
       where: { id: offerId },
@@ -158,7 +166,7 @@ export async function GET(
     const details: [string, string][] = [
       ["Buyer", offer.buyer.email],
       ["Developer", companyName],
-      ["Final agreed price", `£${finalPrice.toLocaleString("en-GB")}`],
+      ["Final agreed price", formatMoneyPlain(finalPrice, viewerLocale)],
       ["Date agreed", dateAccepted],
       ["Offer reference", offer.id],
     ];

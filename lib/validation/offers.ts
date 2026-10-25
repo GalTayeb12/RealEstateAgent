@@ -4,6 +4,7 @@ export const createOfferSchema = z.object({
   unitTypeId: z.string().min(1, "unitTypeId is required"),
   offeredPrice: z.number({ error: "offeredPrice must be a positive number" }).positive("offeredPrice must be a positive amount"),
   terms: z.string().optional(),
+  unitId: z.string().min(1).optional(),
 });
 
 const offerActionEnum = z.enum(["accept", "reject", "counter"], {

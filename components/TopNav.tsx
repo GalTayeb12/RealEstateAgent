@@ -10,7 +10,8 @@
  * the "My Offers" link. Refreshes count on every route change so the badge
  * stays current as the user navigates.
  *
- * Hidden on public / pre-auth pages (see PUBLIC_PATHS).
+ * Hidden on the marketing homepage (its own nav) and the transition sting.
+ * Guest / pre-auth / interview pages get a slim bar with the language toggle.
  * Sign-out clears localStorage and redirects to /login from anywhere.
  *
  * Mobile: collapses to a hamburger menu at ≤640px.
@@ -18,16 +19,29 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/components/LocaleProvider";
+import LanguageToggle from "@/components/LanguageToggle";
 
-// Pages where the nav must NOT appear
-const PUBLIC_PATHS = new Set([
-  "/",
+// Marketing homepage has its own sticky nav (with the language toggle inside it).
+const HOME_PATH = "/";
+
+// Guest / pre-auth / interview pages get a slim bar: logo + language toggle.
+const GUEST_PATHS = new Set([
   "/login",
   "/register",
   "/dev/login",
   "/dev/register",
   "/dev/pending",
   "/dev/rejected",
+  "/seller/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/terms",
+  "/privacy",
+  "/interview",
+  "/transition",
+  "/processing",
 ]);
 
 interface NavUser {
@@ -38,23 +52,27 @@ interface NavUser {
 
 // ── Per-role link definitions ─────────────────────────────────────────────────
 
-const NAV_LINKS: Record<string, { label: string; href: string; badgeKey?: string }[]> = {
+const NAV_HREFS: Record<string, { href: string; key: "results" | "offers" | "groups" | "dashboard" | "approvals"; badgeKey?: string }[]> = {
   buyer: [
-    { label: "Results",   href: "/results" },
-    { label: "My Offers", href: "/buyer/offers", badgeKey: "offers" },
-    { label: "Groups",    href: "/buyer/leverage-groups" },
+    { key: "results", href: "/results" },
+    { key: "offers", href: "/buyer/offers", badgeKey: "offers" },
+    { key: "groups", href: "/buyer/leverage-groups" },
   ],
   developer: [
-    { label: "Dashboard", href: "/dev/dashboard" },
+    { key: "dashboard", href: "/dev/dashboard" },
+  ],
+  seller: [
+    { key: "dashboard", href: "/seller/dashboard" },
   ],
   admin: [
-    { label: "Approvals", href: "/dev/admin/approvals" },
+    { key: "approvals", href: "/dev/admin/approvals" },
   ],
 };
 
 const DASHBOARD_HREF: Record<string, string> = {
   buyer:     "/results",
   developer: "/dev/dashboard",
+  seller:    "/seller/dashboard",
   admin:     "/dev/admin/approvals",
 };
 
@@ -74,6 +92,7 @@ function getInitials(user: NavUser): string {
 export default function TopNav() {
   const pathname  = usePathname();
   const router    = useRouter();
+  const { m } = useI18n();
   const [user, setUser]               = useState<NavUser | null>(null);
   const [offersCount, setOffersCount] = useState(0);
   const [menuOpen, setMenuOpen]       = useState(false);
@@ -104,11 +123,12 @@ export default function TopNav() {
     } catch { /* ignore */ }
   }, [pathname]);
 
-  if (PUBLIC_PATHS.has(pathname) || !user) return null;
+  if (pathname === HOME_PATH || pathname === "/transition") return null;
 
-  const links    = NAV_LINKS[user.role] ?? [];
-  const dashHref = DASHBOARD_HREF[user.role] ?? "/";
-  const initials = getInitials(user);
+  const showAppNav = !!user && !GUEST_PATHS.has(pathname);
+  const links    = user ? (NAV_HREFS[user.role] ?? []) : [];
+  const dashHref = user ? (DASHBOARD_HREF[user.role] ?? "/") : "/";
+  const initials = user ? getInitials(user) : "";
 
   function signOut() {
     localStorage.removeItem("token");
@@ -133,10 +153,15 @@ export default function TopNav() {
           .hn-nav-links   { display: none !important; }
           .hn-nav-right   { display: none !important; }
           .hn-hamburger   { display: flex !important; }
+          .hn-nav-lang-mobile { display: flex !important; }
+        }
+        @media (max-width: 480px) {
+          .hn-guest-extra { display: none !important; }
         }
         @media (min-width: 641px) {
           .hn-hamburger    { display: none !important; }
           .hn-mobile-menu  { display: none !important; }
+          .hn-nav-lang-mobile { display: none !important; }
         }
       `}</style>
 
@@ -151,16 +176,18 @@ export default function TopNav() {
         gap: "1.5rem",
       }}>
         {/* Logo */}
-        <Link href={dashHref} style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>
+        <Link href={showAppNav ? dashHref : "/"} style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>
           <img src="/haveniq_logo_horizontal.png" alt="Haveniq" style={{ height: 22, width: "auto" }} />
         </Link>
 
-        {/* Divider — desktop only */}
+        {showAppNav && (
         <div className="hn-nav-divider" style={{ width: 1, height: "1.125rem", background: "#DDD9D3", flexShrink: 0 }} />
+        )}
 
         {/* Nav links — desktop only */}
-        <div className="hn-nav-links" style={{ display: "flex", alignItems: "center", gap: "0.125rem", flex: 1 }}>
-          {links.map(({ label, href, badgeKey }) => {
+        <div className="hn-nav-links" style={{ display: showAppNav ? "flex" : "none", alignItems: "center", gap: "0.125rem", flex: 1 }}>
+          {showAppNav && links.map(({ key, href, badgeKey }) => {
+            const label = m.nav[key];
             const active = pathname === href || pathname.startsWith(href + "/");
             const count  = badgeKey === "offers" ? offersCount : 0;
             return (
@@ -205,8 +232,28 @@ export default function TopNav() {
           })}
         </div>
 
-        {/* Right side: avatar + sign out — desktop only */}
-        <div className="hn-nav-right" style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
+        {/* Guest pages: keep the language toggle in the same bar */}
+        {!showAppNav && (
+          <div style={{ marginInlineStart: "auto", display: "flex", alignItems: "center", gap: "0.875rem", flexShrink: 0 }}>
+            {pathname === "/login" && (
+              <Link className="hn-guest-extra" href="/register" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "#55534C", whiteSpace: "nowrap" }}>
+                {m.auth.noAccount} <span style={{ color: "#1F4B4A" }}>{m.auth.registerCta}</span>
+              </Link>
+            )}
+            {(pathname === "/register" || pathname === "/seller/register") && (
+              <Link className="hn-guest-extra" href="/login" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "#55534C", whiteSpace: "nowrap" }}>
+                {m.auth.haveAccount} <span style={{ color: "#1F4B4A" }}>{m.auth.signIn}</span>
+              </Link>
+            )}
+            <LanguageToggle />
+          </div>
+        )}
+
+        {/* Right side: language + avatar + sign out — desktop only */}
+        <div className="hn-nav-right" style={{ display: showAppNav ? "flex" : "none", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
+          <LanguageToggle />
+          {user && (
+            <>
           <Link
             href="/profile"
             title={user.name ?? user.email}
@@ -254,19 +301,28 @@ export default function TopNav() {
               (e.currentTarget as HTMLButtonElement).style.color = "#6B6860";
             }}
           >
-            Sign out
+            {m.nav.signOut}
           </button>
+            </>
+          )}
         </div>
 
+        {showAppNav && (
+        <div className="hn-nav-lang-mobile" style={{ display: "none", marginInlineStart: "auto", alignItems: "center" }}>
+          <LanguageToggle />
+        </div>
+        )}
+
         {/* Hamburger — mobile only */}
+        {showAppNav && (
         <button
           className="hn-hamburger"
           onClick={() => setMenuOpen(o => !o)}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-label={menuOpen ? m.nav.closeMenu : m.nav.openMenu}
           aria-expanded={menuOpen}
           style={{
             display: "none",       /* shown via CSS media query */
-            marginLeft: "auto",
+            marginInlineStart: showAppNav ? 0 : "auto",
             alignItems: "center",
             justifyContent: "center",
             width: "2.25rem",
@@ -294,10 +350,11 @@ export default function TopNav() {
             </svg>
           )}
         </button>
+        )}
       </div>
 
       {/* ── Mobile menu ──────────────────────────────────────────────────────── */}
-      {menuOpen && (
+      {showAppNav && menuOpen && user && (
         <div
           className="hn-mobile-menu"
           style={{
@@ -309,7 +366,8 @@ export default function TopNav() {
           }}
         >
           {/* Nav links */}
-          {links.map(({ label, href, badgeKey }) => {
+          {links.map(({ key, href, badgeKey }) => {
+            const label = m.nav[key];
             const active = pathname === href || pathname.startsWith(href + "/");
             const count  = badgeKey === "offers" ? offersCount : 0;
             return (
@@ -406,7 +464,7 @@ export default function TopNav() {
               textAlign: "left",
             }}
           >
-            Sign out
+            {m.nav.signOut}
           </button>
         </div>
       )}

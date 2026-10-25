@@ -8,8 +8,7 @@
  * Body:  { transcriptId: string }
  * Returns: CharacterizationResult
  *
- * Shared prompt/types/validator live in lib/characterize.ts so the PDF demo
- * path (app/api/demo/parse-pdf/route.ts) stays in sync automatically.
+ * Shared prompt/types/validator live in lib/characterize.ts.
  */
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";

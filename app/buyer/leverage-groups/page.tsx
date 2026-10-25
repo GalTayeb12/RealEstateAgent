@@ -12,6 +12,7 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useI18n } from "@/components/LocaleProvider";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -112,6 +113,7 @@ function MemberPill({ count }: { count: number }) {
 // ── My group card ─────────────────────────────────────────────────────────────
 
 function GroupCard({ group }: { group: LeverageGroup }) {
+  const { formatPrice } = useI18n();
   const isCountered = group.status === "countered";
   return (
     <div
@@ -149,7 +151,7 @@ function GroupCard({ group }: { group: LeverageGroup }) {
             <div style={{ fontSize: "0.8125rem", color: "#6B6860" }}>
               {group.unitType.project.location}
               {group.unitType.price > 0 &&
-                ` · Listed at £${group.unitType.price.toLocaleString()}`}
+                ` · ${formatPrice(group.unitType.price)}`}
             </div>
           </div>
           <StatusBadge status={group.status} />
@@ -252,6 +254,7 @@ function JoinableGroupCard({
   token: string;
   onJoined: () => void;
 }) {
+  const { formatPrice } = useI18n();
   const [joining, setJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState("");
@@ -317,7 +320,7 @@ function JoinableGroupCard({
             >
               {group.unitType.project.location}
               {group.unitType.price > 0 &&
-                ` · £${group.unitType.price.toLocaleString()}`}
+                ` · ${formatPrice(group.unitType.price)}`}
             </div>
             <div
               style={{

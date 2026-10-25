@@ -1,14 +1,19 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useI18n } from "@/components/LocaleProvider";
+
+const HIDE_FOOTER = new Set(["/interview", "/transition", "/processing"]);
 
 /**
- * SiteFooter — minimal one-line footer rendered on every page via RootLayout.
- *
- * Full marketing footer lives in app/page.tsx (homepage only).
- * This component provides the legal links on authenticated app pages
- * (results, offers, profile, etc.) without duplicating the elaborate
- * multi-column homepage layout.
+ * SiteFooter — the only site-wide footer. Hidden on full-screen cinematic pages
+ * so it cannot sit under a position:fixed overlay.
  */
 export default function SiteFooter() {
+  const pathname = usePathname();
+  const { m } = useI18n();
+  if (HIDE_FOOTER.has(pathname)) return null;
   return (
     <footer
       style={{
@@ -42,9 +47,8 @@ export default function SiteFooter() {
               textDecoration: "none",
               transition: "color 0.15s",
             }}
-            onMouseEnter={undefined}
           >
-            Terms of Service
+            {m.footer.terms}
           </Link>
           <Link
             href="/privacy"
@@ -54,7 +58,7 @@ export default function SiteFooter() {
               textDecoration: "none",
             }}
           >
-            Privacy Policy
+            {m.footer.privacy}
           </Link>
         </div>
       </div>

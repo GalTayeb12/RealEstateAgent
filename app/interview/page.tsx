@@ -1,17 +1,13 @@
 "use client";
 /**
- * /interview — Phase 2b
+ * /interview
  *
- * After the power-off transition, this page:
- *   0. Checks rate limit and whether the buyer already has a profile.
- *      - Has profile + not an explicit retake → redirects to /processing
- *        (processing re-runs matching with the saved profile, then goes to /results).
- *      - Rate limit reached → shows blocked state with wait time.
- *   1. Calls POST /api/liveavatar/session (server-side) to get LiveKit credentials.
- *   2. Joins the LiveKit room using livekit-client (low-level SDK).
- *   3. Renders the avatar's video track full-screen.
- *   4. Buffers transcript lines arriving on the "agent-response" data channel.
- *   5. Shows an "End conversation" button; on click: saves transcript → /processing.
+ * Live path:
+ *   0. Rate-limit + existing-profile check.
+ *   1. POST /api/liveavatar/session → LiveKit credentials (HeyGen + ElevenLabs).
+ *   2. Join the LiveKit room and render the avatar video.
+ *   3. Buffer transcript lines from the `agent-response` data channel.
+ *   4. "End conversation" (or agent hang-up) saves the transcript → /processing.
  */
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -23,18 +19,16 @@ import {
   RemoteTrack,
   Track,
 } from "livekit-client";
-
-interface TranscriptLine {
-  role: "user" | "agent";
-  text: string;
-  ts: number;
-}
+import {
+  parseAgentResponsePayload,
+  type TranscriptLine,
+} from "@/lib/liveavatar";
 
 type InterviewState =
-  | { phase: "checking" }                             // pre-flight: rate limit + profile check
+  | { phase: "checking" }
   | { phase: "connecting" }
-  | { phase: "ready"; room: Room }                    // room connected, waiting for user gesture
-  | { phase: "live"; room: Room }                     // mic active, conversation in progress
+  | { phase: "ready"; room: Room }
+  | { phase: "live"; room: Room }
   | { phase: "ending" }
   | { phase: "rate-limited"; nextAvailableAt: string }
   | { phase: "error"; message: string };
@@ -52,39 +46,43 @@ export default function InterviewPage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const roomRef = useRef<Room | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
   const transcriptRef = useRef<TranscriptLine[]>([]);
+  const endingRef = useRef(false);
+  const endConversationRef = useRef<() => Promise<void>>(async () => {});
   const [state, setState] = useState<InterviewState>({ phase: "checking" });
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
-  // DEMO ONLY — remove before production
-  const [demoCountdown, setDemoCountdown] = useState(5);
 
-  // DEMO ONLY — auto-navigate to /processing after 5 seconds.
-  // Guard: do not fire while checking or rate-limited.
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDemoCountdown((n) => (n <= 1 ? 0 : n - 1));
-    }, 1000);
-    return () => clearInterval(interval);
+  const pushLine = useCallback((line: TranscriptLine) => {
+    const last = transcriptRef.current[transcriptRef.current.length - 1];
+    if (last && last.role === line.role && last.text === line.text) return;
+    transcriptRef.current.push(line);
+    setTranscript((prev) => [...prev, line]);
   }, []);
 
-  useEffect(() => {
-    if (demoCountdown === 0 && state.phase !== "checking" && state.phase !== "rate-limited") {
-      router.push("/processing");
-    }
-  }, [demoCountdown, router, state.phase]);
-
-  // ── Attach a remote video track directly to our styled <video> ref ───────
   const attachVideo = useCallback((track: RemoteTrack) => {
     if (videoRef.current) {
       track.attach(videoRef.current);
     }
   }, []);
 
+  const attachExistingVideo = useCallback(
+    (room: Room) => {
+      room.remoteParticipants.forEach((participant) => {
+        participant.trackPublications.forEach((pub: RemoteTrackPublication) => {
+          if (pub.track && pub.track.kind === Track.Kind.Video) {
+            attachVideo(pub.track);
+          }
+        });
+      });
+    },
+    [attachVideo]
+  );
+
   useEffect(() => {
     let cancelled = false;
 
     async function connect() {
-      // ── Phase 0: Pre-flight check ─────────────────────────────────────────
       const token = typeof window !== "undefined" ? localStorage.getItem("token") ?? "" : "";
 
       try {
@@ -94,14 +92,12 @@ export default function InterviewPage() {
 
         if (limitRes.ok) {
           const { hasCompletedProfile, remaining, nextAvailableAt } =
-            await limitRes.json() as {
+            (await limitRes.json()) as {
               hasCompletedProfile: boolean;
               remaining: number;
               nextAvailableAt: string | null;
             };
 
-          // "requestedRetake" is set by the results page retake button.
-          // Without it, a returning buyer with a profile is sent back to results.
           const isRetake =
             typeof window !== "undefined" &&
             sessionStorage.getItem("requestedRetake") === "true";
@@ -121,24 +117,21 @@ export default function InterviewPage() {
             return;
           }
         }
-        // If the check fails (e.g. unauthenticated), proceed — server enforces the limit.
       } catch {
-        // Graceful degradation: continue to connect; server will enforce via 429.
+        // Server still enforces the limit on session create.
       }
 
       if (cancelled) return;
       setState({ phase: "connecting" });
 
       try {
-        // ── Phase 1: Fetch LiveKit credentials ─────────────────────────────
         const res = await fetch("/api/liveavatar/session", {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Handle server-side rate-limit enforcement (fallback / race condition)
         if (res.status === 429) {
-          const data = await res.json().catch(() => ({})) as { nextAvailableAt?: string };
+          const data = (await res.json().catch(() => ({}))) as { nextAvailableAt?: string };
           if (!cancelled) {
             setState({ phase: "rate-limited", nextAvailableAt: data.nextAvailableAt ?? "" });
           }
@@ -150,21 +143,21 @@ export default function InterviewPage() {
           throw new Error(error ?? "Session API returned " + res.status);
         }
 
-        const { livekit_url, livekit_client_token } = await res.json() as {
+        const { livekit_url, livekit_client_token, session_id } = (await res.json()) as {
           livekit_url: string;
           livekit_client_token: string;
+          session_id?: string;
         };
 
         if (cancelled) return;
+        sessionIdRef.current = session_id ?? null;
 
-        // ── Phase 2: Create and connect the Room ───────────────────────────
         const room = new Room({
           adaptiveStream: true,
           dynacast: true,
         });
         roomRef.current = room;
 
-        // ── Phase 3: Wire up remote video track subscriptions ──────────────
         room.on(RoomEvent.TrackSubscribed, (track, _pub, _participant) => {
           if (track.kind === Track.Kind.Video) {
             attachVideo(track);
@@ -179,37 +172,22 @@ export default function InterviewPage() {
           });
         });
 
-        // ── Phase 4: Capture transcript from ElevenLabs data channel ───────
         room.on(RoomEvent.DataReceived, (payload: Uint8Array, _participant, _kind, topic?: string) => {
-          if (topic !== "agent-response") return;
+          if (topic && topic !== "agent-response") return;
           try {
-            const text = new TextDecoder().decode(payload);
-            const outer = JSON.parse(text) as {
-              type: string;
-              elevenlabs_event_type?: string;
-              message?: string;
-            };
-
-            if (outer.type !== "elevenlabs_agent_event") return;
-
-            const eventType = outer.elevenlabs_event_type;
-            const message = outer.message ?? "";
-
-            if (eventType === "user_transcript" && message) {
-              const line: TranscriptLine = { role: "user", text: message, ts: Date.now() };
-              transcriptRef.current.push(line);
-              setTranscript((prev) => [...prev, line]);
-            } else if (eventType === "agent_response" && message) {
-              const line: TranscriptLine = { role: "agent", text: message, ts: Date.now() };
-              transcriptRef.current.push(line);
-              setTranscript((prev) => [...prev, line]);
+            const parsed = parseAgentResponsePayload(new TextDecoder().decode(payload));
+            if (parsed === "session_stopped") {
+              void endConversationRef.current();
+              return;
             }
+            if (parsed) pushLine(parsed);
           } catch {
             // Malformed payload — ignore
           }
         });
 
         await room.connect(livekit_url, livekit_client_token);
+        attachExistingVideo(room);
 
         if (cancelled) {
           await room.disconnect();
@@ -228,11 +206,22 @@ export default function InterviewPage() {
 
     return () => {
       cancelled = true;
+      const sid = sessionIdRef.current;
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") ?? "" : "";
+      if (sid && !endingRef.current) {
+        void fetch("/api/liveavatar/stop", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ sessionId: sid }),
+        }).catch(() => {});
+      }
       roomRef.current?.disconnect();
     };
-  }, [attachVideo, router]);
+  }, [attachExistingVideo, attachVideo, pushLine, router]);
 
-  // ── Start conversation (user gesture → mic enabled) ─────────────────────
   const startConversation = useCallback(async () => {
     const room = roomRef.current;
     if (!room) return;
@@ -245,44 +234,95 @@ export default function InterviewPage() {
     }
   }, []);
 
-  // ── End conversation ─────────────────────────────────────────────────────
   const endConversation = useCallback(async () => {
+    if (endingRef.current) return;
+    endingRef.current = true;
     setState({ phase: "ending" });
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") ?? "" : "";
+    const sessionId = sessionIdRef.current;
+
+    if (sessionId) {
+      await fetch("/api/liveavatar/stop", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ sessionId }),
+      }).catch(() => {});
+    }
 
     if (roomRef.current) {
       await roomRef.current.disconnect();
       roomRef.current = null;
     }
 
-    const lines = transcriptRef.current;
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    let lines = transcriptRef.current;
+    if (lines.length === 0 && sessionId) {
+      try {
+        const fallback = await fetch(
+          `/api/liveavatar/transcript?sessionId=${encodeURIComponent(sessionId)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (fallback.ok) {
+          const data = (await fallback.json()) as { lines?: TranscriptLine[] };
+          if (data.lines?.length) {
+            lines = data.lines;
+            transcriptRef.current = lines;
+          }
+        }
+      } catch {
+        // Fall through to the empty-transcript error below.
+      }
+    }
+
+    if (lines.length === 0) {
+      setState({
+        phase: "error",
+        message: "We didn't capture the conversation. Please start the interview again.",
+      });
+      endingRef.current = false;
+      return;
+    }
 
     try {
       const res = await fetch("/api/transcript", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token ?? ""}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ lines }),
       });
-      if (res.ok) {
-        const { transcriptId } = await res.json();
-        if (transcriptId) localStorage.setItem("transcriptId", transcriptId);
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: res.statusText }));
+        throw new Error(error ?? "Failed to save transcript");
       }
-    } catch {
-      // Don't block navigation even if save fails
+      const { transcriptId } = await res.json();
+      if (transcriptId) localStorage.setItem("transcriptId", transcriptId);
+    } catch (err) {
+      setState({
+        phase: "error",
+        message: (err as Error).message,
+      });
+      endingRef.current = false;
+      return;
     }
 
     router.push("/processing");
   }, [router]);
 
-  // ── Render ───────────────────────────────────────────────────────────────
+  endConversationRef.current = endConversation;
+
   return (
     <main
       style={{
         position: "fixed",
-        inset: 0,
+        top: "3.25rem",
+        left: 0,
+        right: 0,
+        bottom: 0,
         background: "#000",
         display: "flex",
         flexDirection: "column",
@@ -291,15 +331,16 @@ export default function InterviewPage() {
         fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
       }}
     >
-      {/* Avatar video */}
       <div
         style={{
           flex: 1,
           width: "100%",
+          minHeight: 0,
           position: "relative",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          overflow: "hidden",
         }}
       >
         <video
@@ -315,21 +356,18 @@ export default function InterviewPage() {
           }}
         />
 
-        {/* Checking spinner */}
         {state.phase === "checking" && (
           <div style={{ color: "#6B6860", fontSize: "0.875rem", letterSpacing: "0.05em" }}>
             Checking…
           </div>
         )}
 
-        {/* Connecting spinner */}
         {state.phase === "connecting" && (
           <div style={{ color: "#6B6860", fontSize: "0.875rem", letterSpacing: "0.05em" }}>
             Connecting…
           </div>
         )}
 
-        {/* Rate-limited state */}
         {state.phase === "rate-limited" && (
           <div
             style={{
@@ -389,7 +427,6 @@ export default function InterviewPage() {
           </div>
         )}
 
-        {/* Ready overlay — avatar visible, waiting for user to start */}
         {state.phase === "ready" && (
           <div
             style={{
@@ -422,7 +459,6 @@ export default function InterviewPage() {
           </div>
         )}
 
-        {/* Error state */}
         {state.phase === "error" && (
           <div
             style={{
@@ -434,11 +470,25 @@ export default function InterviewPage() {
             }}
           >
             <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>Connection error</div>
-            <div style={{ color: "#6B6860" }}>{state.message}</div>
+            <div style={{ color: "#6B6860", marginBottom: "1rem" }}>{state.message}</div>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                padding: "0.625rem 1.5rem",
+                borderRadius: "0.5rem",
+                border: "1px solid rgba(255,255,255,0.15)",
+                background: "rgba(255,255,255,0.06)",
+                color: "#F7F5F1",
+                fontSize: "0.8125rem",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Try again
+            </button>
           </div>
         )}
 
-        {/* Ending state */}
         {state.phase === "ending" && (
           <div style={{ color: "#6B6860", fontSize: "0.875rem" }}>
             Saving conversation…
@@ -446,30 +496,6 @@ export default function InterviewPage() {
         )}
       </div>
 
-      {/* DEMO ONLY — countdown banner. Remove before production. */}
-      {state.phase !== "rate-limited" && state.phase !== "checking" && (
-        <div
-          style={{
-            position: "absolute",
-            top: "1rem",
-            right: "1rem",
-            background: "rgba(200,155,60,0.15)",
-            border: "1px solid rgba(200,155,60,0.35)",
-            borderRadius: "0.5rem",
-            padding: "0.375rem 0.875rem",
-            fontSize: "0.75rem",
-            color: "#C89B3C",
-            fontWeight: 600,
-            letterSpacing: "0.04em",
-            backdropFilter: "blur(6px)",
-            zIndex: 20,
-          }}
-        >
-          DEMO — proceeding in {demoCountdown}s
-        </div>
-      )}
-
-      {/* Bottom bar — visible once conversation is active */}
       {state.phase === "live" && (
         <div
           style={{
@@ -482,7 +508,6 @@ export default function InterviewPage() {
             gap: "1rem",
           }}
         >
-          {/* Live transcript preview (last line) */}
           <div
             style={{
               flex: 1,
@@ -498,26 +523,23 @@ export default function InterviewPage() {
               : "Listening…"}
           </div>
 
-          {/* End button */}
           <button
             onClick={endConversation}
-            disabled={state.phase !== "live"}
             style={{
               flexShrink: 0,
               padding: "0.625rem 1.5rem",
               borderRadius: "0.5rem",
               border: "1px solid rgba(255,255,255,0.15)",
               background: "rgba(255,255,255,0.06)",
-              color: state.phase === "live" ? "#F7F5F1" : "#6B6860",
+              color: "#F7F5F1",
               fontSize: "0.8125rem",
               fontWeight: 600,
               letterSpacing: "0.04em",
-              cursor: state.phase === "live" ? "pointer" : "not-allowed",
+              cursor: "pointer",
               transition: "background 0.15s, border-color 0.15s",
             }}
             onMouseEnter={(e) => {
-              if (state.phase === "live")
-                (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)";
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)";

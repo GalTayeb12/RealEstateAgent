@@ -44,21 +44,23 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const parsedBody = updateUnitTypeSchema.safeParse(body);
   if (!parsedBody.success) return zodError(parsedBody.error);
   const { unitLabel, price, quantityTotal, quantityAvailable, description, eil, ail, attributes, aomStatus } = parsedBody.data;
+  const apartmentCount = await prisma.unit.count({ where: { unitTypeId: id } });
+  const quantitiesFollowApartments = apartmentCount > 0;
 
   const updated = await prisma.unitType.update({
     where: { id },
     data: {
       ...(unitLabel != null && { unitLabel }),
       ...(price != null && { price: Number(price) }),
-      ...(quantityTotal != null && { quantityTotal: Number(quantityTotal) }),
-      ...(quantityAvailable != null && { quantityAvailable: Number(quantityAvailable) }),
+      ...(!quantitiesFollowApartments && quantityTotal != null && { quantityTotal: Number(quantityTotal) }),
+      ...(!quantitiesFollowApartments && quantityAvailable != null && { quantityAvailable: Number(quantityAvailable) }),
       ...(description != null && { description }),
       ...(eil != null && { eil: Number(eil) }),
       ...(ail != null && { ail: Number(ail) }),
       ...(attributes != null && { attributes: JSON.stringify(attributes) }),
       ...(aomStatus != null && {
         aomStatus,
-        active: aomStatus !== "sold",
+        ...(!quantitiesFollowApartments && { active: aomStatus !== "sold" }),
       }),
     },
   });

@@ -11,11 +11,10 @@
  *   - "My offers" nav link with unread-update badge
  */
 
-// DEMO ONLY — set to false (or remove the block below) before production.
-const DEMO_SHOW_PROFILE = true;
-
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { EstimatedPriceNote, Money } from "@/components/Money";
+import { useI18n } from "@/components/LocaleProvider";
 import Link from "next/link";
 import { computeElasticity, ElasticityResult } from "@/lib/elasticity";
 
@@ -37,6 +36,7 @@ interface AomDetail {
   eil: number;
   ail: number;
   price: number;
+  priceFrom?: boolean;
   developerId: string;
   ownerType: string;
   attributes: Record<string, unknown>;
@@ -452,6 +452,7 @@ function SendOfferPanel({
   ownerType: string;
 }) {
   const router = useRouter();
+  const { m } = useI18n();
   const isDeveloperUnit = ownerType === "developer";
   const [phase, setPhase] = useState<OfferPhase>("idle");
   const [offeredPrice, setOfferedPrice] = useState(detail.price > 0 ? String(detail.price) : "");
@@ -508,7 +509,8 @@ function SendOfferPanel({
         </svg>
         <div>
           <div style={{ fontSize: "0.875rem", fontWeight: 700, color: "#1F4B4A" }}>
-            Offer sent — £{Number(offeredPrice).toLocaleString()} pending review
+            {m.results.offerSent} — <Money amount={Number(offeredPrice)} />
+            <EstimatedPriceNote />
           </div>
           {terms && <div style={{ fontSize: "0.8125rem", color: "#3A6B6A", marginTop: "0.125rem" }}>&ldquo;{terms}&rdquo;</div>}
         </div>
@@ -523,7 +525,7 @@ function SendOfferPanel({
           onClick={() => setPhase("open")}
           style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", letterSpacing: "0.01em" }}
         >
-          {isDeveloperUnit ? "Reserve at listed price" : "Send offer"}
+          {isDeveloperUnit ? m.results.reserve : m.results.sendOffer}
         </button>
       </div>
     );
@@ -534,19 +536,21 @@ function SendOfferPanel({
     return (
       <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(28,27,25,0.08)", overflow: "hidden" }}>
         <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(28,27,25,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
-          <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A" }}>Reserve at listed price</span>
+          <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A" }}>{m.results.reserve}</span>
           <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label="Close">✕</button>
         </div>
         <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #E0DDD7", padding: "0.875rem 1rem" }}>
             <div style={{ fontSize: "0.6875rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "#9A958F", marginBottom: "0.25rem" }}>
-              Reserving at listed price
+              {m.results.reservingAt}
             </div>
             <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.25rem", fontWeight: 700, color: "#1F4B4A" }}>
-              £{detail.price.toLocaleString()}
+              {detail.priceFrom ? `${m.results.from} ` : ""}
+              <Money amount={detail.price} />
             </div>
+            <EstimatedPriceNote />
             <div style={{ fontSize: "0.8125rem", color: "#9A958F", marginTop: "0.25rem" }}>
-              Fixed price — no negotiation. You will be taken to the Deal Room immediately.
+              {m.results.fixed}
             </div>
           </div>
           {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#B04040", fontWeight: 500 }}>{errMsg}</p>}
@@ -555,10 +559,10 @@ function SendOfferPanel({
               onClick={submit} disabled={phase === "submitting"}
               style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
             >
-              {phase === "submitting" ? "Reserving…" : "Confirm reservation"}
+              {phase === "submitting" ? m.results.reserving : m.results.confirm}
             </button>
             <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "#9A958F", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
-              Cancel
+              {m.results.cancel}
             </button>
           </div>
         </div>
@@ -570,18 +574,18 @@ function SendOfferPanel({
   return (
     <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(28,27,25,0.08)", overflow: "hidden" }}>
       <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(28,27,25,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
-        <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A" }}>Make an offer</span>
+        <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A" }}>{m.results.makeOffer}</span>
         <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label="Close">✕</button>
       </div>
 
       <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
         <div>
           <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
-            Your offer price (£)
+            {m.results.yourPrice}
           </label>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)", fontSize: "1rem", fontWeight: 700, color: "#6B6860", pointerEvents: "none" }}>£</span>
+              <span style={{ position: "absolute", insetInlineStart: "0.875rem", top: "50%", transform: "translateY(-50%)", fontSize: "1rem", fontWeight: 700, color: "#6B6860", pointerEvents: "none" }}>₪</span>
               <input
                 type="number" min={1} step={1000} value={offeredPrice}
                 onChange={e => setOfferedPrice(e.target.value)}
@@ -590,7 +594,7 @@ function SendOfferPanel({
                 onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
               />
             </div>
-            {detail.price > 0 && <span style={{ fontSize: "0.8125rem", color: "#9A958F" }}>Listed at £{detail.price.toLocaleString()}</span>}
+            {detail.price > 0 && <span style={{ fontSize: "0.8125rem", color: "#9A958F" }}>{m.results.listedAt} <Money amount={detail.price} /></span>}
           </div>
         </div>
 
@@ -646,6 +650,7 @@ function MatchCard({
   onOfferSent: () => void;
   onOpenLeverage: (o: MatchOutcome) => void;
 }) {
+  const { m } = useI18n();
   const attrs = detail?.attributes ?? {};
   const eil = detail?.eil ?? outcome.lowerBound;
   const ail = detail?.ail ?? outcome.upperBound;
@@ -668,6 +673,12 @@ function MatchCard({
               {outcome.title}
             </h2>
             {detail?.description && <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "#6B6860", lineHeight: 1.5 }}>{detail.description}</p>}
+            {detail && detail.price > 0 && (
+              <p style={{ margin: "0.5rem 0 0", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 700, color: "#1F4B4A" }}>
+                {detail.priceFrom ? `${m.results.from} ` : ""}
+                <Money amount={detail.price} />
+              </p>
+            )}
           </div>
 
           <div style={{ flexShrink: 0, textAlign: "right" }}>
@@ -915,62 +926,6 @@ export default function ResultsPage() {
             </div>
           </div>
         </div>
-
-        {/* DEMO debug panel */}
-        {DEMO_SHOW_PROFILE && (
-          <div style={{ background: "linear-gradient(160deg, #1A1916 0%, #1C1B19 100%)", borderRadius: 20, border: "1px solid rgba(255,255,255,0.07)", padding: "1.5rem", boxShadow: "0 2px 4px rgba(0,0,0,0.15), 0 20px 40px -20px rgba(0,0,0,0.4)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem", paddingBottom: "1rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#C89B3C", background: "rgba(200,155,60,0.12)", border: "1px solid rgba(200,155,60,0.25)", borderRadius: 999, padding: "0.2rem 0.75rem", flexShrink: 0 }}>Demo only</span>
-              <span style={{ fontSize: "0.8125rem", color: "rgba(255,255,255,0.25)", fontWeight: 500 }}>Debug — parsed buyer profile</span>
-            </div>
-            <div className="hn-results-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.875rem 2.5rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem" }}>
-              {[["Property type", prefs.property_type], ["Location", prefs.location], ["Bedrooms", prefs.bedrooms != null ? String(prefs.bedrooms) : "—"], ["Bathrooms", prefs.bathrooms != null ? String(prefs.bathrooms) : "—"], ["Timeline", prefs.timeline], ["Ideal score (ej)", String(char.expected_score_ej)], ["Floor score (aj)", String(char.min_acceptance_score_aj)]].map(([label, value]) => (
-                <div key={label}>
-                  <div style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.28)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.2rem" }}>{label}</div>
-                  <div style={{ color: "rgba(255,255,255,0.72)", fontWeight: 500 }}>{value}</div>
-                </div>
-              ))}
-            </div>
-            {prefs.must_haves?.length > 0 && (
-              <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.28)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Must-haves</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
-                  {prefs.must_haves.map((item: string, i: number) => (
-                    <span key={i} style={{ fontSize: "0.75rem", background: "rgba(31,75,74,0.35)", color: "#B8D4D3", borderRadius: 6, padding: "0.2rem 0.625rem", border: "1px solid rgba(31,75,74,0.5)", fontFamily: "var(--font-jetbrains, monospace)" }}>{item}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {prefs.dealbreakers?.length > 0 && (
-              <div style={{ marginTop: "0.875rem" }}>
-                <div style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.28)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.5rem" }}>Dealbreakers</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem" }}>
-                  {prefs.dealbreakers.map((item: string, i: number) => (
-                    <span key={i} style={{ fontSize: "0.75rem", background: "rgba(176,64,64,0.18)", color: "#E8A0A0", borderRadius: 6, padding: "0.2rem 0.625rem", border: "1px solid rgba(176,64,64,0.3)", fontFamily: "var(--font-jetbrains, monospace)" }}>{item}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {char.psychometric_scores && (
-              <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.28)", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "0.875rem" }}>Psychometric scores</div>
-                <div className="hn-results-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.625rem 2.5rem" }}>
-                  {([["Verbal reasoning", char.psychometric_scores.verbal_reasoning], ["Numerical reasoning", char.psychometric_scores.numerical_reasoning], ["Spatial reasoning", char.psychometric_scores.spatial_reasoning], ["Abstract reasoning", char.psychometric_scores.abstract_reasoning], ["Memory", char.psychometric_scores.memory], ["Attention", char.psychometric_scores.attention], ["Processing speed", char.psychometric_scores.processing_speed], ["Executive function", char.psychometric_scores.executive_function]] as [string, number][]).map(([label, score]) => (
-                    <div key={label}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.25rem" }}>
-                        <div style={{ fontSize: "0.625rem", color: "rgba(255,255,255,0.3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "var(--font-jetbrains, monospace)" }}>{label}</div>
-                        <span style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.75rem", fontWeight: 700, fontFamily: "var(--font-jetbrains, monospace)" }}>{Math.round(score)}</span>
-                      </div>
-                      <div style={{ height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 3, overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${score}%`, background: score >= 70 ? "#1F4B4A" : score >= 45 ? "#C89B3C" : "#B04040", borderRadius: 3 }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Match cards */}
         {ranked.map((outcome) => {

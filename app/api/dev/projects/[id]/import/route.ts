@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
+import { syncUnitTypeInventory } from "@/lib/inventory";
 import * as XLSX from "xlsx";
 
 function requireApprovedDev(req: NextRequest) {
@@ -17,13 +18,14 @@ function requireApprovedDev(req: NextRequest) {
 
 // ── Flexible header normalisation ─────────────────────────────────────────────
 
-type FieldName = "label" | "rooms" | "area" | "price" | "floor" | "building" | "quantity" | "available";
+type FieldName = "label" | "rooms" | "area" | "price" | "floor" | "building" | "quantity" | "available" | "unit";
 
 const HEADER_MAP: Array<[RegExp, FieldName]> = [
   [/^(label|type|unittype|type_code|טיפוס|סוג)$/i, "label"],
   [/^(rooms|bedrooms|חדרים|hdarim)$/i, "rooms"],
   [/^(area|sqm|sqft|מ"ר|שטח|size)$/i, "area"],
   [/^(price|מחיר|mekhir)$/i, "price"],
+  [/^(unitnumber|unit_number|apt|apartment|דירה|מספר)$/i, "unit"],
   [/^(floor|קומה|koma)$/i, "floor"],
   [/^(building|בניין|binyan)$/i, "building"],
   [/^(quantity|qty|units|כמות)$/i, "quantity"],
@@ -179,21 +181,19 @@ export async function POST(
     if (floorStr)    attrs.floor    = floorStr;
     if (buildingStr) attrs.building = buildingStr;
 
-    const existingId = existingMap.get(groupKey);
+    let unitTypeId = existingMap.get(groupKey);
 
-    if (existingId) {
+    if (unitTypeId) {
       await prisma.unitType.update({
-        where: { id: existingId },
+        where: { id: unitTypeId },
         data: {
           price: avgPrice,
-          quantityTotal,
-          quantityAvailable,
           attributes: JSON.stringify(attrs),
         },
       });
       updated++;
     } else {
-      await prisma.unitType.create({
+      const createdType = await prisma.unitType.create({
         data: {
           projectId,
           sellerId: auth.userId,
@@ -207,8 +207,96 @@ export async function POST(
           attributes: JSON.stringify(attrs),
         },
       });
+      unitTypeId = createdType.id;
+      existingMap.set(groupKey, unitTypeId);
       created++;
     }
+
+    const apartmentRows: Array<{ building: string; floor: number; unitNumber: string; price: number | null }> = [];
+    for (const { row, rowNum } of entries) {
+      const unitNumber = get(row, "unit");
+      const floorRaw = get(row, "floor");
+      if (!unitNumber || !floorRaw) continue;
+      const floor = parseInt(floorRaw, 10);
+      if (Number.isNaN(floor)) {
+        skipped.push({ row: rowNum, reason: "floor is not a number" });
+        continue;
+      }
+      const priceRaw = get(row, "price");
+      const rowPrice = priceRaw ? parseFloat(priceRaw.replace(/[^0-9.]/g, "")) : NaN;
+      apartmentRows.push({
+        building: get(row, "building") || "1",
+        floor,
+        unitNumber,
+        price: !Number.isNaN(rowPrice) && Math.abs(rowPrice - avgPrice) > 1 ? rowPrice : null,
+      });
+    }
+
+    const byFloor = new Map<string, typeof apartmentRows>();
+    for (const row of apartmentRows) {
+      const key = `${row.building}::${row.floor}`;
+      const list = byFloor.get(key) ?? [];
+      list.push(row);
+      byFloor.set(key, list);
+    }
+
+    for (const rows of byFloor.values()) {
+      rows.sort((a, b) => a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true }));
+      const building = await prisma.building.upsert({
+        where: { projectId_name: { projectId, name: rows[0].building } },
+        update: {},
+        create: {
+          projectId,
+          name: rows[0].building,
+          floorCount: rows[0].floor,
+          unitsPerFloor: rows.length,
+          sortIndex: 0,
+        },
+      });
+      if (building.floorCount < rows[0].floor) {
+        await prisma.building.update({
+          where: { id: building.id },
+          data: { floorCount: rows[0].floor },
+        });
+      }
+
+      for (let index = 0; index < rows.length; index++) {
+        const row = rows[index];
+        await prisma.unit.upsert({
+          where: {
+            buildingId_floor_unitNumber: {
+              buildingId: building.id,
+              floor: row.floor,
+              unitNumber: row.unitNumber,
+            },
+          },
+          update: {
+            unitTypeId,
+            positionIndex: index,
+            price: row.price,
+          },
+          create: {
+            projectId,
+            buildingId: building.id,
+            unitTypeId,
+            floor: row.floor,
+            unitNumber: row.unitNumber,
+            positionIndex: index,
+            status: "available",
+            price: row.price,
+          },
+        });
+      }
+    }
+
+    if (apartmentRows.length === 0) {
+      await prisma.unitType.update({
+        where: { id: unitTypeId },
+        data: { quantityTotal, quantityAvailable },
+      });
+    }
+
+    await prisma.$transaction((tx) => syncUnitTypeInventory(tx, unitTypeId));
   }
 
   return NextResponse.json({ created, updated, skipped });

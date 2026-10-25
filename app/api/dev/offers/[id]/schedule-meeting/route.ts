@@ -18,6 +18,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { formatMoney } from "@/lib/i18n/currency";
+import { parseLocale } from "@/lib/i18n/locale";
 import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { scheduleMeeting } from "@/lib/google";
@@ -107,9 +109,14 @@ export async function POST(
     try { return JSON.parse(offer.negotiationHistory || "[]"); } catch { return []; }
   })();
   const lastTwo = history.slice(-2);
+  const host = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    select: { locale: true },
+  });
+  const hostLocale = parseLocale(host?.locale);
   const priceSummary = lastTwo.length
-    ? lastTwo.map((e) => `${e.actor === "developer" ? "Dev" : "Buyer"}: £${e.price.toLocaleString()}`).join(" → ")
-    : `Buyer: £${offer.offeredPrice.toLocaleString()}`;
+    ? lastTwo.map((e) => `${e.actor === "developer" ? "Dev" : "Buyer"}: ${formatMoney(e.price, hostLocale)}`).join(" → ")
+    : `Buyer: ${formatMoney(offer.offeredPrice, hostLocale)}`;
 
   let meetingLink: string;
   try {

@@ -2,6 +2,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/components/LocaleProvider";
+import { EstimatedPriceNote, Money } from "@/components/Money";
+import DevInventory, { type InventoryBuilding } from "@/components/DevInventory";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -37,6 +40,7 @@ interface Project {
   description: string;
   status: string;
   unitTypes: UnitType[];
+  buildings?: InventoryBuilding[];
   hasTeaserVideo?: boolean;
 }
 
@@ -146,6 +150,7 @@ const blankUnitTypeForm = {
 
 export default function DevDashboardPage() {
   const router = useRouter();
+  const { m } = useI18n();
   const [profile, setProfile] = useState<DevProfile | null>(null);
   const [tab, setTab] = useState<Tab>("projects");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -287,6 +292,17 @@ export default function DevDashboardPage() {
     loadProjects();
   }
 
+  async function releaseReservation(id: string) {
+    if (!window.confirm(m.dev.releaseHoldConfirm)) return;
+    const res = await fetch(`/api/offers/${id}/cancel`, { method: "POST", headers: auth() });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      window.alert(data.error ?? "Could not release the reservation");
+      return;
+    }
+    await Promise.all([loadReservations(), loadProjects()]);
+  }
+
   async function deactivateUnitType(id: string) {
     if (!confirm("Deactivate this unit type?")) return;
     await fetch(`/api/dev/unit-types/${id}`, { method: "DELETE", headers: auth() });
@@ -334,7 +350,7 @@ export default function DevDashboardPage() {
   }
 
   async function removeProjectVideo(projectId: string) {
-    if (!confirm("Remove this project video?")) return;
+    if (!confirm(m.dev.removeVideoConfirm)) return;
     const res = await fetch(`/api/dev/projects/${projectId}/video`, {
       method: "DELETE",
       headers: auth(),
@@ -449,9 +465,9 @@ export default function DevDashboardPage() {
         {/* Tab nav */}
         <div style={{ maxWidth: "62rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", gap: 0 }}>
           {([
-            ["projects",     "My Projects",   totalProjects],
-            ["reservations", "Reservations",  reservations.length],
-            ["groups",       "Leverage Groups", pendingGroups > 0 ? pendingGroups : groups.length],
+            ["projects",     m.dev.myProjects,   totalProjects],
+            ["reservations", m.dev.reservations,  reservations.length],
+            ["groups",       m.dev.groups, pendingGroups > 0 ? pendingGroups : groups.length],
           ] as const).map(([key, label, count]) => (
             <button
               key={key}
@@ -488,13 +504,13 @@ export default function DevDashboardPage() {
         {tab === "projects" && (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-              <SectionHeading>My Projects</SectionHeading>
+              <SectionHeading>{m.dev.myProjects}</SectionHeading>
               <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
                 <button
                   onClick={() => { setShowProjectForm(true); setProjectForm(blankProjectForm); }}
                   style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", background: "#1F4B4A", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer" }}
                 >
-                  + New project
+                  + {m.dev.newProject}
                 </button>
               </div>
             </div>
@@ -502,29 +518,29 @@ export default function DevDashboardPage() {
             {/* New project form */}
             {showProjectForm && (
               <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", borderTop: "3px solid #C89B3C", padding: "1.5rem", marginBottom: "1.25rem" }}>
-                <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 700, color: "#1C1B19", margin: "0 0 1rem" }}>New project</h3>
+                <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 700, color: "#1C1B19", margin: "0 0 1rem" }}>{m.dev.newProject}</h3>
                 <div className="hn-dev-proj-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div style={{ gridColumn: "1 / -1" }}>
-                    <FormField label="Project name">
-                      <input style={inputStyle} value={projectForm.name} onChange={e => setProjectForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Riverside Towers" />
+                    <FormField label={m.dev.projectName}>
+                      <input style={inputStyle} value={projectForm.name} onChange={e => setProjectForm(f => ({ ...f, name: e.target.value }))} placeholder={m.dev.namePh} />
                     </FormField>
                   </div>
-                  <FormField label="Location / address">
-                    <input style={inputStyle} value={projectForm.location} onChange={e => setProjectForm(f => ({ ...f, location: e.target.value }))} placeholder="e.g. Riverside Quarter, London E1W" />
+                  <FormField label={m.dev.location}>
+                    <input style={inputStyle} value={projectForm.location} onChange={e => setProjectForm(f => ({ ...f, location: e.target.value }))} placeholder={m.dev.locPh} />
                   </FormField>
-                  <FormField label="Description">
-                    <input style={inputStyle} value={projectForm.description} onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))} placeholder="Short project description" />
+                  <FormField label={m.dev.description}>
+                    <input style={inputStyle} value={projectForm.description} onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))} placeholder={m.dev.descPh} />
                   </FormField>
                 </div>
                 <div style={{ display: "flex", gap: "0.625rem", justifyContent: "flex-end", marginTop: "1rem" }}>
-                  <ActionButton onClick={() => { setShowProjectForm(false); setProjectForm(blankProjectForm); }} variant="ghost">Cancel</ActionButton>
-                  <ActionButton onClick={submitProjectForm} variant="primary">Create project</ActionButton>
+                  <ActionButton onClick={() => { setShowProjectForm(false); setProjectForm(blankProjectForm); }} variant="ghost">{m.dev.cancel}</ActionButton>
+                  <ActionButton onClick={submitProjectForm} variant="primary">{m.dev.createProject}</ActionButton>
                 </div>
               </div>
             )}
 
             {projects.length === 0 && !showProjectForm && (
-              <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>No projects yet — create your first project above.</p>
+              <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>{m.dev.noProjects}</p>
             )}
 
             {/* Project cards */}
@@ -539,13 +555,13 @@ export default function DevDashboardPage() {
                     {/* Project header — clickable to expand */}
                     <button
                       onClick={() => toggleExpand(project.id)}
-                      style={{ width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", padding: "1.25rem 1.375rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}
+                      style={{ width: "100%", textAlign: "start", background: "none", border: "none", cursor: "pointer", padding: "1.25rem 1.375rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
                           <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 700, color: "#1C1B19" }}>{project.name}</span>
                           {project.status === "inactive" && (
-                            <span style={{ fontSize: "0.6875rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "999px", background: "#F0EDE8", color: "#6B6860", textTransform: "uppercase", letterSpacing: "0.07em" }}>Inactive</span>
+                            <span style={{ fontSize: "0.6875rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "999px", background: "#F0EDE8", color: "#6B6860", letterSpacing: "0.07em" }}>{m.dev.inactive}</span>
                           )}
                         </div>
                         {project.location && (
@@ -591,7 +607,7 @@ export default function DevDashboardPage() {
                                       </span>
                                       {ut.price > 0 && (
                                         <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 700, color: "#1C1B19" }}>
-                                          £{ut.price.toLocaleString()}
+                                          <Money amount={ut.price} />
                                         </span>
                                       )}
                                       {ut.quantityTotal > 0 && (
@@ -617,15 +633,21 @@ export default function DevDashboardPage() {
                                       href={`/dev/properties/${ut.id}`}
                                       style={{ padding: "0.4rem 0.875rem", borderRadius: "0.4rem", fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", border: "1px solid #DDD9D3", textDecoration: "none", display: "inline-flex", alignItems: "center" }}
                                     >
-                                      Edit & manage photos →
+                                      {m.dev.editPhotos}
                                     </Link>
-                                    <ActionButton onClick={() => deactivateUnitType(ut.id)} variant="danger">Deactivate</ActionButton>
+                                    <ActionButton onClick={() => deactivateUnitType(ut.id)} variant="danger">{m.dev.deactivate}</ActionButton>
                                   </div>
                                 </div>
                               );
                             })}
                           </div>
                         )}
+
+                        <DevInventory
+                          buildings={project.buildings ?? []}
+                          unitTypes={project.unitTypes}
+                          onSaved={loadProjects}
+                        />
 
                         {/* Add unit type inline form */}
                         {addingUnitTypeToProjectId === project.id && (
@@ -643,20 +665,20 @@ export default function DevDashboardPage() {
                         {/* ── Project video section ── */}
                         <div style={{ borderTop: "1px solid #F0EDE8", padding: "0.875rem 1.375rem", background: "#F7F5F1" }}>
                           <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.625rem" }}>
-                            Project video
+                            {m.dev.projectVideo}
                           </div>
                           {project.hasTeaserVideo ? (
                             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                              <span style={{ fontSize: "0.8125rem", color: "#1F4B4A", fontWeight: 600 }}>Video uploaded</span>
+                              <span style={{ fontSize: "0.8125rem", color: "#1F4B4A", fontWeight: 600 }}>{m.dev.videoUploaded}</span>
                               <button
                                 onClick={() => removeProjectVideo(project.id)}
                                 style={{ fontSize: "0.75rem", fontWeight: 600, color: "#B04040", background: "none", border: "1px solid #B04040", borderRadius: "0.375rem", padding: "0.25rem 0.625rem", cursor: "pointer" }}
                               >
-                                Remove
+                                {m.dev.remove}
                               </button>
                             </div>
                           ) : (
-                            <span style={{ fontSize: "0.8125rem", color: "#9A958F" }}>No video — upload below</span>
+                            <span style={{ fontSize: "0.8125rem", color: "#9A958F" }}>{m.dev.noVideo}</span>
                           )}
                           <div style={{ display: "flex", gap: "0.625rem", alignItems: "center", marginTop: "0.5rem", flexWrap: "wrap" }}>
                             <input
@@ -678,12 +700,12 @@ export default function DevDashboardPage() {
                                 opacity: projectVideoUploading.has(project.id) || !projectVideoFiles[project.id] ? 0.55 : 1,
                               }}
                             >
-                              {projectVideoUploading.has(project.id) ? "Uploading…" : "Upload"}
+                              {projectVideoUploading.has(project.id) ? m.dev.uploading : m.dev.upload}
                             </button>
                           </div>
                           {projectVideoFiles[project.id] && projectVideoFiles[project.id]!.size > SIZE_VIDEO_WARN_MB * 1024 * 1024 && (
                             <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", background: "#FBF4E4", border: "1px solid #F0D98A", borderRadius: "0.375rem", fontSize: "0.8125rem", color: "#A07020" }}>
-                              File exceeds {SIZE_VIDEO_WARN_MB} MB — upload may be slow.
+                              {m.dev.fileLarge}
                             </div>
                           )}
                         </div>
@@ -692,7 +714,7 @@ export default function DevDashboardPage() {
                         {importingProjectId === project.id && (
                           <div style={{ borderTop: "1px solid #F0EDE8", padding: "1rem 1.375rem", background: "#FDFCFB" }}>
                             <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#C89B3C", marginBottom: "0.875rem" }}>
-                              Import unit types from Excel / CSV
+                              {m.dev.importTitle}
                             </div>
                             <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.75rem" }}>
                               <input
@@ -711,13 +733,13 @@ export default function DevDashboardPage() {
                                   opacity: importBusy || !importFile ? 0.55 : 1,
                                 }}
                               >
-                                {importBusy ? "Importing…" : "Import"}
+                                {importBusy ? m.dev.importing : m.dev.import}
                               </button>
                               <button
                                 onClick={cancelImport}
                                 style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", background: "none", border: "1px solid #DDD9D3", borderRadius: "0.375rem", padding: "0.3rem 0.75rem", cursor: "pointer" }}
                               >
-                                {importResult ? "Close" : "Cancel"}
+                                {importResult ? m.dev.close : m.dev.cancel}
                               </button>
                             </div>
                             {importResult && (
@@ -770,7 +792,7 @@ export default function DevDashboardPage() {
         {/* ── RESERVATIONS ── */}
         {tab === "reservations" && (
           <div>
-            <SectionHeading>Reservations</SectionHeading>
+            <SectionHeading>{m.dev.reservations}</SectionHeading>
             {reservations.length === 0 && <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>No reservations yet — buyers will appear here when they reserve your units at the listed price.</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {reservations.map(reservation => {
@@ -797,16 +819,26 @@ export default function DevDashboardPage() {
                         </div>
                         <div style={{ textAlign: "right" }}>
                           <div style={{ fontSize: "0.6875rem", color: "#6B6860", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Reserved price</div>
-                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 700, color: "#1F4B4A" }}>£{reservation.offeredPrice.toLocaleString()}</div>
+                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 700, color: "#1F4B4A" }}><Money amount={reservation.offeredPrice} /></div>
+                          <EstimatedPriceNote />
                         </div>
                       </div>
-                      <div style={{ marginTop: "1rem" }}>
+                      <div style={{ marginTop: "1rem", display: "flex", gap: "0.625rem", flexWrap: "wrap", alignItems: "center" }}>
                         <Link
                           href={`/deal/${reservation.id}`}
                           style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", fontSize: "0.8125rem", fontWeight: 700, textDecoration: "none" }}
                         >
                           View Deal Room →
                         </Link>
+                        {!isComplete && (
+                          <button
+                            type="button"
+                            onClick={() => void releaseReservation(reservation.id)}
+                            style={{ padding: "0.5rem 0.875rem", borderRadius: 999, border: "1px solid #E7C9C9", background: "#fff", color: "#8C3030", fontSize: "0.8125rem", fontWeight: 700, cursor: "pointer" }}
+                          >
+                            {m.dev.releaseHold}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -820,7 +852,7 @@ export default function DevDashboardPage() {
         {/* ── LEVERAGE GROUPS ── */}
         {tab === "groups" && (
           <div>
-            <SectionHeading>Leverage Groups</SectionHeading>
+            <SectionHeading>{m.dev.groups}</SectionHeading>
             {groups.length === 0 && <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>No group offers received yet.</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {groups.map(group => {
@@ -922,6 +954,7 @@ function UnitTypeForm({
   onCancel: () => void;
   onSubmit: () => void;
 }) {
+  const { m } = useI18n();
   const f = (key: keyof UnitTypeFormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [key]: e.target.value }));
 
@@ -936,7 +969,7 @@ function UnitTypeForm({
             <input style={inputStyle} value={form.unitLabel} onChange={f("unitLabel")} placeholder="3-room" />
           </FormField>
         </div>
-        <FormField label="Price (£)">
+        <FormField label={m.dev.price}>
           <input type="number" style={inputStyle} value={form.price} onChange={f("price")} placeholder="450000" />
         </FormField>
         <FormField label="Total quantity">
@@ -971,7 +1004,7 @@ function UnitTypeForm({
         </div>
       </div>
       <div style={{ display: "flex", gap: "0.625rem", justifyContent: "flex-end", marginTop: "1rem" }}>
-        <ActionButton onClick={onCancel} variant="ghost">Cancel</ActionButton>
+        <ActionButton onClick={onCancel} variant="ghost">{m.dev.cancel}</ActionButton>
         <ActionButton onClick={onSubmit} variant="primary">{isEdit ? "Save changes" : "Add unit type"}</ActionButton>
       </div>
     </div>

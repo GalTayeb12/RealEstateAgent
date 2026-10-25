@@ -13,7 +13,8 @@ import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { createOfferSchema } from "@/lib/validation/offers";
 import { zodError } from "@/lib/validation";
-import { atomicAcceptOffer, OutOfStockError } from "@/lib/inventory";
+import { atomicAcceptOffer, OutOfStockError, UnitTakenError } from "@/lib/inventory";
+import { getRequestLocale } from "@/lib/i18n/request";
 import { appendBlock } from "@/lib/ledger";
 import { emailReservationConfirmed } from "@/lib/email";
 
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = createOfferSchema.safeParse(body);
   if (!parsed.success) return zodError(parsed.error);
-  const { unitTypeId, offeredPrice, terms = "" } = parsed.data;
+  const { unitTypeId, offeredPrice, terms = "", unitId } = parsed.data;
 
   const unitType = await prisma.unitType.findUnique({
     where: { id: unitTypeId },
@@ -94,10 +95,17 @@ export async function POST(req: NextRequest) {
 
     let acceptedOffer;
     try {
-      acceptedOffer = await atomicAcceptOffer(pendingOffer.id, unitTypeId);
+      acceptedOffer = await atomicAcceptOffer(pendingOffer.id, unitTypeId, {}, unitId);
     } catch (err) {
+      await prisma.offer.delete({ where: { id: pendingOffer.id } }).catch(() => {});
+      if (err instanceof UnitTakenError) {
+        const locale = await getRequestLocale();
+        const error = locale === "he"
+          ? "הדירה נשמרה כרגע ע״י קונה אחר"
+          : "This apartment was just reserved by another buyer";
+        return NextResponse.json({ error, code: "UNIT_JUST_RESERVED" }, { status: 409 });
+      }
       if (err instanceof OutOfStockError) {
-        await prisma.offer.delete({ where: { id: pendingOffer.id } });
         return NextResponse.json({ error: "No units available for this listing" }, { status: 409 });
       }
       throw err;

@@ -38,6 +38,20 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Hebrew UI uses Heebo; existing components reference these variables. */
+html[lang="he"] {
+  --font-fraunces: var(--font-heebo), "Heebo", sans-serif;
+  --font-inter: var(--font-heebo), "Heebo", sans-serif;
+}
+
+/* Email, password, and URLs stay left-to-right in both languages. */
+input[type="email"],
+input[type="password"],
+input[type="url"] {
+  direction: ltr;
+  text-align: left;
+}
+
 /* ── Power-off transition ─────────────────────────────────────────────────── */
 
 /*

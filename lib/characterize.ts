@@ -1,11 +1,6 @@
 /**
- * Shared characterization logic used by both:
- *   app/api/characterize/route.ts  (live avatar interview path)
- *   app/api/demo/parse-pdf/route.ts (PDF upload demo path)
- *
- * Keeping the prompt, types, and validator here means a single edit
- * propagates to both routes — the gap that caused psychometric scores
- * to be missing from the PDF path won't recur.
+ * Shared characterization types, prompt, and validator for
+ * app/api/characterize/route.ts (live interview → Claude).
  */
 
 // ── Types ─────────────────────────────────────────────────────────────────────

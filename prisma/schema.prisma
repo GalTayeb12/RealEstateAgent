@@ -15,6 +15,7 @@ model User {
   emailVerified Boolean  @default(false)
   name          String?  // display name, set via profile page
   phone         String?  // personal phone number, set via profile page
+  locale        String   @default("he") // "he" | "en" — UI and email language
   createdAt     DateTime @default(now())
 
   buyerProfile              BuyerProfile?
@@ -120,6 +121,8 @@ model Project {
   updatedAt   DateTime   @updatedAt
 
   unitTypes   UnitType[]
+  buildings   Building[]
+  units       Unit[]
 }
 
 // A unit type within a project — this IS the matchable/sellable AOM
@@ -150,6 +153,51 @@ model UnitType {
   offers         Offer[]
   leverageGroups LeverageGroup[]
   images         ListingImage[]
+  units          Unit[]
+}
+
+// One tower in a developer project. unitsPerFloor is a default for new
+// inventory, not a hard cap — each floor is built from the Units that exist.
+model Building {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name          String
+  floorCount    Int
+  unitsPerFloor Int      @default(4)
+  sortIndex     Int      @default(0)
+  modelUrl      String?  // future GLB; procedural building is used while this is empty
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  units Unit[]
+
+  @@unique([projectId, name])
+  @@index([projectId, sortIndex])
+}
+
+// A specific apartment. Shared facts (rooms, area, plan, photos) stay on UnitType.
+model Unit {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  buildingId    String
+  building      Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  unitTypeId    String
+  unitType      UnitType @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+  floor         Int
+  unitNumber    String
+  positionIndex Int      @default(0)
+  status        String   @default("available") // "available" | "reserved" | "sold"
+  price         Float?   // overrides UnitType.price when set
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  offers Offer[]
+
+  @@unique([buildingId, floor, unitNumber])
+  @@index([unitTypeId, status])
+  @@index([buildingId, floor])
 }
 
 // Images and 360° panorama scenes for a listing (UnitType).
@@ -227,6 +275,8 @@ model Offer {
   buyer        User     @relation("BuyerOffers", fields: [buyerId], references: [id], onDelete: Cascade)
   unitTypeId   String
   unitType     UnitType @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+  unitId       String?
+  unit         Unit?    @relation(fields: [unitId], references: [id], onDelete: SetNull)
   developerId  String
   developer    User     @relation("DeveloperOffers", fields: [developerId], references: [id], onDelete: Cascade)
   offeredPrice Float    // £ price offered by buyer
@@ -247,6 +297,8 @@ model Offer {
   contractEmailSentAt DateTime?             // set once the "both signed" email has been dispatched (idempotency guard)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+
+  @@index([unitId])
 }
 
 // Multi-buyer leverage group negotiating a group discount on a unit type

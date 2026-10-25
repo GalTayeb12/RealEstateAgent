@@ -17,6 +17,7 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/components/LocaleProvider";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -515,6 +516,7 @@ const GROUP_STATUS: Record<string, { label: string; bg: string; color: string }>
 };
 
 function LeverageGroupsTable({ token }: { token: string }) {
+  const { formatPrice } = useI18n();
   const [groups, setGroups] = useState<AdminLeverageGroup[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -568,7 +570,7 @@ function LeverageGroupsTable({ token }: { token: string }) {
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "#9A958F" }}>
                         {g.unitType.project.location}
-                        {g.unitType.price > 0 && ` · £${g.unitType.price.toLocaleString()}`}
+                        {g.unitType.price > 0 && ` · ${formatPrice(g.unitType.price)}`}
                       </div>
                     </td>
                     <td style={{ padding: "0.75rem 1.25rem" }}>

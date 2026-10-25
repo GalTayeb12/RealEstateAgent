@@ -73,7 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (action === "accept") {
     let updated: Awaited<ReturnType<typeof prisma.offer.update>>;
     try {
-      updated = await atomicAcceptOffer(offer.id, offer.unitTypeId);
+      updated = await atomicAcceptOffer(offer.id, offer.unitTypeId, {}, offer.unitId);
     } catch (err) {
       if (err instanceof OutOfStockError) {
         return NextResponse.json(

@@ -5,6 +5,7 @@ import { createVerificationToken } from "@/lib/tokens";
 import { emailVerificationLink } from "@/lib/email";
 import { registerBuyerSchema } from "@/lib/validation/auth";
 import { zodError } from "@/lib/validation";
+import { getRequestLocale } from "@/lib/i18n/request";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,8 +30,9 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await hashPassword(password);
+    const locale = await getRequestLocale();
     const user = await prisma.user.create({
-      data: { email, passwordHash, role },
+      data: { email, passwordHash, role, locale },
     });
 
     // Send verification email — fire-and-forget, never blocks the response.

@@ -16,6 +16,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
+import { formatMoney } from "@/lib/i18n/currency";
+import { parseLocale, type Locale } from "@/lib/i18n/locale";
+import { markReservedUnitSold } from "@/lib/inventory";
 import { signContractSchema } from "@/lib/validation/deals";
 import { zodError } from "@/lib/validation";
 
@@ -90,6 +93,10 @@ export async function POST(
     // Check if both parties have now signed.
     const bothSigned = !!(updated.buyerSignature && updated.developerSignature);
 
+    if (bothSigned) {
+      await markReservedUnitSold(offerId);
+    }
+
     if (bothSigned && !updated.contractEmailSentAt) {
       // Mark as sent first to prevent races.
       await prisma.offer.update({
@@ -101,12 +108,40 @@ export async function POST(
       const companyName = offer.developer.developerProfile?.companyName ?? offer.developer.email;
       const propertyLine = `${offer.unitType.project.name}, ${offer.unitType.project.location} — ${offer.unitType.unitLabel}`;
 
-      const emailBody = `Hi,
+      const [buyerUser, developerUser] = await Promise.all([
+        prisma.user.findUnique({ where: { email: offer.buyer.email }, select: { locale: true } }),
+        prisma.user.findUnique({ where: { email: offer.developer.email }, select: { locale: true } }),
+      ]);
+
+      function signedCopy(locale: Locale) {
+        const price = formatMoney(finalPrice, locale);
+        if (locale === "he") {
+          return {
+            subject: `החוזה נחתם — ${offer.unitType.project.name} · ${offer.unitType.unitLabel}`,
+            text: `שלום,
+
+שני הצדדים חתמו על סיכום העסקה (הדמיה):
+
+  נכס : ${propertyLine}
+  מחיר : ${price}
+  קונה : ${offer.buyer.email}
+  יזם/מוכר : ${companyName}
+
+אפשר לחזור לחדר העסקה בכל עת.
+
+שימו לב: האישור הזה הוא להדגמה בלבד ואינו חוזה מחייב.
+
+— Haveniq`,
+          };
+        }
+        return {
+          subject: `Contract signed — ${offer.unitType.project.name} · ${offer.unitType.unitLabel}`,
+          text: `Hi,
 
 Both parties have signed the deal summary for:
 
   Property : ${propertyLine}
-  Price     : £${finalPrice.toLocaleString("en-GB")}
+  Price     : ${price} (estimated if shown in USD; stored in ILS)
   Buyer     : ${offer.buyer.email}
   Developer : ${companyName}
 
@@ -114,14 +149,16 @@ You can view your Deal Room at any time for the full record.
 
 Please note: this confirmation is for simulation purposes only and does not constitute a legally binding contract.
 
-— Haveniq`;
+— Haveniq`,
+        };
+      }
 
-      const subject = `Contract signed — ${offer.unitType.project.name} · ${offer.unitType.unitLabel}`;
+      const buyerMail = signedCopy(parseLocale(buyerUser?.locale));
+      const developerMail = signedCopy(parseLocale(developerUser?.locale));
 
-      // Fire-and-forget — email failure must not block the response.
       Promise.all([
-        sendEmail({ to: offer.buyer.email,     subject, text: emailBody }),
-        sendEmail({ to: offer.developer.email, subject, text: emailBody }),
+        sendEmail({ to: offer.buyer.email, subject: buyerMail.subject, text: buyerMail.text }),
+        sendEmail({ to: offer.developer.email, subject: developerMail.subject, text: developerMail.text }),
       ]).catch((err) => console.error("[sign] confirmation email failed:", err));
     }
 

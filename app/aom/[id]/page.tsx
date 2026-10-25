@@ -16,6 +16,14 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { TourScene } from "./VirtualTour";
+import { EstimatedPriceNote, Money } from "@/components/Money";
+import { useI18n } from "@/components/LocaleProvider";
+import type { ExplorerBuilding } from "@/components/building/types";
+
+const BuildingExplorer = dynamic(() => import("@/components/building/BuildingExplorer"), {
+  ssr: false,
+  loading: () => <div style={{ height: 480, borderRadius: 16, background: "#E7F0EF", marginBottom: "2rem" }} />,
+});
 
 const VirtualTour = dynamic(
   () => import("./VirtualTour").then((m) => ({ default: m.VirtualTour })),
@@ -51,6 +59,7 @@ interface UnitDetail {
   id: string;
   unitLabel: string;
   price: number;
+  priceFrom?: boolean;
   quantityAvailable: number;
   quantityTotal: number;
   description: string;
@@ -68,6 +77,7 @@ interface UnitDetail {
   };
   seller: { email: string };
   images: ListingImage[];
+  buildings?: ExplorerBuilding[];
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -76,6 +86,7 @@ export default function VprPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
+  const { m } = useI18n();
   const [unit, setUnit] = useState<UnitDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -201,6 +212,10 @@ export default function VprPage() {
           </div>
         )}
 
+        {unit.ownerType === "developer" && (unit.buildings?.length ?? 0) > 0 && (
+          <BuildingExplorer buildings={unit.buildings ?? []} activeUnitTypeId={unit.id} />
+        )}
+
         {/* ── Project teaser video (developer only) ────────────────────────── */}
         {unit.ownerType === "developer" && videoData && (
           <section style={{ marginBottom: "2rem" }}>
@@ -271,7 +286,7 @@ export default function VprPage() {
               {unit.price > 0 && (
                 <div>
                   <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.25rem" }}>Listed price</div>
-                  <div style={{ fontSize: "1.125rem", fontWeight: 700, color: "#14130F", fontFamily: "var(--font-jetbrains, monospace)" }}>£{unit.price.toLocaleString()}</div>
+                  <div style={{ fontSize: "1.125rem", fontWeight: 700, color: "#14130F", fontFamily: "var(--font-jetbrains, monospace)" }}>{unit.priceFrom ? `${m.results.from} ` : ""}<Money amount={unit.price} /><EstimatedPriceNote /></div>
                 </div>
               )}
               <div>

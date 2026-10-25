@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import { useI18n } from "@/components/LocaleProvider";
+import LanguageToggle from "@/components/LanguageToggle";
 
 // ── Scoring demo constants (fixed seller range) ───────────────────────────────
 const SELLER_EIL = 55;
@@ -86,6 +88,7 @@ export default function Home() {
   const [ej, setEj] = useState(88);
   const [aj, setAj] = useState(62);
   const { revealStyle, revealRef } = useScrollReveal();
+  const { m } = useI18n();
 
   // Scoring math
   const lowerBound = Math.max(SELLER_EIL, aj);
@@ -112,6 +115,9 @@ export default function Home() {
         }
         .hp-step-card { transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), box-shadow 0.35s; }
         .hp-step-card:hover { transform: translateY(-4px); box-shadow: 0 24px 40px -24px rgba(18,51,50,0.3) !important; }
+        @media (max-width: 720px) {
+          .hp-nav-anchors { display: none !important; }
+        }
       `}</style>
 
       {/* ── Nav ─────────────────────────────────────────────────────────────── */}
@@ -121,16 +127,17 @@ export default function Home() {
           <div style={{ flexShrink: 0 }}>
             <img src="/haveniq_logo_horizontal.png" alt="Haveniq" style={{ height: 34, width: "auto" }} />
           </div>
-          {/* Anchor nav */}
-          <div style={{ display: "flex", alignItems: "center", gap: "2.25rem", flexWrap: "wrap" }}>
-            <a href="#how-it-works" style={{ textDecoration: "none", color: "#55534C", fontSize: "0.9375rem", fontWeight: 600, whiteSpace: "nowrap" }}>How it works</a>
-            <a href="#scoring"       style={{ textDecoration: "none", color: "#55534C", fontSize: "0.9375rem", fontWeight: 600, whiteSpace: "nowrap" }}>Scoring</a>
-            <a href="#group-buying"  style={{ textDecoration: "none", color: "#55534C", fontSize: "0.9375rem", fontWeight: 600, whiteSpace: "nowrap" }}>Group buying</a>
+          {/* Anchor nav — hidden on narrow screens so the language toggle stays in the bar */}
+          <div className="hp-nav-anchors" style={{ display: "flex", alignItems: "center", gap: "2.25rem", flexWrap: "wrap" }}>
+            <a href="#how-it-works" style={{ textDecoration: "none", color: "#55534C", fontSize: "0.9375rem", fontWeight: 600, whiteSpace: "nowrap" }}>{m.home.how}</a>
+            <a href="#scoring"       style={{ textDecoration: "none", color: "#55534C", fontSize: "0.9375rem", fontWeight: 600, whiteSpace: "nowrap" }}>{m.home.scoring}</a>
+            <a href="#group-buying"  style={{ textDecoration: "none", color: "#55534C", fontSize: "0.9375rem", fontWeight: 600, whiteSpace: "nowrap" }}>{m.home.groupBuying}</a>
           </div>
           {/* Auth */}
-          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexShrink: 0 }}>
-            <Link href="/login" style={{ textDecoration: "none", color: "#1C1B19", fontSize: "0.9375rem", fontWeight: 700, whiteSpace: "nowrap" }}>Sign in</Link>
-            <Link href="/register" style={{ textDecoration: "none", padding: "0.6875rem 1.5rem", borderRadius: 999, fontSize: "0.875rem", fontWeight: 700, color: "#fff", background: "linear-gradient(155deg, #2F6664, #123332)", boxShadow: "0 1px 0 rgba(255,255,255,0.18) inset, 0 10px 22px -10px rgba(18,51,50,0.65)", whiteSpace: "nowrap" }}>Get started</Link>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flexShrink: 0 }}>
+            <LanguageToggle />
+            <Link href="/login" style={{ textDecoration: "none", color: "#1C1B19", fontSize: "0.9375rem", fontWeight: 700, whiteSpace: "nowrap" }}>{m.home.signIn}</Link>
+            <Link href="/register" style={{ textDecoration: "none", padding: "0.6875rem 1.5rem", borderRadius: 999, fontSize: "0.875rem", fontWeight: 700, color: "#fff", background: "linear-gradient(155deg, #2F6664, #123332)", boxShadow: "0 1px 0 rgba(255,255,255,0.18) inset, 0 10px 22px -10px rgba(18,51,50,0.65)", whiteSpace: "nowrap" }}>{m.home.getStarted}</Link>
           </div>
         </div>
       </div>
@@ -144,17 +151,17 @@ export default function Home() {
           <div style={{ animation: "fadeUp 0.8s cubic-bezier(0.16,1,0.3,1) both" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.375rem 0.875rem 0.375rem 0.625rem", borderRadius: 999, background: "#fff", border: "1px solid rgba(31,75,74,0.16)", boxShadow: "0 1px 2px rgba(28,27,25,0.05)", marginBottom: "2rem", whiteSpace: "nowrap" }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1F4B4A", display: "block", flexShrink: 0 }} />
-              <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.6875rem", fontWeight: 500, letterSpacing: "0.06em", color: "#1F4B4A" }}>AI-POWERED MATCHING</span>
+              <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.6875rem", fontWeight: 500, letterSpacing: "0.06em", color: "#1F4B4A" }}>{m.home.badge}</span>
             </div>
             <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "clamp(2.5rem, 3.4vw + 1.25rem, 3.875rem)", lineHeight: 1.12, letterSpacing: "-0.02em", margin: "0 0 1.75rem", color: "#14130F" }}>
-              AI that finds the home<br />that actually <span style={{ color: "#1F4B4A" }}>fits you.</span>
+              {m.home.heroTitleA}<br /><span style={{ color: "#1F4B4A" }}>{m.home.heroTitleB}</span>
             </h1>
             <p style={{ fontSize: "1.1875rem", lineHeight: 1.65, color: "#565349", maxWidth: "29rem", margin: "0 0 2.5rem", fontWeight: 400 }}>
-              One guided AI conversation, scored transparently against every listing — so the match you&apos;re shown is one you understand, not one an algorithm hid from you.
+              {m.home.heroBody}
             </p>
             <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap", alignItems: "center" }}>
-              <Link href="/register" style={{ textDecoration: "none", padding: "1rem 2rem", borderRadius: 999, fontSize: "1rem", fontWeight: 700, color: "#fff", background: "linear-gradient(155deg, #2F6664, #123332)", boxShadow: "0 1px 0 rgba(255,255,255,0.18) inset, 0 14px 30px -12px rgba(18,51,50,0.55)", display: "inline-block" }}>Start your AI interview</Link>
-              <a href="#scoring" style={{ textDecoration: "none", padding: "1rem 0.5rem", fontSize: "1rem", fontWeight: 700, color: "#1C1B19", borderBottom: "1.5px solid rgba(28,27,25,0.25)" }}>See how scoring works</a>
+              <Link href="/register" style={{ textDecoration: "none", padding: "1rem 2rem", borderRadius: 999, fontSize: "1rem", fontWeight: 700, color: "#fff", background: "linear-gradient(155deg, #2F6664, #123332)", boxShadow: "0 1px 0 rgba(255,255,255,0.18) inset, 0 14px 30px -12px rgba(18,51,50,0.55)", display: "inline-block" }}>{m.home.startInterview}</Link>
+              <a href="#scoring" style={{ textDecoration: "none", padding: "1rem 0.5rem", fontSize: "1rem", fontWeight: 700, color: "#1C1B19", borderBottom: "1.5px solid rgba(28,27,25,0.25)" }}>{m.home.seeScoring}</a>
             </div>
           </div>
 
@@ -165,7 +172,7 @@ export default function Home() {
               <div style={{ position: "absolute", inset: 0, borderRadius: 28, overflow: "hidden", boxShadow: "0 2px 6px rgba(28,27,25,0.04), 0 40px 70px -30px rgba(18,51,50,0.28)" }}>
                 <Image
                   src="/images/hero-property.png"
-                  alt="Modern apartment interior"
+                  alt={m.home.heroAlt}
                   fill
                   style={{ objectFit: "cover" }}
                   priority
@@ -176,10 +183,10 @@ export default function Home() {
               <div style={{ position: "absolute", top: "1.25rem", left: "1.25rem", right: "4rem", background: "rgba(255,255,255,0.97)", backdropFilter: "blur(6px)", borderRadius: 14, padding: "1rem 1.125rem", boxShadow: "0 16px 32px -16px rgba(28,27,25,0.3)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}>
                   <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#1F4B4A", display: "block" }} />
-                  <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#1F4B4A" }}>AI Interview</span>
+                  <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#1F4B4A" }}>{m.home.aiInterview}</span>
                 </div>
-                <div style={{ background: "#F0EDE8", borderRadius: "10px 10px 10px 3px", padding: "0.5rem 0.75rem", fontSize: "0.8125rem", color: "#1C1B19", marginBottom: "0.5rem", maxWidth: "92%" }}>What matters most in your next home?</div>
-                <div style={{ background: "#1F4B4A", borderRadius: "10px 10px 3px 10px", padding: "0.5rem 0.75rem", fontSize: "0.8125rem", color: "#fff", marginLeft: "auto", maxWidth: "92%", textAlign: "right" }}>Natural light, a home office, walkable neighborhood.</div>
+                <div style={{ background: "#F0EDE8", borderRadius: "10px 10px 10px 3px", padding: "0.5rem 0.75rem", fontSize: "0.8125rem", color: "#1C1B19", marginBottom: "0.5rem", maxWidth: "92%" }}>{m.home.aiQuestion}</div>
+                <div style={{ background: "#1F4B4A", borderRadius: "10px 10px 3px 10px", padding: "0.5rem 0.75rem", fontSize: "0.8125rem", color: "#fff", marginInlineStart: "auto", maxWidth: "92%" }}>{m.home.aiAnswer}</div>
                 <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.625rem", paddingLeft: "0.25rem" }}>
                   <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#8C8A80", display: "block", animation: "typingBounce 1.2s ease-in-out infinite" }} />
                   <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#8C8A80", display: "block", animation: "typingBounce 1.2s ease-in-out 0.15s infinite" }} />
@@ -190,10 +197,10 @@ export default function Home() {
               {/* Match score card */}
               <div style={{ position: "absolute", left: "1.25rem", bottom: "1.25rem", right: "1.25rem", background: "#fff", borderRadius: 14, padding: "1.125rem 1.25rem", boxShadow: "0 20px 40px -18px rgba(28,27,25,0.28)", animation: "floatSlow 6s ease-in-out infinite" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: "0.5rem" }}>
-                  <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#1C1B19" }}>Riverside Quarter — 2BR</div>
+                  <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#1C1B19" }}>{m.home.sampleName}</div>
                   <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "1.375rem", fontWeight: 700, background: "linear-gradient(155deg, #2F6664, #123332)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent", flexShrink: 0 }}>{heroScore}</div>
                 </div>
-                <p style={{ margin: 0, fontSize: "0.75rem", color: "#6B6860", lineHeight: 1.5 }}>Matches your ask for natural light + a home office.</p>
+                <p style={{ margin: 0, fontSize: "0.75rem", color: "#6B6860", lineHeight: 1.5 }}>{m.home.sampleWhy}</p>
               </div>
             </div>
           </div>
@@ -203,7 +210,7 @@ export default function Home() {
       {/* ── Quiet statement ──────────────────────────────────────────────────── */}
       <section style={{ maxWidth: "80rem", margin: "0 auto", padding: "8.5rem 2.5rem 6rem" }}>
         <p style={{ textAlign: "center", fontWeight: 600, fontSize: "1.625rem", lineHeight: 1.5, letterSpacing: "-0.01em", color: "#33322C", maxWidth: "42rem", margin: "0 auto" }}>
-          Built for buyers who expect rigor, and developers who welcome scrutiny — a matching standard for people who take property seriously.
+          {m.home.quiet}
         </p>
       </section>
 
@@ -214,29 +221,29 @@ export default function Home() {
         style={revealStyle("howItWorks", { maxWidth: "80rem", margin: "0 auto", padding: "2rem 2.5rem 8rem" })}
       >
         <div style={{ maxWidth: "34rem", margin: "0 0 3.75rem" }}>
-          <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>HOW IT WORKS</div>
-          <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: 0, color: "#14130F" }}>Four steps to a match you can explain.</h2>
+          <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>{m.home.howKicker}</div>
+          <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: 0, color: "#14130F" }}>{m.home.howTitle}</h2>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.75rem" }}>
           {[
             {
-              title: "A guided interview",
-              body: "One AI conversation captures your priorities, must-haves, and dealbreakers — precisely, without a checklist.",
+              title: m.home.step1t,
+              body: m.home.step1b,
               icon: <span style={{ width: 14, height: 14, borderRadius: "50%", border: "2.5px solid #1F4B4A", display: "block" }} />,
             },
             {
-              title: "Transparent scoring",
-              body: "Every listing is weighed against your range and the seller's — and you see precisely where they meet.",
+              title: m.home.step2t,
+              body: m.home.step2b,
               icon: <span style={{ width: 17, height: 11, border: "2.5px solid #1F4B4A", borderRadius: 2, display: "block" }} />,
             },
             {
-              title: "Shows its reasoning",
-              body: "You see exactly where your range and the seller's overlap — never a black-box rank.",
+              title: m.home.step3t,
+              body: m.home.step3b,
               icon: <span style={{ width: 16, height: 16, border: "2.5px solid #1F4B4A", display: "block", transform: "rotate(45deg)" }} />,
             },
             {
-              title: "Negotiates with leverage",
-              body: "Pool with aligned buyers to negotiate bulk terms no one could reach alone.",
+              title: m.home.step4t,
+              body: m.home.step4b,
               icon: (
                 <span style={{ display: "flex", gap: 3 }}>
                   <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#1F4B4A", display: "block" }} />
@@ -266,22 +273,22 @@ export default function Home() {
         <div style={{ maxWidth: "80rem", margin: "0 auto", padding: "8rem 2.5rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))", gap: "4.5rem", alignItems: "center" }}>
           {/* Left: description + sliders */}
           <div>
-            <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>THE TECHNOLOGY</div>
-            <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: "0 0 1.5rem", color: "#14130F" }}>The math is fair because you can see it.</h2>
+            <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>{m.home.techKicker}</div>
+            <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: "0 0 1.5rem", color: "#14130F" }}>{m.home.techTitle}</h2>
             <p style={{ fontSize: "1.0625rem", lineHeight: 1.7, color: "#565349", margin: "0 0 2.25rem", maxWidth: "29rem" }}>
-              Every listing has a seller&apos;s minimum and target. You have a floor and an ideal. We find where the two ranges overlap, and score how much surplus is left on the table — adjust the sliders to see it move.
+              {m.home.techBody}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "22rem" }}>
               <div>
                 <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", marginBottom: "0.625rem" }}>
-                  <span>Your ideal score</span>
+                  <span>{m.home.ideal}</span>
                   <span style={{ fontFamily: "var(--font-jetbrains), monospace", color: "#1F4B4A", fontWeight: 600 }}>{ej}</span>
                 </label>
                 <input type="range" min={60} max={100} value={ej} onChange={(e) => setEj(Number(e.target.value))} style={{ width: "100%", accentColor: "#1F4B4A" }} />
               </div>
               <div>
                 <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", marginBottom: "0.625rem" }}>
-                  <span>Your floor score</span>
+                  <span>{m.home.floor}</span>
                   <span style={{ fontFamily: "var(--font-jetbrains), monospace", color: "#1F4B4A", fontWeight: 600 }}>{aj}</span>
                 </label>
                 <input type="range" min={40} max={80} value={aj} onChange={(e) => setAj(Number(e.target.value))} style={{ width: "100%", accentColor: "#1F4B4A" }} />
@@ -296,17 +303,17 @@ export default function Home() {
                 <Image src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=120&q=80" alt="Sample property" fill style={{ objectFit: "cover" }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.625rem", fontWeight: 500, letterSpacing: "0.06em", color: "#1F4B4A" }}>SAMPLE MATCH</div>
-                <div style={{ fontWeight: 700, fontSize: "1.0625rem", color: "#1C1B19", letterSpacing: "-0.01em" }}>Riverside Quarter — 2BR</div>
+                <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.625rem", fontWeight: 500, letterSpacing: "0.06em", color: "#1F4B4A" }}>{m.home.sampleMatch}</div>
+                <div style={{ fontWeight: 700, fontSize: "1.0625rem", color: "#1C1B19", letterSpacing: "-0.01em" }}>{m.home.sampleName}</div>
               </div>
               {feasible ? (
                 <div style={{ background: "linear-gradient(155deg, #EEF4F3, #E1EBE9)", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "right", whiteSpace: "nowrap" }}>
-                  <div style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "#1F4B4A" }}>Surplus</div>
+                  <div style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "#1F4B4A" }}>{m.home.surplus}</div>
                   <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontWeight: 600, fontSize: "1.375rem", color: "#123332" }}>{zij}</div>
                 </div>
               ) : (
                 <div style={{ background: "#FAE8E8", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "right", whiteSpace: "nowrap" }}>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#B04040" }}>No overlap</div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#B04040" }}>{m.home.noOverlap}</div>
                 </div>
               )}
             </div>
@@ -325,8 +332,8 @@ export default function Home() {
               <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
             </div>
             <div style={{ display: "flex", gap: "1.25rem", marginTop: "1.375rem", fontSize: "0.75rem", color: "#6B6860" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}><span style={{ width: 8, height: 8, borderRadius: 2, background: "#B7CCCA", display: "inline-block" }} />Seller range</span>
-              <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}><span style={{ width: 8, height: 8, borderRadius: 2, background: "#C89B3C", display: "inline-block", opacity: 0.7 }} />Your range</span>
+              <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}><span style={{ width: 8, height: 8, borderRadius: 2, background: "#B7CCCA", display: "inline-block" }} />{m.home.sellerRange}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}><span style={{ width: 8, height: 8, borderRadius: 2, background: "#C89B3C", display: "inline-block", opacity: 0.7 }} />{m.home.yourRange}</span>
             </div>
           </div>
         </div>
@@ -338,15 +345,15 @@ export default function Home() {
         style={revealStyle("stats", { maxWidth: "80rem", margin: "0 auto", padding: "8rem 2.5rem" })}
       >
         <div style={{ maxWidth: "34rem", margin: "0 0 3.75rem" }}>
-          <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>BY THE NUMBERS</div>
-          <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: 0, color: "#14130F" }}>Precision at scale.</h2>
+          <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>{m.home.numbersKicker}</div>
+          <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: 0, color: "#14130F" }}>{m.home.numbersTitle}</h2>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "2.5rem", marginBottom: "4rem", borderBottom: "1px solid rgba(28,27,25,0.08)", paddingBottom: "4rem" }}>
           {[
-            { value: "12,400+", label: "Matches scored" },
-            { value: "38%",     label: "Faster to first offer" },
-            { value: "500+",    label: "Verified developments" },
-            { value: "100%",    label: "Of scores shown, not hidden" },
+            { value: "12,400+", label: m.home.stat1 },
+            { value: "38%",     label: m.home.stat2 },
+            { value: "500+",    label: m.home.stat3 },
+            { value: "100%",    label: m.home.stat4 },
           ].map((s) => (
             <div key={s.label}>
               <div style={{ fontWeight: 800, fontSize: "2.75rem", letterSpacing: "-0.02em", background: "linear-gradient(155deg, #1C1B19, #2F6664)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>{s.value}</div>
@@ -356,14 +363,14 @@ export default function Home() {
         </div>
 
         <div style={{ maxWidth: "34rem", margin: "0 0 2.5rem" }}>
-          <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>VERIFIED DEVELOPERS</div>
-          <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: 0, color: "#14130F" }}>Scrutiny, before a listing ever appears.</h2>
+          <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>{m.home.verifiedKicker}</div>
+          <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: 0, color: "#14130F" }}>{m.home.verifiedTitle}</h2>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "2.5rem" }}>
           {[
-            { title: "Registry cross-check",   body: "Company registration is verified against the official registry before approval — never taken on faith." },
-            { title: "Independent research",    body: "A background pass reviews track record and flags concerns before a developer can list at all." },
-            { title: "A living quality score",  body: "Responsiveness and follow-through keep updating each developer's standing — visibility is earned continuously." },
+            { title: m.home.v1t, body: m.home.v1b },
+            { title: m.home.v2t, body: m.home.v2b },
+            { title: m.home.v3t, body: m.home.v3b },
           ].map((c) => (
             <div key={c.title} style={{ background: "#fff", borderRadius: 16, padding: "1.75rem", border: "1px solid rgba(28,27,25,0.06)", boxShadow: "0 1px 2px rgba(28,27,25,0.03)" }}>
               <h3 style={{ fontWeight: 700, fontSize: "1.0625rem", margin: "0 0 0.75rem", color: "#14130F" }}>{c.title}</h3>
@@ -382,12 +389,12 @@ export default function Home() {
         <div style={{ maxWidth: "80rem", margin: "0 auto", padding: "8rem 2.5rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))", gap: "4.5rem", alignItems: "center" }}>
             <div>
-              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>GROUP BUYING POWER</div>
-              <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: "0 0 1.5rem", color: "#14130F" }}>Better terms, negotiated together.</h2>
+              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "1rem" }}>{m.home.groupKicker}</div>
+              <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.375rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: "0 0 1.5rem", color: "#14130F" }}>{m.home.groupTitle}</h2>
               <p style={{ fontSize: "1.0625rem", lineHeight: 1.7, color: "#565349", margin: "0 0 2rem", maxWidth: "29rem" }}>
-                When several matched buyers want the same development, we let them form a single negotiating voice — securing bulk terms no individual buyer could reach alone.
+                {m.home.groupBody}
               </p>
-              <Link href="/buyer/leverage-groups" style={{ textDecoration: "none", padding: "1rem 0.5rem", fontSize: "1rem", fontWeight: 700, color: "#1C1B19", borderBottom: "1.5px solid rgba(28,27,25,0.25)" }}>Find your group →</Link>
+              <Link href="/buyer/leverage-groups" style={{ textDecoration: "none", padding: "1rem 0.5rem", fontSize: "1rem", fontWeight: 700, color: "#1C1B19", borderBottom: "1.5px solid rgba(28,27,25,0.25)" }}>{m.home.findGroup}</Link>
             </div>
 
             {/* Group visual */}
@@ -401,9 +408,9 @@ export default function Home() {
                 <span style={{ position: "absolute", left: "50%", top: -4, transform: "translateX(-50%)", width: 9, height: 9, borderRadius: "50%", background: "#1F4B4A", display: "block" }} />
               </div>
               <div style={{ background: "#F5F3EC", borderRadius: 14, padding: "1.5rem", textAlign: "center", boxShadow: "0 1px 2px rgba(28,27,25,0.04)" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#6B6860", marginBottom: "0.5rem" }}>Requested terms</div>
-                <div style={{ fontWeight: 700, fontSize: "1.25rem", color: "#1C1B19" }}>Riverside Quarter, 3 units</div>
-                <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.9375rem", color: "#1F4B4A", fontWeight: 700, marginTop: "0.5rem" }}>−6% bulk discount requested</div>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#6B6860", marginBottom: "0.5rem" }}>{m.home.requested}</div>
+                <div style={{ fontWeight: 700, fontSize: "1.25rem", color: "#1C1B19" }}>{m.home.groupSample}</div>
+                <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: "0.9375rem", color: "#1F4B4A", fontWeight: 700, marginTop: "0.5rem" }}>{m.home.groupDiscount}</div>
               </div>
             </div>
           </div>
@@ -417,47 +424,11 @@ export default function Home() {
       >
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(50% 60% at 50% 0%, rgba(94,168,164,0.22) 0%, rgba(94,168,164,0) 65%)", pointerEvents: "none" }} />
         <div style={{ position: "relative", maxWidth: "44rem", margin: "0 auto", padding: "7.5rem 2.5rem", textAlign: "center" }}>
-          <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.625rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: "0 0 1.5rem", color: "#fff" }}>Tell us once.<br />We&apos;ll do the matching.</h2>
-          <p style={{ fontSize: "1.0625rem", color: "rgba(255,255,255,0.62)", lineHeight: 1.65, margin: "0 0 2.5rem" }}>A short AI interview is all it takes to start seeing transparently scored matches.</p>
-          <Link href="/register" style={{ textDecoration: "none", padding: "1.0625rem 2.25rem", borderRadius: 999, fontSize: "1rem", fontWeight: 700, color: "#17332F", background: "#fff", display: "inline-block", boxShadow: "0 20px 40px -16px rgba(0,0,0,0.4)" }}>Get started</Link>
+          <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2.625rem", lineHeight: 1.2, letterSpacing: "-0.015em", margin: "0 0 1.5rem", color: "#fff" }}>{m.home.ctaTitleA}<br />{m.home.ctaTitleB}</h2>
+          <p style={{ fontSize: "1.0625rem", color: "rgba(255,255,255,0.62)", lineHeight: 1.65, margin: "0 0 2.5rem" }}>{m.home.ctaBody}</p>
+          <Link href="/register" style={{ textDecoration: "none", padding: "1.0625rem 2.25rem", borderRadius: 999, fontSize: "1rem", fontWeight: 700, color: "#17332F", background: "#fff", display: "inline-block", boxShadow: "0 20px 40px -16px rgba(0,0,0,0.4)" }}>{m.home.getStarted}</Link>
         </div>
       </section>
-
-      {/* ── Footer ───────────────────────────────────────────────────────────── */}
-      <footer style={{ background: "#FAF8F4" }}>
-        <div style={{ maxWidth: "80rem", margin: "0 auto", padding: "4.5rem 2.5rem 2.5rem", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "2.5rem" }}>
-          <div>
-            <div style={{ marginBottom: "0.875rem" }}>
-              <img src="/haveniq_logo_horizontal.png" alt="Haveniq" style={{ height: 26, width: "auto" }} />
-            </div>
-            <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9A958F", maxWidth: "16rem", lineHeight: 1.6 }}>Matching buyers and sellers on a transparent fairness algorithm.</p>
-          </div>
-          <div>
-            <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#1C1B19", marginBottom: "1rem" }}>Product</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6875rem" }}>
-              <a href="#how-it-works" style={{ textDecoration: "none", color: "#6B6860", fontSize: "0.875rem" }}>How it works</a>
-              <a href="#scoring"      style={{ textDecoration: "none", color: "#6B6860", fontSize: "0.875rem" }}>Scoring</a>
-              <a href="#group-buying" style={{ textDecoration: "none", color: "#6B6860", fontSize: "0.875rem" }}>Group buying</a>
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#1C1B19", marginBottom: "1rem" }}>Company</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.6875rem" }}>
-              <Link href="/login"    style={{ textDecoration: "none", color: "#6B6860", fontSize: "0.875rem" }}>Sign in</Link>
-              <Link href="/register" style={{ textDecoration: "none", color: "#6B6860", fontSize: "0.875rem" }}>Get started</Link>
-              <Link href="/terms"    style={{ textDecoration: "none", color: "#6B6860", fontSize: "0.875rem" }}>Terms of Service</Link>
-              <Link href="/privacy"  style={{ textDecoration: "none", color: "#6B6860", fontSize: "0.875rem" }}>Privacy Policy</Link>
-            </div>
-          </div>
-        </div>
-        <div style={{ maxWidth: "80rem", margin: "0 auto", padding: "1.75rem 2.5rem 2.5rem", borderTop: "1px solid rgba(28,27,25,0.06)", fontSize: "0.8125rem", color: "#9A958F", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-          <span>© 2026 Haveniq.</span>
-          <div style={{ display: "flex", gap: "1.25rem" }}>
-            <Link href="/terms"   style={{ textDecoration: "none", color: "#9A958F" }}>Terms of Service</Link>
-            <Link href="/privacy" style={{ textDecoration: "none", color: "#9A958F" }}>Privacy Policy</Link>
-          </div>
-        </div>
-      </footer>
 
     </main>
   );

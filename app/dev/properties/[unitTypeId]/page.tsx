@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useI18n } from "@/components/LocaleProvider";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -125,6 +126,7 @@ function readFileAsDataURL(file: File): Promise<string> {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function UnitTypeEditPage() {
+  const { m } = useI18n();
   const params = useParams();
   const unitTypeId = params.unitTypeId as string;
   const router = useRouter();
@@ -604,7 +606,7 @@ export default function UnitTypeEditPage() {
       if (fpFileInputRef.current) fpFileInputRef.current.value = "";
       fpHistoryRef.current   = [];
       fpBaseImageRef.current = null;
-      setToast("Floor plan saved");
+      setToast(m.dev.saveFloor);
     } catch (err) {
       setToast((err as Error).message);
     } finally {
@@ -742,7 +744,7 @@ export default function UnitTypeEditPage() {
               marginBottom: "0.5rem",
             }}
           >
-            Haveniq — Developer Portal
+            {m.dev.portal}
           </div>
           <div
             style={{
@@ -788,7 +790,7 @@ export default function UnitTypeEditPage() {
                 alignSelf: "center",
               }}
             >
-              ← Dashboard
+              {m.dev.dashboard}
             </a>
           </div>
         </div>
@@ -807,7 +809,7 @@ export default function UnitTypeEditPage() {
         {/* ── Section 1: Basic info ── */}
         <div style={cardStyle}>
           <div style={sectionHeaderStyle as React.CSSProperties}>
-            Basic information
+            {m.dev.basic}
           </div>
           <form
             onSubmit={saveBasicInfo}
@@ -820,7 +822,7 @@ export default function UnitTypeEditPage() {
           >
             {/* Unit label */}
             <div>
-              <label style={labelStyle}>Unit label</label>
+              <label style={labelStyle}>{m.dev.unitLabel}</label>
               <input
                 type="text"
                 value={form.unitLabel}
@@ -841,7 +843,7 @@ export default function UnitTypeEditPage() {
               }}
             >
               <div>
-                <label style={labelStyle}>Price (£)</label>
+                <label style={labelStyle}>{m.dev.price}</label>
                 <input
                   type="number"
                   min={0}
@@ -853,7 +855,7 @@ export default function UnitTypeEditPage() {
                 />
               </div>
               <div>
-                <label style={labelStyle}>Total units</label>
+                <label style={labelStyle}>{m.dev.totalUnits}</label>
                 <input
                   type="number"
                   min={0}
@@ -865,7 +867,7 @@ export default function UnitTypeEditPage() {
                 />
               </div>
               <div>
-                <label style={labelStyle}>Available</label>
+                <label style={labelStyle}>{m.dev.availableQty}</label>
                 <input
                   type="number"
                   min={0}
@@ -888,7 +890,7 @@ export default function UnitTypeEditPage() {
               }}
             >
               <div>
-                <label style={labelStyle}>Min score (eil)</label>
+                <label style={labelStyle}>{m.dev.minScore}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -900,7 +902,7 @@ export default function UnitTypeEditPage() {
                 />
               </div>
               <div>
-                <label style={labelStyle}>Target score (ail)</label>
+                <label style={labelStyle}>{m.dev.targetScore}</label>
                 <input
                   type="number"
                   step="0.01"
@@ -915,7 +917,7 @@ export default function UnitTypeEditPage() {
 
             {/* Description */}
             <div>
-              <label style={labelStyle}>Description</label>
+              <label style={labelStyle}>{m.dev.description}</label>
               <textarea
                 value={form.description}
                 onChange={setField("description")}
@@ -954,7 +956,7 @@ export default function UnitTypeEditPage() {
                   cursor: basicSaving ? "not-allowed" : "pointer",
                 }}
               >
-                {basicSaving ? "Saving…" : "Save changes"}
+                {basicSaving ? m.dev.saving : m.dev.saveChanges}
               </button>
             </div>
           </form>
@@ -963,7 +965,7 @@ export default function UnitTypeEditPage() {
         {/* ── Section 2: Gallery photos ── */}
         <div style={cardStyle}>
           <div style={sectionHeaderStyle as React.CSSProperties}>
-            Gallery photos
+            {m.dev.gallery}
           </div>
           <div
             style={{
@@ -983,7 +985,7 @@ export default function UnitTypeEditPage() {
               }}
             >
               <div style={{ flex: 1, minWidth: "14rem" }}>
-                <label style={labelStyle}>Add photos</label>
+                <label style={labelStyle}>{m.dev.addPhotos}</label>
                 <input
                   ref={galleryInputRef}
                   type="file"
@@ -1063,7 +1065,7 @@ export default function UnitTypeEditPage() {
                   border: "1px dashed #DDD9D3",
                 }}
               >
-                No gallery photos yet. Upload images above.
+                {m.dev.noGallery}
               </div>
             )}
           </div>
@@ -1072,7 +1074,7 @@ export default function UnitTypeEditPage() {
         {/* ── Section 3: 360° Virtual Tour ── */}
         <div style={cardStyle}>
           <div style={sectionHeaderStyle as React.CSSProperties}>
-            360° Virtual Tour
+            {m.dev.virtualTour}
           </div>
           <div
             style={{
@@ -1100,7 +1102,7 @@ export default function UnitTypeEditPage() {
                   color: "#55534C",
                 }}
               >
-                Add room
+                {m.dev.addRoom}
               </div>
               <div
                 style={{
@@ -1111,7 +1113,7 @@ export default function UnitTypeEditPage() {
                 }}
               >
                 <div style={{ flex: 1, minWidth: "10rem" }}>
-                  <label style={labelStyle}>Room label</label>
+                  <label style={labelStyle}>{m.dev.roomLabel}</label>
                   <input
                     type="text"
                     placeholder="e.g. Living Room"
@@ -1123,7 +1125,7 @@ export default function UnitTypeEditPage() {
                   />
                 </div>
                 <div style={{ flex: 1, minWidth: "10rem" }}>
-                  <label style={labelStyle}>360° panorama image</label>
+                  <label style={labelStyle}>{m.dev.panorama}</label>
                   <input
                     ref={tourFileInputRef}
                     type="file"
@@ -1151,7 +1153,7 @@ export default function UnitTypeEditPage() {
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {tourUploading ? "Adding…" : "Add room"}
+                  {tourUploading ? m.dev.uploading : m.dev.addRoom}
                 </button>
               </div>
 
@@ -1311,7 +1313,7 @@ export default function UnitTypeEditPage() {
                   marginBottom: "0.75rem",
                 }}
               >
-                Live preview
+                {m.dev.livePreview}
               </div>
               {tourScenes.length > 0 ? (
                 <VirtualTour scenes={tourScenes} />
@@ -1355,7 +1357,7 @@ export default function UnitTypeEditPage() {
                 </div>
                 <img
                   src={floorplanImage.imageData}
-                  alt="Floor plan"
+                  alt={m.dev.floorPlan}
                   style={{ width: "100%", borderRadius: 8, border: "1px solid rgba(28,27,25,0.08)", maxHeight: 480, objectFit: "contain", background: "#F7F5F1" }}
                 />
                 <div style={{ display: "flex", gap: "0.625rem" }}>
@@ -1394,7 +1396,7 @@ export default function UnitTypeEditPage() {
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: "12rem" }}>
-                    <label style={labelStyle}>Floor plan image</label>
+                    <label style={labelStyle}>{m.dev.uploadFloor}</label>
                     <input
                       ref={fpFileInputRef}
                       type="file"
@@ -1415,7 +1417,7 @@ export default function UnitTypeEditPage() {
                       fontSize: "0.875rem",
                     }}
                   >
-                    Upload &amp; annotate
+                    {m.dev.uploadAnnotate}
                   </button>
                 </div>
               </div>
@@ -1425,7 +1427,7 @@ export default function UnitTypeEditPage() {
             {fpAnnotating && (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#55534C" }}>
-                  Annotate — draw in red over the floor plan
+                  {m.dev.annotate}
                 </div>
                 <div style={{ position: "relative", display: "inline-block", width: "100%" }}>
                   <canvas
@@ -1468,7 +1470,7 @@ export default function UnitTypeEditPage() {
                     disabled={fpUploading}
                     style={{ ...primaryBtnStyle, fontSize: "0.8125rem", padding: "0.35rem 0.875rem", opacity: fpUploading ? 0.65 : 1, cursor: fpUploading ? "not-allowed" : "pointer" }}
                   >
-                    {fpUploading ? "Saving…" : "Save floor plan"}
+                    {fpUploading ? m.dev.saving : m.dev.saveFloor}
                   </button>
                 </div>
               </div>

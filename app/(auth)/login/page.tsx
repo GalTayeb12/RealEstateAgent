@@ -2,9 +2,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/components/LocaleProvider";
+import { parseLocale } from "@/lib/i18n/locale";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setLocale, m } = useI18n();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +35,7 @@ export default function LoginPage() {
       if (!res.ok) throw new Error(data.error ?? "Login failed");
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      await setLocale(parseLocale(data.user.locale), { persistRemote: false });
 
       if (data.user.role === "developer") {
         const meRes = await fetch("/api/dev/me", {
@@ -74,16 +78,6 @@ export default function LoginPage() {
       {/* Subtle background glow — matches homepage hero */}
       <div style={{ position: "fixed", inset: 0, background: "radial-gradient(60% 40% at 80% 10%, rgba(47,102,100,0.07) 0%, transparent 60%), radial-gradient(40% 30% at 10% 80%, rgba(200,155,60,0.06) 0%, transparent 60%)", pointerEvents: "none", zIndex: 0 }} />
 
-      {/* ── Minimal nav ─────────────────────────────────────────────────────── */}
-      <nav style={{ position: "relative", zIndex: 10, padding: "1.25rem 2.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-          <img src="/haveniq_logo_horizontal.png" alt="Haveniq" style={{ height: 26, width: "auto" }} />
-        </Link>
-        <Link href="/register" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "#55534C" }}>
-          No account? <span style={{ color: "#1F4B4A" }}>Register →</span>
-        </Link>
-      </nav>
-
       {/* ── Card ────────────────────────────────────────────────────────────── */}
       <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1.5rem", position: "relative", zIndex: 1 }}>
         <div style={{ width: "100%", maxWidth: 420 }}>
@@ -97,10 +91,10 @@ export default function LoginPage() {
               {/* Heading */}
               <div style={{ marginBottom: "2rem" }}>
                 <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2rem", lineHeight: 1.15, letterSpacing: "-0.02em", margin: "0 0 0.5rem", color: "#14130F" }}>
-                  Welcome back
+                  {m.auth.welcome}
                 </h1>
                 <p style={{ margin: 0, fontSize: "0.9375rem", color: "#6B6860", lineHeight: 1.5 }}>
-                  Sign in to continue to your account.
+                  {m.auth.continue}
                 </p>
               </div>
 
@@ -110,7 +104,7 @@ export default function LoginPage() {
                 {/* Email */}
                 <div>
                   <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
-                    Email address
+                    {m.auth.email}
                   </label>
                   <input
                     type="email"
@@ -128,7 +122,7 @@ export default function LoginPage() {
                 {/* Password */}
                 <div>
                   <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
-                    Password
+                    {m.auth.password}
                   </label>
                   <input
                     type="password"
@@ -146,7 +140,7 @@ export default function LoginPage() {
                 {/* Generic error */}
                 {error && (
                   <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", background: "#FAE8E8", border: "1px solid rgba(176,64,64,0.2)", borderRadius: 10, padding: "0.75rem 1rem" }}>
-                    <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#B04040", flexShrink: 0 }}>Error</span>
+                    <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#B04040", flexShrink: 0 }}>{m.auth.error}</span>
                     <span style={{ fontSize: "0.875rem", color: "#B04040" }}>{error}</span>
                   </div>
                 )}
@@ -155,10 +149,10 @@ export default function LoginPage() {
                 {unverifiedEmail && (
                   <div style={{ background: "#FEF9EC", border: "1px solid rgba(200,155,60,0.35)", borderRadius: 10, padding: "1rem 1.125rem" }}>
                     <p style={{ margin: "0 0 0.625rem", fontSize: "0.875rem", color: "#7A5C00", lineHeight: 1.5 }}>
-                      <strong>Please verify your email first.</strong> Check your inbox for a verification link.
+                      {m.auth.verifyBody}
                     </p>
                     {resendState === "sent" ? (
-                      <p style={{ margin: 0, fontSize: "0.8125rem", color: "#2F6664", fontWeight: 600 }}>New verification email sent — check your inbox.</p>
+                      <p style={{ margin: 0, fontSize: "0.8125rem", color: "#2F6664", fontWeight: 600 }}>{m.auth.resentBody}</p>
                     ) : (
                       <button
                         type="button"
@@ -166,7 +160,7 @@ export default function LoginPage() {
                         disabled={resendState === "sending"}
                         style={{ background: "none", border: "none", padding: 0, fontSize: "0.8125rem", fontWeight: 700, color: "#1F4B4A", cursor: resendState === "sending" ? "not-allowed" : "pointer", textDecoration: "underline" }}
                       >
-                        {resendState === "sending" ? "Sending…" : "Resend verification email →"}
+                        {resendState === "sending" ? m.auth.resending : m.auth.resend}
                       </button>
                     )}
                   </div>
@@ -180,29 +174,29 @@ export default function LoginPage() {
                   onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLButtonElement).style.opacity = "0.92"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
                 >
-                  {loading ? "Signing in…" : "Sign in"}
+                  {loading ? m.auth.signingIn : m.auth.signIn}
                 </button>
               </form>
 
               {/* Forgot password */}
               <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#6B6860", margin: "1.25rem 0 0" }}>
                 <Link href="/forgot-password" style={{ color: "#1F4B4A", fontWeight: 600, textDecoration: "none" }}>
-                  Forgot password?
+                  {m.auth.forgot}
                 </Link>
               </p>
 
               {/* Footer link */}
               <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#6B6860", margin: "0.75rem 0 0" }}>
-                No account?{" "}
+                {m.auth.noAccount}{" "}
                 <Link href="/register" style={{ color: "#1F4B4A", fontWeight: 600, textDecoration: "none" }}>
-                  Create one
+                  {m.auth.registerCta}
                 </Link>
               </p>
             </div>
           </div>
 
           <p style={{ textAlign: "center", fontSize: "0.75rem", color: "#9A958F", marginTop: "1.5rem" }}>
-            Haveniq — prototype v0.1
+            {m.auth.prototype}
           </p>
         </div>
       </main>

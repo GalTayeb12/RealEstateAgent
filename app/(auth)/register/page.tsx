@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useI18n } from "@/components/LocaleProvider";
 
 export default function RegisterPage() {
+  const { m } = useI18n();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,11 +38,6 @@ export default function RegisterPage() {
     return (
       <div style={{ minHeight: "100vh", background: "#FAF8F4", display: "flex", flexDirection: "column" }}>
         <div style={{ position: "fixed", inset: 0, background: "radial-gradient(60% 40% at 80% 10%, rgba(47,102,100,0.07) 0%, transparent 60%), radial-gradient(40% 30% at 10% 80%, rgba(200,155,60,0.06) 0%, transparent 60%)", pointerEvents: "none", zIndex: 0 }} />
-        <nav style={{ position: "relative", zIndex: 10, padding: "1.25rem 2.5rem" }}>
-          <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "0.6rem" }}>
-            <img src="/haveniq_logo_horizontal.png" alt="Haveniq" style={{ height: 26, width: "auto" }} />
-          </Link>
-        </nav>
         <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1.5rem", position: "relative", zIndex: 1 }}>
           <div style={{ width: "100%", maxWidth: 420 }}>
             <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 2px 4px rgba(28,27,25,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)", overflow: "hidden" }}>
@@ -51,16 +48,16 @@ export default function RegisterPage() {
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
                   </svg>
                 </div>
-                <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "1.75rem", lineHeight: 1.2, letterSpacing: "-0.02em", margin: "0 0 0.75rem", color: "#14130F" }}>Check your inbox</h1>
+                <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "1.75rem", lineHeight: 1.2, letterSpacing: "-0.02em", margin: "0 0 0.75rem", color: "#14130F" }}>{m.auth.checkInbox}</h1>
                 <p style={{ margin: "0 0 0.5rem", fontSize: "0.9375rem", color: "#6B6860", lineHeight: 1.6 }}>
-                  We sent a verification link to
+                  {m.auth.sentTo}
                 </p>
                 <p style={{ margin: "0 0 1.75rem", fontSize: "0.9375rem", fontWeight: 700, color: "#1C1B19" }}>{registeredEmail}</p>
                 <p style={{ margin: "0 0 2rem", fontSize: "0.875rem", color: "#6B6860", lineHeight: 1.6 }}>
                   Click the link in the email to activate your account. The link expires in 24 hours.
                 </p>
                 <Link href="/login" style={{ display: "block", padding: "0.875rem", borderRadius: 999, fontSize: "0.9375rem", fontWeight: 700, color: "#fff", background: "linear-gradient(155deg, #2F6664, #123332)", textDecoration: "none", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 10px 24px -10px rgba(18,51,50,0.55)" }}>
-                  Go to sign in
+                  {m.auth.goSignIn}
                 </Link>
               </div>
             </div>
@@ -77,15 +74,6 @@ export default function RegisterPage() {
       {/* Subtle background glow — matches homepage hero */}
       <div style={{ position: "fixed", inset: 0, background: "radial-gradient(60% 40% at 80% 10%, rgba(47,102,100,0.07) 0%, transparent 60%), radial-gradient(40% 30% at 10% 80%, rgba(200,155,60,0.06) 0%, transparent 60%)", pointerEvents: "none", zIndex: 0 }} />
 
-      {/* ── Minimal nav ─────────────────────────────────────────────────────── */}
-      <nav style={{ position: "relative", zIndex: 10, padding: "1.25rem 2.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem" }}>
-          <img src="/haveniq_logo_horizontal.png" alt="Haveniq" style={{ height: 26, width: "auto" }} />
-        </Link>
-        <Link href="/login" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "#55534C" }}>
-          Have an account? <span style={{ color: "#1F4B4A" }}>Sign in →</span>
-        </Link>
-      </nav>
 
       {/* ── Card ────────────────────────────────────────────────────────────── */}
       <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1.5rem", position: "relative", zIndex: 1 }}>
@@ -100,10 +88,10 @@ export default function RegisterPage() {
               {/* Heading */}
               <div style={{ marginBottom: "2rem" }}>
                 <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2rem", lineHeight: 1.15, letterSpacing: "-0.02em", margin: "0 0 0.5rem", color: "#14130F" }}>
-                  Create your account
+                  {m.auth.createAccount}
                 </h1>
                 <p style={{ margin: 0, fontSize: "0.9375rem", color: "#6B6860", lineHeight: 1.5 }}>
-                  Register as a buyer to get matched with listed properties.
+                  {m.auth.buyerBlurb}
                 </p>
               </div>
 
@@ -113,7 +101,7 @@ export default function RegisterPage() {
                 {/* Email */}
                 <div>
                   <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
-                    Email address
+                    {m.auth.email}
                   </label>
                   <input
                     type="email"
@@ -131,7 +119,7 @@ export default function RegisterPage() {
                 {/* Password */}
                 <div>
                   <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
-                    Password
+                    {m.auth.password}
                   </label>
                   <input
                     type="password"
@@ -162,7 +150,7 @@ export default function RegisterPage() {
                   onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLButtonElement).style.opacity = "0.92"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
                 >
-                  {loading ? "Creating account…" : "Create account"}
+                  {loading ? m.auth.creating : m.auth.createAccount}
                 </button>
               </form>
 

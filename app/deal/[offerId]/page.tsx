@@ -14,6 +14,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/components/LocaleProvider";
+import { EstimatedPriceNote, Money } from "@/components/Money";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -157,6 +159,7 @@ function SignatureModal({
   onClose: () => void;
   onSigned: () => void;
 }) {
+  const { formatPrice } = useI18n();
   const canvasRef       = useRef<HTMLCanvasElement>(null);
   const isDrawingRef    = useRef(false);
   const [typedName,   setTypedName]   = useState("");
@@ -246,7 +249,7 @@ function SignatureModal({
     "",
     `Property:  ${offer.unitType.project.name}, ${offer.unitType.project.location}`,
     `Unit:      ${offer.unitType.unitLabel}`,
-    `Agreed price: £${finalPrice.toLocaleString("en-GB")}`,
+    `Agreed price: ${formatPrice(finalPrice)}`,
     `Reservation deposit: Paid ✓`,
     "",
     "Both parties confirm their intention to proceed to legal completion of this sale, to be carried out in person with instructed solicitors.",
@@ -459,6 +462,7 @@ function SignatureModal({
 
 export default function DealRoomPage() {
   const params = useParams();
+  const { formatPrice, m } = useI18n();
   const offerId = params.offerId as string;
   const router  = useRouter();
 
@@ -468,6 +472,8 @@ export default function DealRoomPage() {
   const [error,         setError]         = useState("");
   const [errorCode,     setErrorCode]     = useState(0);
   const [payingDeposit, setPayingDeposit] = useState(false);
+  const [cancelling,    setCancelling]    = useState(false);
+  const [cancelError,   setCancelError]   = useState("");
   const [pdfLoading,    setPdfLoading]    = useState(false);
   const [showSignModal, setShowSignModal] = useState(false);
 
@@ -754,7 +760,8 @@ export default function DealRoomPage() {
                     Final price
                   </div>
                   <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "2rem", fontWeight: 700, color: "#1F4B4A" }}>
-                    £{finalPrice.toLocaleString("en-GB")}
+                    {formatPrice(finalPrice)}
+                    <EstimatedPriceNote />
                   </div>
                 </div>
               </div>
@@ -770,7 +777,7 @@ export default function DealRoomPage() {
               {([
                 ["Buyer",               offer.buyer.email],
                 [offer.unitType.ownerType === "seller" ? "Seller" : "Developer / company", companyName],
-                ["Agreed price",        `£${finalPrice.toLocaleString("en-GB")}`],
+                ["Agreed price",        formatPrice(finalPrice)],
                 ["Date agreed",         dateAccepted],
               ] as [string, string][]).map(([label, value], i) => (
                 <div key={label} style={{ padding: "1rem 1.5rem", borderBottom: i < 2 ? "1px solid #F0EDE8" : undefined, borderRight: i % 2 === 0 ? "1px solid #F0EDE8" : undefined }}>
@@ -829,6 +836,48 @@ export default function DealRoomPage() {
 
             </div>
           </div>
+
+          {role === "buyer" && offer.status === "accepted" && !bothSigned && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "0.5rem" }}>
+              <button
+                type="button"
+                disabled={cancelling}
+                onClick={async () => {
+                  if (!window.confirm(m.deal.cancelHoldConfirm)) return;
+                  setCancelling(true);
+                  setCancelError("");
+                  try {
+                    const token = localStorage.getItem("token") ?? "";
+                    const res = await fetch(`/api/offers/${offerId}/cancel`, {
+                      method: "POST",
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+                    if (!res.ok) {
+                      const data = await res.json().catch(() => ({}));
+                      setCancelError(data.error ?? "Could not cancel the reservation");
+                      return;
+                    }
+                    router.push("/buyer/offers");
+                  } finally {
+                    setCancelling(false);
+                  }
+                }}
+                style={{
+                  padding: "0.55rem 1.125rem",
+                  borderRadius: 999,
+                  border: "1px solid #E7C9C9",
+                  background: "#fff",
+                  color: "#8C3030",
+                  fontSize: "0.875rem",
+                  fontWeight: 700,
+                  cursor: cancelling ? "wait" : "pointer",
+                }}
+              >
+                {m.deal.cancelHold}
+              </button>
+              {cancelError && <p style={{ margin: 0, color: "#B04040", fontSize: "0.8125rem" }}>{cancelError}</p>}
+            </div>
+          )}
 
           {/* Video call */}
           {offer.meetingLink && (
