@@ -22,7 +22,7 @@ import type { ExplorerBuilding } from "@/components/building/types";
 
 const BuildingExplorer = dynamic(() => import("@/components/building/BuildingExplorer"), {
   ssr: false,
-  loading: () => <div style={{ height: 480, borderRadius: 16, background: "#E7F0EF", marginBottom: "2rem" }} />,
+  loading: () => <div style={{ height: 560, borderRadius: 16, background: "#1A2A38", marginBottom: "2rem" }} />,
 });
 
 const VirtualTour = dynamic(

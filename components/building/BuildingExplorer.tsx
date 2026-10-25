@@ -57,10 +57,10 @@ export default function BuildingExplorer({
   };
 
   const legend = [
-    { color: "#2F8F86", label: copy.available },
+    { color: "#8AAEC2", label: copy.available },
+    { color: "#8090A8", label: copy.sold },
+    { color: "#5C8AA2", label: copy.lobby },
     { color: "#C89B3C", label: copy.reserved },
-    { color: "#C5C0B8", label: copy.sold },
-    { color: "#D9D3C7", label: copy.lobby },
   ];
 
   return (
@@ -71,9 +71,9 @@ export default function BuildingExplorer({
         </h2>
         <span style={{ fontSize: "0.8125rem", color: "#6B6860" }}>{webgl ? copy.drag : copy.fallback}</span>
       </div>
-      <div style={{ background: "#E7F0EF", borderRadius: 16, border: "1px solid rgba(28,27,25,0.08)", overflow: "hidden" }}>
-        <style>{`@media (max-width: 640px) { .hn-building-stage { height: 360px !important; } }`}</style>
-        <div className="hn-building-stage" style={{ height: 480 }}>
+      <div style={{ background: "#14202C", borderRadius: 16, border: "1px solid rgba(28,27,25,0.12)", overflow: "hidden" }}>
+        <style>{`@media (max-width: 640px) { .hn-building-stage { height: 400px !important; } }`}</style>
+        <div className="hn-building-stage" style={{ height: 560 }}>
           {webgl === null ? null : webgl ? (
             <CanvasGuard fallback={<BuildingFallback buildings={buildings} activeUnitTypeId={activeUnitTypeId} onHover={(info) => onHover(info)} />}>
               <BuildingCanvas
@@ -87,20 +87,32 @@ export default function BuildingExplorer({
             <BuildingFallback buildings={buildings} activeUnitTypeId={activeUnitTypeId} onHover={(info) => onHover(info)} />
           )}
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap", padding: "0.75rem 1rem", background: "#fff", borderTop: "1px solid rgba(28,27,25,0.06)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap", padding: "0.75rem 1rem", background: "#0E1C28", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display: "flex", gap: "0.875rem", flexWrap: "wrap", alignItems: "center" }}>
             {legend.map((item) => (
-              <span key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", fontSize: "0.75rem", color: "#6B6860" }}>
+              <span key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", fontSize: "0.75rem", color: "#9AAAB8" }}>
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: item.color, display: "inline-block" }} />
                 {item.label}
               </span>
             ))}
           </div>
-          <div style={{ fontSize: "0.8125rem", color: "#1C1B19", minHeight: "1.25rem" }}>
+          <div style={{ fontSize: "0.8125rem", color: "#CBD5E0", minHeight: "1.25rem" }}>
             {hover ? (
               hover.lobby ? (
                 <span>{hover.buildingName} · {copy.floor} {hover.floor} · {copy.lobby}</span>
+              ) : hover.availableCount !== undefined ? (
+                /* Floor-level hover (3-D canvas) */
+                <span>
+                  {hover.buildingName}
+                  {" · "}
+                  {hover.isPenthouse ? copy.penthouse : `${copy.floor} ${hover.floor}`}
+                  {" · "}
+                  {hover.availableCount > 0
+                    ? `${hover.availableCount} ${copy.available}`
+                    : copy.sold}
+                </span>
               ) : (
+                /* Per-unit hover (2-D fallback) */
                 <span>
                   {hover.buildingName} · {copy.floor} {hover.floor} · {copy.apartment} {hover.unitNumber}
                   {hover.unitLabel ? ` · ${hover.unitLabel}` : ""} · {statusLabel(hover.status, copy)}
@@ -108,7 +120,7 @@ export default function BuildingExplorer({
                 </span>
               )
             ) : (
-              <span style={{ color: "#9A958F" }}>{copy.hover}</span>
+              <span style={{ color: "#647888" }}>{copy.hoverFloor ?? copy.hover}</span>
             )}
           </div>
         </div>

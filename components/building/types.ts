@@ -29,4 +29,10 @@ export interface HoverInfo {
   unitLabel?: string;
   status?: string;
   price?: number;
+  /** Floor-level hover: available unit count */
+  availableCount?: number;
+  /** Floor-level hover: total unit count on this floor */
+  totalCount?: number;
+  /** Floor-level hover: is this the penthouse floor */
+  isPenthouse?: boolean;
 }
