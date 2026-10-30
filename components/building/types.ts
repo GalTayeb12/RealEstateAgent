@@ -21,6 +21,11 @@ export interface ExplorerBuilding {
   units: ExplorerUnit[];
 }
 
+export interface FloorSelection {
+  buildingId: string;
+  floor: number;
+}
+
 export interface HoverInfo {
   buildingName: string;
   floor: number;

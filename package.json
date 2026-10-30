@@ -12,10 +12,14 @@
     "test": "npm run test:matching && npm run test:ledger",
     "seed": "node scripts/seed.mjs",
     "seed:neon": "npx tsx scripts/seed-neon.ts",
-    "make-admin": "node scripts/make-admin.mjs"
+    "make-admin": "node scripts/make-admin.mjs",
+    "build:building": "npx tsx scripts/building/pipeline.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.113.0",
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
     "@prisma/adapter-better-sqlite3": "^7.9.0",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.9.0",

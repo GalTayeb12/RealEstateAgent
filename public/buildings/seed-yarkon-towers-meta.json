@@ -1,0 +1,595 @@
+{
+  "version": 2,
+  "projectId": "seed-yarkon-towers",
+  "generatedAt": "2026-10-25T15:07:56.336Z",
+  "blenderVersion": "5.2.3 LTS",
+  "scaleMetersPerUnit": 1.0,
+  "buildings": [
+    {
+      "id": "seed-yarkon-a",
+      "name": "מגדל A",
+      "worldX": -15.5,
+      "worldZ": 0.0,
+      "floors": [
+        {
+          "floor": 1,
+          "isLobby": true,
+          "isPenthouse": false,
+          "baseY": 0.0,
+          "topY": 6.8,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": -15.5,
+          "centerZ": 0.0,
+          "units": []
+        },
+        {
+          "floor": 2,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 6.8,
+          "topY": 10.0,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": -15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-a-f2-p0",
+              "unitNumber": "21",
+              "positionIndex": 0,
+              "status": "sold",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f2-p1",
+              "unitNumber": "22",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-a-f2-p2",
+              "unitNumber": "23",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f2-p3",
+              "unitNumber": "24",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 3,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 10.0,
+          "topY": 13.2,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": -15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-a-f3-p0",
+              "unitNumber": "31",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f3-p1",
+              "unitNumber": "32",
+              "positionIndex": 1,
+              "status": "reserved",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-a-f3-p2",
+              "unitNumber": "33",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f3-p3",
+              "unitNumber": "34",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 4,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 13.2,
+          "topY": 16.4,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": -15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-a-f4-p0",
+              "unitNumber": "41",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f4-p1",
+              "unitNumber": "42",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-a-f4-p2",
+              "unitNumber": "43",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f4-p3",
+              "unitNumber": "44",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 5,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 16.4,
+          "topY": 19.6,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": -15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-a-f5-p0",
+              "unitNumber": "51",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f5-p1",
+              "unitNumber": "52",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-a-f5-p2",
+              "unitNumber": "53",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f5-p3",
+              "unitNumber": "54",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 6,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 19.6,
+          "topY": 22.8,
+          "width": 20.24,
+          "depth": 11.0,
+          "centerX": -15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-a-f6-p0",
+              "unitNumber": "61",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f6-p1",
+              "unitNumber": "62",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-a-f6-p2",
+              "unitNumber": "63",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f6-p3",
+              "unitNumber": "64",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 7,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 22.8,
+          "topY": 26.0,
+          "width": 18.48,
+          "depth": 11.0,
+          "centerX": -15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-a-f7-p0",
+              "unitNumber": "71",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f7-p1",
+              "unitNumber": "72",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-a-f7-p2",
+              "unitNumber": "73",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f7-p3",
+              "unitNumber": "74",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 8,
+          "isLobby": false,
+          "isPenthouse": true,
+          "baseY": 26.0,
+          "topY": 31.0,
+          "width": 18.48,
+          "depth": 11.0,
+          "centerX": -15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-a-f8-p0",
+              "unitNumber": "81",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-a-f8-p1",
+              "unitNumber": "82",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seed-yarkon-b",
+      "name": "מגדל B",
+      "worldX": 15.5,
+      "worldZ": 0.0,
+      "floors": [
+        {
+          "floor": 1,
+          "isLobby": true,
+          "isPenthouse": false,
+          "baseY": 0.0,
+          "topY": 6.8,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": 15.5,
+          "centerZ": 0.0,
+          "units": []
+        },
+        {
+          "floor": 2,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 6.8,
+          "topY": 10.0,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": 15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-b-f2-p0",
+              "unitNumber": "21",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f2-p1",
+              "unitNumber": "22",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-b-f2-p2",
+              "unitNumber": "23",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f2-p3",
+              "unitNumber": "24",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 3,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 10.0,
+          "topY": 13.2,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": 15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-b-f3-p0",
+              "unitNumber": "31",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f3-p1",
+              "unitNumber": "32",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-b-f3-p2",
+              "unitNumber": "33",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f3-p3",
+              "unitNumber": "34",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 4,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 13.2,
+          "topY": 16.4,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": 15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-b-f4-p0",
+              "unitNumber": "41",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f4-p1",
+              "unitNumber": "42",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-b-f4-p2",
+              "unitNumber": "43",
+              "positionIndex": 2,
+              "status": "sold",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f4-p3",
+              "unitNumber": "44",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 5,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 16.4,
+          "topY": 19.6,
+          "width": 22.0,
+          "depth": 11.0,
+          "centerX": 15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-b-f5-p0",
+              "unitNumber": "51",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f5-p1",
+              "unitNumber": "52",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-b-f5-p2",
+              "unitNumber": "53",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f5-p3",
+              "unitNumber": "54",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 6,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 19.6,
+          "topY": 22.8,
+          "width": 20.24,
+          "depth": 11.0,
+          "centerX": 15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-b-f6-p0",
+              "unitNumber": "61",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f6-p1",
+              "unitNumber": "62",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-b-f6-p2",
+              "unitNumber": "63",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f6-p3",
+              "unitNumber": "64",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 7,
+          "isLobby": false,
+          "isPenthouse": false,
+          "baseY": 22.8,
+          "topY": 26.0,
+          "width": 18.48,
+          "depth": 11.0,
+          "centerX": 15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-b-f7-p0",
+              "unitNumber": "71",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f7-p1",
+              "unitNumber": "72",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            },
+            {
+              "id": "seed-yarkon-b-f7-p2",
+              "unitNumber": "73",
+              "positionIndex": 2,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f7-p3",
+              "unitNumber": "74",
+              "positionIndex": 3,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        },
+        {
+          "floor": 8,
+          "isLobby": false,
+          "isPenthouse": true,
+          "baseY": 26.0,
+          "topY": 31.0,
+          "width": 18.48,
+          "depth": 11.0,
+          "centerX": 15.5,
+          "centerZ": 0.0,
+          "units": [
+            {
+              "id": "seed-yarkon-b-f8-p0",
+              "unitNumber": "81",
+              "positionIndex": 0,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-3"
+            },
+            {
+              "id": "seed-yarkon-b-f8-p1",
+              "unitNumber": "82",
+              "positionIndex": 1,
+              "status": "available",
+              "unitTypeId": "seed-yarkon-4"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

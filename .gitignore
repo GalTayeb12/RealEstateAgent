@@ -66,3 +66,23 @@ next-env.d.ts
 .windsurf/
 .vscode/settings.json
 .idea/
+
+# Portable Blender — install locally, do not version
+/scripts/building/blender/
+/scripts/building/*.zip
+
+# Offline bake inputs and intermediates
+/scripts/building/output/
+/scripts/building/assets/*.hdr
+/scripts/building/assets/*.exr
+
+# Blender sources and Python caches
+*.blend
+*.blend1
+*.blend2
+__pycache__/
+*.pyc
+
+# Local QA captures
+/screenshots/
+/public/screenshots/
