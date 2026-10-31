@@ -51,8 +51,12 @@ export default function LoginPage() {
         }
       } else if (data.user.role === "seller") {
         router.push("/seller/dashboard");
+      } else if (data.user.role === "admin") {
+        router.push("/dev/admin/approvals");
       } else {
-        router.push("/transition");
+        // Buyer: client-side navigation from this click, so the browser
+        // keeps the user gesture and can play the avatar's audio.
+        router.push("/interview");
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unknown error");

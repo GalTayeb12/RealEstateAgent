@@ -26,8 +26,14 @@ export async function POST(req: NextRequest) {
   try {
     // ── Auth ──────────────────────────────────────────────────────────────
     const payload = extractToken(req.headers.get("authorization"));
-    if (!payload || payload.role !== "buyer") {
+    if (!payload) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (payload.role !== "buyer") {
+      return NextResponse.json(
+        { error: "Interview is available to buyer accounts only", code: "BUYER_ONLY" },
+        { status: 403 }
+      );
     }
 
     // ── Rate limit: max 2 sessions per rolling 24 h ───────────────────────

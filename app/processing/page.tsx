@@ -12,7 +12,6 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 type Phase =
   | "waiting"
@@ -222,8 +221,9 @@ export default function ProcessingPage() {
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
             Start a conversation with the avatar to get matched listings.
           </p>
-          <Link
-            href="/interview"
+          <button
+            type="button"
+            onClick={() => router.push("/interview")}
             style={{
               display: "inline-block",
               padding: "0.625rem 1.5rem",
@@ -233,11 +233,11 @@ export default function ProcessingPage() {
               color: "#F7F5F1",
               fontSize: "0.875rem",
               fontWeight: 600,
-              textDecoration: "none",
+              cursor: "pointer",
             }}
           >
             Start interview
-          </Link>
+          </button>
         </div>
       )}
 
@@ -247,9 +247,12 @@ export default function ProcessingPage() {
             Something went wrong
           </p>
           <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.875rem" }}>{errorMsg}</p>
-          <Link
-            href="/interview"
-            onClick={() => sessionStorage.setItem("requestedRetake", "true")}
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.setItem("requestedRetake", "true");
+              router.push("/interview");
+            }}
             style={{
               display: "inline-block",
               marginTop: "1.5rem",
@@ -259,11 +262,11 @@ export default function ProcessingPage() {
               background: "transparent",
               color: "rgba(255,255,255,0.5)",
               fontSize: "0.8125rem",
-              textDecoration: "none",
+              cursor: "pointer",
             }}
           >
             Back to interview
-          </Link>
+          </button>
         </div>
       )}
 

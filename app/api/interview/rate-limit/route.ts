@@ -17,8 +17,14 @@ const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export async function GET(req: NextRequest) {
   const payload = extractToken(req.headers.get("authorization"));
-  if (!payload || payload.role !== "buyer") {
+  if (!payload) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (payload.role !== "buyer") {
+    return NextResponse.json(
+      { error: "Interview is available to buyer accounts only", code: "BUYER_ONLY" },
+      { status: 403 }
+    );
   }
 
   const since = new Date(Date.now() - WINDOW_MS);
