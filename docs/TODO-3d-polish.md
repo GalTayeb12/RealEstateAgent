@@ -10,7 +10,8 @@ Items to address in a future iteration. **Do not fix now.**
 
 ## Lighting & Environment
 
-- **HDRI swap** — `kloppenheim_02_2k.hdr` (mountains/desert) is wrong for Tel Aviv; replace with an urban or coastal Mediterranean HDRI (e.g. `venice_sunset` or a custom Yarkon River panorama)
+- **Runtime HDRI is fetched from a third-party CDN** — `BuildingGLBScene` uses drei `<Environment preset="city" />`, which downloads `potsdamer_platz_1k.hdr` from `raw.githack.com` (pmndrs/drei-assets) on each visit. `BuildingCanvas` preset `sunset` does the same with its own remote file. Before production, put a copy under `public/` and point `Environment` at that local file so the scene does not depend on an external host.
+- **HDRI swap** — `kloppenheim_02_2k.hdr` (mountains/desert) is wrong for Tel Aviv; replace with an urban or coastal Mediterranean HDRI (e.g. `venice_sunset` or a custom Yarkon River panorama). This file is the offline Blender bake input only; the browser does not load it.
 - **Lightmap baking** — per-object Cycles COMBINED bake was skipped (13 h estimate at 2048×2048); revisit with smaller textures (512 px), atlas packing, or a real-time AO pass as a compromise
 
 ## Architecture Detail
