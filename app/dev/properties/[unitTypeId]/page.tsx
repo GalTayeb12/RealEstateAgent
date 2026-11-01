@@ -1407,7 +1407,7 @@ export default function UnitTypeEditPage() {
                   </div>
                   <button
                     type="button"
-                    onClick={fpStartAnnotate}
+                    onClick={() => { void fpStartAnnotate(); }}
                     disabled={!fpFile}
                     style={{
                       ...primaryBtnStyle,

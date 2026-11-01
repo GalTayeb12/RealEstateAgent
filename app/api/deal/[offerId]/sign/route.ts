@@ -56,6 +56,9 @@ export async function POST(
     });
 
     if (!offer) return NextResponse.json({ error: "Offer not found" }, { status: 404 });
+    // A nested function does not keep the narrowing above, so the email copy
+    // closes over this binding. A missing offer already returned 404.
+    const deal = offer;
 
     if (auth.userId !== offer.buyerId && auth.userId !== offer.developerId) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
@@ -117,14 +120,14 @@ export async function POST(
         const price = formatMoney(finalPrice, locale);
         if (locale === "he") {
           return {
-            subject: `החוזה נחתם — ${offer.unitType.project.name} · ${offer.unitType.unitLabel}`,
+            subject: `החוזה נחתם — ${deal.unitType.project.name} · ${deal.unitType.unitLabel}`,
             text: `שלום,
 
 שני הצדדים חתמו על סיכום העסקה (הדמיה):
 
   נכס : ${propertyLine}
   מחיר : ${price}
-  קונה : ${offer.buyer.email}
+  קונה : ${deal.buyer.email}
   יזם/מוכר : ${companyName}
 
 אפשר לחזור לחדר העסקה בכל עת.
@@ -135,14 +138,14 @@ export async function POST(
           };
         }
         return {
-          subject: `Contract signed — ${offer.unitType.project.name} · ${offer.unitType.unitLabel}`,
+          subject: `Contract signed — ${deal.unitType.project.name} · ${deal.unitType.unitLabel}`,
           text: `Hi,
 
 Both parties have signed the deal summary for:
 
   Property : ${propertyLine}
   Price     : ${price} (estimated if shown in USD; stored in ILS)
-  Buyer     : ${offer.buyer.email}
+  Buyer     : ${deal.buyer.email}
   Developer : ${companyName}
 
 You can view your Deal Room at any time for the full record.
