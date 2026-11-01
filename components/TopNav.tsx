@@ -188,7 +188,7 @@ export default function TopNav() {
     } catch { /* ignore */ }
   }, [pathname]);
 
-  if (pathname === HOME_PATH || pathname === "/transition" || pathname === "/design-system") return null;
+  if (pathname === HOME_PATH || pathname === "/transition" || pathname === "/design-system" || pathname === "/login" || pathname === "/register") return null;
 
   const showAppNav = !!user && !GUEST_PATHS.has(pathname);
   const links    = user ? (NAV_HREFS[user.role] ?? []) : [];

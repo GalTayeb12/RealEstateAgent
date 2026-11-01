@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 import { parseLocale } from "@/lib/i18n/locale";
+import { Button, GlassPanel, Input } from "@/components/ui";
+import { AuthAside, AuthRoom, translateAuthError } from "@/components/auth/Room";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -11,7 +13,6 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  // Set when server returns EMAIL_NOT_VERIFIED — shows the resend banner.
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
 
@@ -54,12 +55,11 @@ export default function LoginPage() {
       } else if (data.user.role === "admin") {
         router.push("/dev/admin/approvals");
       } else {
-        // Buyer: client-side navigation from this click, so the browser
-        // keeps the user gesture and can play the avatar's audio.
         router.push("/interview");
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      const message = err instanceof Error ? err.message : "";
+      setError(translateAuthError(message, m));
     } finally {
       setLoading(false);
     }
@@ -77,133 +77,52 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FAF8F4", display: "flex", flexDirection: "column" }}>
-
-      {/* Subtle background glow — matches homepage hero */}
-      <div style={{ position: "fixed", inset: 0, background: "radial-gradient(60% 40% at 80% 10%, rgba(47,102,100,0.07) 0%, transparent 60%), radial-gradient(40% 30% at 10% 80%, rgba(200,155,60,0.06) 0%, transparent 60%)", pointerEvents: "none", zIndex: 0 }} />
-
-      {/* ── Card ────────────────────────────────────────────────────────────── */}
-      <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1.5rem", position: "relative", zIndex: 1 }}>
-        <div style={{ width: "100%", maxWidth: 420 }}>
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 2px 4px rgba(28,27,25,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)", overflow: "hidden" }}>
-
-            {/* Teal top accent */}
-            <div style={{ height: 4, background: "linear-gradient(90deg, #2F6664, #123332)" }} />
-
-            <div style={{ padding: "2.5rem 2.5rem 2.75rem" }}>
-
-              {/* Heading */}
-              <div style={{ marginBottom: "2rem" }}>
-                <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, fontSize: "2rem", lineHeight: 1.15, letterSpacing: "-0.02em", margin: "0 0 0.5rem", color: "#14130F" }}>
-                  {m.auth.welcome}
-                </h1>
-                <p style={{ margin: 0, fontSize: "0.9375rem", color: "#6B6860", lineHeight: 1.5 }}>
-                  {m.auth.continue}
-                </p>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-
-                {/* Email */}
-                <div>
-                  <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
-                    {m.auth.email}
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="you@example.com"
-                    style={{ width: "100%", background: "#F5F3EE", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.75rem 1rem", fontSize: "1rem", color: "#1C1B19", outline: "none", boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" }}
-                    onFocus={(e) => { e.target.style.borderColor = "#1F4B4A"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
-                    onBlur={(e) => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
-                  />
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
-                    {m.auth.password}
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    autoComplete="current-password"
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder="••••••••"
-                    style={{ width: "100%", background: "#F5F3EE", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.75rem 1rem", fontSize: "1rem", color: "#1C1B19", outline: "none", boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" }}
-                    onFocus={(e) => { e.target.style.borderColor = "#1F4B4A"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
-                    onBlur={(e) => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
-                  />
-                </div>
-
-                {/* Generic error */}
-                {error && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", background: "#FAE8E8", border: "1px solid rgba(176,64,64,0.2)", borderRadius: 10, padding: "0.75rem 1rem" }}>
-                    <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#B04040", flexShrink: 0 }}>{m.auth.error}</span>
-                    <span style={{ fontSize: "0.875rem", color: "#B04040" }}>{error}</span>
-                  </div>
-                )}
-
-                {/* Email-not-verified banner */}
-                {unverifiedEmail && (
-                  <div style={{ background: "#FEF9EC", border: "1px solid rgba(200,155,60,0.35)", borderRadius: 10, padding: "1rem 1.125rem" }}>
-                    <p style={{ margin: "0 0 0.625rem", fontSize: "0.875rem", color: "#7A5C00", lineHeight: 1.5 }}>
-                      {m.auth.verifyBody}
-                    </p>
-                    {resendState === "sent" ? (
-                      <p style={{ margin: 0, fontSize: "0.8125rem", color: "#2F6664", fontWeight: 600 }}>{m.auth.resentBody}</p>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleResend}
-                        disabled={resendState === "sending"}
-                        style={{ background: "none", border: "none", padding: 0, fontSize: "0.8125rem", fontWeight: 700, color: "#1F4B4A", cursor: resendState === "sending" ? "not-allowed" : "pointer", textDecoration: "underline" }}
-                      >
-                        {resendState === "sending" ? m.auth.resending : m.auth.resend}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Submit */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{ width: "100%", padding: "0.875rem", borderRadius: 999, fontSize: "0.9375rem", fontWeight: 700, color: "#fff", background: loading ? "rgba(31,75,74,0.6)" : "linear-gradient(155deg, #2F6664, #123332)", border: "none", cursor: loading ? "not-allowed" : "pointer", boxShadow: loading ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 10px 24px -10px rgba(18,51,50,0.55)", transition: "opacity 0.15s, box-shadow 0.15s" }}
-                  onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLButtonElement).style.opacity = "0.92"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
-                >
-                  {loading ? m.auth.signingIn : m.auth.signIn}
+    <AuthRoom aside={<AuthAside href="/register" prompt={m.auth.noAccount} action={m.auth.registerCta} />}>
+      <GlassPanel className="hq-auth__card">
+        <h1 style={{ fontSize: "2rem" }}>{m.auth.welcome}</h1>
+        <p className="hq-lead" style={{ marginBottom: "1.5rem" }}>{m.auth.continue}</p>
+        <form onSubmit={handleSubmit}>
+          <Input
+            label={m.auth.email}
+            type="email"
+            required
+            autoComplete="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+          <Input
+            label={m.auth.password}
+            type="password"
+            required
+            autoComplete="current-password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
+          {error && <div className="hq-note hq-note--danger" role="alert">{error}</div>}
+          {unverifiedEmail && (
+            <div className="hq-note hq-note--gold">
+              <p style={{ margin: "0 0 0.5rem" }}>{m.auth.verifyBody}</p>
+              {resendState === "sent" ? (
+                <p style={{ margin: 0, color: "var(--hq-teal)", fontWeight: 700 }}>{m.auth.resentBody}</p>
+              ) : (
+                <button type="button" className="hq-inline" onClick={handleResend} disabled={resendState === "sending"}>
+                  {resendState === "sending" ? m.auth.resending : m.auth.resend}
                 </button>
-              </form>
-
-              {/* Forgot password */}
-              <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#6B6860", margin: "1.25rem 0 0" }}>
-                <Link href="/forgot-password" style={{ color: "#1F4B4A", fontWeight: 600, textDecoration: "none" }}>
-                  {m.auth.forgot}
-                </Link>
-              </p>
-
-              {/* Footer link */}
-              <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#6B6860", margin: "0.75rem 0 0" }}>
-                {m.auth.noAccount}{" "}
-                <Link href="/register" style={{ color: "#1F4B4A", fontWeight: 600, textDecoration: "none" }}>
-                  {m.auth.registerCta}
-                </Link>
-              </p>
+              )}
             </div>
-          </div>
-
-          <p style={{ textAlign: "center", fontSize: "0.75rem", color: "#9A958F", marginTop: "1.5rem" }}>
-            {m.auth.prototype}
-          </p>
-        </div>
-      </main>
-    </div>
+          )}
+          <Button type="submit" className="hq-btn--block" disabled={loading}>
+            {loading ? m.auth.signingIn : m.auth.signIn}
+          </Button>
+        </form>
+        <p className="hq-auth__links">
+          <Link href="/forgot-password">{m.auth.forgot}</Link>
+        </p>
+        <p className="hq-auth__links">
+          {m.auth.noAccount}{" "}
+          <Link href="/register">{m.auth.registerCta}</Link>
+        </p>
+      </GlassPanel>
+    </AuthRoom>
   );
 }

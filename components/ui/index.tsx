@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from "react";
+import { useI18n } from "@/components/LocaleProvider";
 
 export function Ambient() {
   return (
@@ -28,13 +30,36 @@ type ButtonVariant = "primary" | "secondary" | "ghost";
 
 export function Button({
   variant = "primary",
+  className = "",
   children,
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
   return (
-    <button type="button" className={`hq-btn hq-btn--${variant}`} {...rest}>
+    <button type="button" className={`hq-btn hq-btn--${variant} ${className}`} {...rest}>
       {children}
     </button>
+  );
+}
+
+export function Brand({ href = "/" }: { href?: string }) {
+  return (
+    <Link href={href} className="hq-brand" aria-label="Haveniq">
+      <img src="/haveniq_app_icon.png" alt="" width={32} height={32} />
+      Haveniq
+    </Link>
+  );
+}
+
+export function HqLang() {
+  const { locale, setLocale, m } = useI18n();
+  return (
+    <div className="hq-lang" role="group" aria-label={m.lang.label}>
+      {(["he", "en"] as const).map((code) => (
+        <button key={code} type="button" aria-pressed={locale === code} onClick={() => void setLocale(code)}>
+          {code === "he" ? "עב" : "EN"}
+        </button>
+      ))}
+    </div>
   );
 }
 
