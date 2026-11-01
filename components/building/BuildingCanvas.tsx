@@ -460,7 +460,7 @@ function Scene({
       />
 
       {/* HDRI reflections */}
-      <Environment preset="sunset" />
+      <Environment files="/hdri/venice_sunset_1k.hdr" />
 
       {/* Procedural sky */}
       {quality === "high" && (

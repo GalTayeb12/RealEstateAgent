@@ -710,7 +710,7 @@ function SceneContent({
         frames={1}
       />
 
-      <Environment preset="city" background />
+      <Environment files="/hdri/potsdamer_platz_1k.hdr" background />
 
       <OrbitControls
         ref={orbitRef}

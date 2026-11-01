@@ -153,6 +153,11 @@ export default function DevDashboardPage() {
   const { m } = useI18n();
   const [profile, setProfile] = useState<DevProfile | null>(null);
   const [tab, setTab] = useState<Tab>("projects");
+
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    if (requested === "reservations" || requested === "groups") setTab(requested);
+  }, []);
   const [projects, setProjects] = useState<Project[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [groups, setGroups] = useState<LeverageGroup[]>([]);

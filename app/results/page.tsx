@@ -146,6 +146,7 @@ function LeverageModal({
   const [existingGroups, setExistingGroups] = useState<LeverageGroup[]>([]);
   const [myGroupIds, setMyGroupIds] = useState<Set<string>>(new Set());
   const [submitting, setSubmitting] = useState(false);
+  const { m } = useI18n();
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
@@ -222,8 +223,8 @@ function LeverageModal({
   }
 
   const successMsg = success === "join"
-    ? "You've joined the group. We'll be in touch when enough buyers are interested to open negotiations with the developer."
-    : "Your group request has been registered. Others can join, and we'll reach out when there's enough interest to move forward.";
+    ? m.results.joinedBody
+    : m.results.requestBody;
 
   return (
     <>
@@ -272,7 +273,7 @@ function LeverageModal({
               </svg>
               <div>
                 <div style={{ fontWeight: 700, color: "#1F4B4A", fontSize: "0.9375rem", marginBottom: "0.3rem" }}>
-                  {success === "join" ? "You're in." : "Group request registered."}
+                  {success === "join" ? m.results.youreIn : m.results.groupRegisteredTitle}
                 </div>
                 <div style={{ fontSize: "0.875rem", color: "#3A6B6A", lineHeight: 1.55 }}>{successMsg}</div>
               </div>
@@ -339,7 +340,7 @@ function LeverageModal({
                     disabled={submitting}
                     style={{ padding: "0.6875rem 1.5rem", borderRadius: 999, background: submitting ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", boxShadow: submitting ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", alignSelf: "flex-start" }}
                   >
-                    {submitting ? "Registering interest…" : "Signal interest"}
+                    {submitting ? m.results.registering : m.results.signalInterest}
                   </button>
                 </div>
               )}
@@ -372,28 +373,29 @@ function AlignmentBar({
   aom: { eil: number; ail: number };
   elasticity: ElasticityResult | null;
 }) {
+  const { m } = useI18n();
   const pct = (v: number) => `${Math.max(0, Math.min(100, v))}%`;
   const { eil, ail } = aom;
   const { lowerBound, upperBound, pfij, valid } = outcome;
   const showElasticity = valid && elasticity !== null;
 
   return (
-    <div style={{ marginTop: "1.25rem" }}>
+    <div dir="ltr" style={{ marginTop: "1.25rem", direction: "ltr" }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", marginBottom: "0.625rem", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6B6860" }}>
         <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#1F4B4A", display: "inline-block" }} />Seller range
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#1F4B4A", display: "inline-block" }} />{m.results.sellerRange}
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#C89B3C", display: "inline-block" }} />Your range
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#C89B3C", display: "inline-block" }} />{m.results.yourRange}
         </span>
         {valid && (
           <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: "#0E3332", display: "inline-block" }} />Feasible overlap
+            <span style={{ width: 10, height: 10, borderRadius: 2, background: "#0E3332", display: "inline-block" }} />{m.results.overlap}
           </span>
         )}
         {showElasticity && (
           <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "6px solid #1C1B19", display: "inline-block" }} />Suggested price
+            <span style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "6px solid #1C1B19", display: "inline-block" }} />{m.results.suggestedMarker}
           </span>
         )}
       </div>
@@ -407,7 +409,7 @@ function AlignmentBar({
         </div>
         {showElasticity && (
           <div
-            title={`Suggested price: ${elasticity!.suggestedScore}`}
+            title={`${m.results.suggestedMarker}: ${elasticity!.suggestedScore}`}
             style={{ position: "absolute", top: "1.5rem", left: pct(elasticity!.suggestedScore), transform: "translateX(-50%)", marginTop: 3, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "7px solid #1C1B19" }}
           />
         )}
@@ -418,16 +420,22 @@ function AlignmentBar({
       </div>
 
       <div style={{ marginTop: "0.625rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", fontSize: "0.75rem", color: "#6B6860", fontFamily: "var(--font-jetbrains, monospace)" }}>
-        <span>Seller min: {eil}</span><span>Seller target: {ail}</span>
-        <span style={{ color: "#C89B3C" }}>Your floor: {aj}</span>
-        <span style={{ color: "#C89B3C" }}>Your ideal: {ej}</span>
-        {valid && <span style={{ color: "#1F4B4A", fontWeight: 700 }}>Match score: {pfij}</span>}
-        {showElasticity && <span style={{ color: "#1C1B19", fontWeight: 700 }}>↓ Suggested: {elasticity!.suggestedScore}</span>}
+        <span>{m.results.sellerMin}: {eil}</span><span>{m.results.sellerTarget}: {ail}</span>
+        <span style={{ color: "#C89B3C" }}>{m.results.yourFloor}: {aj}</span>
+        <span style={{ color: "#C89B3C" }}>{m.results.yourIdeal}: {ej}</span>
+        {valid && <span style={{ color: "#1F4B4A", fontWeight: 700 }}>{m.results.matchScore}: {pfij}</span>}
+        {showElasticity && <span style={{ color: "#1C1B19", fontWeight: 700 }}>↓ {m.results.suggested}: {elasticity!.suggestedScore}</span>}
       </div>
 
       {showElasticity && (
         <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", color: "#6B6860", fontStyle: "italic", lineHeight: 1.5 }}>
-          {elasticity!.label}
+          {elasticity!.direction === "toward_seller"
+            ? m.results.towardSeller
+            : elasticity!.direction === "toward_buyer"
+              ? m.results.towardBuyer
+              : lowerBound === upperBound
+                ? m.results.oneScore
+                : m.results.balanced}
         </p>
       )}
     </div>
@@ -470,7 +478,7 @@ function SendOfferPanel({
       } else {
         const priceNum = Number(offeredPrice);
         if (!offeredPrice || isNaN(priceNum) || priceNum <= 0) {
-          setErrMsg("Enter a valid offer price");
+          setErrMsg(m.results.enterPrice);
           setPhase("open");
           return;
         }
@@ -537,7 +545,7 @@ function SendOfferPanel({
       <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(28,27,25,0.08)", overflow: "hidden" }}>
         <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(28,27,25,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
           <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A" }}>{m.results.reserve}</span>
-          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label="Close">✕</button>
+          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
         </div>
         <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #E0DDD7", padding: "0.875rem 1rem" }}>
@@ -575,7 +583,7 @@ function SendOfferPanel({
     <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(28,27,25,0.08)", overflow: "hidden" }}>
       <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(28,27,25,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
         <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A" }}>{m.results.makeOffer}</span>
-        <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label="Close">✕</button>
+        <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
       </div>
 
       <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -618,10 +626,10 @@ function SendOfferPanel({
             onClick={submit} disabled={phase === "submitting"}
             style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
           >
-            {phase === "submitting" ? "Sending…" : "Submit offer"}
+            {phase === "submitting" ? m.results.sending : m.results.submitOffer}
           </button>
           <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "#9A958F", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
-            Cancel
+            {m.results.cancel}
           </button>
         </div>
       </div>
@@ -667,7 +675,7 @@ function MatchCard({
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
           <div>
             <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: outcome.valid ? "#1F4B4A" : "#9A958F", marginBottom: "0.375rem" }}>
-              {outcome.valid ? `Match #${rank}` : "Not feasible"}
+              {outcome.valid ? `${m.results.matchN} #${rank}` : m.results.notFeasible}
             </div>
             <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.375rem", fontWeight: 800, color: "#14130F", margin: 0, lineHeight: 1.2, letterSpacing: "-0.01em" }}>
               {outcome.title}
@@ -684,13 +692,13 @@ function MatchCard({
           <div style={{ flexShrink: 0, textAlign: "right" }}>
             {outcome.valid ? (
               <div style={{ background: "linear-gradient(155deg, #EEF4F3, #E1EBE9)", borderRadius: 12, padding: "0.625rem 1rem", fontFamily: "var(--font-jetbrains, monospace)" }}>
-                <div style={{ fontSize: "0.625rem", color: "#1F4B4A", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>Surplus</div>
+                <div style={{ fontSize: "0.625rem", color: "#1F4B4A", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>{m.results.surplus}</div>
                 <div style={{ fontSize: "1.375rem", fontWeight: 700, color: "#123332", lineHeight: 1.1 }}>{outcome.zij.toFixed(1)}</div>
               </div>
             ) : (
               <div style={{ background: "#FAE8E8", borderRadius: 12, padding: "0.625rem 1rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "#B04040", fontWeight: 700 }}>Not feasible</div>
-                <div style={{ fontSize: "0.6875rem", color: "#B04040", marginTop: "0.125rem", opacity: 0.75 }}>ranges don&apos;t overlap</div>
+                <div style={{ fontSize: "0.75rem", color: "#B04040", fontWeight: 700 }}>{m.results.notFeasible}</div>
+                <div style={{ fontSize: "0.6875rem", color: "#B04040", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
               </div>
             )}
           </div>
@@ -710,14 +718,14 @@ function MatchCard({
 
         <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
           <Link href={`/aom/${outcome.aomId}`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#1F4B4A", textDecoration: "none" }}>
-            View property details →
+            {m.results.viewDetails} →
           </Link>
           {outcome.valid && (
             <button
               onClick={() => onOpenLeverage(outcome)}
               style={{ background: "none", border: "1px solid #C89B3C", borderRadius: 999, padding: "0.3rem 0.875rem", fontSize: "0.8125rem", fontWeight: 600, color: "#C89B3C", cursor: "pointer" }}
             >
-              Group discount
+              {m.results.groupDiscount}
             </button>
           )}
         </div>
@@ -740,17 +748,18 @@ interface RateLimitInfo {
 
 const MAX_INTERVIEWS_PER_DAY = 2;
 
-function formatWait(nextAvailableAt: string): string {
+function formatWait(nextAvailableAt: string, soon: string): string {
   const diff = new Date(nextAvailableAt).getTime() - Date.now();
-  if (diff <= 0) return "any moment";
+  if (diff <= 0) return soon;
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.ceil((diff % (1000 * 60 * 60)) / (1000 * 60));
   if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+  return `${minutes}m`;
 }
 
 export default function ResultsPage() {
   const router = useRouter();
+  const { m } = useI18n();
   const [data, setData] = useState<StoredResults | null>(null);
   const [token, setToken] = useState("");
   const [missing, setMissing] = useState(false);
@@ -787,8 +796,8 @@ export default function ResultsPage() {
     return (
       <main style={{ minHeight: "100vh", background: "#FAF8F4", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-inter, sans-serif)" }}>
         <div style={{ textAlign: "center" }}>
-          <p style={{ color: "#6B6860", marginBottom: "1rem", fontSize: "0.9375rem" }}>No results found in this session.</p>
-          <Link href="/processing" style={{ color: "#1F4B4A", fontWeight: 700, textDecoration: "none" }}>Run matching →</Link>
+          <p style={{ color: "#6B6860", marginBottom: "1rem", fontSize: "0.9375rem" }}>{m.results.noSession}</p>
+          <Link href="/processing" style={{ color: "#1F4B4A", fontWeight: 700, textDecoration: "none" }}>{m.results.runMatching} →</Link>
         </div>
       </main>
     );
@@ -813,7 +822,7 @@ export default function ResultsPage() {
       <div style={{ position: "fixed", inset: 0, background: "radial-gradient(60% 40% at 85% 5%, rgba(47,102,100,0.07) 0%, transparent 55%), radial-gradient(40% 30% at 5% 85%, rgba(200,155,60,0.05) 0%, transparent 55%)", pointerEvents: "none", zIndex: 0 }} />
 
       {/* Toast */}
-      {toast && <Toast message="Offer sent successfully!" onDismiss={dismissToast} />}
+      {toast && <Toast message={m.results.offerToast} onDismiss={dismissToast} />}
 
       {/* Leverage modal */}
       {leverageTarget && (
@@ -823,13 +832,13 @@ export default function ResultsPage() {
       {/* Page intro */}
       <div style={{ position: "relative", zIndex: 1, maxWidth: "56rem", margin: "0 auto", padding: "3rem 1.5rem 0" }}>
         <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "0.625rem" }}>
-          MATCH RESULTS
+          {m.results.kicker}
         </div>
         <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.25rem", fontWeight: 800, color: "#14130F", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
-          Your matches
+          {m.results.title}
         </h1>
         <p style={{ margin: 0, color: "#6B6860", fontSize: "1rem", lineHeight: 1.5 }}>
-          {validMatches.length} of {ranked.length} listings are a feasible match for your profile.
+          {m.results.summary.replace("{valid}", String(validMatches.length)).replace("{total}", String(ranked.length))}
         </p>
       </div>
 
@@ -840,9 +849,9 @@ export default function ResultsPage() {
         <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 2px 4px rgba(28,27,25,0.03), 0 16px 36px -16px rgba(18,51,50,0.10)", overflow: "hidden" }}>
           <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, #B8892C)" }} />
           <div style={{ padding: "1.75rem" }}>
-            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6B6860", marginBottom: "1.25rem" }}>Your profile</div>
+            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6B6860", marginBottom: "1.25rem" }}>{m.results.yourProfile}</div>
             <div className="hn-results-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem 2.5rem" }}>
-              {[["Type", prefs.property_type], ["Location", prefs.location], ["Bedrooms", prefs.bedrooms != null ? `${prefs.bedrooms}+` : "—"], ["Timeline", prefs.timeline]].map(([label, value]) => (
+              {[[m.results.type, prefs.property_type], [m.results.location, prefs.location], [m.results.bedrooms, prefs.bedrooms != null ? `${prefs.bedrooms}+` : "—"], [m.results.timeline, prefs.timeline]].map(([label, value]) => (
                 <div key={label}>
                   <div style={{ fontSize: "0.6875rem", color: "#9A958F", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.2rem" }}>{label}</div>
                   <div style={{ fontSize: "0.9375rem", color: "#1C1B19", fontWeight: 500 }}>{value}</div>
@@ -850,12 +859,12 @@ export default function ResultsPage() {
               ))}
             </div>
             <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(28,27,25,0.06)", display: "flex", gap: "2rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem" }}>
-              <div><span style={{ color: "#9A958F" }}>Your ideal </span><span style={{ color: "#1F4B4A", fontWeight: 700 }}>{ej}</span></div>
-              <div><span style={{ color: "#9A958F" }}>Your floor </span><span style={{ color: "#C89B3C", fontWeight: 700 }}>{aj}</span></div>
+              <div><span style={{ color: "#9A958F" }}>{m.results.yourIdeal} </span><span style={{ color: "#1F4B4A", fontWeight: 700 }}>{ej}</span></div>
+              <div><span style={{ color: "#9A958F" }}>{m.results.yourFloor} </span><span style={{ color: "#C89B3C", fontWeight: 700 }}>{aj}</span></div>
             </div>
             {char.behavioral_insights && (
               <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(28,27,25,0.06)" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.4rem" }}>Insights</div>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.4rem" }}>{m.results.insights}</div>
                 <p style={{ fontSize: "0.9375rem", color: "#1C1B19", margin: 0, lineHeight: 1.65 }}>{char.behavioral_insights}</p>
               </div>
             )}
@@ -864,25 +873,25 @@ export default function ResultsPage() {
             <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(28,27,25,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.875rem" }}>
               <div>
                 <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.25rem" }}>
-                  Interview quota
+                  {m.results.quota}
                 </div>
                 {rateLimit ? (
                   <div style={{ fontSize: "0.875rem", color: "#6B6860" }}>
                     <span style={{ color: rateLimit.remaining === 0 ? "#B04040" : "#1C1B19", fontWeight: 600 }}>
-                      {rateLimit.attempts} of {MAX_INTERVIEWS_PER_DAY}
+                      {rateLimit.attempts} / {MAX_INTERVIEWS_PER_DAY}
                     </span>{" "}
-                    interviews used today
+                    {m.results.usedToday}
                     {rateLimit.remaining === 0 && rateLimit.nextAvailableAt && (
                       <span style={{ color: "#9A958F" }}>
-                        {" "}— resets in{" "}
+                        {" "}— {m.results.resetsIn}{" "}
                         <span style={{ color: "#C89B3C", fontWeight: 600 }}>
-                          {formatWait(rateLimit.nextAvailableAt)}
+                          {formatWait(rateLimit.nextAvailableAt, m.results.soon)}
                         </span>
                       </span>
                     )}
                   </div>
                 ) : (
-                  <div style={{ fontSize: "0.875rem", color: "#9A958F" }}>Loading…</div>
+                  <div style={{ fontSize: "0.875rem", color: "#9A958F" }}>{m.common.loading}</div>
                 )}
               </div>
 
@@ -910,16 +919,16 @@ export default function ResultsPage() {
                     transition: "all 0.15s",
                   }}
                 >
-                  Redo my profile
+                  {m.results.redo}
                 </button>
                 {rateLimit && rateLimit.remaining > 0 && (
-                  <div style={{ fontSize: "0.6875rem", color: "#9A958F", textAlign: "right" }}>
-                    {rateLimit.remaining} retake{rateLimit.remaining === 1 ? "" : "s"} remaining today
+                  <div style={{ fontSize: "0.6875rem", color: "#9A958F", textAlign: "end" }}>
+                    {rateLimit.remaining} {m.results.retakesLeft}
                   </div>
                 )}
                 {rateLimit && rateLimit.remaining === 0 && rateLimit.nextAvailableAt && (
-                  <div style={{ fontSize: "0.6875rem", color: "#B04040", textAlign: "right" }}>
-                    Try again in {formatWait(rateLimit.nextAvailableAt)}
+                  <div style={{ fontSize: "0.6875rem", color: "#B04040", textAlign: "end" }}>
+                    {m.results.tryAgainIn} {formatWait(rateLimit.nextAvailableAt, m.results.soon)}
                   </div>
                 )}
               </div>
@@ -950,7 +959,7 @@ export default function ResultsPage() {
         {validMatches.length > 0 && recommendations.length > 0 && (
           <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 1px 3px rgba(28,27,25,0.04)", padding: "1.75rem" }}>
             <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6B6860", marginBottom: "1.25rem" }}>
-              Next steps — services to consider
+              {m.results.nextSteps}
             </div>
             <div className="hn-results-recs" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(19rem, 1fr))", gap: "0.875rem" }}>
               {recommendations.map(r => (
@@ -972,16 +981,16 @@ export default function ResultsPage() {
             <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, #B8892C)" }} />
             <div style={{ padding: "1.5rem 1.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.25rem", flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontWeight: 700, color: "#14130F", fontSize: "1rem", marginBottom: "0.3rem", letterSpacing: "-0.01em" }}>Interested in a group discount?</div>
+                <div style={{ fontWeight: 700, color: "#14130F", fontSize: "1rem", marginBottom: "0.3rem", letterSpacing: "-0.01em" }}>{m.results.groupCtaTitle}</div>
                 <p style={{ margin: 0, fontSize: "0.9375rem", color: "#6B6860", lineHeight: 1.5 }}>
-                  Pool with other buyers to negotiate a better price on any of the listings above. Click &ldquo;Group discount&rdquo; on any card.
+                  {m.results.groupCtaBody}
                 </p>
               </div>
               <Link
                 href="/buyer/leverage-groups"
                 style={{ padding: "0.6875rem 1.375rem", borderRadius: 999, background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", fontSize: "0.875rem", fontWeight: 700, textDecoration: "none", flexShrink: 0, boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", whiteSpace: "nowrap" }}
               >
-                View all groups →
+                {m.results.viewGroups} →
               </Link>
             </div>
           </div>

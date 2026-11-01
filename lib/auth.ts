@@ -1,7 +1,17 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET ?? "dev-secret-change-me";
+function readJwtSecret(): string {
+  const secret = process.env.JWT_SECRET?.trim();
+  if (!secret) {
+    throw new Error(
+      "JWT_SECRET is not set. Refusing to start authentication until it is set in the environment."
+    );
+  }
+  return secret;
+}
+
+const JWT_SECRET = readJwtSecret();
 const SALT_ROUNDS = 12;
 
 export async function hashPassword(password: string): Promise<string> {

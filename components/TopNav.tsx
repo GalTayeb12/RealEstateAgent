@@ -16,7 +16,7 @@
  *
  * Mobile: collapses to a hamburger menu at ≤640px.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
@@ -78,13 +78,37 @@ const DASHBOARD_HREF: Record<string, string> = {
 
 // ── Initials helper ───────────────────────────────────────────────────────────
 
-function getInitials(user: NavUser): string {
-  if (user.name && user.name.trim()) {
-    const parts = user.name.trim().split(/\s+/);
-    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    return parts[0][0].toUpperCase();
+function firstLetter(user: NavUser): string {
+  const source = (user.name && user.name.trim()) || user.email;
+  const letter = source.trim().charAt(0);
+  return letter ? letter.toLocaleUpperCase() : "?";
+}
+
+function roleLabel(role: string, m: ReturnType<typeof useI18n>["m"]): string {
+  if (role === "buyer") return m.nav.roleBuyer;
+  if (role === "developer") return m.nav.roleDeveloper;
+  if (role === "seller") return m.nav.roleSeller;
+  if (role === "admin") return m.nav.roleAdmin;
+  return role;
+}
+
+function accountLinks(role: string, m: ReturnType<typeof useI18n>["m"]): { href: string; label: string }[] {
+  if (role === "buyer") {
+    return [
+      { href: "/results", label: m.nav.myResults },
+      { href: "/buyer/offers", label: m.nav.offers },
+      { href: "/buyer/leverage-groups", label: m.nav.groups },
+    ];
   }
-  return user.email.split("@")[0][0].toUpperCase();
+  if (role === "developer") {
+    return [
+      { href: "/dev/dashboard", label: m.nav.devDashboard },
+      { href: "/dev/dashboard?tab=reservations", label: m.nav.reservations },
+    ];
+  }
+  if (role === "seller") return [{ href: "/seller/dashboard", label: m.nav.myDashboard }];
+  if (role === "admin") return [{ href: "/dev/admin/approvals", label: m.nav.approvals }];
+  return [];
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -96,10 +120,13 @@ export default function TopNav() {
   const [user, setUser]               = useState<NavUser | null>(null);
   const [offersCount, setOffersCount] = useState(0);
   const [menuOpen, setMenuOpen]       = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [narrow, setNarrow]           = useState(false);
 
   // Read user from localStorage on every route change; close mobile menu.
   useEffect(() => {
     setMenuOpen(false);
+    setAccountOpen(false);
     try {
       const raw = localStorage.getItem("user");
       setUser(raw ? JSON.parse(raw) : null);
@@ -107,6 +134,44 @@ export default function TopNav() {
       setUser(null);
     }
   }, [pathname]);
+
+  useEffect(() => {
+    if (!user || user.name) return;
+    const token = localStorage.getItem("token") ?? "";
+    if (!token) return;
+    let cancelled = false;
+    fetch("/api/profile", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((profile: { name?: string | null } | null) => {
+        if (cancelled || !profile?.name) return;
+        const raw = localStorage.getItem("user");
+        if (!raw) return;
+        const next = { ...JSON.parse(raw), name: profile.name };
+        localStorage.setItem("user", JSON.stringify(next));
+        setUser(next);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [user]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const apply = () => setNarrow(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    if (!accountOpen) return;
+    function onPointer(event: MouseEvent) {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("[data-account]")) return;
+      setAccountOpen(false);
+    }
+    document.addEventListener("mousedown", onPointer);
+    return () => document.removeEventListener("mousedown", onPointer);
+  }, [accountOpen]);
 
   // Fetch offer count for buyer on every route change.
   useEffect(() => {
@@ -128,7 +193,8 @@ export default function TopNav() {
   const showAppNav = !!user && !GUEST_PATHS.has(pathname);
   const links    = user ? (NAV_HREFS[user.role] ?? []) : [];
   const dashHref = user ? (DASHBOARD_HREF[user.role] ?? "/") : "/";
-  const initials = user ? getInitials(user) : "";
+  const letter = user ? firstLetter(user) : "";
+  const linksForMenu = user ? accountLinks(user.role, m) : [];
 
   function signOut() {
     localStorage.removeItem("token");
@@ -246,6 +312,21 @@ export default function TopNav() {
               </Link>
             )}
             <LanguageToggle />
+            {user && (
+              <AccountButton
+                letter={letter}
+                open={accountOpen}
+                onToggle={() => setAccountOpen((open) => !open)}
+                showMenu={accountOpen && !narrow}
+                user={user}
+                links={linksForMenu}
+                role={roleLabel(user.role, m)}
+                profileLabel={m.nav.myProfile}
+                signOutLabel={m.nav.signOut}
+                onNavigate={() => setAccountOpen(false)}
+                onSignOut={signOut}
+              />
+            )}
           </div>
         )}
 
@@ -253,63 +334,42 @@ export default function TopNav() {
         <div className="hn-nav-right" style={{ display: showAppNav ? "flex" : "none", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
           <LanguageToggle />
           {user && (
-            <>
-          <Link
-            href="/profile"
-            title={user.name ?? user.email}
-            style={{
-              width: "2rem",
-              height: "2rem",
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #2F6664, #1F4B4A)",
-              color: "#fff",
-              fontSize: "0.6875rem",
-              fontWeight: 700,
-              letterSpacing: "0.04em",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              textDecoration: "none",
-              flexShrink: 0,
-              transition: "opacity 0.15s",
-            }}
-            onMouseEnter={e => ((e.currentTarget as HTMLAnchorElement).style.opacity = "0.8")}
-            onMouseLeave={e => ((e.currentTarget as HTMLAnchorElement).style.opacity = "1")}
-          >
-            {initials}
-          </Link>
-
-          <button
-            onClick={signOut}
-            style={{
-              fontSize: "0.8125rem",
-              fontWeight: 600,
-              color: "#6B6860",
-              background: "none",
-              border: "1px solid #DDD9D3",
-              borderRadius: "0.375rem",
-              padding: "0.25rem 0.75rem",
-              cursor: "pointer",
-              transition: "border-color 0.15s, color 0.15s",
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#B04040";
-              (e.currentTarget as HTMLButtonElement).style.color = "#B04040";
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "#DDD9D3";
-              (e.currentTarget as HTMLButtonElement).style.color = "#6B6860";
-            }}
-          >
-            {m.nav.signOut}
-          </button>
-            </>
+            <span className="hn-account-desktop">
+              <AccountButton
+                letter={letter}
+                open={accountOpen}
+                onToggle={() => setAccountOpen((open) => !open)}
+                showMenu={accountOpen && !narrow}
+                user={user}
+                links={linksForMenu}
+                role={roleLabel(user.role, m)}
+                profileLabel={m.nav.myProfile}
+                signOutLabel={m.nav.signOut}
+                onNavigate={() => setAccountOpen(false)}
+                onSignOut={signOut}
+              />
+            </span>
           )}
         </div>
 
         {showAppNav && (
-        <div className="hn-nav-lang-mobile" style={{ display: "none", marginInlineStart: "auto", alignItems: "center" }}>
+        <div className="hn-nav-lang-mobile" style={{ display: "none", marginInlineStart: "auto", alignItems: "center", gap: "0.5rem" }}>
           <LanguageToggle />
+          {user && (
+            <AccountButton
+              letter={letter}
+              open={accountOpen}
+              onToggle={() => setAccountOpen((open) => !open)}
+              showMenu={false}
+              user={user}
+              links={linksForMenu}
+              role={roleLabel(user.role, m)}
+              profileLabel={m.nav.myProfile}
+              signOutLabel={m.nav.signOut}
+              onNavigate={() => setAccountOpen(false)}
+              onSignOut={signOut}
+            />
+          )}
         </div>
         )}
 
@@ -440,7 +500,7 @@ export default function TopNav() {
               justifyContent: "center",
               flexShrink: 0,
             }}>
-              {initials}
+              {letter}
             </span>
             <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {user.name ?? user.email}
@@ -468,6 +528,167 @@ export default function TopNav() {
           </button>
         </div>
       )}
+
+      {user && accountOpen && narrow && (
+        <div data-account style={{ position: "fixed", inset: 0, zIndex: 200 }}>
+          <button
+            type="button"
+            aria-label={m.nav.closeMenu}
+            onClick={() => setAccountOpen(false)}
+            style={{ position: "absolute", inset: 0, background: "rgba(4,10,16,0.55)", border: "none", padding: 0 }}
+          />
+          <div style={{ position: "absolute", insetInline: 0, bottom: 0 }}>
+            <AccountPanel
+              sheet
+              user={user}
+              role={roleLabel(user.role, m)}
+              links={linksForMenu}
+              profileLabel={m.nav.myProfile}
+              signOutLabel={m.nav.signOut}
+              onNavigate={() => setAccountOpen(false)}
+              onSignOut={signOut}
+            />
+          </div>
+        </div>
+      )}
     </nav>
+  );
+}
+
+function AccountButton({
+  letter,
+  open,
+  onToggle,
+  showMenu,
+  user,
+  links,
+  role,
+  profileLabel,
+  signOutLabel,
+  onNavigate,
+  onSignOut,
+}: {
+  letter: string;
+  open: boolean;
+  onToggle: () => void;
+  showMenu: boolean;
+  user: NavUser;
+  links: { href: string; label: string }[];
+  role: string;
+  profileLabel: string;
+  signOutLabel: string;
+  onNavigate: () => void;
+  onSignOut: () => void;
+}) {
+  return (
+    <div data-account style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        aria-label={user.name ?? user.email}
+        style={{
+          width: "2rem",
+          height: "2rem",
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #2F6664, #1F4B4A)",
+          color: "#fff",
+          fontSize: "0.8125rem",
+          fontWeight: 700,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: open ? "2px solid #C89B3C" : "2px solid transparent",
+          cursor: "pointer",
+          padding: 0,
+          flexShrink: 0,
+        }}
+      >
+        {letter}
+      </button>
+      {showMenu && (
+        <div style={{ position: "absolute", top: "calc(100% + 0.55rem)", insetInlineEnd: 0, width: "17.5rem", zIndex: 30 }}>
+          <AccountPanel
+            user={user}
+            role={role}
+            links={links}
+            profileLabel={profileLabel}
+            signOutLabel={signOutLabel}
+            onNavigate={onNavigate}
+            onSignOut={onSignOut}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AccountPanel({
+  user,
+  role,
+  links,
+  profileLabel,
+  signOutLabel,
+  onNavigate,
+  onSignOut,
+  sheet = false,
+}: {
+  user: NavUser;
+  role: string;
+  links: { href: string; label: string }[];
+  profileLabel: string;
+  signOutLabel: string;
+  onNavigate: () => void;
+  onSignOut: () => void;
+  sheet?: boolean;
+}) {
+  const item: CSSProperties = {
+    display: "block",
+    width: "100%",
+    textAlign: "start",
+    textDecoration: "none",
+    background: "transparent",
+    border: "none",
+    color: "#E7EEF3",
+    fontSize: "0.9375rem",
+    fontWeight: 600,
+    padding: "0.7rem 0.85rem",
+    borderRadius: 12,
+    cursor: "pointer",
+    fontFamily: "inherit",
+  };
+  return (
+    <div style={{
+      background: "rgba(6,14,24,0.82)",
+      backdropFilter: "blur(18px) saturate(1.4)",
+      border: "1px solid rgba(255,255,255,0.12)",
+      borderRadius: sheet ? "18px 18px 0 0" : 18,
+      padding: sheet ? "0.45rem 0.45rem 1.1rem" : "0.45rem",
+      boxShadow: "0 24px 48px -24px rgba(0,0,0,0.7)",
+      color: "#F4F7F8",
+    }}>
+      <div style={{ padding: "0.7rem 0.85rem 0.55rem" }}>
+        <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{user.name || user.email}</div>
+        {user.name && (
+          <div style={{ color: "#9AAAB8", fontSize: "0.8125rem", marginTop: "0.15rem", overflow: "hidden", textOverflow: "ellipsis" }}>{user.email}</div>
+        )}
+        <span style={{
+          display: "inline-flex",
+          marginTop: "0.45rem",
+          padding: "0.12rem 0.55rem",
+          borderRadius: 999,
+          background: "rgba(200,155,60,0.16)",
+          color: "#E4C27A",
+          border: "1px solid rgba(200,155,60,0.35)",
+          fontSize: "0.75rem",
+          fontWeight: 700,
+        }}>{role}</span>
+      </div>
+      <Link href="/profile" onClick={onNavigate} style={item}>{profileLabel}</Link>
+      {links.map((link) => (
+        <Link key={link.href} href={link.href} onClick={onNavigate} style={item}>{link.label}</Link>
+      ))}
+      <button type="button" onClick={onSignOut} style={{ ...item, color: "#F0A8A8" }}>{signOutLabel}</button>
+    </div>
   );
 }

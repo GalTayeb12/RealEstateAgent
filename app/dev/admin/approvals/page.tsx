@@ -123,13 +123,38 @@ function StatsCards({ stats }: { stats: Stats }) {
 // ── User table ─────────────────────────────────────────────────────────────────
 
 function UserTable({ token }: { token: string }) {
+  const { m } = useI18n();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [role, setRole] = useState("");
   const [page, setPage] = useState(1);
+  const [resettingId, setResettingId] = useState<string | null>(null);
+  const [resetNote, setResetNote] = useState("");
   const limit = 25;
+
+  async function resetQuota(user: AdminUser) {
+    const ok = window.confirm(`${m.admin.resetQuotaConfirm} ${user.email}?`);
+    if (!ok) return;
+    setResettingId(user.id);
+    setResetNote("");
+    try {
+      const res = await fetch(`/api/dev/admin/users/${user.id}/reset-interview-quota`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? `HTTP ${res.status}`);
+      }
+      setResetNote(`${m.admin.resetQuotaDone}: ${user.email}`);
+    } catch (err) {
+      setResetNote((err as Error).message);
+    } finally {
+      setResettingId(null);
+    }
+  }
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -160,6 +185,9 @@ function UserTable({ token }: { token: string }) {
         <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#1C1B19", marginRight: "auto" }}>
           Users <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.875rem", color: "#9A958F", fontWeight: 400 }}>({total})</span>
         </div>
+        {resetNote && (
+          <div style={{ fontSize: "0.8125rem", color: "#1F4B4A", fontWeight: 600 }}>{resetNote}</div>
+        )}
         <input
           type="text"
           placeholder="Search by email…"
@@ -189,7 +217,7 @@ function UserTable({ token }: { token: string }) {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid #F0EDE8" }}>
-                {["Email", "Role", "Company", "Registered"].map(h => (
+                {["Email", "Role", "Company", "Registered", ""].map(h => (
                   <th key={h} style={{ padding: "0.625rem 1.25rem", textAlign: "left", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6B6860", whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
@@ -220,6 +248,27 @@ function UserTable({ token }: { token: string }) {
                     </td>
                     <td style={{ padding: "0.75rem 1.25rem", color: "#9A958F", whiteSpace: "nowrap", fontSize: "0.8125rem" }}>
                       {new Date(u.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    </td>
+                    <td style={{ padding: "0.75rem 1.25rem", whiteSpace: "nowrap" }}>
+                      {u.role === "buyer" && (
+                        <button
+                          type="button"
+                          disabled={resettingId === u.id}
+                          onClick={() => { void resetQuota(u); }}
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 700,
+                            padding: "0.35rem 0.7rem",
+                            borderRadius: 999,
+                            border: "1px solid #1F4B4A",
+                            background: "#fff",
+                            color: "#1F4B4A",
+                            cursor: resettingId === u.id ? "wait" : "pointer",
+                          }}
+                        >
+                          {m.admin.resetQuota}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );

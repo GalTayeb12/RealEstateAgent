@@ -1,13 +1,10 @@
 "use client";
 /**
- * /profile — account profile page for all authenticated roles.
- *
- * Shows email (read-only) and role badge, with editable name and phone.
- * Saves via PATCH /api/profile and updates localStorage so TopNav initials
- * reflect the new name immediately on the next navigation.
+ * /profile — personal details for every role, plus the buyer's interview summary.
  */
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/components/LocaleProvider";
 
 interface Profile {
   email: string;
@@ -16,37 +13,43 @@ interface Profile {
   phone: string | null;
 }
 
-const ROLE_BADGE: Record<string, { label: string; bg: string; color: string }> = {
-  buyer:     { label: "Buyer",     bg: "#E8F0EF", color: "#1F4B4A" },
-  developer: { label: "Developer", bg: "#FBF4E4", color: "#C89B3C" },
-  admin:     { label: "Admin",     bg: "#FAE8E8", color: "#B04040" },
+interface BuyerPrefs {
+  location?: unknown;
+  bedrooms?: unknown;
+  must_haves?: unknown;
+  budget?: unknown;
+  max_budget?: unknown;
+  budget_max?: unknown;
+}
+
+interface RateLimit {
+  attempts: number;
+  remaining: number;
+  nextAvailableAt: string | null;
+}
+
+const glass: React.CSSProperties = {
+  background: "rgba(8, 20, 32, 0.72)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: 20,
+  backdropFilter: "blur(18px) saturate(1.3)",
+  boxShadow: "0 24px 48px -28px rgba(0,0,0,0.65)",
 };
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "0.625rem 0.875rem",
-  borderRadius: "0.5rem",
-  border: "1px solid #DDD9D3",
-  fontSize: "1rem",
-  fontFamily: "var(--font-inter, sans-serif)",
-  color: "#1C1B19",
-  background: "#fff",
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const readonlyInputStyle: React.CSSProperties = {
-  ...inputStyle,
-  background: "#F7F5F1",
-  color: "#6B6860",
-  cursor: "default",
-};
+function textOf(value: unknown): string {
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return "";
+}
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { m } = useI18n();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [prefs, setPrefs] = useState<BuyerPrefs | null>(null);
+  const [rate, setRate] = useState<RateLimit | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -56,15 +59,27 @@ export default function ProfilePage() {
     const token = localStorage.getItem("token") ?? "";
     if (!token) { router.push("/login"); return; }
     try {
-      const res = await fetch("/api/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch("/api/profile", { headers: { Authorization: `Bearer ${token}` } });
       if (res.status === 401) { router.push("/login"); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: Profile = await res.json();
       setProfile(data);
       setName(data.name ?? "");
       setPhone(data.phone ?? "");
+
+      if (data.role === "buyer") {
+        const [buyerRes, limitRes] = await Promise.all([
+          fetch("/api/buyer/profile", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("/api/interview/rate-limit", { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+        if (buyerRes.ok) {
+          const buyer = await buyerRes.json();
+          setPrefs(buyer.buyer_preferences ?? {});
+        } else {
+          setPrefs(null);
+        }
+        if (limitRes.ok) setRate(await limitRes.json());
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -73,11 +88,9 @@ export default function ProfilePage() {
   }, [router]);
 
   useEffect(() => { load(); }, [load]);
-
-  // Auto-dismiss toast
   useEffect(() => {
     if (!toast) return;
-    const t = setTimeout(() => setToast(false), 4000);
+    const t = setTimeout(() => setToast(false), 3500);
     return () => clearTimeout(t);
   }, [toast]);
 
@@ -93,15 +106,13 @@ export default function ProfilePage() {
         body: JSON.stringify({ name: name.trim() || null, phone: phone.trim() || null }),
       });
       if (!res.ok) {
-        const d = await res.json();
+        const d = await res.json().catch(() => ({}));
         throw new Error(d.error ?? `HTTP ${res.status}`);
       }
       const updated: Profile = await res.json();
       setProfile(updated);
       setName(updated.name ?? "");
       setPhone(updated.phone ?? "");
-
-      // Update localStorage so TopNav initials reflect the new name.
       try {
         const raw = localStorage.getItem("user");
         if (raw) {
@@ -109,7 +120,6 @@ export default function ProfilePage() {
           localStorage.setItem("user", JSON.stringify({ ...stored, name: updated.name }));
         }
       } catch { /* ignore */ }
-
       setToast(true);
     } catch (err) {
       setError((err as Error).message);
@@ -118,169 +128,193 @@ export default function ProfilePage() {
     }
   }
 
-  const badge = profile ? (ROLE_BADGE[profile.role] ?? { label: profile.role, bg: "#F0EDE8", color: "#6B6860" }) : null;
+  const roleLabel: Record<string, string> = {
+    buyer: m.nav.roleBuyer,
+    developer: m.nav.roleDeveloper,
+    seller: m.nav.roleSeller,
+    admin: m.nav.roleAdmin,
+  };
+  const budget = textOf(prefs?.budget) || textOf(prefs?.max_budget) || textOf(prefs?.budget_max);
+  const area = textOf(prefs?.location);
+  const rooms = textOf(prefs?.bedrooms);
+  const matters = Array.isArray(prefs?.must_haves)
+    ? prefs.must_haves.map(textOf).filter(Boolean)
+    : [];
+  const canRedo = !!rate && rate.remaining > 0;
+
+  const field: React.CSSProperties = {
+    width: "100%",
+    padding: "0.7rem 0.9rem",
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "rgba(255,255,255,0.06)",
+    color: "#F4F7F8",
+    fontSize: "1rem",
+    fontFamily: "inherit",
+    outline: "none",
+    boxSizing: "border-box",
+  };
 
   return (
     <main style={{
       minHeight: "100vh",
-      background: "#F7F5F1",
-      fontFamily: "var(--font-inter, sans-serif)",
-      paddingBottom: "4rem",
+      background: "radial-gradient(70% 50% at 100% 0%, rgba(47,102,100,0.35), transparent 55%), radial-gradient(50% 40% at 0% 100%, rgba(200,155,60,0.12), transparent 50%), #071018",
+      color: "#F4F7F8",
+      fontFamily: "var(--font-heebo, var(--font-inter, sans-serif))",
+      padding: "2.5rem 1.25rem 5rem",
     }}>
-      {/* Toast */}
       {toast && (
         <div style={{
           position: "fixed", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
-          background: "#1C1B19", color: "#FAF8F4", borderRadius: "0.625rem",
-          padding: "0.75rem 1.25rem", fontSize: "0.9rem", fontWeight: 500,
-          boxShadow: "0 4px 24px rgba(0,0,0,0.22)", zIndex: 9999,
-          display: "flex", alignItems: "center", gap: "0.625rem", whiteSpace: "nowrap",
+          background: "rgba(8,20,32,0.92)", color: "#F4F7F8", border: "1px solid rgba(200,155,60,0.45)",
+          borderRadius: 999, padding: "0.7rem 1.15rem", zIndex: 50, fontWeight: 600,
         }}>
-          <svg width="14" height="14" viewBox="0 0 12 12" fill="none" stroke="#C89B3C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="1.5 6 4.5 9 10.5 3"/>
-          </svg>
-          Profile saved
+          {m.profile.saved}
         </div>
       )}
 
-      {/* Page header */}
-      <div style={{ borderBottom: "1px solid #DDD9D3", background: "#fff" }}>
-        <div style={{ maxWidth: "42rem", margin: "0 auto", padding: "1.5rem" }}>
-          <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#1F4B4A", marginBottom: "0.5rem" }}>
-            Haveniq
-          </div>
-          <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.875rem", fontWeight: 700, color: "#1C1B19", margin: 0 }}>
-            Your profile
-          </h1>
-          <p style={{ margin: "0.375rem 0 0", color: "#6B6860", fontSize: "0.9375rem" }}>
-            Manage your account details.
-          </p>
+      <div style={{ maxWidth: "40rem", margin: "0 auto" }}>
+        <div style={{ fontSize: "0.75rem", letterSpacing: "0.16em", textTransform: "uppercase", color: "#C89B3C", fontWeight: 700, marginBottom: "0.4rem" }}>
+          {m.profile.kicker}
         </div>
-      </div>
+        <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.1rem", fontWeight: 700, margin: "0 0 0.4rem" }}>
+          {m.profile.title}
+        </h1>
+        <p style={{ margin: "0 0 1.5rem", color: "#9AAAB8" }}>{m.profile.subtitle}</p>
 
-      <div style={{ maxWidth: "42rem", margin: "0 auto", padding: "2rem 1.5rem" }}>
-        {/* Loading state */}
-        {loading && (
-          <div style={{ display: "flex", justifyContent: "center", padding: "4rem 0" }}>
-            <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(28,27,25,0.08)", borderTopColor: "#1F4B4A", animation: "spin 0.9s linear infinite" }} />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-          </div>
-        )}
+        {loading && <div style={{ color: "#9AAAB8" }}>{m.common.loading}</div>}
+        {error && <div style={{ color: "#F0A8A8", marginBottom: "1rem" }}>{error}</div>}
 
         {!loading && profile && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <section style={{ ...glass, padding: "1.25rem 1.35rem" }}>
+              <label style={{ display: "block", fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.35rem" }}>{m.profile.email}</label>
+              <input value={profile.email} readOnly style={{ ...field, color: "#C5CDD4" }} />
 
-            {/* Account info card (read-only) */}
-            <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", overflow: "hidden" }}>
-              <div style={{ padding: "1rem 1.375rem", borderBottom: "1px solid #F0EDE8" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A958F" }}>
-                  Account
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginTop: "0.9rem" }} className="hn-profile-grid">
+                <div>
+                  <label style={{ display: "block", fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.35rem" }}>{m.profile.name}</label>
+                  <input value={name} onChange={(e) => setName(e.target.value)} style={field} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.35rem" }}>{m.profile.phone}</label>
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} style={field} />
                 </div>
               </div>
-              <div style={{ padding: "1.25rem 1.375rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", marginBottom: "0.375rem" }}>
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    value={profile.email}
-                    readOnly
-                    style={readonlyInputStyle}
-                  />
-                </div>
 
+              <div style={{ marginTop: "0.9rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", marginBottom: "0.375rem" }}>
-                    Role
-                  </label>
-                  <div>
-                    {badge && (
-                      <span style={{
-                        fontSize: "0.75rem", fontWeight: 700,
-                        letterSpacing: "0.06em", textTransform: "uppercase",
-                        padding: "0.3rem 0.875rem", borderRadius: 999,
-                        background: badge.bg, color: badge.color,
-                        display: "inline-block",
-                      }}>
-                        {badge.label}
-                      </span>
-                    )}
-                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.35rem" }}>{m.profile.role}</div>
+                  <span style={{
+                    display: "inline-flex",
+                    padding: "0.2rem 0.7rem",
+                    borderRadius: 999,
+                    background: "rgba(200,155,60,0.16)",
+                    color: "#E4C27A",
+                    border: "1px solid rgba(200,155,60,0.35)",
+                    fontSize: "0.8125rem",
+                    fontWeight: 700,
+                  }}>
+                    {roleLabel[profile.role] ?? profile.role}
+                  </span>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => { void save(); }}
+                  disabled={saving}
+                  style={{
+                    border: "none",
+                    borderRadius: 999,
+                    padding: "0.6rem 1.1rem",
+                    background: "linear-gradient(155deg, #2F6664, #123332)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    cursor: saving ? "wait" : "pointer",
+                  }}
+                >
+                  {saving ? m.profile.saving : m.profile.save}
+                </button>
               </div>
-            </div>
+            </section>
 
-            {/* Editable details card */}
-            <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", overflow: "hidden" }}>
-              <div style={{ padding: "1rem 1.375rem", borderBottom: "1px solid #F0EDE8" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A958F" }}>
-                  Personal details
+            {profile.role === "buyer" && (
+              <section style={{ ...glass, padding: "1.25rem 1.35rem" }}>
+                <div style={{ fontSize: "0.75rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "#7EB8B6", fontWeight: 700, marginBottom: "0.9rem" }}>
+                  {m.profile.interviewTitle}
                 </div>
-              </div>
-              <div style={{ padding: "1.25rem 1.375rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", marginBottom: "0.375rem" }}>
-                    Full name
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder="Your full name"
-                    style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = "#1F4B4A")}
-                    onBlur={e => (e.currentTarget.style.borderColor = "#DDD9D3")}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: "block", fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", marginBottom: "0.375rem" }}>
-                    Phone number
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    placeholder="+44 7700 900000"
-                    style={inputStyle}
-                    onFocus={e => (e.currentTarget.style.borderColor = "#1F4B4A")}
-                    onBlur={e => (e.currentTarget.style.borderColor = "#DDD9D3")}
-                  />
-                </div>
-
-                {error && (
-                  <div style={{ padding: "0.625rem 0.875rem", background: "#FAE8E8", borderRadius: "0.5rem", fontSize: "0.875rem", color: "#B04040" }}>
-                    {error}
+                {!prefs ? (
+                  <p style={{ margin: 0, color: "#9AAAB8" }}>{m.profile.interviewEmpty}</p>
+                ) : (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem 1.25rem" }}>
+                    {([
+                      [m.profile.budget, budget],
+                      [m.profile.area, area],
+                      [m.profile.rooms, rooms],
+                    ] as const).map(([label, value]) => (
+                      <div key={label}>
+                        <div style={{ fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.2rem" }}>{label}</div>
+                        <div style={{ fontWeight: 650 }}>{value || m.profile.none}</div>
+                      </div>
+                    ))}
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.4rem" }}>{m.profile.matters}</div>
+                      {matters.length === 0 ? (
+                        <div>{m.profile.none}</div>
+                      ) : (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                          {matters.map((item) => (
+                            <span key={item} style={{
+                              padding: "0.25rem 0.65rem",
+                              borderRadius: 999,
+                              background: "rgba(255,255,255,0.08)",
+                              border: "1px solid rgba(255,255,255,0.12)",
+                              fontSize: "0.875rem",
+                            }}>{item}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "0.25rem" }}>
+                <div style={{ marginTop: "1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <div style={{ fontSize: "0.8125rem", color: "#9AAAB8" }}>
+                    {rate
+                      ? (rate.remaining === 0
+                        ? m.profile.quotaBlocked
+                        : `${rate.attempts}/2 ${m.profile.quotaUsed}`)
+                      : m.common.loading}
+                  </div>
                   <button
-                    onClick={save}
-                    disabled={saving}
+                    type="button"
+                    disabled={!canRedo}
+                    onClick={() => {
+                      sessionStorage.setItem("requestedRetake", "true");
+                      router.push("/interview");
+                    }}
                     style={{
-                      padding: "0.625rem 1.5rem",
                       borderRadius: 999,
-                      border: "none",
-                      background: saving ? "#a5c9c7" : "linear-gradient(155deg, #2F6664, #123332)",
-                      color: "#fff",
-                      fontSize: "0.875rem",
+                      border: "1px solid rgba(200,155,60,0.45)",
+                      background: canRedo ? "rgba(200,155,60,0.16)" : "transparent",
+                      color: canRedo ? "#E4C27A" : "#6E7C88",
+                      padding: "0.55rem 1rem",
                       fontWeight: 700,
-                      cursor: saving ? "not-allowed" : "pointer",
-                      transition: "opacity 0.15s",
+                      cursor: canRedo ? "pointer" : "not-allowed",
                     }}
                   >
-                    {saving ? "Saving…" : "Save changes"}
+                    {m.profile.redo}
                   </button>
                 </div>
-              </div>
-            </div>
+              </section>
+            )}
           </div>
         )}
-
-        {!loading && !profile && !error && null}
       </div>
+      <style>{`
+        @media (max-width: 640px) {
+          .hn-profile-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </main>
   );
 }
