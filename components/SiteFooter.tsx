@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
 
-const HIDE_FOOTER = new Set(["/interview", "/transition", "/processing"]);
+const HIDE_FOOTER = new Set(["/interview", "/transition", "/processing", "/design-system"]);
 
 /**
  * SiteFooter — the only site-wide footer. Hidden on full-screen cinematic pages
