@@ -8,42 +8,6 @@ import TourControls from "./TourControls";
 import RoomLabels from "./RoomLabels";
 import type { ApartmentModelData, Room } from "@/lib/tour/types";
 
-// ─── Floor click raycaster (inside Canvas) ──────────────────────────────────
-function FloorClickHandler({
-  walkTargetRef,
-  mode,
-}: {
-  walkTargetRef: React.MutableRefObject<THREE.Vector3 | null>;
-  mode: "orbit" | "walk";
-}) {
-  const { camera, gl } = useThree();
-  const raycaster = useRef(new THREE.Raycaster());
-  const plane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
-
-  useEffect(() => {
-    if (mode !== "walk") return;
-    const canvas = gl.domElement;
-    const handler = (e: PointerEvent) => {
-      if (e.button !== 0) return;
-      const rect = canvas.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
-        ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        -((e.clientY - rect.top) / rect.height) * 2 + 1,
-      );
-      raycaster.current.setFromCamera(mouse, camera);
-      const intersection = new THREE.Vector3();
-      raycaster.current.ray.intersectPlane(plane.current, intersection);
-      if (intersection) {
-        walkTargetRef.current = intersection.clone();
-      }
-    };
-    canvas.addEventListener("pointerdown", handler);
-    return () => canvas.removeEventListener("pointerdown", handler);
-  }, [mode, camera, gl, walkTargetRef]);
-
-  return null;
-}
-
 // ─── Walk look (drag to look) ───────────────────────────────────────────────
 function WalkLookHandler({
   mode,
@@ -156,7 +120,6 @@ function SceneContent({
 }) {
   const wallGroupRef = useRef<THREE.Group>(null);
   const keysRef = useRef(new Set<string>());
-  const walkTargetRef = useRef<THREE.Vector3 | null>(null);
   // Shared yaw/pitch refs — both WalkLookHandler and TourControls read/write
   // the same angles so mouse-drag look and keyboard turn stay in sync.
   const yawRef = useRef(0);
@@ -192,7 +155,6 @@ function SceneContent({
         onRoomChange={onRoomChange}
         wallGroupRef={wallGroupRef}
         keysRef={keysRef}
-        walkTargetRef={walkTargetRef}
         yawRef={yawRef}
         pitchRef={pitchRef}
       />
@@ -213,7 +175,6 @@ function SceneContent({
         rooms={model.rooms}
         onDwellUpdate={onDwellUpdate}
       />
-      <FloorClickHandler walkTargetRef={walkTargetRef} mode={mode} />
       <WalkLookHandler mode={mode} yawRef={yawRef} pitchRef={pitchRef} />
     </>
   );
