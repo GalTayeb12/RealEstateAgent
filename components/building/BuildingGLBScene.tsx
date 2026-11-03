@@ -15,7 +15,7 @@
  *   Camera must be at NEGATIVE Z to face the glass facade.
  */
 
-import { Html, useGLTF, Environment, OrbitControls, PerformanceMonitor } from "@react-three/drei";
+import { Html, useGLTF, Environment, OrbitControls, PerformanceMonitor, Sky } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
@@ -56,6 +56,20 @@ export interface SceneMeta {
   buildings: BuildingMeta[];
 }
 
+// ── Status labels (i18n strings passed from explorer) ────────────────────────
+export interface StatusLabels {
+  available: string;
+  reserved: string;
+  sold: string;
+  sampleLayout?: string;
+}
+
+function getStatusLabel(status: string, labels: StatusLabels): string {
+  if (status === "sold")     return labels.sold;
+  if (status === "reserved") return labels.reserved;
+  return labels.available;
+}
+
 // ── Shared layout helper ──────────────────────────────────────────────────────
 // Computes the floating unit grid positions for a floor.
 // Must stay in sync with FloorOpenView's rendering logic.
@@ -70,8 +84,6 @@ interface UnitLayout {
 function computeFloorLayout(
   floor: FloorMeta,
   scale: number,
-  roofTopY: number,
-  useActualHeight = false,
 ): UnitLayout[] {
   const units = [...floor.units].sort((a, b) => a.positionIndex - b.positionIndex);
   const N = units.length;
@@ -79,10 +91,8 @@ function computeFloorLayout(
 
   const floorW = floor.width * scale;
   const floorD = floor.depth * scale;
-  const unitH = 3.0;
-  // When useActualHeight: place units at real floor position (inside building)
-  // Otherwise: float above roofline so they're always visible
-  const floatY = useActualHeight ? floor.baseY * scale : roofTopY + 2.0;
+  const unitH = 0.28;  // flat floor-plan plate
+  const floatY = floor.baseY * scale + 0.04;  // sit at actual floor level
 
   const cols = N <= 5 ? N : Math.ceil(N / 2);
   const rows = N <= 5 ? 1 : 2;
@@ -110,7 +120,15 @@ function computeFloorLayout(
 }
 
 // ── Baked GLB model ───────────────────────────────────────────────────────────
-function BakedModel({ url, opacity = 1.0 }: { url: string; opacity?: number }) {
+function BakedModel({
+  url,
+  opacity = 1.0,
+  clipPlane,
+}: {
+  url: string;
+  opacity?: number;
+  clipPlane?: THREE.Plane | null;
+}) {
   const { scene } = useGLTF(url);
   const cloned = useMemo(() => scene.clone(true), [scene]);
 
@@ -122,17 +140,16 @@ function BakedModel({ url, opacity = 1.0 }: { url: string; opacity?: number }) {
         const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
         for (const mat of mats) {
           const m = mat as THREE.MeshStandardMaterial;
-          // Always make transparent if fading building; otherwise respect material's own alpha
           const shouldBeTransparent = forceTransparent || m.opacity < 0.999;
-          if (m.transparent !== shouldBeTransparent || Math.abs(m.opacity - (forceTransparent ? opacity : m.opacity)) > 0.001) {
-            m.transparent = shouldBeTransparent;
-            if (forceTransparent) m.opacity = opacity;
-            m.needsUpdate = true;
-          }
+          m.transparent = shouldBeTransparent;
+          if (forceTransparent) m.opacity = opacity;
+          // Apply clipping plane when floor is selected
+          m.clippingPlanes = clipPlane ? [clipPlane] : [];
+          m.needsUpdate = true;
         }
       }
     });
-  }, [cloned, opacity]);
+  }, [cloned, opacity, clipPlane]);
 
   return <primitive object={cloned} />;
 }
@@ -240,7 +257,7 @@ function StatusOverlay({ floor, scale }: { floor: FloorMeta; scale: number }) {
   );
 }
 
-// ── Unit block (Phase 2) ──────────────────────────────────────────────────────
+// ── Unit block — flat floor-plan plate (Stage 3) ─────────────────────────────
 function UnitBlock({
   unit,
   position,
@@ -249,6 +266,7 @@ function UnitBlock({
   opacity,
   isSelected,
   isHovered,
+  statusLabel,
   onEnter,
   onLeave,
   onClick,
@@ -260,59 +278,82 @@ function UnitBlock({
   opacity?: number;
   isSelected: boolean;
   isHovered: boolean;
+  statusLabel?: string;
   onEnter: (e: THREE.Event) => void;
   onLeave: (e: THREE.Event) => void;
   onClick: (e: THREE.Event) => void;
 }) {
   const alpha = opacity ?? 0.92;
+  const [w, , d] = size;
+  const planH = 0.26;  // flat plate thickness
+
   return (
     <group position={position}>
-      {/* Main unit box — meshBasicMaterial works reliably in software WebGL */}
-      <mesh
-        onPointerEnter={onEnter}
-        onPointerLeave={onLeave}
-        onClick={onClick}
-      >
-        <boxGeometry args={size} />
-        <meshBasicMaterial color={color} transparent opacity={alpha} />
-      </mesh>
-
-      {/* Glow outline when selected or hovered */}
-      {(isSelected || isHovered) && (
+      {/* Outline border — slightly oversized BackSide box */}
+      {alpha > 0.12 && (
         <mesh>
-          <boxGeometry args={[size[0] + 0.14, size[1] + 0.14, size[2] + 0.14]} />
+          <boxGeometry args={[w + 0.10, planH + 0.06, d + 0.10]} />
           <meshBasicMaterial
-            color={isSelected ? "#FFFFFF" : "#88DDFF"}
+            color={isSelected ? "#FFFFFF" : isHovered ? "#AADDFF" : color}
             transparent
-            opacity={isSelected ? 0.45 : 0.28}
+            opacity={isSelected ? 0.90 : isHovered ? 0.72 : alpha * 0.68}
             side={THREE.BackSide}
             depthWrite={false}
           />
         </mesh>
       )}
 
-      {/* Unit number label — floats above the block, always faces camera */}
-      {alpha > 0.3 && (
+      {/* Fill plate */}
+      <mesh
+        onPointerEnter={onEnter}
+        onPointerLeave={onLeave}
+        onClick={onClick}
+      >
+        <boxGeometry args={[w, planH, d]} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={alpha * (isSelected ? 0.55 : 0.28)}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Expanded invisible hit area — easier to click flat plates */}
+      <mesh onPointerEnter={onEnter} onPointerLeave={onLeave} onClick={onClick}>
+        <boxGeometry args={[w + 0.20, planH + 0.80, d + 0.20]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+
+      {/* Label: unit number + status text */}
+      {alpha > 0.12 && (
         <Html
-          position={[0, size[1] / 2 + 0.3, 0]}
+          position={[0, planH / 2 + 0.36, 0]}
           center
           distanceFactor={12}
           style={{ pointerEvents: "none", userSelect: "none" }}
           zIndexRange={[10, 20]}
         >
           <div style={{
-            color: "#FFFFFF",
-            fontSize: 13,
-            fontWeight: 600,
             fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
-            textShadow: "0 1px 4px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.7)",
             whiteSpace: "nowrap",
-            letterSpacing: "0.02em",
-            background: "rgba(0,0,0,0.45)",
-            padding: "1px 5px",
-            borderRadius: 3,
+            textAlign: "center",
+            background: isSelected
+              ? "rgba(255,255,255,0.94)"
+              : "rgba(0,0,0,0.52)",
+            border: isSelected ? `1.5px solid ${color}` : "none",
+            color: isSelected ? "#123F40" : "#FFFFFF",
+            padding: "2px 7px",
+            borderRadius: 4,
+            boxShadow: isSelected ? `0 0 8px ${color}66` : "none",
           }}>
-            {unit.unitNumber}
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.02em" }}>
+              {unit.unitNumber}
+            </div>
+            {statusLabel && (
+              <div style={{ fontSize: 9, fontWeight: 500, marginTop: 1, opacity: 0.82 }}>
+                {statusLabel}
+              </div>
+            )}
           </div>
         </Html>
       )}
@@ -384,21 +425,20 @@ function UnitDollhouseView({
         <meshBasicMaterial color={wallColor} transparent opacity={0.72} />
       </mesh>
 
-      {/* Placeholder when no floor plan loaded yet */}
-      {!texture && (
+      {/* Loading indicator when floor plan URL exists but texture not yet loaded */}
+      {!texture && floorPlanUrl && (
         <Html position={[0, 0.5, 0]} center distanceFactor={12} style={{ pointerEvents: "none" }}>
           <div style={{
             color: "#7A9DB8",
             fontSize: 11,
             fontWeight: 600,
             fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
-            textAlign: "center",
             background: "rgba(14,28,40,0.75)",
             padding: "3px 8px",
             borderRadius: 4,
             whiteSpace: "nowrap",
           }}>
-            {floorPlanUrl ? "…" : "תוכנית הדירה תעלה בקרוב"}
+            …
           </div>
         </Html>
       )}
@@ -406,63 +446,89 @@ function UnitDollhouseView({
   );
 }
 
-// ── Floor open view (Phase 2 + 3) ─────────────────────────────────────────────
-// Units float ABOVE the building's roofline so they're always visible from the
-// aerial camera regardless of which floor is selected.
+// ── Floor open view (Stage 3) ─────────────────────────────────────────────────
+// Flat floor-plan explosion: unit plates sit at the actual floor level.
 function FloorOpenView({
   floor,
   scale,
-  roofTopY,
   selectedUnitId,
   hoveredUnitId,
   floorPlanUrl,
+  statusLabels,
   onUnitEnter,
   onUnitLeave,
   onUnitClick,
 }: {
   floor: FloorMeta;
   scale: number;
-  roofTopY: number;
   selectedUnitId: string | null;
   hoveredUnitId: string | null;
   floorPlanUrl: string | null;
+  statusLabels: StatusLabels;
   onUnitEnter: (unitId: string) => void;
   onUnitLeave: () => void;
   onUnitClick: (unitId: string) => void;
 }) {
-  // Use actual floor height when a specific unit is selected (building fades to transparent)
   const layout = useMemo(
-    () => computeFloorLayout(floor, scale, roofTopY, selectedUnitId !== null),
-    [floor, scale, roofTopY, selectedUnitId],
+    () => computeFloorLayout(floor, scale),
+    [floor, scale],
   );
   if (layout.length === 0) return null;
 
   const floorW = floor.width * scale;
   const floorD = floor.depth * scale;
+  const baseY  = floor.baseY * scale;
 
   return (
     <group>
       {/* Thin floor slab highlight at actual floor level */}
       <mesh
-        position={[floor.centerX * scale, floor.topY * scale + 0.05, floor.centerZ * scale]}
+        position={[floor.centerX * scale, baseY + 0.02, floor.centerZ * scale]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
         <planeGeometry args={[floorW * 0.92, floorD * 0.92]} />
         <meshBasicMaterial color="#4488CC" transparent opacity={0.25} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
 
-      {/* Unit blocks / dollhouse views */}
+      {/* "Sample layout" badge */}
+      {statusLabels.sampleLayout && (
+        <Html
+          position={[floor.centerX * scale, baseY + 0.5, floor.centerZ * scale - floorD * 0.5 - 0.3]}
+          center
+          distanceFactor={12}
+          style={{ pointerEvents: "none", userSelect: "none" }}
+          zIndexRange={[6, 10]}
+        >
+          <div style={{
+            fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#8AAEC2",
+            background: "rgba(0,0,0,0.55)",
+            border: "1px solid rgba(68,120,180,0.35)",
+            padding: "2px 8px",
+            borderRadius: 10,
+            whiteSpace: "nowrap",
+            letterSpacing: "0.04em",
+          }}>
+            {statusLabels.sampleLayout}
+          </div>
+        </Html>
+      )}
+
+      {/* Flat floor-plan unit plates */}
       {layout.map(({ unit, position, size }) => {
         const color =
-          unit.status === "sold" ? "#5A6878" :
+          unit.status === "sold"     ? "#5A6878" :
           unit.status === "reserved" ? "#B08A30" :
           "#2E6E9A";
 
         const isThisSelected = unit.id === selectedUnitId;
-        // Dim siblings when a unit is selected
         const isDimmed = selectedUnitId !== null && !isThisSelected;
+        const sl = getStatusLabel(unit.status, statusLabels);
 
-        if (isThisSelected) {
+        // Selected unit with a floor plan: show dollhouse
+        if (isThisSelected && floorPlanUrl) {
           return (
             <UnitDollhouseView
               key={unit.id}
@@ -480,9 +546,10 @@ function FloorOpenView({
             position={position}
             size={size}
             color={color}
-            opacity={isDimmed ? 0.22 : 0.92}
-            isSelected={false}
+            opacity={isDimmed ? 0.18 : 0.92}
+            isSelected={isThisSelected}
             isHovered={unit.id === hoveredUnitId && !isDimmed}
+            statusLabel={sl}
             onEnter={(e: any) => { e.stopPropagation(); onUnitEnter(unit.id); }}
             onLeave={(e: any) => { e.stopPropagation(); onUnitLeave(); }}
             onClick={(e: any) => { e.stopPropagation(); onUnitClick(unit.id); }}
@@ -501,6 +568,7 @@ function SceneContent({
   selectedUnitId,
   hoveredUnitId,
   floorPlanUrl,
+  statusLabels,
   maxHeight,
   sceneWidth,
   isMobile,
@@ -515,6 +583,7 @@ function SceneContent({
   selectedUnitId: string | null;
   hoveredUnitId: string | null;
   floorPlanUrl: string | null;
+  statusLabels: StatusLabels;
   maxHeight: number;
   sceneWidth: number;
   isMobile: boolean;
@@ -530,6 +599,17 @@ function SceneContent({
 
   const scale = 1.0;
 
+  // ── Clip plane (reveals floor at actual Y position) ──
+  // THREE.Plane(normal (0,-1,0), constant K): clips points where -y+K < 0, i.e. y > K.
+  // K = large ⟹ nothing clipped; K = topY ⟹ everything above floor ceiling clipped.
+  const clipPlaneRef  = useRef(new THREE.Plane(new THREE.Vector3(0, -1, 0), 9999));
+  const targetClipY   = useRef(9999);
+  const reducedMotion = useRef(false);
+
+  useEffect(() => {
+    reducedMotion.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
+
   // ── Initial camera setup ──
   useEffect(() => {
     const dist = Math.max(sceneWidth * 0.82, maxHeight * 2.2);
@@ -543,7 +623,7 @@ function SceneContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Camera animation target ──
+  // ── Camera + clip animation targets ──
   const camTarget = useRef<{
     pos: THREE.Vector3;
     lookAt: THREE.Vector3;
@@ -551,46 +631,29 @@ function SceneContent({
   }>({ pos: new THREE.Vector3(), lookAt: new THREE.Vector3(), active: false });
 
   useEffect(() => {
-    if (selectedUnitId && selectedFloor) {
-      // Phase 3: zoom into the selected unit (dollhouse view at actual floor height)
+    if (selectedFloor) {
       const mb = enrichedMeta.buildings.find((b) => b.id === selectedFloor.buildingId);
       const fl = mb?.floors.find((f) => f.floor === selectedFloor.floor);
       if (mb && fl) {
-        const layout = computeFloorLayout(fl, scale, maxHeight * scale, true);
-        const entry = layout.find((l) => l.unit.id === selectedUnitId);
-        if (entry) {
-          const [ux, uy, uz] = entry.position;
-          const [uw, , ud] = entry.size;
-          // Aerial diagonal pulled back enough to see the dollhouse at actual floor level
-          const pullH = Math.max(uw * 2.0, ud * 2.5, 12);
-          const pullZ = Math.max(uw * 1.4, ud * 1.8, 10);
-          camTarget.current = {
-            pos: new THREE.Vector3(ux, uy + pullH, uz - pullZ),
-            lookAt: new THREE.Vector3(ux, uy, uz),
-            active: true,
-          };
-        }
-      }
-    } else if (selectedFloor) {
-      // Phase 2: aerial view of floating unit grid
-      const mb = enrichedMeta.buildings.find((b) => b.id === selectedFloor.buildingId);
-      const fl = mb?.floors.find((f) => f.floor === selectedFloor.floor);
-      if (mb && fl) {
-        const flW = fl.width * scale;
-        const flD = fl.depth * scale;
-        const roofTopY = maxHeight * scale;
-        const floatY = roofTopY + 2.0 + 1.5; // center of floating units
-        const pullH = Math.max(flW * 0.8, flD * 1.2, 12);
-        const pullZ = Math.max(flW * 0.7, flD * 1.0, 10);
+        const baseY = fl.baseY * scale;
+        const topY  = fl.topY  * scale;
+        const flW   = fl.width  * scale;
+        const flD   = fl.depth  * scale;
+        // Oblique view looking at actual floor — ~65° elevation angle
+        const pullH = Math.max(flW * 1.1, flD * 1.4, 12);
+        const pullZ = Math.max(flW * 0.40, flD * 0.55, 5);
         camTarget.current = {
           pos: new THREE.Vector3(
             fl.centerX * scale,
-            floatY + pullH,
+            topY + pullH,
             fl.centerZ * scale - pullZ,
           ),
-          lookAt: new THREE.Vector3(fl.centerX * scale, floatY, fl.centerZ * scale),
+          lookAt: new THREE.Vector3(fl.centerX * scale, baseY, fl.centerZ * scale),
           active: true,
         };
+        // Animate clip plane down to floor ceiling
+        targetClipY.current = topY;
+        if (reducedMotion.current) clipPlaneRef.current.constant = topY;
       }
     } else {
       // Back to full building view
@@ -600,20 +663,34 @@ function SceneContent({
         lookAt: new THREE.Vector3(0, maxHeight * 0.32, 0),
         active: true,
       };
+      // Snap clip plane back immediately on deselect
+      targetClipY.current = 9999;
+      clipPlaneRef.current.constant = 9999;
     }
   }, [selectedUnitId, selectedFloor, enrichedMeta, maxHeight, sceneWidth, scale]);
 
   useFrame(() => {
-    if (!camTarget.current.active) return;
-    const FACTOR = 0.075;
-    camera.position.lerp(camTarget.current.pos, FACTOR);
-    orbitRef.current?.target.lerp(camTarget.current.lookAt, FACTOR);
-    orbitRef.current?.update();
-    if (camera.position.distanceTo(camTarget.current.pos) < 0.22) {
-      camera.position.copy(camTarget.current.pos);
-      orbitRef.current?.target.copy(camTarget.current.lookAt);
+    // Camera lerp
+    if (camTarget.current.active) {
+      const FACTOR = reducedMotion.current ? 1.0 : 0.075;
+      camera.position.lerp(camTarget.current.pos, FACTOR);
+      orbitRef.current?.target.lerp(camTarget.current.lookAt, FACTOR);
       orbitRef.current?.update();
-      camTarget.current.active = false;
+      if (camera.position.distanceTo(camTarget.current.pos) < 0.22) {
+        camera.position.copy(camTarget.current.pos);
+        orbitRef.current?.target.copy(camTarget.current.lookAt);
+        orbitRef.current?.update();
+        camTarget.current.active = false;
+      }
+    }
+    // Clip plane lerp — ~800ms at 60fps with factor 0.09
+    if (selectedFloor) {
+      const CLIP_FACTOR = reducedMotion.current ? 1.0 : 0.09;
+      clipPlaneRef.current.constant = THREE.MathUtils.lerp(
+        clipPlaneRef.current.constant,
+        targetClipY.current,
+        CLIP_FACTOR,
+      );
     }
   });
 
@@ -650,10 +727,11 @@ function SceneContent({
         onIncline={() => setQuality("high")}
       />
 
-      {/* Baked GLB geometry — fades to let unit/floor view show through */}
+      {/* Baked GLB geometry — fades + clips above selected floor ceiling */}
       <BakedModel
         url={glbUrl}
-        opacity={selectedUnitId ? 0.15 : selectedFloor ? 0.35 : 1.0}
+        opacity={selectedFloor ? 0.35 : 1.0}
+        clipPlane={selectedFloor ? clipPlaneRef.current : null}
       />
 
       {/* Per-building, per-floor: hit boxes + status overlays + floor open view */}
@@ -687,10 +765,10 @@ function SceneContent({
                 <FloorOpenView
                   floor={fl}
                   scale={scale}
-                  roofTopY={maxHeight * scale}
                   selectedUnitId={selectedUnitId}
                   hoveredUnitId={hoveredUnitId}
                   floorPlanUrl={floorPlanUrl}
+                  statusLabels={statusLabels}
                   onUnitEnter={handleUnitEnter}
                   onUnitLeave={handleUnitLeave}
                   onUnitClick={handleUnitClick}
@@ -701,8 +779,21 @@ function SceneContent({
         }),
       )}
 
-      {/* HDRI (with background so sky shows from the baked environment map) */}
-      <Environment files="/hdri/potsdamer_platz_1k.hdr" background />
+      {/* HDRI for reflections only — sky handled by <Sky> below */}
+      <Environment files="/hdri/potsdamer_platz_1k.hdr" background={false} />
+
+      {/* Procedural sky */}
+      <Sky
+        sunPosition={[-0.55, 0.055, -1]}
+        turbidity={7}
+        rayleigh={3.8}
+        mieCoefficient={0.005}
+        mieDirectionalG={0.85}
+        distance={450}
+      />
+
+      {/* Horizon fog */}
+      <fog attach="fog" args={["#C8D8F0", Math.max(sceneWidth * 0.82, maxHeight * 2.2) * 2.2, Math.max(sceneWidth * 0.82, maxHeight * 2.2) * 5.5]} />
 
       {/* Shared environment: lights (subtle fill), ground, trees, N8AO, vignette */}
       <BuildingEnvironment
@@ -738,6 +829,7 @@ export default function BuildingGLBScene({
   selectedUnitId,
   hoveredUnitId,
   floorPlanUrl,
+  statusLabels,
   onHover,
   onFloorClick,
   onUnitClick,
@@ -751,6 +843,7 @@ export default function BuildingGLBScene({
   selectedUnitId: string | null;
   hoveredUnitId: string | null;
   floorPlanUrl: string | null;
+  statusLabels: StatusLabels;
   onHover: (info: HoverInfo | null, id: string | null) => void;
   onFloorClick: (buildingId: string, floor: number) => void;
   onUnitClick: (unitId: string) => void;
@@ -819,13 +912,13 @@ export default function BuildingGLBScene({
       gl={{
         antialias: true,
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.1,
+        toneMappingExposure: 0.9,
         outputColorSpace: THREE.SRGBColorSpace,
-        // alpha sorting needed for the glass material's depth ordering
         alpha: false,
         stencil: false,
         depth: true,
       }}
+      onCreated={({ gl }) => { gl.localClippingEnabled = true; }}
       dpr={[1, isMobile ? 1.2 : 2]}
       style={{ width: "100%", height: "100%" }}
     >
@@ -836,6 +929,7 @@ export default function BuildingGLBScene({
         selectedUnitId={selectedUnitId}
         hoveredUnitId={hoveredUnitId}
         floorPlanUrl={floorPlanUrl}
+        statusLabels={statusLabels}
         maxHeight={maxHeight}
         sceneWidth={sceneWidth}
         isMobile={isMobile}

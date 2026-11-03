@@ -4,7 +4,7 @@ import { layoutTowers } from "./layout";
 import type { ExplorerBuilding, HoverInfo } from "./types";
 
 function cellColor(status: string, sameType: boolean): string {
-  if (status === "reserved") return "#C89B3C";
+  if (status === "reserved") return "#756039";
   if (status === "sold") return "#C5C0B8";
   return sameType ? "#2F8F86" : "#8FB8B4";
 }
@@ -24,7 +24,7 @@ export default function BuildingFallback({
     <div style={{ display: "flex", gap: "1.25rem", justifyContent: "center", alignItems: "flex-end", overflowX: "auto", padding: "1rem 0.5rem 0.25rem", minHeight: 360 }}>
       {towers.map((tower) => (
         <div key={tower.building.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 140 }}>
-          <div style={{ textAlign: "center", fontSize: "0.8125rem", fontWeight: 700, color: "#1C1B19" }}>{tower.building.name}</div>
+          <div style={{ textAlign: "center", fontSize: "0.8125rem", fontWeight: 600, color: "#123F40" }}>{tower.building.name}</div>
           <div style={{ display: "flex", flexDirection: "column-reverse", gap: 4 }}>
           {[...tower.floors].map((floor) => (
             <div key={floor.floor} style={{ display: "flex", gap: 4, justifyContent: "center" }}>
@@ -65,7 +65,7 @@ export default function BuildingFallback({
                     style={{
                       width: 28,
                       height: 36,
-                      border: unit.unitTypeId === activeUnitTypeId ? "2px solid #1F4B4A" : "1px solid rgba(28,27,25,0.08)",
+                      border: unit.unitTypeId === activeUnitTypeId ? "2px solid #123F40" : "1px solid rgba(18,63,64,0.08)",
                       borderRadius: 4,
                       background: cellColor(unit.status, unit.unitTypeId === activeUnitTypeId),
                       cursor: "pointer",

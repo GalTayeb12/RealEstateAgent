@@ -16,7 +16,7 @@
  */
 
 import { ContactShadows } from "@react-three/drei";
-import { EffectComposer, Bloom, Vignette, N8AO } from "@react-three/postprocessing";
+import { EffectComposer, N8AO } from "@react-three/postprocessing";
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const C_GRASS    = "#A8BA98";
@@ -158,9 +158,7 @@ export function BuildingEnvironment({
       {li > 0 && (
         <>
           <ambientLight intensity={0.28 * li} color="#FFD0A0" />
-          {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-          {/* @ts-ignore r3f overloaded args */}
-          <hemisphereLight args={["#FFBC78", "#78A0C0", 0.58 * li]} />
+          <hemisphereLight color="#FFBC78" groundColor="#78A0C0" intensity={0.58 * li} />
 
           {/* Key light: low sun from building's left-back */}
           <directionalLight
@@ -206,16 +204,10 @@ export function BuildingEnvironment({
         />
       )}
 
-      {/* ── Post-processing ── */}
-      {hiDesktop ? (
+      {/* ── Post-processing: N8AO only on desktop high quality ── */}
+      {hiDesktop && (
         <EffectComposer multisampling={0}>
-          <N8AO aoRadius={2.5} intensity={2.2} quality="medium" />
-          <Bloom intensity={0.18} luminanceThreshold={0.88} mipmapBlur />
-          <Vignette eskil={false} offset={0.36} darkness={0.58} />
-        </EffectComposer>
-      ) : (
-        <EffectComposer multisampling={0}>
-          <Vignette eskil={false} offset={0.36} darkness={0.40} />
+          <N8AO aoRadius={2.5} intensity={2.0} quality="medium" />
         </EffectComposer>
       )}
     </>

@@ -19,10 +19,11 @@ import type { TourScene } from "./VirtualTour";
 import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding } from "@/components/building/types";
+import { formatAttributeValue, parseAttributes } from "@/lib/attributes";
 
 const BuildingExplorer = dynamic(() => import("@/components/building/BuildingExplorer"), {
   ssr: false,
-  loading: () => <div style={{ height: 560, borderRadius: 16, background: "#1A2A38", marginBottom: "2rem" }} />,
+  loading: () => <div style={{ height: 560, borderRadius: 16, background: "#E9EEEA", marginBottom: "2rem" }} />,
 });
 
 const VirtualTour = dynamic(
@@ -30,8 +31,8 @@ const VirtualTour = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div style={{ height: 520, background: "#1A1916", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ color: "#9A958F", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", letterSpacing: "0.06em" }}>
+      <div style={{ height: 520, background: "#E9EEEA", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ color: "#526563", fontFamily: "var(--font-heebo), sans-serif", fontSize: "0.875rem" }}>
           Loading tour…
         </span>
       </div>
@@ -122,8 +123,8 @@ export default function VprPage() {
   // ── Loading ──
   if (loading) {
     return (
-      <div style={{ minHeight: "100vh", background: "#FAF8F4", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ color: "#9A958F", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem" }}>Loading…</span>
+      <div style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ color: "#526563", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem" }}>Loading…</span>
       </div>
     );
   }
@@ -131,14 +132,14 @@ export default function VprPage() {
   // ── Not found ──
   if (notFound || !unit) {
     return (
-      <div style={{ minHeight: "100vh", background: "#FAF8F4", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "1rem" }}>
-        <p style={{ color: "#6B6860", fontSize: "0.9375rem" }}>Property not found.</p>
-        <Link href="/results" style={{ color: "#1F4B4A", fontWeight: 700, textDecoration: "none" }}>← Back to results</Link>
+      <div style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "1rem" }}>
+        <p style={{ color: "#526563", fontSize: "0.9375rem" }}>Property not found.</p>
+        <Link href="/results" style={{ color: "#123F40", fontWeight: 600, textDecoration: "none" }}>← Back to results</Link>
       </div>
     );
   }
 
-  const attrs = (() => { try { return JSON.parse(unit.attributes) as Record<string, unknown>; } catch { return {} as Record<string, unknown>; } })();
+  const attrs = parseAttributes(unit.attributes);
   const panoramaImages = unit.images.filter(img => img.type === "panorama").sort((a, b) => a.order - b.order);
   const galleryImages  = unit.images.filter(img => img.type === "gallery").sort((a, b) => a.order - b.order);
   const floorplanImage = unit.images.find(img => img.type === "floorplan") ?? null;
@@ -155,36 +156,23 @@ export default function VprPage() {
     : [];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FAF8F4", fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)" }}>
+    <div style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)" }}>
 
-      {/* Subtle background glow */}
-      <div style={{ position: "fixed", inset: 0, background: "radial-gradient(60% 40% at 85% 5%, rgba(47,102,100,0.07) 0%, transparent 55%), radial-gradient(40% 30% at 5% 85%, rgba(200,155,60,0.05) 0%, transparent 55%)", pointerEvents: "none", zIndex: 0 }} />
-
-      {/* ── Nav ──────────────────────────────────────────────────────────────── */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(250,248,244,0.85)", backdropFilter: "blur(16px) saturate(1.3)", borderBottom: "1px solid rgba(28,27,25,0.07)" }}>
-        <div style={{ maxWidth: "56rem", margin: "0 auto", padding: "1.125rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center" }}>
-            <img src="/haveniq_logo_horizontal.png" alt="Haveniq" style={{ height: 26, width: "auto" }} />
-          </Link>
-          <Link href="/results" style={{ textDecoration: "none", fontSize: "0.8125rem", fontWeight: 600, color: "#55534C", background: "none", border: "1px solid rgba(28,27,25,0.15)", borderRadius: 999, padding: "0.4rem 1rem" }}>
-            ← Back to results
-          </Link>
-        </div>
-      </nav>
-
-      {/* ── Content ──────────────────────────────────────────────────────────── */}
-      <div style={{ position: "relative", zIndex: 1, maxWidth: "56rem", margin: "0 auto", padding: "2.5rem 1.5rem 4rem" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
+        <p style={{ margin: "0 0 1.25rem" }}>
+          <Link href="/results" style={{ color: "#123F40", fontWeight: 500, textDecoration: "none" }}>Back to results</Link>
+        </p>
 
         {/* ── Property header ─────────────────────────────────────────────── */}
         <div style={{ marginBottom: "2rem" }}>
-          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "0.5rem" }}>
+          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#123F40", marginBottom: "0.5rem" }}>
             {unit.project.name} · {unit.project.location}
           </div>
-          <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.25rem", fontWeight: 800, color: "#14130F", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.25rem", fontWeight: 500, color: "#123F40", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "0" }}>
             {unit.unitLabel}
           </h1>
           {unit.description && (
-            <p style={{ margin: 0, fontSize: "1rem", color: "#6B6860", lineHeight: 1.6, maxWidth: "40rem" }}>{unit.description}</p>
+            <p style={{ margin: 0, fontSize: "1rem", color: "#526563", lineHeight: 1.6, maxWidth: "40rem" }}>{unit.description}</p>
           )}
         </div>
 
@@ -201,9 +189,9 @@ export default function VprPage() {
                   fontSize: "0.875rem",
                   fontWeight: 600,
                   textDecoration: "none",
-                  background: sibling.id === id ? "#1F4B4A" : "#F0EDE8",
+                  background: sibling.id === id ? "#123F40" : "#E9EEEA",
                   color: sibling.id === id ? "#fff" : "#55534C",
-                  border: sibling.id === id ? "none" : "1px solid rgba(28,27,25,0.12)",
+                  border: sibling.id === id ? "none" : "1px solid rgba(18,63,64,0.12)",
                 }}
               >
                 {sibling.unitLabel}
@@ -219,12 +207,12 @@ export default function VprPage() {
         {/* ── Project teaser video (developer only) ────────────────────────── */}
         {unit.ownerType === "developer" && videoData && (
           <section style={{ marginBottom: "2rem" }}>
-            <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 800, color: "#14130F", margin: "0 0 0.875rem", letterSpacing: "-0.01em" }}>
+            <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 500, color: "#123F40", margin: "0 0 0.875rem", letterSpacing: "0" }}>
               Project Video
             </h2>
             <video
               controls
-              style={{ width: "100%", borderRadius: 14, maxHeight: 480, background: "#1A1916", display: "block" }}
+              style={{ width: "100%", borderRadius: 14, maxHeight: 480, background: "#E9EEEA", display: "block" }}
               src={videoData}
             />
           </section>
@@ -234,10 +222,10 @@ export default function VprPage() {
         {tourScenes.length > 0 && (
           <section style={{ marginBottom: "2rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.875rem" }}>
-              <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 800, color: "#14130F", margin: 0, letterSpacing: "-0.01em" }}>
+              <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 500, color: "#123F40", margin: 0, letterSpacing: "0" }}>
                 360° Virtual Tour
               </h2>
-              <span style={{ fontSize: "0.625rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", borderRadius: 999, padding: "0.2rem 0.625rem", fontFamily: "var(--font-jetbrains, monospace)" }}>
+              <span style={{ fontSize: "0.625rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", borderRadius: 999, padding: "0.2rem 0.625rem", fontFamily: "var(--font-jetbrains, monospace)" }}>
                 {tourScenes.length} {tourScenes.length === 1 ? "room" : "rooms"}
               </span>
             </div>
@@ -248,12 +236,12 @@ export default function VprPage() {
         {/* ── Gallery ──────────────────────────────────────────────────────── */}
         {tourScenes.length === 0 && galleryImages.length > 0 && (
           <section style={{ marginBottom: "2rem" }}>
-            <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 800, color: "#14130F", margin: "0 0 0.875rem", letterSpacing: "-0.01em" }}>
+            <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 500, color: "#123F40", margin: "0 0 0.875rem", letterSpacing: "0" }}>
               Photos
             </h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.75rem" }}>
               {galleryImages.map(img => (
-                <div key={img.id} style={{ borderRadius: "0.625rem", overflow: "hidden", border: "1px solid rgba(28,27,25,0.08)", aspectRatio: "4/3", background: "#F0EDE8" }}>
+                <div key={img.id} style={{ borderRadius: "0.625rem", overflow: "hidden", border: "1px solid rgba(18,63,64,0.08)", aspectRatio: "4/3", background: "#E9EEEA" }}>
                   <img src={img.imageData} alt={img.label || "Property photo"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
               ))}
@@ -264,42 +252,42 @@ export default function VprPage() {
         {/* ── Floor Plan ───────────────────────────────────────────────────── */}
         {floorplanImage && (
           <section style={{ marginBottom: "2rem" }}>
-            <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 800, color: "#14130F", margin: "0 0 0.875rem", letterSpacing: "-0.01em" }}>
+            <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 500, color: "#123F40", margin: "0 0 0.875rem", letterSpacing: "0" }}>
               Floor Plan
             </h2>
             <img
               src={floorplanImage.imageData}
               alt="Floor plan"
-              style={{ width: "100%", borderRadius: 14, border: "1px solid rgba(28,27,25,0.08)" }}
+              style={{ width: "100%", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)" }}
             />
           </section>
         )}
 
         {/* ── Details card ─────────────────────────────────────────────────── */}
-        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 2px 4px rgba(28,27,25,0.04), 0 24px 48px -20px rgba(18,51,50,0.10)", overflow: "hidden", marginBottom: "1.25rem" }}>
-          <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, #A07830)" }} />
+        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.10)", overflow: "hidden", marginBottom: "1.25rem" }}>
+          <div style={{ height: 4, background: "linear-gradient(90deg, #756039, #A07830)" }} />
           <div style={{ padding: "1.75rem" }}>
-            <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 800, color: "#14130F", margin: "0 0 1.25rem", letterSpacing: "-0.01em" }}>
+            <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 500, color: "#123F40", margin: "0 0 1.25rem", letterSpacing: "0" }}>
               Match parameters
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1rem" }}>
               {unit.price > 0 && (
                 <div>
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.25rem" }}>Listed price</div>
-                  <div style={{ fontSize: "1.125rem", fontWeight: 700, color: "#14130F", fontFamily: "var(--font-jetbrains, monospace)" }}>{unit.priceFrom ? `${m.results.from} ` : ""}<Money amount={unit.price} /><EstimatedPriceNote /></div>
+                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#526563", marginBottom: "0.25rem" }}>Listed price</div>
+                  <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "#123F40", fontFamily: "var(--font-jetbrains, monospace)" }}>{unit.priceFrom ? `${m.results.from} ` : ""}<Money amount={unit.price} /><EstimatedPriceNote /></div>
                 </div>
               )}
               <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.25rem" }}>Seller min (eil)</div>
-                <div style={{ fontSize: "1.125rem", fontWeight: 700, color: "#1F4B4A", fontFamily: "var(--font-jetbrains, monospace)" }}>{unit.eil}</div>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#526563", marginBottom: "0.25rem" }}>Seller min (eil)</div>
+                <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "#123F40", fontFamily: "var(--font-jetbrains, monospace)" }}>{unit.eil}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.25rem" }}>Seller target (ail)</div>
-                <div style={{ fontSize: "1.125rem", fontWeight: 700, color: "#1F4B4A", fontFamily: "var(--font-jetbrains, monospace)" }}>{unit.ail}</div>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#526563", marginBottom: "0.25rem" }}>Seller target (ail)</div>
+                <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "#123F40", fontFamily: "var(--font-jetbrains, monospace)" }}>{unit.ail}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.25rem" }}>Availability</div>
-                <div style={{ fontSize: "1rem", fontWeight: 700, color: "#14130F" }}>{unit.quantityAvailable} / {unit.quantityTotal} units</div>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#526563", marginBottom: "0.25rem" }}>Availability</div>
+                <div style={{ fontSize: "1rem", fontWeight: 600, color: "#123F40" }}>{unit.quantityAvailable} / {unit.quantityTotal} units</div>
               </div>
             </div>
           </div>
@@ -307,16 +295,20 @@ export default function VprPage() {
 
         {/* ── Attributes card ──────────────────────────────────────────────── */}
         {Object.keys(attrs).length > 0 && (
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 2px 4px rgba(28,27,25,0.04)", padding: "1.75rem" }}>
-            <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 800, color: "#14130F", margin: "0 0 1rem", letterSpacing: "-0.01em" }}>
+          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.04)", padding: "1.75rem" }}>
+            <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 500, color: "#123F40", margin: "0 0 1rem", letterSpacing: "0" }}>
               Features
             </h3>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-              {Object.entries(attrs).map(([k, v]) => (
-                <span key={k} style={{ fontSize: "0.8125rem", background: "#F5F3EE", color: "#55534C", borderRadius: 8, padding: "0.3125rem 0.75rem", border: "1px solid rgba(28,27,25,0.08)", fontWeight: 500 }}>
-                  {k}: {String(v)}
-                </span>
-              ))}
+              {Object.entries(attrs).map(([k, v]) => {
+                const text = formatAttributeValue(v);
+                if (!text) return null;
+                return (
+                  <span key={k} style={{ fontSize: "0.8125rem", background: "#E9EEEA", color: "#123F40", borderRadius: 8, padding: "0.3125rem 0.75rem", border: "1px solid #D4DED8", fontWeight: 500 }}>
+                    {k}: {text}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
