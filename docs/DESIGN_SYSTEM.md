@@ -7,7 +7,7 @@
 - טוקנים ורכיבים: `components/quiet/quiet.css`, `components/quiet/index.tsx`
 - עמוד התצוגה: `app/design-system/page.tsx` (אדמין, אחרי `GET /api/design-system/access`)
 - ייבוא: `@/components/quiet`
-- לא להשתמש ב־`components/vision` (תצוגת לילה/יום שיצאה משימוש).
+- ניסיון עיצוב ראשון (vision, night-to-morning) נמחק. אפשר לשחזר מ-commit 3067392.
 - `components/ui/haven.css` נשאר רק למסכי הבית והחשבון, והוא ממופה לטוקנים האלה. מסך חדש מייבא מ־`@/components/quiet`.
 
 הטוקנים של Tailwind ב־`app/globals.css` (`paper`, `ink`, `teal`, `gold`) מצביעים לאותה פלטה. Heebo הוא הגופן בכל השפות.

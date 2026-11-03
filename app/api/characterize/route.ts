@@ -96,11 +96,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Claude API call failed" }, { status: 502 });
     }
 
-    // DEBUG: log raw response before any parsing so failures are visible in server logs
-    console.log(
-      `[characterize] attempt ${attempt}/${MAX_ATTEMPTS} — raw response (${raw.length} chars):`,
-      raw.length > 600 ? raw.slice(0, 600) + " …[truncated]" : raw
-    );
 
     // ── JSON extraction + parse ───────────────────────────────────────────
     let parsed: unknown;
@@ -136,9 +131,6 @@ export async function POST(req: NextRequest) {
     }
 
     result = parsed;
-    if (attempt > 1) {
-      console.log(`[characterize] Succeeded on attempt ${attempt}`);
-    }
     break;
   }
 

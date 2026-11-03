@@ -126,7 +126,6 @@ export async function POST(req: NextRequest) {
         agent_id: ELEVENLABS_AGENT_ID,
       },
     };
-    console.log("LiveAvatar /v1/sessions/token body:", JSON.stringify(tokenBody));
 
     const tokenRes = await fetch(`${LIVEAVATAR_BASE}/v1/sessions/token`, {
       method: "POST",

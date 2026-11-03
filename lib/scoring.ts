@@ -126,7 +126,4 @@ export async function refreshDeveloperQualityScore(
     data: { behaviorScore, qualityScore },
   });
 
-  console.log(
-    `[scoring] developer ${developerId}: behaviorScore=${behaviorScore} qualityScore=${qualityScore}`
-  );
 }
