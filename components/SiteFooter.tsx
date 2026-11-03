@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
 
 const HIDE_FOOTER = new Set(["/interview", "/transition", "/processing", "/design-system"]);
-const ROOM_FOOTER = new Set(["/", "/login", "/register"]);
 
 /**
  * SiteFooter — the only site-wide footer. Hidden on full-screen cinematic pages
@@ -15,14 +14,13 @@ export default function SiteFooter() {
   const pathname = usePathname();
   const { m } = useI18n();
   if (HIDE_FOOTER.has(pathname)) return null;
-  const room = ROOM_FOOTER.has(pathname);
   return (
     <footer
       style={{
-        borderTop: room ? "1px solid rgba(255,255,255,0.14)" : "1px solid rgba(28,27,25,0.06)",
-        background: room ? "#07141c" : "#FAF8F4",
-        fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
-        color: room ? "#a9b7c2" : undefined,
+        borderTop: "1px solid #D4DED8",
+        background: "#F4F5F0",
+        fontFamily: "var(--font-heebo), sans-serif",
+        color: "#526563",
       }}
     >
       <div
@@ -37,7 +35,7 @@ export default function SiteFooter() {
           gap: "0.5rem",
         }}
       >
-        <span style={{ fontSize: "0.8125rem", color: room ? "#a9b7c2" : "#9A958F" }}>
+        <span style={{ fontSize: "0.8125rem", color: "#526563" }}>
           © 2026 Haveniq
         </span>
 
@@ -46,7 +44,7 @@ export default function SiteFooter() {
             href="/terms"
             style={{
               fontSize: "0.8125rem",
-              color: room ? "#a9b7c2" : "#9A958F",
+              color: "#526563",
               textDecoration: "none",
               transition: "color 0.15s",
             }}
@@ -57,7 +55,7 @@ export default function SiteFooter() {
             href="/privacy"
             style={{
               fontSize: "0.8125rem",
-              color: room ? "#a9b7c2" : "#9A958F",
+              color: "#526563",
               textDecoration: "none",
             }}
           >

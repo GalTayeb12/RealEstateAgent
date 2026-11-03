@@ -61,12 +61,12 @@ const VirtualTour = dynamic<{ scenes: TourScene[] }>(
 const inputStyle: React.CSSProperties = {
   padding: "0.5625rem 0.75rem",
   borderRadius: "0.5rem",
-  border: "1px solid #DDD9D3",
+  border: "1px solid #D4DED8",
   fontSize: "1rem",
   width: "100%",
   boxSizing: "border-box",
   fontFamily: "var(--font-inter, sans-serif)",
-  color: "#1C1B19",
+  color: "#123F40",
   background: "#fff",
   outline: "none",
 };
@@ -75,33 +75,33 @@ const labelStyle: React.CSSProperties = {
   display: "block",
   fontSize: "0.8125rem",
   fontWeight: 600,
-  color: "#6B6860",
+  color: "#526563",
   marginBottom: "0.25rem",
 };
 
 const cardStyle: React.CSSProperties = {
   background: "#fff",
   borderRadius: "0.875rem",
-  border: "1px solid #DDD9D3",
+  border: "1px solid #D4DED8",
   overflow: "hidden",
 };
 
 const sectionHeaderStyle: React.CSSProperties = {
-  borderBottom: "1px solid #F0EDE8",
+  borderBottom: "1px solid #E9EEEA",
   padding: "1rem 1.375rem",
   fontSize: "0.6875rem",
-  fontWeight: 700,
+  fontWeight: 600,
   letterSpacing: "0.08em",
   textTransform: "uppercase",
-  color: "#9A958F",
+  color: "#526563",
 };
 
 const primaryBtnStyle: React.CSSProperties = {
-  background: "linear-gradient(155deg, #2F6664, #123332)",
+  background: "linear-gradient(155deg, #0C3031, #123332)",
   color: "#fff",
   borderRadius: 999,
   padding: "0.5625rem 1.375rem",
-  fontWeight: 700,
+  fontWeight: 600,
   fontSize: "0.875rem",
   border: "none",
   cursor: "pointer",
@@ -240,10 +240,10 @@ export default function UnitTypeEditPage() {
   }
 
   function focusBorder(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    e.currentTarget.style.borderColor = "#1F4B4A";
+    e.currentTarget.style.borderColor = "#123F40";
   }
   function blurBorder(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    e.currentTarget.style.borderColor = "#DDD9D3";
+    e.currentTarget.style.borderColor = "#D4DED8";
   }
 
   // ── Auth helper — reads token fresh from localStorage each call ──────────────
@@ -636,7 +636,7 @@ export default function UnitTypeEditPage() {
       <main
         style={{
           minHeight: "100vh",
-          background: "#F7F5F1",
+          background: "#F4F5F0",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -647,8 +647,8 @@ export default function UnitTypeEditPage() {
             width: "2rem",
             height: "2rem",
             borderRadius: "50%",
-            border: "2px solid rgba(28,27,25,0.08)",
-            borderTopColor: "#1F4B4A",
+            border: "2px solid rgba(18,63,64,0.08)",
+            borderTopColor: "#123F40",
             animation: "spin 0.9s linear infinite",
           }}
         />
@@ -662,7 +662,7 @@ export default function UnitTypeEditPage() {
       <main
         style={{
           minHeight: "100vh",
-          background: "#F7F5F1",
+          background: "#F4F5F0",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -671,10 +671,10 @@ export default function UnitTypeEditPage() {
       >
         <div
           style={{
-            background: "#FAE8E8",
+            background: "#FBECEA",
             borderRadius: "0.875rem",
             padding: "1.25rem 1.5rem",
-            color: "#B04040",
+            color: "#9E3434",
             fontSize: "0.9375rem",
           }}
         >
@@ -694,7 +694,7 @@ export default function UnitTypeEditPage() {
     <main
       style={{
         minHeight: "100vh",
-        background: "#F7F5F1",
+        background: "#F4F5F0",
         fontFamily: "var(--font-inter, sans-serif)",
         paddingBottom: "4rem",
       }}
@@ -713,8 +713,8 @@ export default function UnitTypeEditPage() {
             bottom: "1.5rem",
             left: "50%",
             transform: "translateX(-50%)",
-            background: "#1C1B19",
-            color: "#FAF8F4",
+            background: "#123F40",
+            color: "#F4F5F0",
             borderRadius: "0.625rem",
             padding: "0.75rem 1.25rem",
             fontSize: "0.9rem",
@@ -729,9 +729,9 @@ export default function UnitTypeEditPage() {
       )}
 
       {/* Page header */}
-      <div style={{ borderBottom: "1px solid #DDD9D3", background: "#fff" }}>
+      <div style={{ borderBottom: "1px solid #D4DED8", background: "#fff" }}>
         <div
-          style={{ maxWidth: "56rem", margin: "0 auto", padding: "1.5rem" }}
+          style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}
         >
           <div
             style={{
@@ -740,7 +740,7 @@ export default function UnitTypeEditPage() {
               fontWeight: 600,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "#1F4B4A",
+              color: "#123F40",
               marginBottom: "0.5rem",
             }}
           >
@@ -760,8 +760,8 @@ export default function UnitTypeEditPage() {
                 style={{
                   fontFamily: "var(--font-fraunces, serif)",
                   fontSize: "1.875rem",
-                  fontWeight: 700,
-                  color: "#1C1B19",
+                  fontWeight: 600,
+                  color: "#123F40",
                   margin: 0,
                 }}
               >
@@ -770,7 +770,7 @@ export default function UnitTypeEditPage() {
               <p
                 style={{
                   margin: "0.375rem 0 0",
-                  color: "#6B6860",
+                  color: "#526563",
                   fontSize: "0.9375rem",
                 }}
               >
@@ -784,7 +784,7 @@ export default function UnitTypeEditPage() {
               href="/dev/dashboard"
               style={{
                 fontSize: "0.875rem",
-                color: "#1F4B4A",
+                color: "#123F40",
                 fontWeight: 600,
                 textDecoration: "none",
                 alignSelf: "center",
@@ -798,7 +798,7 @@ export default function UnitTypeEditPage() {
 
       <div
         style={{
-          maxWidth: "56rem",
+          maxWidth: "75rem",
           margin: "0 auto",
           padding: "2rem 1.5rem",
           display: "flex",
@@ -936,10 +936,10 @@ export default function UnitTypeEditPage() {
               <div
                 style={{
                   padding: "0.625rem 0.875rem",
-                  background: "#FAE8E8",
+                  background: "#FBECEA",
                   borderRadius: "0.5rem",
                   fontSize: "0.875rem",
-                  color: "#B04040",
+                  color: "#9E3434",
                 }}
               >
                 {basicError}
@@ -992,7 +992,7 @@ export default function UnitTypeEditPage() {
                   accept="image/*"
                   multiple
                   onChange={handleGalleryFilesChange}
-                  style={{ fontSize: "0.875rem", color: "#1C1B19" }}
+                  style={{ fontSize: "0.875rem", color: "#123F40" }}
                 />
               </div>
               <button
@@ -1021,7 +1021,7 @@ export default function UnitTypeEditPage() {
               <div
                 style={{
                   padding: "0.625rem 0.875rem",
-                  background: "#FBF4E4",
+                  background: "#FCF2D9",
                   borderRadius: "0.5rem",
                   fontSize: "0.8125rem",
                   color: "#A07020",
@@ -1058,11 +1058,11 @@ export default function UnitTypeEditPage() {
                 style={{
                   padding: "2rem",
                   textAlign: "center",
-                  color: "#9A958F",
+                  color: "#526563",
                   fontSize: "0.9rem",
-                  background: "#F7F5F1",
+                  background: "#F4F5F0",
                   borderRadius: "0.5rem",
-                  border: "1px dashed #DDD9D3",
+                  border: "1px dashed #D4DED8",
                 }}
               >
                 {m.dev.noGallery}
@@ -1087,7 +1087,7 @@ export default function UnitTypeEditPage() {
             {/* Add room */}
             <div
               style={{
-                background: "#F7F5F1",
+                background: "#F4F5F0",
                 borderRadius: "0.625rem",
                 padding: "1rem",
                 display: "flex",
@@ -1098,7 +1098,7 @@ export default function UnitTypeEditPage() {
               <div
                 style={{
                   fontSize: "0.8125rem",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   color: "#55534C",
                 }}
               >
@@ -1131,7 +1131,7 @@ export default function UnitTypeEditPage() {
                     type="file"
                     accept="image/*"
                     onChange={handleTourFileChange}
-                    style={{ fontSize: "0.875rem", color: "#1C1B19" }}
+                    style={{ fontSize: "0.875rem", color: "#123F40" }}
                   />
                 </div>
                 <button
@@ -1161,7 +1161,7 @@ export default function UnitTypeEditPage() {
                 <div
                   style={{
                     padding: "0.625rem 0.875rem",
-                    background: "#FBF4E4",
+                    background: "#FCF2D9",
                     borderRadius: "0.5rem",
                     fontSize: "0.8125rem",
                     color: "#A07020",
@@ -1182,10 +1182,10 @@ export default function UnitTypeEditPage() {
                 <div
                   style={{
                     fontSize: "0.75rem",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
-                    color: "#9A958F",
+                    color: "#526563",
                     marginBottom: "0.25rem",
                   }}
                 >
@@ -1200,7 +1200,7 @@ export default function UnitTypeEditPage() {
                       gap: "0.75rem",
                       padding: "0.625rem 0.875rem",
                       background: "#fff",
-                      border: "1px solid #DDD9D3",
+                      border: "1px solid #D4DED8",
                       borderRadius: "0.625rem",
                     }}
                   >
@@ -1214,7 +1214,7 @@ export default function UnitTypeEditPage() {
                         objectFit: "cover",
                         borderRadius: 8,
                         flexShrink: 0,
-                        background: "#F0EDE8",
+                        background: "#E9EEEA",
                       }}
                     />
 
@@ -1224,7 +1224,7 @@ export default function UnitTypeEditPage() {
                         flex: 1,
                         fontWeight: 600,
                         fontSize: "0.9rem",
-                        color: "#1C1B19",
+                        color: "#123F40",
                         minWidth: 0,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
@@ -1243,7 +1243,7 @@ export default function UnitTypeEditPage() {
                         title="Move up"
                         style={{
                           background: "none",
-                          border: "1px solid #DDD9D3",
+                          border: "1px solid #D4DED8",
                           borderRadius: "0.375rem",
                           padding: "0.25rem 0.5rem",
                           cursor: idx === 0 ? "not-allowed" : "pointer",
@@ -1261,7 +1261,7 @@ export default function UnitTypeEditPage() {
                         title="Move down"
                         style={{
                           background: "none",
-                          border: "1px solid #DDD9D3",
+                          border: "1px solid #D4DED8",
                           borderRadius: "0.375rem",
                           padding: "0.25rem 0.5rem",
                           cursor:
@@ -1284,11 +1284,11 @@ export default function UnitTypeEditPage() {
                         title="Remove room"
                         style={{
                           background: "none",
-                          border: "1px solid #DDD9D3",
+                          border: "1px solid #D4DED8",
                           borderRadius: "0.375rem",
                           padding: "0.25rem 0.5rem",
                           cursor: "pointer",
-                          color: "#B04040",
+                          color: "#9E3434",
                           fontSize: "0.875rem",
                           lineHeight: 1,
                         }}
@@ -1306,10 +1306,10 @@ export default function UnitTypeEditPage() {
               <div
                 style={{
                   fontSize: "0.75rem",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
-                  color: "#9A958F",
+                  color: "#526563",
                   marginBottom: "0.75rem",
                 }}
               >
@@ -1322,11 +1322,11 @@ export default function UnitTypeEditPage() {
                   style={{
                     padding: "3rem 2rem",
                     textAlign: "center",
-                    color: "#9A958F",
+                    color: "#526563",
                     fontSize: "0.9rem",
-                    background: "#F7F5F1",
+                    background: "#F4F5F0",
                     borderRadius: "0.875rem",
-                    border: "1px dashed #DDD9D3",
+                    border: "1px dashed #D4DED8",
                   }}
                 >
                   Add at least one room to preview the tour
@@ -1352,13 +1352,13 @@ export default function UnitTypeEditPage() {
             {/* Existing floor plan */}
             {floorplanImage && !fpAnnotating && (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9A958F" }}>
+                <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#526563" }}>
                   Saved floor plan
                 </div>
                 <img
                   src={floorplanImage.imageData}
                   alt={m.dev.floorPlan}
-                  style={{ width: "100%", borderRadius: 8, border: "1px solid rgba(28,27,25,0.08)", maxHeight: 480, objectFit: "contain", background: "#F7F5F1" }}
+                  style={{ width: "100%", borderRadius: 8, border: "1px solid rgba(18,63,64,0.08)", maxHeight: 480, objectFit: "contain", background: "#F4F5F0" }}
                 />
                 <div style={{ display: "flex", gap: "0.625rem" }}>
                   <button
@@ -1371,7 +1371,7 @@ export default function UnitTypeEditPage() {
                   <button
                     type="button"
                     onClick={fpDeleteFloorplan}
-                    style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#B04040", background: "none", border: "1px solid #B04040", borderRadius: 999, padding: "0.4rem 0.875rem", cursor: "pointer" }}
+                    style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#9E3434", background: "none", border: "1px solid #9E3434", borderRadius: 999, padding: "0.4rem 0.875rem", cursor: "pointer" }}
                   >
                     Remove
                   </button>
@@ -1383,7 +1383,7 @@ export default function UnitTypeEditPage() {
             {!floorplanImage && !fpAnnotating && (
               <div
                 style={{
-                  background: "#F7F5F1",
+                  background: "#F4F5F0",
                   borderRadius: "0.625rem",
                   padding: "1rem",
                   display: "flex",
@@ -1391,7 +1391,7 @@ export default function UnitTypeEditPage() {
                   gap: "0.75rem",
                 }}
               >
-                <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#55534C" }}>
+                <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#55534C" }}>
                   Upload floor plan image
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-end", flexWrap: "wrap" }}>
@@ -1402,7 +1402,7 @@ export default function UnitTypeEditPage() {
                       type="file"
                       accept="image/*"
                       onChange={e => setFpFile(e.target.files?.[0] ?? null)}
-                      style={{ fontSize: "0.875rem", color: "#1C1B19" }}
+                      style={{ fontSize: "0.875rem", color: "#123F40" }}
                     />
                   </div>
                   <button
@@ -1426,13 +1426,13 @@ export default function UnitTypeEditPage() {
             {/* Annotation canvas */}
             {fpAnnotating && (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <div style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#55534C" }}>
+                <div style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#55534C" }}>
                   {m.dev.annotate}
                 </div>
                 <div style={{ position: "relative", display: "inline-block", width: "100%" }}>
                   <canvas
                     ref={fpCanvasRef}
-                    style={{ width: "100%", borderRadius: 8, touchAction: "none", cursor: "crosshair", display: "block", border: "1px solid #DDD9D3" }}
+                    style={{ width: "100%", borderRadius: 8, touchAction: "none", cursor: "crosshair", display: "block", border: "1px solid #D4DED8" }}
                     onMouseDown={fpMouseDown}
                     onMouseMove={fpMouseMove}
                     onMouseUp={fpMouseUp}
@@ -1446,21 +1446,21 @@ export default function UnitTypeEditPage() {
                   <button
                     type="button"
                     onClick={fpUndo}
-                    style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#55534C", background: "none", border: "1px solid #DDD9D3", borderRadius: "0.375rem", padding: "0.35rem 0.75rem", cursor: "pointer" }}
+                    style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#55534C", background: "none", border: "1px solid #D4DED8", borderRadius: "0.375rem", padding: "0.35rem 0.75rem", cursor: "pointer" }}
                   >
                     Undo
                   </button>
                   <button
                     type="button"
                     onClick={fpClear}
-                    style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#55534C", background: "none", border: "1px solid #DDD9D3", borderRadius: "0.375rem", padding: "0.35rem 0.75rem", cursor: "pointer" }}
+                    style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#55534C", background: "none", border: "1px solid #D4DED8", borderRadius: "0.375rem", padding: "0.35rem 0.75rem", cursor: "pointer" }}
                   >
                     Clear
                   </button>
                   <button
                     type="button"
                     onClick={fpCancelAnnotate}
-                    style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", background: "none", border: "1px solid #DDD9D3", borderRadius: "0.375rem", padding: "0.35rem 0.75rem", cursor: "pointer" }}
+                    style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#526563", background: "none", border: "1px solid #D4DED8", borderRadius: "0.375rem", padding: "0.35rem 0.75rem", cursor: "pointer" }}
                   >
                     Cancel
                   </button>
@@ -1500,7 +1500,7 @@ function GalleryThumb({
       onMouseLeave={() => setHovered(false)}
     >
       {/* Image */}
-      <div style={{ aspectRatio: "4/3", background: "#F0EDE8" }}>
+      <div style={{ aspectRatio: "4/3", background: "#E9EEEA" }}>
         <img
           src={img.imageData}
           alt={img.label}
@@ -1518,12 +1518,12 @@ function GalleryThumb({
         style={{
           padding: "0.3rem 0.5rem",
           fontSize: "0.75rem",
-          color: "#6B6860",
+          color: "#526563",
           background: "#fff",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
-          borderTop: "1px solid #F0EDE8",
+          borderTop: "1px solid #E9EEEA",
         }}
       >
         {img.label}
@@ -1538,7 +1538,7 @@ function GalleryThumb({
           position: "absolute",
           top: "0.375rem",
           right: "0.375rem",
-          background: hovered ? "rgba(176,64,64,0.9)" : "rgba(28,27,25,0.55)",
+          background: hovered ? "rgba(176,64,64,0.9)" : "rgba(18,63,64,0.55)",
           color: "#fff",
           border: "none",
           borderRadius: "50%",

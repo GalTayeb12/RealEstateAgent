@@ -12,6 +12,7 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { parseAttributes } from "@/lib/attributes";
 
 type Phase =
   | "waiting"
@@ -107,9 +108,7 @@ export default function ProcessingPage() {
           priceFrom: Boolean(l.priceFrom),
           developerId: l.seller?.id ?? "",
           ownerType: (l.ownerType as string) ?? "developer",
-          attributes: typeof l.attributes === "string"
-            ? JSON.parse(l.attributes)
-            : (l.attributes ?? {}),
+          attributes: parseAttributes(l.attributes),
         };
       }
     }
@@ -179,7 +178,7 @@ export default function ProcessingPage() {
         left: 0,
         right: 0,
         bottom: 0,
-        background: "#0A0A0A",
+        background: "#F4F5F0",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -195,17 +194,15 @@ export default function ProcessingPage() {
               width: "2rem",
               height: "2rem",
               borderRadius: "50%",
-              border: "2px solid rgba(255,255,255,0.1)",
-              borderTopColor: "#C89B3C",
+              border: "2px solid #D4DED8",
+              borderTopColor: "#123F40",
               animation: "spin 0.9s linear infinite",
             }}
           />
           <p
             style={{
-              color: "rgba(255,255,255,0.45)",
+              color: "#526563",
               fontSize: "0.875rem",
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
             }}
           >
             {LABEL[phase]}
@@ -215,10 +212,10 @@ export default function ProcessingPage() {
 
       {phase === "waiting" && (
         <div style={{ textAlign: "center", maxWidth: "24rem", padding: "1rem" }}>
-          <p style={{ color: "#F7F5F1", fontWeight: 600, marginBottom: "0.5rem" }}>
+          <p style={{ color: "#123F40", fontWeight: 500, marginBottom: "0.5rem" }}>
             No interview found
           </p>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+          <p style={{ color: "#526563", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
             Start a conversation with the avatar to get matched listings.
           </p>
           <button
@@ -227,10 +224,11 @@ export default function ProcessingPage() {
             style={{
               display: "inline-block",
               padding: "0.625rem 1.5rem",
-              borderRadius: "0.5rem",
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "rgba(31,75,74,0.85)",
-              color: "#F7F5F1",
+              borderRadius: 999,
+              border: "1px solid transparent",
+              background: "#123F40",
+              color: "#FFFFFF",
+              minHeight: 48,
               fontSize: "0.875rem",
               fontWeight: 600,
               cursor: "pointer",
@@ -243,10 +241,10 @@ export default function ProcessingPage() {
 
       {phase === "error" && (
         <div style={{ textAlign: "center", maxWidth: "28rem", padding: "1rem" }}>
-          <p style={{ color: "#B04040", fontWeight: 600, marginBottom: "0.5rem" }}>
+          <p style={{ color: "#9E3434", fontWeight: 600, marginBottom: "0.5rem" }}>
             Something went wrong
           </p>
-          <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "0.875rem" }}>{errorMsg}</p>
+          <p style={{ color: "#526563", fontSize: "0.875rem" }}>{errorMsg}</p>
           <button
             type="button"
             onClick={() => {
@@ -257,10 +255,10 @@ export default function ProcessingPage() {
               display: "inline-block",
               marginTop: "1.5rem",
               padding: "0.625rem 1.5rem",
-              borderRadius: "0.5rem",
-              border: "1px solid rgba(255,255,255,0.15)",
-              background: "transparent",
-              color: "rgba(255,255,255,0.5)",
+              borderRadius: 999,
+              border: "1px solid #D4DED8",
+              background: "#FFFFFF",
+              color: "#123F40",
               fontSize: "0.8125rem",
               cursor: "pointer",
             }}

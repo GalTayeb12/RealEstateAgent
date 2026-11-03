@@ -16,6 +16,7 @@ import { matchBuyerToAoms, BuyerProfile, AomCandidate } from "@/lib/matching";
 import { appendBlock, verifyAllChains } from "@/lib/ledger";
 import { matchSchema } from "@/lib/validation/matching";
 import { zodError } from "@/lib/validation";
+import { parseAttributes } from "@/lib/attributes";
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
       title: `${l.project.name} — ${l.unitLabel}`,
       eil: l.eil,
       ail: l.ail,
-      attributes: JSON.parse(l.attributes),
+      attributes: parseAttributes(l.attributes),
     }));
 
     const ranked = matchBuyerToAoms(buyerProfile, candidates);

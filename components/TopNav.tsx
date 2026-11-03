@@ -210,7 +210,7 @@ export default function TopNav() {
       top: 0,
       zIndex: 100,
       background: "#fff",
-      borderBottom: "1px solid #DDD9D3",
+      borderBottom: "1px solid #D4DED8",
       fontFamily: "var(--font-inter, sans-serif)",
     }}>
       <style>{`
@@ -247,7 +247,7 @@ export default function TopNav() {
         </Link>
 
         {showAppNav && (
-        <div className="hn-nav-divider" style={{ width: 1, height: "1.125rem", background: "#DDD9D3", flexShrink: 0 }} />
+        <div className="hn-nav-divider" style={{ width: 1, height: "1.125rem", background: "#D4DED8", flexShrink: 0 }} />
         )}
 
         {/* Nav links — desktop only */}
@@ -266,7 +266,7 @@ export default function TopNav() {
                   gap: "0.375rem",
                   fontSize: "0.875rem",
                   fontWeight: active ? 700 : 500,
-                  color: active ? "#1F4B4A" : "#6B6860",
+                  color: active ? "#123F40" : "#526563",
                   textDecoration: "none",
                   padding: "0.3rem 0.75rem",
                   borderRadius: "0.375rem",
@@ -280,10 +280,10 @@ export default function TopNav() {
                     minWidth: "1.125rem",
                     height: "1.125rem",
                     borderRadius: 999,
-                    background: "#1F4B4A",
+                    background: "#123F40",
                     color: "#fff",
                     fontSize: "0.5625rem",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -303,12 +303,12 @@ export default function TopNav() {
           <div style={{ marginInlineStart: "auto", display: "flex", alignItems: "center", gap: "0.875rem", flexShrink: 0 }}>
             {pathname === "/login" && (
               <Link className="hn-guest-extra" href="/register" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "#55534C", whiteSpace: "nowrap" }}>
-                {m.auth.noAccount} <span style={{ color: "#1F4B4A" }}>{m.auth.registerCta}</span>
+                {m.auth.noAccount} <span style={{ color: "#123F40" }}>{m.auth.registerCta}</span>
               </Link>
             )}
             {(pathname === "/register" || pathname === "/seller/register") && (
               <Link className="hn-guest-extra" href="/login" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "#55534C", whiteSpace: "nowrap" }}>
-                {m.auth.haveAccount} <span style={{ color: "#1F4B4A" }}>{m.auth.signIn}</span>
+                {m.auth.haveAccount} <span style={{ color: "#123F40" }}>{m.auth.signIn}</span>
               </Link>
             )}
             <LanguageToggle />
@@ -387,7 +387,7 @@ export default function TopNav() {
             justifyContent: "center",
             width: "2.25rem",
             height: "2.25rem",
-            background: menuOpen ? "rgba(28,27,25,0.06)" : "none",
+            background: menuOpen ? "rgba(18,63,64,0.06)" : "none",
             border: "none",
             cursor: "pointer",
             borderRadius: "0.375rem",
@@ -422,7 +422,7 @@ export default function TopNav() {
             flexDirection: "column",
             padding: "0.375rem 0.75rem 0.875rem",
             background: "#fff",
-            borderTop: "1px solid #F0EDE8",
+            borderTop: "1px solid #E9EEEA",
           }}
         >
           {/* Nav links */}
@@ -442,7 +442,7 @@ export default function TopNav() {
                   borderRadius: "0.5rem",
                   fontSize: "0.9375rem",
                   fontWeight: active ? 700 : 500,
-                  color: active ? "#1F4B4A" : "#1C1B19",
+                  color: active ? "#123F40" : "#123F40",
                   background: active ? "rgba(31,75,74,0.06)" : "transparent",
                   textDecoration: "none",
                 }}
@@ -453,10 +453,10 @@ export default function TopNav() {
                     minWidth: "1.25rem",
                     height: "1.25rem",
                     borderRadius: 999,
-                    background: "#1F4B4A",
+                    background: "#123F40",
                     color: "#fff",
                     fontSize: "0.625rem",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -470,7 +470,7 @@ export default function TopNav() {
           })}
 
           {/* Divider */}
-          <div style={{ height: 1, background: "#F0EDE8", margin: "0.375rem 0.75rem" }} />
+          <div style={{ height: 1, background: "#E9EEEA", margin: "0.375rem 0.75rem" }} />
 
           {/* Profile link */}
           <Link
@@ -483,7 +483,7 @@ export default function TopNav() {
               borderRadius: "0.5rem",
               fontSize: "0.9375rem",
               fontWeight: 500,
-              color: "#1C1B19",
+              color: "#123F40",
               textDecoration: "none",
             }}
           >
@@ -491,10 +491,10 @@ export default function TopNav() {
               width: "1.75rem",
               height: "1.75rem",
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #2F6664, #1F4B4A)",
+              background: "linear-gradient(135deg, #0C3031, #123F40)",
               color: "#fff",
               fontSize: "0.625rem",
-              fontWeight: 700,
+              fontWeight: 600,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -519,9 +519,9 @@ export default function TopNav() {
               background: "none",
               fontSize: "0.9375rem",
               fontWeight: 500,
-              color: "#B04040",
+              color: "#9E3434",
               cursor: "pointer",
-              textAlign: "left",
+              textAlign: "start",
             }}
           >
             {m.nav.signOut}
@@ -591,14 +591,14 @@ function AccountButton({
           width: "2rem",
           height: "2rem",
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #2F6664, #1F4B4A)",
+          background: "linear-gradient(135deg, #0C3031, #123F40)",
           color: "#fff",
           fontSize: "0.8125rem",
-          fontWeight: 700,
+          fontWeight: 600,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          border: open ? "2px solid #C89B3C" : "2px solid transparent",
+          border: open ? "2px solid #756039" : "2px solid transparent",
           cursor: "pointer",
           padding: 0,
           flexShrink: 0,
@@ -649,7 +649,7 @@ function AccountPanel({
     textDecoration: "none",
     background: "transparent",
     border: "none",
-    color: "#E7EEF3",
+    color: "#123F40",
     fontSize: "0.9375rem",
     fontWeight: 600,
     padding: "0.7rem 0.85rem",
@@ -659,36 +659,34 @@ function AccountPanel({
   };
   return (
     <div style={{
-      background: "rgba(6,14,24,0.82)",
-      backdropFilter: "blur(18px) saturate(1.4)",
-      border: "1px solid rgba(255,255,255,0.12)",
-      borderRadius: sheet ? "18px 18px 0 0" : 18,
+      background: "#FFFFFF",
+      border: "1px solid #D4DED8",
+      borderRadius: sheet ? "24px 24px 0 0" : 16,
       padding: sheet ? "0.45rem 0.45rem 1.1rem" : "0.45rem",
-      boxShadow: "0 24px 48px -24px rgba(0,0,0,0.7)",
-      color: "#F4F7F8",
+      boxShadow: "0 10px 28px rgba(18,63,64,0.12)",
+      color: "#123F40",
     }}>
       <div style={{ padding: "0.7rem 0.85rem 0.55rem" }}>
-        <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>{user.name || user.email}</div>
+        <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>{user.name || user.email}</div>
         {user.name && (
-          <div style={{ color: "#9AAAB8", fontSize: "0.8125rem", marginTop: "0.15rem", overflow: "hidden", textOverflow: "ellipsis" }}>{user.email}</div>
+          <div style={{ color: "#526563", fontSize: "0.8125rem", marginTop: "0.15rem", overflow: "hidden", textOverflow: "ellipsis" }}>{user.email}</div>
         )}
         <span style={{
           display: "inline-flex",
           marginTop: "0.45rem",
           padding: "0.12rem 0.55rem",
           borderRadius: 999,
-          background: "rgba(200,155,60,0.16)",
-          color: "#E4C27A",
-          border: "1px solid rgba(200,155,60,0.35)",
+          background: "#FCF2D9",
+          color: "#785716",
           fontSize: "0.75rem",
-          fontWeight: 700,
+          fontWeight: 600,
         }}>{role}</span>
       </div>
       <Link href="/profile" onClick={onNavigate} style={item}>{profileLabel}</Link>
       {links.map((link) => (
         <Link key={link.href} href={link.href} onClick={onNavigate} style={item}>{link.label}</Link>
       ))}
-      <button type="button" onClick={onSignOut} style={{ ...item, color: "#F0A8A8" }}>{signOutLabel}</button>
+      <button type="button" onClick={onSignOut} style={{ ...item, color: "#9E3434" }}>{signOutLabel}</button>
     </div>
   );
 }

@@ -3,21 +3,21 @@
 /* ── Design token system ──────────────────────────────────────────────────── */
 @theme {
   /* Palette */
-  --color-paper:       #F7F5F1;
+  --color-paper:       #F4F5F0;
   --color-paper-card:  #FFFFFF;
-  --color-ink:         #1C1B19;
-  --color-ink-muted:   #6B6860;
-  --color-teal:        #1F4B4A;
-  --color-teal-light:  #E8F0EF;
-  --color-gold:        #C89B3C;
-  --color-gold-light:  #FBF4E4;
-  --color-gold-hover:  #B8892C;
-  --color-danger:      #B04040;
-  --color-danger-light:#FAE8E8;
+  --color-ink:         #123F40;
+  --color-ink-muted:   #526563;
+  --color-teal:        #123F40;
+  --color-teal-light:  #E9EEEA;
+  --color-gold:        #756039;
+  --color-gold-light:  #FCF2D9;
+  --color-gold-hover:  #756039;
+  --color-danger:      #9E3434;
+  --color-danger-light:#FBECEA;
 
   /* Field fill */
-  --color-field:       #F0EDE8;
-  --color-field-border:#DDD9D3;
+  --color-field:       #E9EEEA;
+  --color-field-border:#718580;
 
   /* Typography — mapped from next/font CSS variables */
   --font-heading: var(--font-fraunces);
@@ -30,18 +30,36 @@
   box-sizing: border-box;
 }
 
+html[lang] {
+  --font-fraunces: var(--font-heebo), "Heebo", sans-serif;
+  --font-inter: var(--font-heebo), "Heebo", sans-serif;
+}
+
+html[lang] * {
+  letter-spacing: 0 !important;
+}
+
 html {
-  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  color: #1C1B19;
-  background-color: #F7F5F1;
+  font-family: var(--font-heebo), "Heebo", sans-serif;
+  color: #123F40;
+  background-color: #F4F5F0;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Hebrew UI uses Heebo; existing components reference these variables. */
-html[lang="he"] {
-  --font-fraunces: var(--font-heebo), "Heebo", sans-serif;
-  --font-inter: var(--font-heebo), "Heebo", sans-serif;
+:focus-visible {
+  outline: 2px solid #16766F;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hq-rise,
+  .hq-page,
+  .power-off-overlay,
+  .power-off-collapse {
+    animation: none !important;
+  }
 }
 
 /* Email, password, and URLs stay left-to-right in both languages. */
@@ -79,7 +97,7 @@ input[type="url"] {
 .power-off-overlay {
   position: fixed;
   inset: 0;
-  background: #F7F5F1;
+  background: #F4F5F0;
   z-index: 9999;
   animation: power-off-flicker 0.55s ease-in-out forwards;
 }

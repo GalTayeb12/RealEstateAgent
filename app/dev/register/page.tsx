@@ -4,15 +4,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const INPUT_STYLE: React.CSSProperties = {
-  background: "#F0EDE8", border: "1px solid #DDD9D3", borderRadius: "0.5rem",
-  padding: "0.625rem 0.875rem", fontSize: "0.9375rem", color: "#1C1B19",
+  background: "#E9EEEA", border: "1px solid #D4DED8", borderRadius: "0.5rem",
+  padding: "0.625rem 0.875rem", fontSize: "0.9375rem", color: "#123F40",
   outline: "none", width: "100%", boxSizing: "border-box",
 };
 
 function FieldWrap({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
-      <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6B6860" }}>
+      <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563" }}>
         {label}
       </label>
       {children}
@@ -95,25 +95,25 @@ export default function DevRegisterPage() {
 
   const focusHandlers = {
     onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      e.currentTarget.style.borderColor = "#1F4B4A";
+      e.currentTarget.style.borderColor = "#123F40";
       e.currentTarget.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)";
     },
     onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      e.currentTarget.style.borderColor = "#DDD9D3";
+      e.currentTarget.style.borderColor = "#D4DED8";
       e.currentTarget.style.boxShadow = "none";
     },
   };
 
   return (
-    <main style={{ minHeight: "100vh", background: "#F7F5F1", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1rem", fontFamily: "var(--font-inter, sans-serif)" }}>
+    <main style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1rem", fontFamily: "var(--font-inter, sans-serif)" }}>
       <div style={{ width: "100%", maxWidth: "480px" }}>
-        <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #DDD9D3", borderTop: "4px solid #1F4B4A", overflow: "hidden" }}>
+        <div style={{ background: "#fff", borderRadius: "1rem", border: "1px solid #D4DED8", borderTop: "4px solid #123F40", overflow: "hidden" }}>
           <div style={{ padding: "2.5rem", display: "flex", flexDirection: "column", gap: "1.75rem" }}>
 
             {/* Header */}
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#1F4B4A" }}>
+                <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#123F40" }}>
                   Haveniq — Developer Portal
                 </div>
                 {/* Step indicator */}
@@ -121,16 +121,16 @@ export default function DevRegisterPage() {
                   {[1, 2, 3].map(n => (
                     <div key={n} style={{
                       width: n === step ? "1.5rem" : "0.5rem", height: "0.5rem", borderRadius: "999px",
-                      background: n < step ? "#1F4B4A" : n === step ? "#C89B3C" : "#DDD9D3",
+                      background: n < step ? "#123F40" : n === step ? "#756039" : "#D4DED8",
                       transition: "all 0.2s",
                     }} />
                   ))}
                 </div>
               </div>
-              <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.875rem", fontWeight: 700, color: "#1C1B19", margin: 0, lineHeight: 1.15 }}>
+              <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.875rem", fontWeight: 600, color: "#123F40", margin: 0, lineHeight: 1.15 }}>
                 {step === 1 ? "Register your company" : step === 2 ? "Tell us about your work" : "Connect Google Calendar"}
               </h1>
-              <p style={{ margin: "0.375rem 0 0", color: "#6B6860", fontSize: "0.9375rem" }}>
+              <p style={{ margin: "0.375rem 0 0", color: "#526563", fontSize: "0.9375rem" }}>
                 {step === 1
                   ? "Accounts are verified against the companies registry and require solicitor sign-off before activation."
                   : step === 2
@@ -160,7 +160,7 @@ export default function DevRegisterPage() {
                       placeholder="+44 7700 900000" style={INPUT_STYLE} {...focusHandlers} />
                   </FieldWrap>
                 </div>
-                <div style={{ borderTop: "1px solid #F0EDE8", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div style={{ borderTop: "1px solid #E9EEEA", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
                   <FieldWrap label="Email address">
                     <input type="email" required value={form.email} onChange={setField("email")}
                       placeholder="you@yourcompany.com" style={INPUT_STYLE} {...focusHandlers} />
@@ -182,7 +182,7 @@ export default function DevRegisterPage() {
             {/* STEP 2 — questionnaire */}
             {step === 2 && (
               <form onSubmit={handleStep2} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                <div style={{ background: "#F7F5F1", borderRadius: "0.625rem", padding: "0.875rem 1rem", fontSize: "0.8125rem", color: "#6B6860", lineHeight: 1.5 }}>
+                <div style={{ background: "#F4F5F0", borderRadius: "0.625rem", padding: "0.875rem 1rem", fontSize: "0.8125rem", color: "#526563", lineHeight: 1.5 }}>
                   Your answers are used to generate an initial quality score that developers see on the platform. Be accurate — scores are recalibrated over time based on real behaviour.
                 </div>
 
@@ -220,7 +220,7 @@ export default function DevRegisterPage() {
 
                 <div style={{ display: "flex", gap: "0.625rem" }}>
                   <button type="button" onClick={() => { setStep(1); setError(""); }}
-                    style={{ ...btnStyle(false), background: "#fff", color: "#1C1B19", border: "1px solid #DDD9D3", flex: "0 0 auto" }}>
+                    style={{ ...btnStyle(false), background: "#fff", color: "#123F40", border: "1px solid #D4DED8", flex: "0 0 auto" }}>
                     ← Back
                   </button>
                   <button type="submit" disabled={loading} style={{ ...btnStyle(loading), flex: 1 }}>
@@ -229,7 +229,7 @@ export default function DevRegisterPage() {
                 </div>
 
                 {loading && (
-                  <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "#6B6860", margin: 0 }}>
+                  <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "#526563", margin: 0 }}>
                     Evaluating your questionnaire with AI — this takes a few seconds…
                   </p>
                 )}
@@ -240,7 +240,7 @@ export default function DevRegisterPage() {
             {step === 3 && (
               <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 {/* Google icon + explanation */}
-                <div style={{ background: "#F7F5F1", borderRadius: "0.75rem", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <div style={{ background: "#F4F5F0", borderRadius: "0.75rem", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                     {/* Calendar icon */}
                     <div style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.5rem", background: "#4285F4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -249,14 +249,14 @@ export default function DevRegisterPage() {
                       </svg>
                     </div>
                     <div>
-                      <div style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#1C1B19" }}>Google Calendar + Meet</div>
-                      <div style={{ fontSize: "0.8125rem", color: "#6B6860" }}>When negotiations reach the limit, schedule a live meeting with one click</div>
+                      <div style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#123F40" }}>Google Calendar + Meet</div>
+                      <div style={{ fontSize: "0.8125rem", color: "#526563" }}>When negotiations reach the limit, schedule a live meeting with one click</div>
                     </div>
                   </div>
                   <ul style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                    <li style={{ fontSize: "0.8125rem", color: "#6B6860" }}>Creates a Google Meet link automatically</li>
-                    <li style={{ fontSize: "0.8125rem", color: "#6B6860" }}>Invites both you and the buyer via calendar event</li>
-                    <li style={{ fontSize: "0.8125rem", color: "#6B6860" }}>You can connect or reconnect anytime from your dashboard</li>
+                    <li style={{ fontSize: "0.8125rem", color: "#526563" }}>Creates a Google Meet link automatically</li>
+                    <li style={{ fontSize: "0.8125rem", color: "#526563" }}>Invites both you and the buyer via calendar event</li>
+                    <li style={{ fontSize: "0.8125rem", color: "#526563" }}>You can connect or reconnect anytime from your dashboard</li>
                   </ul>
                 </div>
 
@@ -281,7 +281,7 @@ export default function DevRegisterPage() {
                 <button
                   type="button"
                   onClick={() => router.push("/dev/pending")}
-                  style={{ padding: "0.875rem", borderRadius: "0.5rem", border: "1px solid #DDD9D3", background: "#fff", color: "#6B6860", fontSize: "0.9375rem", fontWeight: 500, cursor: "pointer" }}
+                  style={{ padding: "0.875rem", borderRadius: "0.5rem", border: "1px solid #D4DED8", background: "#fff", color: "#526563", fontSize: "0.9375rem", fontWeight: 500, cursor: "pointer" }}
                 >
                   Skip for now — I&apos;ll connect later
                 </button>
@@ -289,14 +289,14 @@ export default function DevRegisterPage() {
             )}
 
             {step !== 3 && (
-              <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#6B6860", margin: 0 }}>
+              <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#526563", margin: 0 }}>
                 Already have an account?{" "}
-                <Link href="/login" style={{ color: "#1F4B4A", fontWeight: 600 }}>Sign in</Link>
+                <Link href="/login" style={{ color: "#123F40", fontWeight: 600 }}>Sign in</Link>
               </p>
             )}
           </div>
         </div>
-        <p style={{ textAlign: "center", fontSize: "0.75rem", color: "#6B6860", marginTop: "1.25rem" }}>
+        <p style={{ textAlign: "center", fontSize: "0.75rem", color: "#526563", marginTop: "1.25rem" }}>
           Haveniq — Developer Portal · prototype v0.1
         </p>
       </div>
@@ -306,9 +306,9 @@ export default function DevRegisterPage() {
 
 function ErrorBox({ message }: { message: string }) {
   return (
-    <div style={{ background: "#FAE8E8", border: "1px solid rgba(176,64,64,0.2)", borderRadius: "0.5rem", padding: "0.75rem 1rem", display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
-      <span style={{ color: "#B04040", fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>Error</span>
-      <span style={{ color: "#B04040", fontSize: "0.875rem" }}>{message}</span>
+    <div style={{ background: "#FBECEA", border: "1px solid rgba(176,64,64,0.2)", borderRadius: "0.5rem", padding: "0.75rem 1rem", display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
+      <span style={{ color: "#9E3434", fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>Error</span>
+      <span style={{ color: "#9E3434", fontSize: "0.875rem" }}>{message}</span>
     </div>
   );
 }
@@ -316,7 +316,7 @@ function ErrorBox({ message }: { message: string }) {
 function btnStyle(disabled: boolean): React.CSSProperties {
   return {
     padding: "0.875rem", borderRadius: "0.5rem", border: "none",
-    background: "#C89B3C", color: "#fff",
+    background: "#756039", color: "#fff",
     fontSize: "0.9375rem", fontWeight: 600,
     cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.7 : 1,

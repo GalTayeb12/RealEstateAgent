@@ -4,18 +4,9 @@ import Link from "next/link";
 const S = {
   page: {
     minHeight: "100vh",
-    background: "#FAF8F4",
+    background: "#F4F5F0",
     fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
   } as React.CSSProperties,
-  glow: {
-    position: "fixed" as const,
-    inset: 0,
-    background:
-      "radial-gradient(60% 40% at 85% 5%, rgba(47,102,100,0.06) 0%, transparent 55%), " +
-      "radial-gradient(40% 30% at 5% 85%, rgba(200,155,60,0.04) 0%, transparent 55%)",
-    pointerEvents: "none" as const,
-    zIndex: 0,
-  },
   wrap: {
     position: "relative" as const,
     zIndex: 1,
@@ -26,43 +17,43 @@ const S = {
   eyebrow: {
     fontFamily: "var(--font-jetbrains, monospace)",
     fontSize: "0.6875rem",
-    fontWeight: 700,
+    fontWeight: 600,
     letterSpacing: "0.1em",
     textTransform: "uppercase" as const,
-    color: "#1F4B4A",
+    color: "#123F40",
     marginBottom: "0.875rem",
     display: "block",
   },
   h1: {
     fontFamily: "var(--font-fraunces, serif)",
     fontSize: "2.5rem",
-    fontWeight: 800,
-    color: "#14130F",
+    fontWeight: 500,
+    color: "#123F40",
     margin: "0 0 0.5rem",
     lineHeight: 1.15,
-    letterSpacing: "-0.02em",
+    letterSpacing: "0",
   } as React.CSSProperties,
   meta: {
     fontFamily: "var(--font-jetbrains, monospace)",
     fontSize: "0.6875rem",
     letterSpacing: "0.06em",
-    color: "#9A958F",
+    color: "#526563",
     marginBottom: "3rem",
     display: "block",
   },
   h2: {
     fontSize: "0.8125rem",
-    fontWeight: 700,
+    fontWeight: 600,
     letterSpacing: "0.06em",
     textTransform: "uppercase" as const,
-    color: "#1F4B4A",
+    color: "#123F40",
     margin: "0 0 0.75rem",
     fontFamily: "var(--font-inter, sans-serif)",
   } as React.CSSProperties,
   section: {
     marginTop: "2.5rem",
     paddingTop: "2rem",
-    borderTop: "1px solid rgba(28,27,25,0.07)",
+    borderTop: "1px solid rgba(18,63,64,0.07)",
   },
   p: {
     margin: "0 0 0.875rem",
@@ -83,8 +74,8 @@ const S = {
     lineHeight: 1.7,
   } as React.CSSProperties,
   strong: {
-    color: "#1C1B19",
-    fontWeight: 700,
+    color: "#123F40",
+    fontWeight: 600,
   } as React.CSSProperties,
   back: {
     display: "inline-flex",
@@ -92,7 +83,7 @@ const S = {
     gap: "0.375rem",
     fontSize: "0.875rem",
     fontWeight: 600,
-    color: "#6B6860",
+    color: "#526563",
     textDecoration: "none" as const,
     marginBottom: "2.5rem",
   },
@@ -104,14 +95,13 @@ const S = {
     color: "#3A3733",
     lineHeight: 1.75,
     margin: "0 0 0.875rem",
-    borderLeft: "3px solid #1F4B4A",
+    borderLeft: "3px solid #123F40",
   } as React.CSSProperties,
 };
 
 export default function PrivacyPage() {
   return (
     <div style={S.page}>
-      <div style={S.glow} />
       <div style={S.wrap}>
 
         <Link href="/" style={S.back}>← Back to Haveniq</Link>
