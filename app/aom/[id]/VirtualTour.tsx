@@ -59,7 +59,7 @@ export function VirtualTour({ scenes }: { scenes: TourScene[] }) {
                 borderRadius: 999,
                 border: isActive ? "none" : "1.5px solid rgba(18,63,64,0.15)",
                 background: isActive ? "linear-gradient(155deg, #0C3031, #123332)" : "transparent",
-                color: isActive ? "#fff" : "#55534C",
+                color: isActive ? "#fff" : "var(--qp-muted)",
                 fontWeight: 600,
                 fontSize: "0.8125rem",
                 cursor: "pointer",
@@ -74,7 +74,7 @@ export function VirtualTour({ scenes }: { scenes: TourScene[] }) {
             </button>
           );
         })}
-        <span style={{ marginLeft: "auto", fontSize: "0.6875rem", color: "#526563", fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 500, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+        <span style={{ marginLeft: "auto", fontSize: "0.6875rem", color: "var(--qp-muted)", fontFamily: "var(--font-heebo, monospace)", fontWeight: 500, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
           Drag · Scroll to zoom
         </span>
       </div>

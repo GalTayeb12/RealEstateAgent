@@ -461,7 +461,7 @@ export default function DevDashboardPage() {
               </a>
             )}
             <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-muted)" }}>Quality score</span>
-            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1rem", fontWeight: 600, color: "var(--qp-accent-text)", background: "var(--qp-warning-bg)", padding: "0.2rem 0.625rem", borderRadius: "0.375rem", border: "1px solid #F5E9C4" }}>
+            <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1rem", fontWeight: 600, color: "var(--qp-accent-text)", background: "var(--qp-warning-bg)", padding: "0.2rem 0.625rem", borderRadius: "0.375rem", border: "1px solid #F5E9C4" }}>
               {profile.qualityScore}
             </span>
           </div>
@@ -611,7 +611,7 @@ export default function DevDashboardPage() {
                                         {ut.unitLabel}
                                       </span>
                                       {ut.price > 0 && (
-                                        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--qp-ink)" }}>
+                                        <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--qp-ink)" }}>
                                           <Money amount={ut.price} />
                                         </span>
                                       )}
@@ -625,7 +625,7 @@ export default function DevDashboardPage() {
                                     {ut.description && (
                                       <p style={{ margin: "0.25rem 0 0", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>{ut.description}</p>
                                     )}
-                                    <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", color: "var(--qp-muted)" }}>
+                                    <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-heebo, monospace)", fontSize: "0.75rem", color: "var(--qp-muted)" }}>
                                       <span>Min. match required <strong style={{ color: "var(--qp-ink)" }}>{ut.eil}</strong></span>
                                       <span>Target match <strong style={{ color: "var(--qp-ink)" }}>{ut.ail}</strong></span>
                                       {Object.entries(attrs).slice(0, 3).map(([k, v]) => (
@@ -824,7 +824,7 @@ export default function DevDashboardPage() {
                         </div>
                         <div style={{ textAlign: "right" }}>
                           <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Reserved price</div>
-                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "var(--qp-ink)" }}><Money amount={reservation.offeredPrice} /></div>
+                          <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "var(--qp-ink)" }}><Money amount={reservation.offeredPrice} /></div>
                           <EstimatedPriceNote />
                         </div>
                       </div>
@@ -874,7 +874,7 @@ export default function DevDashboardPage() {
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                               </svg>
-                              <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)" }}>{group.memberCount} buyers</span>
+                              <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)" }}>{group.memberCount} buyers</span>
                             </div>
                             <span style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "var(--qp-ink)" }}>{listingLabel}</span>
                             <StatusBadge status={group.status} map={OFFER_STATUS} />
@@ -882,7 +882,7 @@ export default function DevDashboardPage() {
                         </div>
                         <div style={{ textAlign: "right" }}>
                           <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Requested discount</div>
-                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "var(--qp-accent-text)" }}>{group.requestedDiscountPercent}%</div>
+                          <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "var(--qp-accent-text)" }}>{group.requestedDiscountPercent}%</div>
                         </div>
                       </div>
 
@@ -919,7 +919,7 @@ export default function DevDashboardPage() {
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "10rem 1fr", gap: "0.75rem" }}>
                           <FormField label="Counter discount %">
                             <input type="number" step="0.5" value={groupCounter.counterDiscountPercent} onChange={e => setGroupCounter(f => ({ ...f, counterDiscountPercent: e.target.value }))}
-                              style={{ ...inputStyle, fontFamily: "var(--font-jetbrains, monospace)" }} />
+                              style={{ ...inputStyle, fontFamily: "var(--font-heebo, monospace)" }} />
                           </FormField>
                           <FormField label="Counter terms">
                             <input value={groupCounter.counterTerms} onChange={e => setGroupCounter(f => ({ ...f, counterTerms: e.target.value }))}
@@ -1003,7 +1003,7 @@ function UnitTypeForm({
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
           <FormField label="Attributes (JSON)">
-            <input style={{ ...inputStyle, fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.875rem" }}
+            <input style={{ ...inputStyle, fontFamily: "var(--font-heebo, monospace)", fontSize: "0.875rem" }}
               value={form.attributes} onChange={f("attributes")} placeholder='{"bedrooms":3,"sqft":1050}' />
           </FormField>
         </div>

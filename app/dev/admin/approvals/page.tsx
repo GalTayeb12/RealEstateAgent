@@ -112,7 +112,7 @@ function StatsCards({ stats }: { stats: Stats }) {
       {cards.map(c => (
         <div key={c.label} style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", padding: "1.25rem 1.375rem" }}>
           <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.375rem" }}>{c.label}</div>
-          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.75rem", fontWeight: 600, color: "var(--qp-ink)", lineHeight: 1 }}>{c.value}</div>
+          <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1.75rem", fontWeight: 600, color: "var(--qp-ink)", lineHeight: 1 }}>{c.value}</div>
           <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)", marginTop: "0.375rem" }}>{c.sub}</div>
         </div>
       ))}
@@ -183,7 +183,7 @@ function UserTable({ token }: { token: string }) {
       {/* Filters */}
       <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--qp-soft)", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--qp-ink)", marginRight: "auto" }}>
-          Users <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.875rem", color: "var(--qp-muted)", fontWeight: 400 }}>({total})</span>
+          Users <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.875rem", color: "var(--qp-muted)", fontWeight: 400 }}>({total})</span>
         </div>
         {resetNote && (
           <div style={{ fontSize: "0.8125rem", color: "var(--qp-ink)", fontWeight: 600 }}>{resetNote}</div>
@@ -227,7 +227,7 @@ function UserTable({ token }: { token: string }) {
                 const roleStyle = ROLE_STYLE[u.role] ?? ROLE_STYLE.buyer;
                 return (
                   <tr key={u.id} style={{ borderBottom: i < users.length - 1 ? "1px solid var(--qp-bg)" : "none" }}>
-                    <td style={{ padding: "0.75rem 1.25rem", color: "var(--qp-ink)", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem" }}>
+                    <td style={{ padding: "0.75rem 1.25rem", color: "var(--qp-ink)", fontFamily: "var(--font-heebo, monospace)", fontSize: "0.8125rem" }}>
                       {u.email}
                     </td>
                     <td style={{ padding: "0.75rem 1.25rem" }}>
@@ -517,7 +517,7 @@ function ApprovalsTab({ token }: { token: string }) {
                     {[["CRN", p.crn], ["Contact", p.contactName], ["Phone", p.phone], ["Email", p.user.email]].map(([label, value]) => (
                       <div key={label}>
                         <span style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label} </span>
-                        <span style={{ fontSize: "0.875rem", color: "var(--qp-ink)", fontFamily: label === "CRN" ? "var(--font-jetbrains, monospace)" : undefined }}>{value}</span>
+                        <span style={{ fontSize: "0.875rem", color: "var(--qp-ink)", fontFamily: label === "CRN" ? "var(--font-heebo, monospace)" : undefined }}>{value}</span>
                       </div>
                     ))}
                   </div>
@@ -585,7 +585,7 @@ function LeverageGroupsTable({ token }: { token: string }) {
         <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--qp-ink)" }}>
           Group buying interest
         </div>
-        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.875rem", color: "var(--qp-muted)" }}>
+        <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.875rem", color: "var(--qp-muted)" }}>
           ({openGroups.length} open)
         </span>
         <div style={{ marginLeft: "auto", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
@@ -628,7 +628,7 @@ function LeverageGroupsTable({ token }: { token: string }) {
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                           <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
-                        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, color: "var(--qp-ink)", fontSize: "0.9375rem" }}>
+                        <span style={{ fontFamily: "var(--font-heebo, monospace)", fontWeight: 600, color: "var(--qp-ink)", fontSize: "0.9375rem" }}>
                           {g.memberCount}
                         </span>
                         {isHighlight && (

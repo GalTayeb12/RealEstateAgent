@@ -180,7 +180,7 @@ function UnitTypeForm({
         </div>
         <div style={{ gridColumn: "1 / -1" }}>
           <FormField label="Attributes (JSON)">
-            <input style={{ ...inputStyle, fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.875rem" }}
+            <input style={{ ...inputStyle, fontFamily: "var(--font-heebo, monospace)", fontSize: "0.875rem" }}
               value={form.attributes} onChange={f("attributes")} placeholder='{"bedrooms":3,"sqft":1050}' />
           </FormField>
         </div>
@@ -523,7 +523,7 @@ export default function SellerDashboardPage() {
                                         {ut.unitLabel}
                                       </span>
                                       {ut.price > 0 && (
-                                        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--qp-ink)" }}>
+                                        <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--qp-ink)" }}>
                                           <Money amount={ut.price} />
                                         </span>
                                       )}
@@ -537,7 +537,7 @@ export default function SellerDashboardPage() {
                                     {ut.description && (
                                       <p style={{ margin: "0.25rem 0 0", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>{ut.description}</p>
                                     )}
-                                    <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", color: "var(--qp-muted)" }}>
+                                    <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-heebo, monospace)", fontSize: "0.75rem", color: "var(--qp-muted)" }}>
                                       <span>Min. match <strong style={{ color: "var(--qp-ink)" }}>{ut.eil}</strong></span>
                                       <span>Target match <strong style={{ color: "var(--qp-ink)" }}>{ut.ail}</strong></span>
                                       {Object.entries(attrs).slice(0, 3).map(([k, v]) => (
@@ -620,7 +620,7 @@ export default function SellerDashboardPage() {
                         </div>
                         <div style={{ textAlign: "right" }}>
                           <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Offered price</div>
-                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "var(--qp-ink)" }}><Money amount={offer.offeredPrice} /><EstimatedPriceNote /></div>
+                          <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "var(--qp-ink)" }}><Money amount={offer.offeredPrice} /><EstimatedPriceNote /></div>
                           {offer.matchScore != null && (
                             <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)", marginTop: "0.25rem" }}>
                               Match score: <strong style={{ color: "var(--qp-ink)" }}>{offer.matchScore.toFixed(1)}</strong>
@@ -695,7 +695,7 @@ export default function SellerDashboardPage() {
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "8rem 1fr", gap: "0.75rem" }}>
                           <FormField label="מחיר נגד (₪) / Counter (ILS)">
                             <input type="number" step={1000} value={offerCounter.counterPrice} onChange={e => setOfferCounter(f => ({ ...f, counterPrice: e.target.value }))}
-                              style={{ ...inputStyle, fontFamily: "var(--font-jetbrains, monospace)" }} />
+                              style={{ ...inputStyle, fontFamily: "var(--font-heebo, monospace)" }} />
                           </FormField>
                           <FormField label="Counter terms">
                             <input value={offerCounter.counterTerms} onChange={e => setOfferCounter(f => ({ ...f, counterTerms: e.target.value }))}
