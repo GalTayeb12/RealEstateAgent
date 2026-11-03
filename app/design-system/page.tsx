@@ -1,343 +1,327 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
-import { Money } from "@/components/Money";
-import { visionFontClass } from "@/components/vision/fonts";
 import {
-  Skyline,
-  Theme,
-  VButton,
-  VCard,
-  VCount,
-  VEmpty,
-  VGlass,
-  VInput,
-  VOverlay,
-  VPill,
-  VSkeleton,
-  VStepper,
-  VToast,
-  type DisplayFace,
-  type VisionTheme,
-} from "@/components/vision";
+  Badge,
+  Button,
+  Dialog,
+  EmptyState,
+  GlassPanel,
+  Notice,
+  PropertyCard,
+  QuietPhoto,
+  QuietScrollScene,
+  SectionNav,
+  Skeleton,
+  TextField,
+  UserMenu,
+} from "@/components/quiet";
 
-function roleOf(token: string): string | null {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return typeof payload?.role === "string" ? payload.role : null;
-  } catch {
-    return null;
-  }
+const HERO_IMAGE = "/images/hero-property.png";
+const HERO_DESKTOP = "/images/haveniq-hero-desktop.png";
+const HERO_MOBILE = "/images/haveniq-hero-mobile.png";
+
+const SWATCHES = [
+  { key: "bg", name: "bg", value: "#F4F5F0", fill: "#F4F5F0", text: "#123F40" },
+  { key: "surface", name: "surface", value: "#FFFFFF", fill: "#FFFFFF", text: "#123F40" },
+  { key: "soft", name: "soft", value: "#E9EEEA", fill: "#E9EEEA", text: "#123F40" },
+  { key: "ink", name: "ink", value: "#123F40", fill: "#123F40", text: "#FFFFFF" },
+  { key: "muted", name: "muted", value: "#526563", fill: "#526563", text: "#FFFFFF" },
+  { key: "gold", name: "gold", value: "#B5A078", fill: "#B5A078", text: "#123F40" },
+  { key: "goldText", name: "gold-text", value: "#756039", fill: "#756039", text: "#FFFFFF" },
+  { key: "border", name: "border", value: "#D4DED8", fill: "#D4DED8", text: "#123F40" },
+  { key: "focus", name: "focus", value: "#16766F", fill: "#16766F", text: "#FFFFFF" },
+  { key: "success", name: "success", value: "#246046 / #E7F2EA", fill: "#E7F2EA", text: "#246046" },
+  { key: "warning", name: "warning", value: "#785716 / #FCF2D9", fill: "#FCF2D9", text: "#785716" },
+  { key: "error", name: "error", value: "#9E3434 / #FBECEA", fill: "#FBECEA", text: "#9E3434" },
+  { key: "info", name: "info", value: "#285F7A / #E9F2F7", fill: "#E9F2F7", text: "#285F7A" },
+] as const;
+
+function destinationFor(role: string) {
+  if (role === "developer") return "/dev/dashboard";
+  if (role === "seller") return "/seller/dashboard";
+  if (role === "buyer") return "/results";
+  return "/login";
 }
 
 export default function DesignSystemPage() {
-  const router = useRouter();
   const { locale, setLocale, m } = useI18n();
-  const d = m.design;
+  const q = m.quiet;
   const [ready, setReady] = useState(false);
-  const [face, setFace] = useState<DisplayFace>("frank");
-  const [step, setStep] = useState(1);
-  const [overlay, setOverlay] = useState<{ mode: "modal" | "sheet"; theme: VisionTheme } | null>(null);
-  const [toast, setToast] = useState(false);
-  const heroRef = useRef<HTMLElement>(null);
-  const dawnRef = useRef<HTMLElement>(null);
+  const [name, setName] = useState("");
+  const [nameInvalid, setNameInvalid] = useState(false);
+  const [dialog, setDialog] = useState<"modal" | "sheet" | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token") ?? "";
-    const role = token ? roleOf(token) : null;
-    if (role === "admin") {
-      setReady(true);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      window.location.replace("/login");
       return;
     }
-    if (role === "developer") router.replace("/dev/dashboard");
-    else if (role === "seller") router.replace("/seller/dashboard");
-    else if (role === "buyer") router.replace("/results");
-    else router.replace("/login");
-  }, [router]);
+    let cancelled = false;
+    fetch("/api/design-system/access", { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (res) => {
+        if (cancelled) return;
+        if (res.ok) {
+          setReady(true);
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        const role = typeof data.role === "string" ? data.role : "";
+        window.location.replace(destinationFor(role));
+      })
+      .catch(() => {
+        if (!cancelled) window.location.replace("/login");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
-    const timer = window.setTimeout(() => setToast(false), 2800);
+    const timer = window.setTimeout(() => setToast(null), 3200);
     return () => window.clearTimeout(timer);
   }, [toast]);
 
-  useEffect(() => {
-    if (!ready) return;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const narrow = window.matchMedia("(max-width: 800px)").matches;
-    if (reduce) return;
-    let frame = 0;
-    const tick = () => {
-      const dawn = dawnRef.current;
-      if (dawn) {
-        const rect = dawn.getBoundingClientRect();
-        const total = dawn.offsetHeight - window.innerHeight;
-        const passed = Math.min(Math.max(-rect.top, 0), Math.max(total, 1));
-        dawn.style.setProperty("--vx-mix", total > 0 ? String(passed / total) : "0");
-      }
-      const hero = heroRef.current;
-      if (hero && !narrow) {
-        hero.style.setProperty("--vx-parallax", `${Math.min(window.scrollY, 420) * 0.16}px`);
-      }
-    };
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(tick);
-    };
-    tick();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, [ready]);
+  if (!ready) {
+    return (
+      <main className="qp">
+        <p className="qp-kicker" style={{ padding: 48 }}>{m.quiet.kicker}</p>
+      </main>
+    );
+  }
 
-  if (!ready) return <main className="vx-wait" />;
+  function notify(message: string) {
+    setToast(message);
+  }
 
-  const faces: Array<{ id: DisplayFace; name: string; note: string }> = [
-    { id: "bellefair", name: "Bellefair", note: d.fontBellefairNote },
-    { id: "frank", name: "Frank Ruhl Libre", note: d.fontFrankNote },
-    { id: "noto", name: "Noto Serif Hebrew", note: d.fontNotoNote },
+  function savePreference(event: React.FormEvent) {
+    event.preventDefault();
+    if (!name.trim()) {
+      setNameInvalid(true);
+      return;
+    }
+    setNameInvalid(false);
+    notify(q.toastBody);
+  }
+
+  const links = [
+    { href: "#hero", label: q.heroNav },
+    { href: "#intro", label: q.intro },
+    { href: "#color", label: q.colors },
+    { href: "#type", label: q.type },
+    { href: "#components", label: q.components },
+    { href: "#surfaces", label: q.surfaces },
+    { href: "#motion", label: q.motion },
   ];
 
+  function showComponents() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("components")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+  }
+
   return (
-    <main className={`vx-root ${visionFontClass}`} data-display={face}>
-      <header className="vx-bar">
-        <Link href="/dev/admin/approvals">{d.back}</Link>
-        <div className="vx-lang" role="group" aria-label={m.lang.label}>
-          {(["he", "en"] as const).map((code) => (
-            <button key={code} type="button" aria-pressed={locale === code} onClick={() => { void setLocale(code); }}>
-              {code === "he" ? "עב" : "EN"}
-            </button>
-          ))}
-        </div>
-      </header>
+    <main className="qp">
+      <SectionNav
+        brand="Haveniq"
+        label={q.navLabel}
+        links={links}
+        end={
+          <>
+            <Link href="/dev/admin/approvals" className="qp-btn qp-btn--ghost">{q.back}</Link>
+            {(["he", "en"] as const).map((code) => (
+              <Button key={code} variant="ghost" className="qp-lang" aria-pressed={locale === code} onClick={() => { void setLocale(code); }}>
+                {code === "he" ? "עב" : "EN"}
+              </Button>
+            ))}
+          </>
+        }
+      />
 
-      <section className="vx-hero" ref={heroRef}>
-        <div className="vx-hero__city">
-          <Skyline />
-        </div>
-        <div className="vx-haze" />
-        <div className="vx-hero__copy">
-          <div>
-            <p className="vx-kicker" style={{ color: "#e4c48a" }}>{d.nightWorld}</p>
-            <h1>{d.heroTitle}</h1>
-            <Theme theme="night">
-              <VGlass className="vx-hud">
-                <div className="vx-hud__row">
-                  <div>
-                    <div className="vx-kicker">{d.matchLabel}</div>
-                    <div className="vx-hud__score"><VCount value={92} /></div>
-                  </div>
-                  <div style={{ textAlign: "end" }}>
-                    <div className="vx-kicker">{d.priceLabel}</div>
-                    <div className="vx-num" style={{ fontSize: "1.15rem", color: "var(--vx-gold)" }}>
-                      <Money amount={2450000} />
-                    </div>
-                  </div>
-                </div>
-                <div className="vx-rule" />
-                <div>{d.projectName} · {d.roomsLabel}</div>
-              </VGlass>
-            </Theme>
-          </div>
-        </div>
-      </section>
+      <QuietScrollScene
+        imageSrc={HERO_DESKTOP}
+        mobileSrc={HERO_MOBILE}
+        imageAlt={q.heroAlt}
+        missingLabel={q.missingPhoto}
+        title={q.heroTitle}
+        titleNext={q.heroTitleNext}
+        body={q.heroBody}
+        captionValue={q.heroCaptionValue}
+        captionLabel={q.heroCaptionLabel}
+        cta={q.heroCta}
+        note={q.heroNote}
+        onCta={showComponents}
+      />
 
-      <section className="vx-dawn" ref={dawnRef}>
-        <div className="vx-dawn__sticky">
-          <div className="vx-dawn__sky" />
-          <div className="vx-dawn__city"><Skyline /></div>
-          <Theme theme="day">
-            <VGlass className="vx-dawn__caption">
-              <h2>{d.dawnTitle}</h2>
-              <p className="vx-muted">{d.dawnBody}</p>
-            </VGlass>
-          </Theme>
-        </div>
-      </section>
+      <div className="qp-wrap">
+        <section id="intro" className="qp-intro">
+          <p className="qp-kicker">{q.kicker}</p>
+          <h2 className="qp-h3">{q.introTitle}</h2>
+          <p className="qp-body" style={{ marginTop: 12 }}>{q.introBody}</p>
+        </section>
 
-      <div className="vx-sheet">
-        <p className="vx-kicker" style={{ color: "#8a6430" }}>{d.kicker}</p>
-        <h2>{d.concept}</h2>
-        <p className="vx-lead">{d.conceptLead}</p>
-
-        <section className="vx-block">
-          <h2>{d.fontsTitle}</h2>
-          <p className="vx-lead">{d.chooseFont}</p>
-          <div className="vx-fonts">
-            {faces.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="vx-glass vx-lift vx-font"
-                aria-pressed={face === item.id}
-                onClick={() => setFace(item.id)}
-              >
-                <strong>{item.name}</strong>
-                <span className="vx-display" style={{ fontFamily: faceFamily(item.id) }}>{d.fontSampleHe}</span>
-                <span className="vx-display" style={{ fontFamily: faceFamily(item.id), fontSize: "1.15rem" }}>{d.fontSampleEn}</span>
-                <em>{item.note}</em>
-              </button>
+        <section id="color" className="qp-section">
+          <h2 className="qp-h2">{q.colorTitle}</h2>
+          <p className="qp-body" style={{ margin: "16px 0 32px" }}>{q.colorBody}</p>
+          <div className="qp-swatches">
+            {SWATCHES.map((swatch) => (
+              <div key={swatch.key} className="qp-swatch">
+                <i style={{ background: swatch.fill }} />
+                <span>{q[swatch.key]}</span>
+                <small>{swatch.name} · {swatch.value}</small>
+              </div>
             ))}
           </div>
         </section>
 
-        <section className="vx-block">
-          <h2>{d.tokens}</h2>
-          <div className="vx-pair">
-            <Stage theme="night" title={d.nightWorld} lead={d.nightLead} d={d} step={step} setStep={setStep} onOverlay={(mode) => setOverlay({ mode, theme: "night" })} onToast={() => setToast(true)} locale={locale} />
-            <Stage theme="day" title={d.dayWorld} lead={d.dayLead} d={d} step={step} setStep={setStep} onOverlay={(mode) => setOverlay({ mode, theme: "day" })} onToast={() => setToast(true)} locale={locale} />
+        <section id="type" className="qp-section">
+          <h2 className="qp-h2">{q.typeTitle}</h2>
+          <p className="qp-body" style={{ margin: "16px 0 32px" }}>{q.typeBody}</p>
+          <div className="qp-type">
+            <p className="qp-h1">{q.heroTitle}</p>
+            <p className="qp-h2" dir="ltr">{q.sampleEn}</p>
+            <p className="qp-h3">{q.cardTitle}</p>
+            <p className="qp-h4">{q.cardName}</p>
+            <p className="qp-body">{q.heroBody}</p>
+            <p className="qp-small">{q.heroNote}</p>
           </div>
         </section>
 
-        <section className="vx-block">
-          <h2>{d.resultsTitle}</h2>
-          <div className="vx-split">
-            <Theme theme="day">
-              <div className="vx-results">
-                <MatchCard name={d.projectName} score={92} amount={2450000} why={d.whySample} rooms={d.roomsLabel} match={d.matchLabel} overlap={d.overlap} />
-                <MatchCard name={d.projectNameB} score={78} amount={1980000} why={d.whySample} rooms={d.roomsLabel} match={d.matchLabel} overlap={d.overlap} />
+        <section id="components" className="qp-section">
+          <h2 className="qp-h2">{q.components}</h2>
+          <div className="qp-cols" style={{ marginTop: 32 }}>
+            <div className="qp-stack">
+              <div className="qp-stack">
+                <h3 className="qp-h3">{q.btnTitle}</h3>
+                <div className="qp-row">
+                  <Button>{q.primary}</Button>
+                  <Button variant="secondary">{q.secondary}</Button>
+                  <Button variant="ghost">{q.ghost}</Button>
+                  <Button disabled>{q.disabled}</Button>
+                </div>
+                <div className="qp-row">
+                  <div className="qp-state"><span className="qp-small">{q.stateHover}</span><Button data-state="hover">{q.primary}</Button></div>
+                  <div className="qp-state"><span className="qp-small">{q.stateFocus}</span><Button data-state="focus">{q.primary}</Button></div>
+                  <div className="qp-state"><span className="qp-small">{q.stateActive}</span><Button data-state="active">{q.primary}</Button></div>
+                </div>
               </div>
-            </Theme>
-            <Theme theme="day">
-              <article className="vx-glass vx-lift vx-home">
-                <div className="vx-photo">
-                  <Image src="/images/hero-property.png" alt={d.projectName} fill sizes="(max-width: 800px) 100vw, 360px" />
+              <div className="qp-stack">
+                <h3 className="qp-h3">{q.badgeTitle}</h3>
+                <div className="qp-row">
+                  <Badge tone="success">{q.available}</Badge>
+                  <Badge tone="warning">{q.reserved}</Badge>
+                  <Badge tone="info">{q.pending}</Badge>
+                  <Badge>{q.sold}</Badge>
+                  <Badge tone="error">{q.error}</Badge>
                 </div>
-                <div className="vx-home__body">
-                  <div className="vx-kicker">{d.propertyTitle}</div>
-                  <h3 className="vx-display" style={{ fontSize: "1.7rem", margin: "0.15rem 0 0.35rem" }}>{d.projectName}</h3>
-                  <div className="vx-num" style={{ color: "var(--vx-gold)", fontSize: "1.25rem" }}><Money amount={2450000} /></div>
-                  <p className="vx-muted" style={{ marginTop: "0.45rem" }}>{d.roomsLabel}. {d.whySample}</p>
+              </div>
+              <div className="qp-stack">
+                <h3 className="qp-h3">{q.menuTitle}</h3>
+                <UserMenu
+                  name={q.menuName}
+                  email={q.menuEmail}
+                  role={q.menuRole}
+                  openLabel={q.menuTitle}
+                  items={[
+                    { id: "profile", label: q.menuProfile, onSelect: () => notify(q.menuDemo) },
+                    { id: "results", label: q.menuResults, onSelect: () => notify(q.menuDemo) },
+                    { id: "out", label: q.menuSignOut, onSelect: () => notify(q.menuDemo) },
+                  ]}
+                />
+              </div>
+              <div className="qp-stack">
+                <h3 className="qp-h3">{q.overlayTitle}</h3>
+                <div className="qp-row">
+                  <Button onClick={() => setDialog("modal")}>{q.openModal}</Button>
+                  <Button variant="secondary" onClick={() => setDialog("sheet")}>{q.openSheet}</Button>
+                  <Button variant="ghost" onClick={() => notify(q.toastBody)}>{q.showToast}</Button>
                 </div>
-              </article>
-            </Theme>
+              </div>
+            </div>
+
+            <div className="qp-stack">
+              <form className="qp-stack" onSubmit={savePreference}>
+                <h3 className="qp-h3">{q.fieldTitle}</h3>
+                <TextField label={q.name} hint={q.nameHint} error={nameInvalid ? q.fieldError : undefined} value={name} onChange={(event) => setName(event.target.value)} />
+                <TextField label={q.email} type="email" autoComplete="email" defaultValue="dana@example.com" />
+                <TextField label={q.name} error={q.fieldError} defaultValue="" />
+                <Button type="submit">{q.savePref}</Button>
+              </form>
+              <div className="qp-stack">
+                <h3 className="qp-h3">{q.cardTitle}</h3>
+                <PropertyCard
+                  imageSrc={HERO_IMAGE}
+                  imageAlt={q.heroAlt}
+                  title={q.cardName}
+                  price={4250000}
+                  match={92}
+                  reasons={[q.cardWhy1, q.cardWhy2, q.cardWhy3]}
+                  matchLabel={q.matchLabel}
+                  illustrative={q.illustrative}
+                  missingLabel={q.missingPhoto}
+                />
+                <PropertyCard
+                  title={q.cardName}
+                  price={4250000}
+                  match={92}
+                  reasons={[q.cardWhy1]}
+                  matchLabel={q.matchLabel}
+                  illustrative={q.illustrative}
+                  missingLabel={q.missingPhoto}
+                  imageAlt=""
+                />
+              </div>
+              <div className="qp-stack" style={{ maxWidth: 360 }}>
+                <h3 className="qp-h3">{q.loadingTitle}</h3>
+                <Skeleton width="46%" />
+                <Skeleton />
+                <Skeleton width="72%" />
+              </div>
+              <EmptyState title={q.emptyTitle} body={q.emptyBody} action={<Button onClick={() => notify(q.menuDemo)}>{q.emptyAction}</Button>} />
+            </div>
           </div>
+        </section>
+
+        <section id="surfaces" className="qp-section qp-stack">
+          <h2 className="qp-h2">{q.surfaceTitle}</h2>
+          <p className="qp-body">{q.surfaceBody}</p>
+          <div className="qp-row" style={{ alignItems: "stretch" }}>
+            <div className="qp-soft" style={{ flex: "1 1 200px" }}><p className="qp-small">{q.soft}</p></div>
+            <div className="qp-surface" style={{ flex: "1 1 200px" }}><p className="qp-small">{q.surface}</p></div>
+            <div className="qp-elevated" style={{ flex: "1 1 200px" }}><p className="qp-small">{q.overlayTitle}</p></div>
+          </div>
+          <div className="qp-spaces">
+            {[4, 8, 12, 16, 24, 32, 48, 64, 96, 128].map((size) => (
+              <div key={size} className="qp-space">
+                <b style={{ width: size, height: size }} />
+                <span>{size}</span>
+              </div>
+            ))}
+          </div>
+          <div className="qp-scene">
+            <QuietPhoto src={HERO_IMAGE} alt="" missingLabel={q.missingPhoto} />
+            <GlassPanel>
+              <p className="qp-small" style={{ color: "var(--qp-ink)" }}>{q.glassBody}</p>
+            </GlassPanel>
+          </div>
+        </section>
+
+        <section id="motion" className="qp-section qp-stack">
+          <h2 className="qp-h2">{q.motionTitle}</h2>
+          <p className="qp-body">{q.motionBody}</p>
+          <p className="qp-body">{q.rtlBody}</p>
+          <p className="qp-body">{q.futureBody}</p>
         </section>
       </div>
 
-      {overlay && (
-        <VOverlay theme={overlay.theme} mode={overlay.mode} title={d.modalTitle} closeLabel={d.close} onClose={() => setOverlay(null)}>
-          {d.modalBody}
-        </VOverlay>
-      )}
-      {toast && <VToast message={d.toastBody} />}
+      <Dialog open={dialog !== null} mode={dialog ?? "modal"} title={q.modalTitle} closeLabel={q.close} onClose={() => setDialog(null)}>
+        <p className="qp-body">{q.modalBody}</p>
+      </Dialog>
+      {toast && <Notice message={toast} />}
     </main>
-  );
-}
-
-function faceFamily(id: DisplayFace) {
-  if (id === "bellefair") return "var(--font-bellefair), Bellefair, serif";
-  if (id === "noto") return "var(--font-noto-serif-he), 'Noto Serif Hebrew', serif";
-  return "var(--font-frank), 'Frank Ruhl Libre', serif";
-}
-
-function Stage({
-  theme,
-  title,
-  lead,
-  d,
-  step,
-  setStep,
-  onOverlay,
-  onToast,
-  locale,
-}: {
-  theme: VisionTheme;
-  title: string;
-  lead: string;
-  d: ReturnType<typeof useI18n>["m"]["design"];
-  step: number;
-  setStep: (value: number | ((n: number) => number)) => void;
-  onOverlay: (mode: "modal" | "sheet") => void;
-  onToast: () => void;
-  locale: string;
-}) {
-  return (
-    <div className={theme === "night" ? "vx-stage vx-stage--night" : "vx-stage vx-stage--day"}>
-      <Theme theme={theme}>
-        <p className="vx-kicker">{title}</p>
-        <p className="vx-muted" style={{ marginBottom: "1rem" }}>{lead}</p>
-        <div className="vx-stack">
-          <div className="vx-row">
-            <VButton>{d.primary}</VButton>
-            <VButton variant="secondary">{d.secondary}</VButton>
-            <VButton variant="ghost">{d.ghost}</VButton>
-            <VButton disabled>{d.primary}</VButton>
-          </div>
-          <div className="vx-row">
-            <VPill tone="available">{d.available}</VPill>
-            <VPill tone="reserved">{d.reserved}</VPill>
-            <VPill tone="sold">{d.sold}</VPill>
-            <VPill tone="pending">{d.pending}</VPill>
-          </div>
-          <VCard kicker={d.matchLabel} title={d.cardTitle}>{d.cardBody}</VCard>
-          <VInput label={d.name} defaultValue={locale === "he" ? "דנה לוי" : "Dana Levi"} />
-          <VInput label={d.email} type="email" defaultValue="buyer@haveniq.demo" />
-          <VInput label={d.name} error={d.fieldError} />
-          <VStepper steps={[d.stepListen, d.stepUnderstand, d.stepScore]} current={step} />
-          <div className="vx-row">
-            <VButton variant="ghost" onClick={() => setStep((n) => Math.max(0, n - 1))}>−</VButton>
-            <VButton variant="secondary" onClick={() => setStep((n) => Math.min(2, n + 1))}>+</VButton>
-          </div>
-          <div className="vx-stack" style={{ maxWidth: "16rem" }}>
-            <VSkeleton width="42%" />
-            <VSkeleton />
-            <VSkeleton width="70%" />
-          </div>
-          <div className="vx-row">
-            <VButton onClick={() => onOverlay("modal")}>{d.openModal}</VButton>
-            <VButton variant="secondary" onClick={() => onOverlay("sheet")}>{d.openSheet}</VButton>
-            <VButton variant="ghost" onClick={onToast}>{d.showToast}</VButton>
-          </div>
-          <VEmpty title={d.emptyTitle} body={d.emptyBody} action={<VButton>{d.emptyAction}</VButton>} />
-        </div>
-      </Theme>
-    </div>
-  );
-}
-
-function MatchCard({
-  name,
-  score,
-  amount,
-  why,
-  rooms,
-  match,
-  overlap,
-}: {
-  name: string;
-  score: number;
-  amount: number;
-  why: string;
-  rooms: string;
-  match: string;
-  overlap: string;
-}) {
-  return (
-    <article className="vx-glass vx-lift vx-match">
-      <div>
-        <div className="vx-kicker">{match}</div>
-        <div className="vx-match__score vx-num">{score}</div>
-      </div>
-      <div>
-        <strong className="vx-display" style={{ fontSize: "1.25rem" }}>{name}</strong>
-        <p className="vx-muted">{rooms}. {why}</p>
-        <div className="vx-axis">
-          <div className="vx-meter" aria-hidden>
-            <span style={{ left: "40%", width: `${Math.max(18, score - 50)}%` }} />
-          </div>
-        </div>
-      </div>
-      <div style={{ textAlign: "end" }}>
-        <div className="vx-kicker">{overlap}</div>
-        <div className="vx-num" style={{ color: "var(--vx-gold)" }}><Money amount={amount} /></div>
-      </div>
-    </article>
   );
 }
