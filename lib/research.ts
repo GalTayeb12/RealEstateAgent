@@ -116,14 +116,12 @@ export async function performAndStoreResearch(
   companyName: string,
   crn: string
 ): Promise<void> {
-  console.log(`[research] Starting web research for ${companyName} (CRN ${crn})`);
   try {
     const result = await callClaudeWithWebSearch(companyName, crn);
     await prisma.developerProfile.update({
       where: { userId: developerUserId },
       data: { webResearchSummary: result },
     });
-    console.log(`[research] Stored result for ${companyName}`);
   } catch (err) {
     console.error("[research] Failed to store web research result:", err);
     // Best-effort: try to store failure note.

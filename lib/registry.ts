@@ -206,14 +206,12 @@ export async function performAndStoreRegistryLookup(
   crn: string,
   companyName: string
 ): Promise<void> {
-  console.log(`[registry] Looking up CRN ${crn} for ${companyName}`);
   try {
     const result = await lookupCompanyByCRN(crn, companyName);
     await prisma.developerProfile.update({
       where: { userId: developerUserId },
       data: { registryLookupResult: JSON.stringify(result) },
     });
-    console.log(`[registry] Stored result for ${companyName}: found=${result.found}, flags=${result.flags.length}`);
   } catch (err) {
     console.error("[registry] Failed to store registry lookup result:", err);
     try {
