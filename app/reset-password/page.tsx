@@ -2,12 +2,16 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/components/LocaleProvider";
+import { TextField, Button } from "@/components/quiet";
+import { AuthRoom } from "@/components/auth/Room";
 
 type Status = "idle" | "submitting" | "success" | "invalid" | "expired" | "already_used" | "error";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { m } = useI18n();
   const token = searchParams.get("token") ?? "";
 
   const [status, setStatus] = useState<Status>("idle");
@@ -27,11 +31,11 @@ export default function ResetPasswordPage() {
     setMatchError("");
 
     if (password !== confirm) {
-      setMatchError("Passwords do not match.");
+      setMatchError(m.auth.passwordMismatch);
       return;
     }
     if (password.length < 8) {
-      setMatchError("Password must be at least 8 characters.");
+      setMatchError(m.auth.passwordTooShort);
       return;
     }
 
@@ -45,7 +49,6 @@ export default function ResetPasswordPage() {
       const data = await res.json();
 
       if (data.ok) { setStatus("success"); return; }
-
       if (data.reason === "expired")      { setStatus("expired");      return; }
       if (data.reason === "already_used") { setStatus("already_used"); return; }
       setStatus("invalid");
@@ -54,120 +57,76 @@ export default function ResetPasswordPage() {
     }
   }
 
-  const shell = (children: React.ReactNode) => (
-    <div style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", flexDirection: "column" }}>
-      <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1.5rem", position: "relative", zIndex: 1 }}>
-        <div style={{ width: "100%", maxWidth: 420 }}>
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)", overflow: "hidden" }}>
-            <div style={{ height: 4, background: "linear-gradient(90deg, #0C3031, #123332)" }} />
-            <div style={{ padding: "2.5rem 2.5rem 2.75rem" }}>{children}</div>
+  if (status === "success") {
+    return (
+      <AuthRoom>
+        <div style={{ textAlign: "center", display: "grid", gap: "1rem" }}>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--qp-soft)", border: "1px solid var(--qp-border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--qp-ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="20 6 9 17 4 12" /></svg>
           </div>
-          <p style={{ textAlign: "center", fontSize: "0.75rem", color: "#526563", marginTop: "1.5rem" }}>Haveniq — prototype v0.1</p>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 500, margin: 0 }}>{m.auth.passwordUpdated}</h1>
+          <p className="qp-body" style={{ textAlign: "center" }}>{m.auth.redirectingSignIn}</p>
+          <Link href="/login" className="qp-btn qp-btn--primary qp-btn--block" style={{ display: "flex", justifyContent: "center" }}>{m.auth.signInNow}</Link>
         </div>
-      </main>
-    </div>
-  );
-
-  // ── Success ────────────────────────────────────────────────────────────────
-  if (status === "success") return shell(
-    <>
-      <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(47,102,100,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0C3031" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-      </div>
-      <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 500, fontSize: "1.75rem", lineHeight: 1.2, letterSpacing: "0", margin: "0 0 0.75rem", color: "#123F40", textAlign: "center" }}>Password updated</h1>
-      <p style={{ margin: "0 0 2rem", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.6, textAlign: "center" }}>
-        Your password has been reset. Redirecting you to sign in…
-      </p>
-      <Link href="/login" style={{ display: "block", textAlign: "center", padding: "0.875rem", borderRadius: 999, fontSize: "0.9375rem", fontWeight: 600, color: "#fff", background: "linear-gradient(155deg, #0C3031, #123332)", textDecoration: "none", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 10px 24px -10px rgba(18,51,50,0.55)" }}>
-        Sign in now →
-      </Link>
-    </>
-  );
-
-  // ── Token errors ───────────────────────────────────────────────────────────
-  if (status === "expired" || status === "already_used" || status === "invalid" || status === "error") {
-    const isExpired = status === "expired";
-    const isUsed    = status === "already_used";
-    return shell(
-      <>
-        <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#FBECEA", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem" }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9E3434" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-        </div>
-        <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 500, fontSize: "1.75rem", lineHeight: 1.2, letterSpacing: "0", margin: "0 0 0.75rem", color: "#123F40", textAlign: "center" }}>
-          {isExpired ? "Link expired" : isUsed ? "Link already used" : "Invalid link"}
-        </h1>
-        <p style={{ margin: "0 0 2rem", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.6, textAlign: "center" }}>
-          {isExpired
-            ? "This reset link expired after 1 hour."
-            : isUsed
-            ? "This reset link has already been used."
-            : "This reset link is not valid."}
-          {" "}Request a new one from the forgot-password page.
-        </p>
-        <Link href="/forgot-password" style={{ display: "block", textAlign: "center", padding: "0.875rem", borderRadius: 999, fontSize: "0.9375rem", fontWeight: 600, color: "#fff", background: "linear-gradient(155deg, #0C3031, #123332)", textDecoration: "none", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 10px 24px -10px rgba(18,51,50,0.55)" }}>
-          Request new reset link
-        </Link>
-        <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#526563", margin: "1.25rem 0 0" }}>
-          <Link href="/login" style={{ color: "#123F40", fontWeight: 600, textDecoration: "none" }}>Back to sign in</Link>
-        </p>
-      </>
+      </AuthRoom>
     );
   }
 
-  // ── Form ───────────────────────────────────────────────────────────────────
-  return shell(
-    <>
-      <div style={{ marginBottom: "2rem" }}>
-        <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 500, fontSize: "2rem", lineHeight: 1.15, letterSpacing: "0", margin: "0 0 0.5rem", color: "#123F40" }}>Reset password</h1>
-        <p style={{ margin: 0, fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>Choose a new password for your account.</p>
-      </div>
-
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-        <div>
-          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>New password</label>
-          <input
-            type="password"
-            required
-            autoComplete="new-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 8 characters"
-            style={{ width: "100%", background: "#F5F3EE", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.75rem 1rem", fontSize: "1rem", color: "#123F40", outline: "none", boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" }}
-            onFocus={(e) => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
-            onBlur={(e) => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
-          />
+  if (status === "expired" || status === "already_used" || status === "invalid" || status === "error") {
+    const isExpired = status === "expired";
+    const isUsed    = status === "already_used";
+    return (
+      <AuthRoom>
+        <div style={{ textAlign: "center", display: "grid", gap: "1rem" }}>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--qp-error-bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--qp-error)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+          </div>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 500, margin: 0 }}>
+            {isExpired ? m.auth.linkExpiredTitle : isUsed ? m.auth.linkUsedTitle : m.auth.linkInvalidTitle}
+          </h1>
+          <p className="qp-body" style={{ textAlign: "center" }}>
+            {isExpired ? m.auth.linkExpiredBody : isUsed ? m.auth.linkUsedBody : m.auth.linkInvalidBody}
+          </p>
+          <Link href="/forgot-password" className="qp-btn qp-btn--primary qp-btn--block" style={{ display: "flex", justifyContent: "center" }}>{m.auth.requestNewLink}</Link>
+          <p style={{ textAlign: "center", fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>
+            <Link href="/login" style={{ color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>{m.auth.backToSignIn}</Link>
+          </p>
         </div>
+      </AuthRoom>
+    );
+  }
 
-        <div>
-          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>Confirm new password</label>
-          <input
-            type="password"
-            required
-            autoComplete="new-password"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            placeholder="Repeat your password"
-            style={{ width: "100%", background: "#F5F3EE", border: `1.5px solid ${matchError ? "#9E3434" : "#E0DDD7"}`, borderRadius: 10, padding: "0.75rem 1rem", fontSize: "1rem", color: "#123F40", outline: "none", boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" }}
-            onFocus={(e) => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
-            onBlur={(e) => { e.target.style.borderColor = matchError ? "#9E3434" : "#E0DDD7"; e.target.style.boxShadow = "none"; }}
-          />
-          {matchError && <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "#9E3434" }}>{matchError}</p>}
-        </div>
-
-        <button
-          type="submit"
-          disabled={status === "submitting"}
-          style={{ width: "100%", padding: "0.875rem", borderRadius: 999, fontSize: "0.9375rem", fontWeight: 600, color: "#fff", background: status === "submitting" ? "rgba(31,75,74,0.6)" : "linear-gradient(155deg, #0C3031, #123332)", border: "none", cursor: status === "submitting" ? "not-allowed" : "pointer", boxShadow: status === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 10px 24px -10px rgba(18,51,50,0.55)", transition: "opacity 0.15s" }}
-          onMouseEnter={(e) => { if (status === "idle") (e.currentTarget as HTMLButtonElement).style.opacity = "0.92"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
-        >
-          {status === "submitting" ? "Updating…" : "Update password"}
-        </button>
+  return (
+    <AuthRoom>
+      <h1 style={{ fontSize: "1.75rem", fontWeight: 500, margin: 0 }}>{m.auth.resetTitle}</h1>
+      <p className="qp-body">{m.auth.resetBody}</p>
+      <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem" }}>
+        <TextField
+          label={m.auth.newPassword}
+          type="password"
+          required
+          autoComplete="new-password"
+          value={password}
+          placeholder={m.auth.passwordPh}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <TextField
+          label={m.auth.confirmPassword}
+          type="password"
+          required
+          autoComplete="new-password"
+          value={confirm}
+          placeholder={m.auth.passwordPh}
+          onChange={(e) => setConfirm(e.target.value)}
+          error={matchError}
+        />
+        <Button type="submit" className="qp-btn--block" disabled={status === "submitting"}>
+          {status === "submitting" ? m.auth.updating : m.auth.updatePassword}
+        </Button>
       </form>
-
-      <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#526563", margin: "1.75rem 0 0" }}>
-        <Link href="/login" style={{ color: "#123F40", fontWeight: 600, textDecoration: "none" }}>Back to sign in</Link>
+      <p style={{ textAlign: "center", fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>
+        <Link href="/login" style={{ color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>{m.auth.backToSignIn}</Link>
       </p>
-    </>
+    </AuthRoom>
   );
 }

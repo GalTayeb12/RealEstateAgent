@@ -860,6 +860,11 @@ body {
   width: min(420px, 100%);
   display: grid; gap: 20px;
 }
+/* On mobile, the image side is hidden — show the logo in the form column */
+.qp-auth__mobile-logo { display: inline-flex; }
+@media (min-width: 800px) {
+  .qp-auth__mobile-logo { display: none; }
+}
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (min-width: 800px) {
