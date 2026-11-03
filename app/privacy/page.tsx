@@ -4,8 +4,8 @@ import Link from "next/link";
 const S = {
   page: {
     minHeight: "100vh",
-    background: "#F4F5F0",
-    fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
+    background: "var(--qp-bg)",
+    fontFamily: "var(--font-heebo, sans-serif)",
   } as React.CSSProperties,
   wrap: {
     position: "relative" as const,
@@ -15,29 +15,29 @@ const S = {
     padding: "4rem 1.5rem 6rem",
   },
   eyebrow: {
-    fontFamily: "var(--font-jetbrains, monospace)",
+    fontFamily: "var(--font-heebo, monospace)",
     fontSize: "0.6875rem",
     fontWeight: 600,
     letterSpacing: "0.1em",
     textTransform: "uppercase" as const,
-    color: "#123F40",
+    color: "var(--qp-ink)",
     marginBottom: "0.875rem",
     display: "block",
   },
   h1: {
-    fontFamily: "var(--font-fraunces, serif)",
+    fontFamily: "var(--font-heebo, serif)",
     fontSize: "2.5rem",
     fontWeight: 500,
-    color: "#123F40",
+    color: "var(--qp-ink)",
     margin: "0 0 0.5rem",
     lineHeight: 1.15,
     letterSpacing: "0",
   } as React.CSSProperties,
   meta: {
-    fontFamily: "var(--font-jetbrains, monospace)",
+    fontFamily: "var(--font-heebo, monospace)",
     fontSize: "0.6875rem",
     letterSpacing: "0.06em",
-    color: "#526563",
+    color: "var(--qp-muted)",
     marginBottom: "3rem",
     display: "block",
   },
@@ -46,9 +46,9 @@ const S = {
     fontWeight: 600,
     letterSpacing: "0.06em",
     textTransform: "uppercase" as const,
-    color: "#123F40",
+    color: "var(--qp-ink)",
     margin: "0 0 0.75rem",
-    fontFamily: "var(--font-inter, sans-serif)",
+    fontFamily: "var(--font-heebo, sans-serif)",
   } as React.CSSProperties,
   section: {
     marginTop: "2.5rem",
@@ -58,7 +58,7 @@ const S = {
   p: {
     margin: "0 0 0.875rem",
     fontSize: "0.9375rem",
-    color: "#3A3733",
+    color: "var(--qp-ink)",
     lineHeight: 1.75,
   } as React.CSSProperties,
   ul: {
@@ -70,11 +70,11 @@ const S = {
   } as React.CSSProperties,
   li: {
     fontSize: "0.9375rem",
-    color: "#3A3733",
+    color: "var(--qp-ink)",
     lineHeight: 1.7,
   } as React.CSSProperties,
   strong: {
-    color: "#123F40",
+    color: "var(--qp-ink)",
     fontWeight: 600,
   } as React.CSSProperties,
   back: {
@@ -83,19 +83,19 @@ const S = {
     gap: "0.375rem",
     fontSize: "0.875rem",
     fontWeight: 600,
-    color: "#526563",
+    color: "var(--qp-muted)",
     textDecoration: "none" as const,
     marginBottom: "2.5rem",
   },
   callout: {
-    background: "#F5F3EE",
+    background: "var(--qp-soft)",
     borderRadius: 10,
     padding: "0.875rem 1.125rem",
     fontSize: "0.9375rem",
-    color: "#3A3733",
+    color: "var(--qp-ink)",
     lineHeight: 1.75,
     margin: "0 0 0.875rem",
-    borderLeft: "3px solid #123F40",
+    borderLeft: "3px solid var(--qp-ink)",
   } as React.CSSProperties,
 };
 

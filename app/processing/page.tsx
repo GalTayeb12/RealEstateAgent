@@ -178,12 +178,12 @@ export default function ProcessingPage() {
         left: 0,
         right: 0,
         bottom: 0,
-        background: "#F4F5F0",
+        background: "var(--qp-bg)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
+        fontFamily: "var(--font-heebo, sans-serif)",
         gap: "1.25rem",
       }}
     >
@@ -194,14 +194,14 @@ export default function ProcessingPage() {
               width: "2rem",
               height: "2rem",
               borderRadius: "50%",
-              border: "2px solid #D4DED8",
-              borderTopColor: "#123F40",
+              border: "2px solid var(--qp-border)",
+              borderTopColor: "var(--qp-ink)",
               animation: "spin 0.9s linear infinite",
             }}
           />
           <p
             style={{
-              color: "#526563",
+              color: "var(--qp-muted)",
               fontSize: "0.875rem",
             }}
           >
@@ -212,10 +212,10 @@ export default function ProcessingPage() {
 
       {phase === "waiting" && (
         <div style={{ textAlign: "center", maxWidth: "24rem", padding: "1rem" }}>
-          <p style={{ color: "#123F40", fontWeight: 500, marginBottom: "0.5rem" }}>
+          <p style={{ color: "var(--qp-ink)", fontWeight: 500, marginBottom: "0.5rem" }}>
             No interview found
           </p>
-          <p style={{ color: "#526563", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
+          <p style={{ color: "var(--qp-muted)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
             Start a conversation with the avatar to get matched listings.
           </p>
           <button
@@ -226,8 +226,8 @@ export default function ProcessingPage() {
               padding: "0.625rem 1.5rem",
               borderRadius: 999,
               border: "1px solid transparent",
-              background: "#123F40",
-              color: "#FFFFFF",
+              background: "var(--qp-ink)",
+              color: "var(--qp-on-primary)",
               minHeight: 48,
               fontSize: "0.875rem",
               fontWeight: 600,
@@ -241,10 +241,10 @@ export default function ProcessingPage() {
 
       {phase === "error" && (
         <div style={{ textAlign: "center", maxWidth: "28rem", padding: "1rem" }}>
-          <p style={{ color: "#9E3434", fontWeight: 600, marginBottom: "0.5rem" }}>
+          <p style={{ color: "var(--qp-error)", fontWeight: 600, marginBottom: "0.5rem" }}>
             Something went wrong
           </p>
-          <p style={{ color: "#526563", fontSize: "0.875rem" }}>{errorMsg}</p>
+          <p style={{ color: "var(--qp-muted)", fontSize: "0.875rem" }}>{errorMsg}</p>
           <button
             type="button"
             onClick={() => {
@@ -256,9 +256,9 @@ export default function ProcessingPage() {
               marginTop: "1.5rem",
               padding: "0.625rem 1.5rem",
               borderRadius: 999,
-              border: "1px solid #D4DED8",
-              background: "#FFFFFF",
-              color: "#123F40",
+              border: "1px solid var(--qp-border)",
+              background: "var(--qp-surface)",
+              color: "var(--qp-ink)",
               fontSize: "0.8125rem",
               cursor: "pointer",
             }}

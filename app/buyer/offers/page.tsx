@@ -46,10 +46,10 @@ interface Offer {
 }
 
 const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
-  pending:   { label: "Pending response",   bg: "#FCF2D9", color: "#756039" },
-  countered: { label: "Counter offer",      bg: "#FCF2D9", color: "#756039" },
-  accepted:  { label: "Accepted",           bg: "#E9EEEA", color: "#123F40" },
-  rejected:  { label: "Rejected",           bg: "#FBECEA", color: "#9E3434" },
+  pending:   { label: "Pending response",   bg: "var(--qp-warning-bg)", color: "var(--qp-accent-text)" },
+  countered: { label: "Counter offer",      bg: "var(--qp-warning-bg)", color: "var(--qp-accent-text)" },
+  accepted:  { label: "Accepted",           bg: "var(--qp-soft)",       color: "var(--qp-ink)" },
+  rejected:  { label: "Rejected",           bg: "var(--qp-error-bg)",   color: "var(--qp-error)" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -81,13 +81,13 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
   return (
     <div style={{
       position: "fixed", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
-      background: "#123F40", color: "#F4F5F0", borderRadius: "0.625rem",
+      background: "var(--qp-ink)", color: "var(--qp-on-primary)", borderRadius: "0.625rem",
       padding: "0.75rem 1.25rem", fontSize: "0.9rem", fontWeight: 500,
       boxShadow: "0 4px 24px rgba(0,0,0,0.22)", zIndex: 9999,
       display: "flex", alignItems: "center", gap: "0.75rem", whiteSpace: "nowrap",
     }}>
       {message}
-      <button onClick={onDismiss} style={{ background: "none", border: "none", color: "#526563", cursor: "pointer", fontSize: "1rem", padding: 0, lineHeight: 1 }}>✕</button>
+      <button onClick={onDismiss} style={{ background: "none", border: "none", color: "var(--qp-muted)", cursor: "pointer", fontSize: "1rem", padding: 0, lineHeight: 1 }}>✕</button>
     </div>
   );
 }
@@ -101,7 +101,7 @@ function NegotiationHistory({ offer }: { offer: Offer }) {
 
   return (
     <div style={{ marginTop: "0.75rem" }}>
-      <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "0.5rem" }}>
+      <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.5rem" }}>
         Negotiation history
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -109,22 +109,22 @@ function NegotiationHistory({ offer }: { offer: Offer }) {
           <div key={i} style={{
             padding: "0.625rem 0.875rem",
             borderRadius: "0.375rem",
-            background: entry.actor === "developer" ? "#FCF2D9" : "#EAF3F2",
-            borderLeft: `3px solid ${entry.actor === "developer" ? "#756039" : "#123F40"}`,
+            background: entry.actor === "developer" ? "var(--qp-warning-bg)" : "rgba(18,63,64,0.05)",
+            borderLeft: `3px solid ${entry.actor === "developer" ? "var(--qp-accent-text)" : "var(--qp-ink)"}`,
           }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: entry.actor === "developer" ? "#756039" : "#123F40" }}>
+              <span style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: entry.actor === "developer" ? "var(--qp-accent-text)" : "var(--qp-ink)" }}>
                 {entry.actor === "developer" ? "Developer's counter" : "Your counter"}
               </span>
-              <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, fontSize: "0.9375rem", color: "#123F40" }}>
+              <span style={{ fontFamily: "var(--font-heebo, monospace)", fontWeight: 600, fontSize: "0.9375rem", color: "var(--qp-ink)" }}>
                 <Money amount={entry.price} />
               </span>
-              <span style={{ fontSize: "0.75rem", color: "#526563" }}>
+              <span style={{ fontSize: "0.75rem", color: "var(--qp-muted)" }}>
                 {new Date(entry.ts).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
               </span>
             </div>
             {entry.explanation && (
-              <p style={{ margin: "0.3rem 0 0", fontSize: "0.8125rem", color: "#526563", fontStyle: "italic" }}>
+              <p style={{ margin: "0.3rem 0 0", fontSize: "0.8125rem", color: "var(--qp-muted)", fontStyle: "italic" }}>
                 &ldquo;{entry.explanation}&rdquo;
               </p>
             )}
@@ -208,15 +208,15 @@ function OfferCard({
 
   return (
     <div style={{
-      background: "#fff",
+      background: "var(--qp-surface)",
       borderRadius: "0.875rem",
-      border: `${dealComplete ? "2px" : "1px"} solid ${dealComplete ? "#756039" : isNew ? "#756039" : "#D4DED8"}`,
+      border: `${dealComplete ? "2px" : "1px"} solid ${dealComplete ? "var(--qp-accent-text)" : isNew ? "var(--qp-accent-text)" : "var(--qp-border)"}`,
       overflow: "hidden",
       borderTop: `4px solid ${
-        dealComplete ? "#756039" :
-        offer.status === "accepted" ? "#123F40" :
-        offer.status === "rejected" ? "#9E3434" :
-        offer.status === "countered" ? "#756039" : "#E0DDD7"
+        dealComplete ? "var(--qp-accent-text)" :
+        offer.status === "accepted" ? "var(--qp-ink)" :
+        offer.status === "rejected" ? "var(--qp-error)" :
+        offer.status === "countered" ? "var(--qp-accent-text)" : "var(--qp-border)"
       }`,
     }}>
       <div style={{ padding: "1.25rem 1.5rem" }}>
@@ -227,18 +227,18 @@ function OfferCard({
               <div style={{
                 display: "inline-flex", alignItems: "center", gap: "0.3rem",
                 fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em",
-                textTransform: "uppercase", color: "#756039",
+                textTransform: "uppercase", color: "var(--qp-accent-text)",
                 background: "rgba(200,155,60,0.1)", borderRadius: 999,
                 padding: "0.15rem 0.5rem", marginBottom: "0.4rem",
               }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#756039", display: "inline-block" }} />
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--qp-accent-text)", display: "inline-block" }} />
                 New update
               </div>
             )}
-            <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40", margin: 0, marginBottom: "0.2rem" }}>
+            <h3 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.0625rem", fontWeight: 600, color: "var(--qp-ink)", margin: 0, marginBottom: "0.2rem" }}>
               {unit.project.name} — {unit.unitLabel}
             </h3>
-            <div style={{ fontSize: "0.8125rem", color: "#526563" }}>
+            <div style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
               {unit.project.location}
               {unit.price > 0 && <> · <Money amount={unit.price} /></>}
             </div>
@@ -248,10 +248,10 @@ function OfferCard({
               <span style={{
                 fontSize: "0.75rem", fontWeight: 600,
                 padding: "0.2rem 0.7rem", borderRadius: 999,
-                background: "#FCF2D9", color: "#756039",
+                background: "var(--qp-warning-bg)", color: "var(--qp-accent-text)",
                 display: "inline-flex", alignItems: "center", gap: "0.3rem",
               }}>
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#123F40" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="var(--qp-ink)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="1.5 6 4.5 9 10.5 3"/>
                 </svg>
                 Deal complete
@@ -264,15 +264,15 @@ function OfferCard({
         {/* Original offer */}
         <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
           <div>
-            <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>Your offer</div>
-            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, fontSize: "1rem", color: "#123F40" }}>
+            <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>Your offer</div>
+            <div style={{ fontFamily: "var(--font-heebo, monospace)", fontWeight: 600, fontSize: "1rem", color: "var(--qp-ink)" }}>
               <Money amount={offer.offeredPrice} />
             </div>
           </div>
           {offer.terms && (
             <div>
-              <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>Terms</div>
-              <div style={{ fontSize: "0.875rem", color: "#526563" }}>&ldquo;{offer.terms}&rdquo;</div>
+              <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>Terms</div>
+              <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>&ldquo;{offer.terms}&rdquo;</div>
             </div>
           )}
         </div>
@@ -282,41 +282,41 @@ function OfferCard({
 
         {/* Developer's current counter-offer (live — round 1) */}
         {isCountered && (
-          <div style={{ background: "#FCF2D9", borderRadius: "0.5rem", padding: "0.875rem 1rem", border: "1px solid #EDD9A3", marginTop: "0.75rem" }}>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#756039", marginBottom: "0.375rem" }}>
+          <div style={{ background: "var(--qp-warning-bg)", borderRadius: "0.5rem", padding: "0.875rem 1rem", border: "1px solid rgba(179,139,77,0.3)", marginTop: "0.75rem" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-accent-text)", marginBottom: "0.375rem" }}>
               Developer&rsquo;s counter-offer
             </div>
             <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", alignItems: "baseline", marginBottom: offer.counterExplanation ? "0.375rem" : 0 }}>
               <div>
-                <span style={{ fontSize: "0.8125rem", color: "#526563" }}>Counter price </span>
-                <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, color: "#756039", fontSize: "1rem" }}><Money amount={offer.counterPrice!} /></span>
+                <span style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>Counter price </span>
+                <span style={{ fontFamily: "var(--font-heebo, monospace)", fontWeight: 600, color: "var(--qp-accent-text)", fontSize: "1rem" }}><Money amount={offer.counterPrice!} /></span>
               </div>
               {offer.counterTerms && (
-                <div style={{ fontSize: "0.875rem", color: "#123F40" }}>&ldquo;{offer.counterTerms}&rdquo;</div>
+                <div style={{ fontSize: "0.875rem", color: "var(--qp-ink)" }}>&ldquo;{offer.counterTerms}&rdquo;</div>
               )}
             </div>
             {offer.counterExplanation && (
-              <p style={{ margin: 0, fontSize: "0.8125rem", color: "#526563", fontStyle: "italic", marginBottom: "0.875rem" }}>
+              <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--qp-muted)", fontStyle: "italic", marginBottom: "0.875rem" }}>
                 &ldquo;{offer.counterExplanation}&rdquo;
               </p>
             )}
 
             {/* Action buttons — only when no counter form open */}
             {!showCounterForm && (
-              <div className="hn-offer-actions" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <div className="qp-offer-actions" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 <button
                   onClick={() => { setActing("accept"); respond("accept"); }}
                   disabled={submitting}
-                  className="hn-offer-action-btn"
-                  style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "none", cursor: submitting ? "not-allowed" : "pointer", background: acting === "accept" && submitting ? "#a5c9c7" : "#123F40", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting && acting !== "accept" ? 0.5 : 1 }}
+                  className="qp-offer-action-btn"
+                  style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "none", cursor: submitting ? "not-allowed" : "pointer", background: acting === "accept" && submitting ? "rgba(18,63,64,0.6)" : "var(--qp-ink)", color: "var(--qp-on-primary)", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting && acting !== "accept" ? 0.5 : 1 }}
                 >
                   {acting === "accept" && submitting ? "Accepting…" : "Accept"}
                 </button>
                 <button
                   onClick={() => { setActing("reject"); respond("reject"); }}
                   disabled={submitting}
-                  className="hn-offer-action-btn"
-                  style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid #D4DED8", cursor: submitting ? "not-allowed" : "pointer", background: "#fff", color: "#9E3434", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting && acting !== "reject" ? 0.5 : 1 }}
+                  className="qp-offer-action-btn"
+                  style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid var(--qp-border)", cursor: submitting ? "not-allowed" : "pointer", background: "var(--qp-surface)", color: "var(--qp-error)", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting && acting !== "reject" ? 0.5 : 1 }}
                 >
                   {acting === "reject" && submitting ? "Declining…" : "Decline"}
                 </button>
@@ -325,8 +325,8 @@ function OfferCard({
                   <button
                     onClick={() => setShowCounterForm(true)}
                     disabled={submitting}
-                    className="hn-offer-action-btn"
-                    style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid #756039", cursor: submitting ? "not-allowed" : "pointer", background: "transparent", color: "#756039", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting ? 0.5 : 1 }}
+                    className="qp-offer-action-btn"
+                    style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid var(--qp-accent-text)", cursor: submitting ? "not-allowed" : "pointer", background: "transparent", color: "var(--qp-accent-text)", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting ? 0.5 : 1 }}
                   >
                     Counter
                   </button>
@@ -338,7 +338,7 @@ function OfferCard({
             {showCounterForm && (
               <div style={{ marginTop: "0.625rem", display: "flex", flexDirection: "column", gap: "0.625rem" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, color: "#526563", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>
+                  <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>
                     מחיר נגד (₪) / Counter (ILS)
                   </label>
                   <input
@@ -347,27 +347,27 @@ function OfferCard({
                     value={counterPrice}
                     onChange={e => setCounterPrice(e.target.value)}
                     placeholder={String(offer.counterPrice ?? offer.offeredPrice)}
-                    className="hn-counter-input"
-                    style={{ width: "10rem", padding: "0.45rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #D4DED8", fontSize: "1rem", fontFamily: "var(--font-jetbrains, monospace)", outline: "none" }}
+                    className="qp-counter-input"
+                    style={{ width: "10rem", padding: "0.45rem 0.75rem", borderRadius: "0.375rem", border: "1px solid var(--qp-border)", fontSize: "1rem", fontFamily: "var(--font-heebo, monospace)", outline: "none" }}
                   />
                 </div>
                 {actionError && (
-                  <div style={{ fontSize: "0.8125rem", color: "#9E3434" }}>{actionError}</div>
+                  <div style={{ fontSize: "0.8125rem", color: "var(--qp-error)" }}>{actionError}</div>
                 )}
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                   <button
                     onClick={() => respond("counter")}
                     disabled={submitting || !counterPrice}
-                    className="hn-offer-action-btn"
-                    style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "none", background: "#756039", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, cursor: submitting || !counterPrice ? "not-allowed" : "pointer", opacity: submitting || !counterPrice ? 0.6 : 1 }}
+                    className="qp-offer-action-btn"
+                    style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "none", background: "var(--qp-accent-text)", color: "var(--qp-on-primary)", fontSize: "0.8125rem", fontWeight: 600, cursor: submitting || !counterPrice ? "not-allowed" : "pointer", opacity: submitting || !counterPrice ? 0.6 : 1 }}
                   >
                     {submitting ? "Sending…" : "Send counter"}
                   </button>
                   <button
                     onClick={() => { setShowCounterForm(false); setCounterPrice(""); setActionError(""); }}
                     disabled={submitting}
-                    className="hn-offer-action-btn"
-                    style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid #D4DED8", background: "#fff", color: "#526563", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
+                    className="qp-offer-action-btn"
+                    style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid var(--qp-border)", background: "var(--qp-surface)", color: "var(--qp-muted)", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
                   >
                     Cancel
                   </button>
@@ -376,30 +376,30 @@ function OfferCard({
             )}
 
             {actionError && !showCounterForm && (
-              <div style={{ fontSize: "0.8125rem", color: "#9E3434", marginTop: "0.5rem" }}>{actionError}</div>
+              <div style={{ fontSize: "0.8125rem", color: "var(--qp-error)", marginTop: "0.5rem" }}>{actionError}</div>
             )}
           </div>
         )}
 
         {/* Final round — buyer countered, awaiting developer */}
         {isFinalRound && (
-          <div style={{ marginTop: "0.75rem", padding: "0.75rem 1rem", background: "#E9EEEA", borderRadius: "0.5rem", border: "1px solid #D4DED8" }}>
-            <div style={{ fontSize: "0.8125rem", color: "#526563", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#756039", display: "inline-block", flexShrink: 0, animation: "pulse 1.8s ease-in-out infinite" }} />
+          <div style={{ marginTop: "0.75rem", padding: "0.75rem 1rem", background: "var(--qp-soft)", borderRadius: "0.5rem", border: "1px solid var(--qp-border)" }}>
+            <div style={{ fontSize: "0.8125rem", color: "var(--qp-muted)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--qp-accent-text)", display: "inline-block", flexShrink: 0, animation: "pulse 1.8s ease-in-out infinite" }} />
               Awaiting developer&rsquo;s decision — they must accept or reject your counter.
             </div>
             {offer.meetingLink && (
-              <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#E9EEEA", borderRadius: "0.4rem", border: "1px solid #C0DBD9" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#123F40", marginBottom: "0.4rem" }}>
+              <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "var(--qp-soft)", borderRadius: "0.4rem", border: "1px solid rgba(18,63,64,0.15)" }}>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--qp-ink)", marginBottom: "0.4rem" }}>
                   Video call
                 </div>
                 <a
                   href={offer.meetingLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.45rem 1rem", borderRadius: 999, background: "#123F40", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.45rem 1rem", borderRadius: 999, background: "var(--qp-ink)", color: "var(--qp-on-primary)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
                 >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--qp-on-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
                   Join call
@@ -412,17 +412,17 @@ function OfferCard({
 
         {/* Meeting link also visible on accepted/other statuses if set */}
         {!isFinalRound && offer.meetingLink && (
-          <div style={{ marginTop: "0.75rem", padding: "0.75rem 1rem", background: "#E9EEEA", borderRadius: "0.5rem", border: "1px solid #C0DBD9" }}>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#123F40", marginBottom: "0.4rem" }}>
+          <div style={{ marginTop: "0.75rem", padding: "0.75rem 1rem", background: "var(--qp-soft)", borderRadius: "0.5rem", border: "1px solid rgba(18,63,64,0.15)" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--qp-ink)", marginBottom: "0.4rem" }}>
               Video call
             </div>
             <a
               href={offer.meetingLink}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.45rem 1rem", borderRadius: 999, background: "#123F40", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.45rem 1rem", borderRadius: 999, background: "var(--qp-ink)", color: "var(--qp-on-primary)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--qp-on-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
               </svg>
               Join call
@@ -441,8 +441,8 @@ function OfferCard({
                 gap: "0.375rem",
                 padding: "0.5rem 1.125rem",
                 borderRadius: 999,
-                background: "linear-gradient(155deg, #0C3031, #123332)",
-                color: "#fff",
+                background: "var(--qp-ink)",
+                color: "var(--qp-on-primary)",
                 fontSize: "0.8125rem",
                 fontWeight: 600,
                 textDecoration: "none",
@@ -470,9 +470,9 @@ function OfferCard({
                   marginInlineStart: "0.75rem",
                   padding: "0.5rem 0.875rem",
                   borderRadius: 999,
-                  border: "1px solid #D4DED8",
-                  background: "#fff",
-                  color: "#526563",
+                  border: "1px solid var(--qp-border)",
+                  background: "var(--qp-surface)",
+                  color: "var(--qp-muted)",
                   fontSize: "0.8125rem",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -484,7 +484,7 @@ function OfferCard({
           </div>
         )}
 
-        <div style={{ fontSize: "0.75rem", color: "#526563", marginTop: "0.75rem" }}>
+        <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)", marginTop: "0.75rem" }}>
           Submitted {new Date(offer.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
           {offer.updatedAt !== offer.createdAt && (
             <> · Updated {new Date(offer.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</>
@@ -500,21 +500,21 @@ function OfferCard({
 
 function EmptyState() {
   return (
-    <div style={{ textAlign: "center", padding: "4rem 2rem", background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8" }}>
-      <div style={{ width: "3rem", height: "3rem", borderRadius: "50%", background: "#E9EEEA", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <div style={{ textAlign: "center", padding: "4rem 2rem", background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)" }}>
+      <div style={{ width: "3rem", height: "3rem", borderRadius: "50%", background: "var(--qp-soft)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--qp-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </div>
-      <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 600, color: "#123F40", marginBottom: "0.5rem" }}>
+      <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", marginBottom: "0.5rem" }}>
         No offers yet
       </div>
-      <p style={{ margin: "0 0 1.5rem", fontSize: "0.9375rem", color: "#526563", maxWidth: "22rem", marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
+      <p style={{ margin: "0 0 1.5rem", fontSize: "0.9375rem", color: "var(--qp-muted)", maxWidth: "22rem", marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
         Once you find matches and send an offer, it will appear here.
       </p>
       <Link
         href="/results"
-        style={{ display: "inline-block", padding: "0.625rem 1.5rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}
+        style={{ display: "inline-block", padding: "0.625rem 1.5rem", borderRadius: 999, background: "var(--qp-ink)", color: "var(--qp-on-primary)", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}
       >
         View matches →
       </Link>
@@ -555,32 +555,32 @@ export default function BuyerOffersPage() {
   const rest = offers.filter(o => !isRecentlyUpdated(o.updatedAt, o.createdAt));
 
   return (
-    <main style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, sans-serif)", paddingBottom: "4rem" }}>
+    <main style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)", paddingBottom: "4rem" }}>
       <style>{`
         @media (max-width: 640px) {
-          .hn-offer-actions     { flex-wrap: wrap; }
-          .hn-offer-action-btn  { min-height: 2.5rem !important; padding: 0.6rem 1rem !important; font-size: 0.875rem !important; }
-          .hn-counter-input     { width: 100% !important; font-size: 1rem !important; }
+          .qp-offer-actions     { flex-wrap: wrap; }
+          .qp-offer-action-btn  { min-height: 2.5rem !important; padding: 0.6rem 1rem !important; font-size: 0.875rem !important; }
+          .qp-counter-input     { width: 100% !important; font-size: 1rem !important; }
         }
       `}</style>
       {toast && <Toast message={toast} onDismiss={() => setToast("")} />}
 
       {/* Header */}
-      <div style={{ borderBottom: "1px solid #D4DED8", background: "#fff" }}>
+      <div style={{ borderBottom: "1px solid var(--qp-border)", background: "var(--qp-surface)" }}>
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
-          <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.5rem" }}>
+          <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--qp-ink)", marginBottom: "0.5rem" }}>
             Haveniq
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
             <div>
-              <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.875rem", fontWeight: 600, color: "#123F40", margin: 0 }}>
+              <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.875rem", fontWeight: 600, color: "var(--qp-ink)", margin: 0 }}>
                 My offers
               </h1>
-              <p style={{ margin: "0.375rem 0 0", color: "#526563", fontSize: "0.9375rem" }}>
+              <p style={{ margin: "0.375rem 0 0", color: "var(--qp-muted)", fontSize: "0.9375rem" }}>
                 Track the status of all offers you&rsquo;ve submitted.
               </p>
             </div>
-            <Link href="/results" style={{ fontSize: "0.875rem", color: "#123F40", fontWeight: 600, textDecoration: "none" }}>
+            <Link href="/results" style={{ fontSize: "0.875rem", color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>
               ← Back to results
             </Link>
           </div>
@@ -590,13 +590,13 @@ export default function BuyerOffersPage() {
       <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
         {loading && (
           <div style={{ display: "flex", justifyContent: "center", padding: "4rem 0" }}>
-            <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "#123F40", animation: "spin 0.9s linear infinite" }} />
+            <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "var(--qp-ink)", animation: "spin 0.9s linear infinite" }} />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
 
         {!loading && error && (
-          <div style={{ background: "#FBECEA", borderRadius: "0.875rem", padding: "1.25rem 1.5rem", color: "#9E3434", fontSize: "0.9375rem" }}>
+          <div style={{ background: "var(--qp-error-bg)", borderRadius: "0.875rem", padding: "1.25rem 1.5rem", color: "var(--qp-error)", fontSize: "0.9375rem" }}>
             Failed to load offers: {error}
           </div>
         )}
@@ -605,8 +605,8 @@ export default function BuyerOffersPage() {
 
         {recentlyUpdated.length > 0 && (
           <div>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#756039", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#756039", display: "inline-block" }} />
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--qp-accent-text)", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--qp-accent-text)", display: "inline-block" }} />
               Recent updates ({recentlyUpdated.length})
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -620,7 +620,7 @@ export default function BuyerOffersPage() {
         {rest.length > 0 && (
           <div>
             {recentlyUpdated.length > 0 && (
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#526563", marginBottom: "0.75rem" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.75rem" }}>
                 All offers ({rest.length})
               </div>
             )}
