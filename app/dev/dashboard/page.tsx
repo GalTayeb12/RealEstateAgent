@@ -491,7 +491,7 @@ export default function DevDashboardPage() {
                   fontSize: "0.6875rem", fontWeight: 600, minWidth: "1.25rem", height: "1.25rem",
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   borderRadius: "999px", padding: "0 0.3rem",
-                  background: tab === key ? "var(--qp-ink)" : "#E8E4DF",
+                  background: tab === key ? "var(--qp-ink)" : "var(--qp-border)",
                   color: tab === key ? "var(--qp-surface)" : "var(--qp-muted)",
                 }}>
                   {count}
@@ -603,7 +603,7 @@ export default function DevDashboardPage() {
                                   padding: "1rem 1.375rem",
                                   borderTop: idx === 0 ? "none" : "1px solid var(--qp-bg)",
                                   display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem",
-                                  background: ut.active ? "transparent" : "#FDFCFB",
+                                  background: ut.active ? "transparent" : "var(--qp-surface)",
                                 }}>
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -709,7 +709,7 @@ export default function DevDashboardPage() {
                             </button>
                           </div>
                           {projectVideoFiles[project.id] && projectVideoFiles[project.id]!.size > SIZE_VIDEO_WARN_MB * 1024 * 1024 && (
-                            <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", background: "var(--qp-warning-bg)", border: "1px solid #F0D98A", borderRadius: "0.375rem", fontSize: "0.8125rem", color: "#A07020" }}>
+                            <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", background: "var(--qp-warning-bg)", border: "1px solid #F0D98A", borderRadius: "0.375rem", fontSize: "0.8125rem", color: "var(--qp-warning)" }}>
                               {m.dev.fileLarge}
                             </div>
                           )}
@@ -717,7 +717,7 @@ export default function DevDashboardPage() {
 
                         {/* ── Import panel ── */}
                         {importingProjectId === project.id && (
-                          <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "1rem 1.375rem", background: "#FDFCFB" }}>
+                          <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "1rem 1.375rem", background: "var(--qp-surface)" }}>
                             <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-accent-text)", marginBottom: "0.875rem" }}>
                               {m.dev.importTitle}
                             </div>
@@ -755,7 +755,7 @@ export default function DevDashboardPage() {
                                 )}
                                 {importResult.skipped.length > 0 && (
                                   <div>
-                                    <div style={{ color: "#A07020" }}>⚠ {importResult.skipped.length} row{importResult.skipped.length !== 1 ? "s" : ""} skipped:</div>
+                                    <div style={{ color: "var(--qp-warning)" }}>⚠ {importResult.skipped.length} row{importResult.skipped.length !== 1 ? "s" : ""} skipped:</div>
                                     {importResult.skipped.map((s, i) => (
                                       <div key={i} style={{ color: "var(--qp-muted)", paddingLeft: "0.875rem" }}>Row {s.row}: {s.reason}</div>
                                     ))}
@@ -839,7 +839,7 @@ export default function DevDashboardPage() {
                           <button
                             type="button"
                             onClick={() => void releaseReservation(reservation.id)}
-                            style={{ padding: "0.5rem 0.875rem", borderRadius: 999, border: "1px solid #E7C9C9", background: "var(--qp-surface)", color: "#8C3030", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
+                            style={{ padding: "0.5rem 0.875rem", borderRadius: 999, border: "1px solid #E7C9C9", background: "var(--qp-surface)", color: "var(--qp-error)", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
                           >
                             {m.dev.releaseHold}
                           </button>
@@ -914,7 +914,7 @@ export default function DevDashboardPage() {
                     </div>
 
                     {counteringGroupId === group.id && (
-                      <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "1.125rem 1.375rem", background: "#FDFCFB", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                      <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "1.125rem 1.375rem", background: "var(--qp-surface)", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                         <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-accent-text)" }}>Counter offer</div>
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "10rem 1fr", gap: "0.75rem" }}>
                           <FormField label="Counter discount %">
@@ -964,7 +964,7 @@ function UnitTypeForm({
     setForm(prev => ({ ...prev, [key]: e.target.value }));
 
   return (
-    <div style={{ padding: "1.25rem 1.375rem", background: "#FDFCFB" }}>
+    <div style={{ padding: "1.25rem 1.375rem", background: "var(--qp-surface)" }}>
       <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-accent-text)", marginBottom: "1rem" }}>
         {isEdit ? "Edit unit type" : "Add unit type"}
       </div>

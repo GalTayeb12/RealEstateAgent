@@ -642,7 +642,7 @@ function SendOfferPanel({
           />
         </div>
 
-        {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434", fontWeight: 500 }}>{errMsg}</p>}
+        {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--qp-error)", fontWeight: 500 }}>{errMsg}</p>}
 
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <button
@@ -720,8 +720,8 @@ function MatchCard({
               </div>
             ) : (
               <div style={{ background: "#FBECEA", borderRadius: 12, padding: "0.625rem 1rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "#9E3434", fontWeight: 600 }}>{m.results.notFeasible}</div>
-                <div style={{ fontSize: "0.6875rem", color: "#9E3434", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
+                <div style={{ fontSize: "0.75rem", color: "var(--qp-error)", fontWeight: 600 }}>{m.results.notFeasible}</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--qp-error)", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
               </div>
             )}
           </div>
@@ -902,7 +902,7 @@ export default function ResultsPage() {
                 </div>
                 {rateLimit ? (
                   <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>
-                    <span style={{ color: rateLimit.remaining === 0 ? "#9E3434" : "var(--qp-ink)", fontWeight: 600 }}>
+                    <span style={{ color: rateLimit.remaining === 0 ? "var(--qp-error)" : "var(--qp-ink)", fontWeight: 600 }}>
                       {rateLimit.attempts} / {MAX_INTERVIEWS_PER_DAY}
                     </span>{" "}
                     {m.results.usedToday}
@@ -952,7 +952,7 @@ export default function ResultsPage() {
                   </div>
                 )}
                 {rateLimit && rateLimit.remaining === 0 && rateLimit.nextAvailableAt && (
-                  <div style={{ fontSize: "0.6875rem", color: "#9E3434", textAlign: "end" }}>
+                  <div style={{ fontSize: "0.6875rem", color: "var(--qp-error)", textAlign: "end" }}>
                     {m.results.tryAgainIn} {formatWait(rateLimit.nextAvailableAt, m.results.soon)}
                   </div>
                 )}

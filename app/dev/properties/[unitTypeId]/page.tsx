@@ -1024,7 +1024,7 @@ export default function UnitTypeEditPage() {
                   background: "var(--qp-warning-bg)",
                   borderRadius: "0.5rem",
                   fontSize: "0.8125rem",
-                  color: "#A07020",
+                  color: "var(--qp-warning)",
                   border: "1px solid #F0D98A",
                 }}
               >
@@ -1164,7 +1164,7 @@ export default function UnitTypeEditPage() {
                     background: "var(--qp-warning-bg)",
                     borderRadius: "0.5rem",
                     fontSize: "0.8125rem",
-                    color: "#A07020",
+                    color: "var(--qp-warning)",
                     border: "1px solid #F0D98A",
                   }}
                 >
