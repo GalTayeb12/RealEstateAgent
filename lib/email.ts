@@ -29,7 +29,6 @@ function createTransporter() {
   const user = process.env.GMAIL_USER;
   const pass = process.env.GMAIL_APP_PASSWORD;
 
-  console.log("[EMAIL] GMAIL_USER loaded:", !!user, "| GMAIL_APP_PASSWORD loaded:", !!pass);
 
   if (!user || !pass) {
     // Return null so callers can skip gracefully without crashing at import time.
@@ -88,7 +87,6 @@ export async function sendEmail(payload: EmailPayload): Promise<void> {
       subject: payload.subject,
       text: payload.text,
     });
-    console.log(`[EMAIL] Sent "${payload.subject}" → ${payload.to}`);
   } catch (err) {
     // Log and continue — email failure must never break the user-facing request.
     console.error("[EMAIL] Send failed:", (err as Error).message, {
