@@ -154,6 +154,7 @@ model UnitType {
   leverageGroups LeverageGroup[]
   images         ListingImage[]
   units          Unit[]
+  apartmentModel ApartmentModel?
 }
 
 // One tower in a developer project. unitsPerFloor is a default for new
@@ -320,6 +321,33 @@ model LeverageGroup {
   updatedAt                DateTime @updatedAt
 
   members LeverageGroupMember[]
+}
+
+// Stores the 3D apartment tour model data for a unit type.
+model ApartmentModel {
+  id         String   @id @default(cuid())
+  unitTypeId String   @unique
+  unitType   UnitType @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+  data       Json     // ApartmentModelData JSON
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// Analytics events captured during apartment tours.
+model TourEvent {
+  id         String   @id @default(cuid())
+  unitId     String?
+  unitTypeId String?
+  profileId  String   // "family" | "wfh" | "investor"
+  eventType  String   // "dwell" | "question" | "mode_change" | "room_focus"
+  roomId     String?
+  durationMs Int?
+  payload    Json?
+  sessionId  String
+  createdAt  DateTime @default(now())
+
+  @@index([unitTypeId, createdAt])
+  @@index([sessionId])
 }
 
 // One row per buyer who has joined a leverage group.
