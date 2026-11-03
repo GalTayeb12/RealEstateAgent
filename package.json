@@ -7,10 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "test:matching": "npx ts-node -r tsconfig-paths/register --project tsconfig.test.json lib/__tests__/matching.test.ts",
     "test:ledger": "npx tsx lib/__tests__/ledger.test.ts",
     "test:attributes": "npx tsx lib/__tests__/attributes.test.ts",
-    "test": "npm run test:matching && npm run test:ledger && npm run test:attributes",
     "seed:neon": "npx tsx scripts/seed-neon.ts",
     "make-admin": "node scripts/make-admin.mjs",
     "build:building": "npx tsx scripts/building/pipeline.ts"
@@ -63,6 +63,8 @@
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^8.3.5",
+    "vitest": "^5.1.0"
   }
 }
