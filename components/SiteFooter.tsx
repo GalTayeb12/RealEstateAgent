@@ -17,10 +17,10 @@ export default function SiteFooter() {
   return (
     <footer
       style={{
-        borderTop: "1px solid #D4DED8",
-        background: "#F4F5F0",
+        borderTop: "1px solid var(--qp-border)",
+        background: "var(--qp-bg)",
         fontFamily: "var(--font-heebo), sans-serif",
-        color: "#526563",
+        color: "var(--qp-muted)",
       }}
     >
       <div
@@ -35,7 +35,7 @@ export default function SiteFooter() {
           gap: "0.5rem",
         }}
       >
-        <span style={{ fontSize: "0.8125rem", color: "#526563" }}>
+        <span style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
           © 2026 Haveniq
         </span>
 
@@ -44,7 +44,7 @@ export default function SiteFooter() {
             href="/terms"
             style={{
               fontSize: "0.8125rem",
-              color: "#526563",
+              color: "var(--qp-muted)",
               textDecoration: "none",
               transition: "color 0.15s",
             }}
@@ -55,7 +55,7 @@ export default function SiteFooter() {
             href="/privacy"
             style={{
               fontSize: "0.8125rem",
-              color: "#526563",
+              color: "var(--qp-muted)",
               textDecoration: "none",
             }}
           >

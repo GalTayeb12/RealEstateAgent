@@ -24,19 +24,19 @@ const HERO_DESKTOP = "/images/haveniq-hero-desktop.png";
 const HERO_MOBILE = "/images/haveniq-hero-mobile.png";
 
 const SWATCHES = [
-  { key: "bg", name: "bg", value: "#F4F5F0", fill: "#F4F5F0", text: "#123F40" },
-  { key: "surface", name: "surface", value: "#FFFFFF", fill: "#FFFFFF", text: "#123F40" },
-  { key: "soft", name: "soft", value: "#E9EEEA", fill: "#E9EEEA", text: "#123F40" },
-  { key: "ink", name: "ink", value: "#123F40", fill: "#123F40", text: "#FFFFFF" },
-  { key: "muted", name: "muted", value: "#526563", fill: "#526563", text: "#FFFFFF" },
-  { key: "gold", name: "gold", value: "#B5A078", fill: "#B5A078", text: "#123F40" },
-  { key: "goldText", name: "gold-text", value: "#756039", fill: "#756039", text: "#FFFFFF" },
-  { key: "border", name: "border", value: "#D4DED8", fill: "#D4DED8", text: "#123F40" },
-  { key: "focus", name: "focus", value: "#16766F", fill: "#16766F", text: "#FFFFFF" },
-  { key: "success", name: "success", value: "#246046 / #E7F2EA", fill: "#E7F2EA", text: "#246046" },
-  { key: "warning", name: "warning", value: "#785716 / #FCF2D9", fill: "#FCF2D9", text: "#785716" },
-  { key: "error", name: "error", value: "#9E3434 / #FBECEA", fill: "#FBECEA", text: "#9E3434" },
-  { key: "info", name: "info", value: "#285F7A / #E9F2F7", fill: "#E9F2F7", text: "#285F7A" },
+  { key: "bg",      name: "bg",        value: "#F5F2EC", fill: "#F5F2EC", text: "#123F40" },
+  { key: "surface", name: "surface",   value: "#FBFAF7", fill: "#FBFAF7", text: "#123F40" },
+  { key: "soft",    name: "soft",      value: "#EDEAE3", fill: "#EDEAE3", text: "#123F40" },
+  { key: "ink",     name: "ink",       value: "#123F40", fill: "#123F40", text: "#FFFFFF" },
+  { key: "muted",   name: "muted",     value: "#4E6566", fill: "#4E6566", text: "#FFFFFF" },
+  { key: "gold",    name: "gold",      value: "#B38B4D", fill: "#B38B4D", text: "#FFFFFF" },
+  { key: "goldText",name: "gold-text", value: "#8A6530", fill: "#8A6530", text: "#FFFFFF" },
+  { key: "border",  name: "border",    value: "#E4DED3", fill: "#E4DED3", text: "#123F40" },
+  { key: "focus",   name: "focus",     value: "#16766F", fill: "#16766F", text: "#FFFFFF" },
+  { key: "success", name: "success",   value: "#246046 / #E7F2EA", fill: "#E7F2EA", text: "#246046" },
+  { key: "warning", name: "warning",   value: "#785716 / #F5EDD8", fill: "#F5EDD8", text: "#785716" },
+  { key: "error",   name: "error",     value: "#9E3434 / #FBECEA", fill: "#FBECEA", text: "#9E3434" },
+  { key: "info",    name: "info",      value: "#285F7A / #E9F2F7", fill: "#E9F2F7", text: "#285F7A" },
 ] as const;
 
 function destinationFor(role: string) {

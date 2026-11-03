@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Heebo, Inter, JetBrains_Mono } from "next/font/google";
+import { Cormorant_Garamond, Heebo } from "next/font/google";
 import "./globals.css";
 import TopNav from "@/components/TopNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -7,24 +7,15 @@ import { LocaleProvider } from "@/components/LocaleProvider";
 import { dirFor } from "@/lib/i18n/locale";
 import { getRequestLocale } from "@/lib/i18n/request";
 
-const fraunces = Fraunces({
+/** Fallback serif used only for the "Haveniq" logotype when SVG is unavailable */
+const cormorant = Cormorant_Garamond({
+  weight: ["600"],
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  variable: "--font-cormorant",
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
-  display: "swap",
-});
-
+/** Primary font for all UI text — Hebrew + Latin */
 const heebo = Heebo({
   subsets: ["hebrew", "latin"],
   variable: "--font-heebo",
@@ -45,21 +36,23 @@ export async function generateMetadata(): Promise<Metadata> {
   description,
   icons: {
     icon: [
-      { url: "/haveniq_app_icon.png", sizes: "any" },
-      { url: "/haveniq_app_icon.png", sizes: "32x32", type: "image/png" },
+      { url: "/images/brand/icon.svg", type: "image/svg+xml" },
+      { url: "/images/brand/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: { url: "/haveniq_app_icon.png", sizes: "180x180", type: "image/png" },
-    shortcut: "/haveniq_app_icon.png",
+    apple: { url: "/images/brand/icon-512.png", sizes: "512x512", type: "image/png" },
+    shortcut: "/images/brand/icon-512.png",
   },
   openGraph: {
     title,
     description,
     siteName: "Haveniq",
+    images: [{ url: "/images/brand/og-image.jpg", width: 1200, height: 630 }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title,
     description,
+    images: ["/images/brand/og-image.jpg"],
   },
 };
 }
@@ -76,7 +69,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={dirFor(locale)}
-      className={`${fraunces.variable} ${inter.variable} ${jetbrainsMono.variable} ${heebo.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${heebo.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
         <LocaleProvider initialLocale={locale}>

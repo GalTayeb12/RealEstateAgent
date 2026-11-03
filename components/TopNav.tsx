@@ -21,6 +21,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 import LanguageToggle from "@/components/LanguageToggle";
+import { Logo } from "@/components/Logo";
 
 // Marketing homepage has its own sticky nav (with the language toggle inside it).
 const HOME_PATH = "/";
@@ -208,9 +209,9 @@ export default function TopNav() {
       position: "sticky",
       top: 0,
       zIndex: 100,
-      background: "#fff",
-      borderBottom: "1px solid #D4DED8",
-      fontFamily: "var(--font-inter, sans-serif)",
+      background: "var(--qp-surface)",
+      borderBottom: "1px solid var(--qp-border)",
+      fontFamily: "var(--font-heebo, sans-serif)",
     }}>
       <style>{`
         @media (max-width: 640px) {
@@ -241,12 +242,10 @@ export default function TopNav() {
         gap: "1.5rem",
       }}>
         {/* Logo */}
-        <Link href={showAppNav ? dashHref : "/"} style={{ textDecoration: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>
-          <img src="/haveniq_logo_horizontal.png" alt="Haveniq" style={{ height: 22, width: "auto" }} />
-        </Link>
+        <Logo href={showAppNav ? dashHref : "/"} height={22} />
 
         {showAppNav && (
-        <div className="hn-nav-divider" style={{ width: 1, height: "1.125rem", background: "#D4DED8", flexShrink: 0 }} />
+        <div className="hn-nav-divider" style={{ width: 1, height: "1.125rem", background: "var(--qp-border)", flexShrink: 0 }} />
         )}
 
         {/* Nav links — desktop only */}
@@ -265,11 +264,11 @@ export default function TopNav() {
                   gap: "0.375rem",
                   fontSize: "0.875rem",
                   fontWeight: active ? 700 : 500,
-                  color: active ? "#123F40" : "#526563",
+                  color: active ? "var(--qp-ink)" : "var(--qp-muted)",
                   textDecoration: "none",
                   padding: "0.3rem 0.75rem",
                   borderRadius: "0.375rem",
-                  background: active ? "rgba(31,75,74,0.07)" : "transparent",
+                  background: active ? "rgba(18,63,64,0.07)" : "transparent",
                   transition: "background 0.15s, color 0.15s",
                 }}
               >
@@ -279,7 +278,7 @@ export default function TopNav() {
                     minWidth: "1.125rem",
                     height: "1.125rem",
                     borderRadius: 999,
-                    background: "#123F40",
+                    background: "var(--qp-ink)",
                     color: "#fff",
                     fontSize: "0.5625rem",
                     fontWeight: 600,
@@ -301,13 +300,13 @@ export default function TopNav() {
         {!showAppNav && (
           <div style={{ marginInlineStart: "auto", display: "flex", alignItems: "center", gap: "0.875rem", flexShrink: 0 }}>
             {pathname === "/login" && (
-              <Link className="hn-guest-extra" href="/register" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "#55534C", whiteSpace: "nowrap" }}>
-                {m.auth.noAccount} <span style={{ color: "#123F40" }}>{m.auth.registerCta}</span>
+              <Link className="hn-guest-extra" href="/register" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "var(--qp-muted)", whiteSpace: "nowrap" }}>
+                {m.auth.noAccount} <span style={{ color: "var(--qp-ink)" }}>{m.auth.registerCta}</span>
               </Link>
             )}
             {(pathname === "/register" || pathname === "/seller/register") && (
-              <Link className="hn-guest-extra" href="/login" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "#55534C", whiteSpace: "nowrap" }}>
-                {m.auth.haveAccount} <span style={{ color: "#123F40" }}>{m.auth.signIn}</span>
+              <Link className="hn-guest-extra" href="/login" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "var(--qp-muted)", whiteSpace: "nowrap" }}>
+                {m.auth.haveAccount} <span style={{ color: "var(--qp-ink)" }}>{m.auth.signIn}</span>
               </Link>
             )}
             <LanguageToggle />
@@ -391,7 +390,7 @@ export default function TopNav() {
             cursor: "pointer",
             borderRadius: "0.375rem",
             padding: "0.3rem",
-            color: "#55534C",
+            color: "var(--qp-muted)",
             flexShrink: 0,
             transition: "background 0.15s",
           }}
@@ -420,8 +419,8 @@ export default function TopNav() {
             display: "flex",
             flexDirection: "column",
             padding: "0.375rem 0.75rem 0.875rem",
-            background: "#fff",
-            borderTop: "1px solid #E9EEEA",
+            background: "var(--qp-surface)",
+            borderTop: "1px solid var(--qp-soft)",
           }}
         >
           {/* Nav links */}
@@ -441,8 +440,8 @@ export default function TopNav() {
                   borderRadius: "0.5rem",
                   fontSize: "0.9375rem",
                   fontWeight: active ? 700 : 500,
-                  color: active ? "#123F40" : "#123F40",
-                  background: active ? "rgba(31,75,74,0.06)" : "transparent",
+                  color: "var(--qp-ink)",
+                  background: active ? "rgba(18,63,64,0.06)" : "transparent",
                   textDecoration: "none",
                 }}
               >
@@ -452,7 +451,7 @@ export default function TopNav() {
                     minWidth: "1.25rem",
                     height: "1.25rem",
                     borderRadius: 999,
-                    background: "#123F40",
+                    background: "var(--qp-ink)",
                     color: "#fff",
                     fontSize: "0.625rem",
                     fontWeight: 600,
@@ -469,7 +468,7 @@ export default function TopNav() {
           })}
 
           {/* Divider */}
-          <div style={{ height: 1, background: "#E9EEEA", margin: "0.375rem 0.75rem" }} />
+          <div style={{ height: 1, background: "var(--qp-soft)", margin: "0.375rem 0.75rem" }} />
 
           {/* Profile link */}
           <Link
@@ -482,7 +481,7 @@ export default function TopNav() {
               borderRadius: "0.5rem",
               fontSize: "0.9375rem",
               fontWeight: 500,
-              color: "#123F40",
+              color: "var(--qp-ink)",
               textDecoration: "none",
             }}
           >
@@ -490,7 +489,7 @@ export default function TopNav() {
               width: "1.75rem",
               height: "1.75rem",
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #0C3031, #123F40)",
+              background: "linear-gradient(135deg, #0C3031, var(--qp-ink))",
               color: "#fff",
               fontSize: "0.625rem",
               fontWeight: 600,
@@ -518,7 +517,7 @@ export default function TopNav() {
               background: "none",
               fontSize: "0.9375rem",
               fontWeight: 500,
-              color: "#9E3434",
+              color: "var(--qp-error, #9E3434)",
               cursor: "pointer",
               textAlign: "start",
             }}
@@ -590,14 +589,14 @@ function AccountButton({
           width: "2rem",
           height: "2rem",
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #0C3031, #123F40)",
+          background: "linear-gradient(135deg, #0C3031, var(--qp-ink))",
           color: "#fff",
           fontSize: "0.8125rem",
           fontWeight: 600,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          border: open ? "2px solid #756039" : "2px solid transparent",
+          border: open ? "2px solid var(--qp-accent-text)" : "2px solid transparent",
           cursor: "pointer",
           padding: 0,
           flexShrink: 0,
@@ -648,7 +647,7 @@ function AccountPanel({
     textDecoration: "none",
     background: "transparent",
     border: "none",
-    color: "#123F40",
+    color: "var(--qp-ink)",
     fontSize: "0.9375rem",
     fontWeight: 600,
     padding: "0.7rem 0.85rem",
@@ -658,25 +657,25 @@ function AccountPanel({
   };
   return (
     <div style={{
-      background: "#FFFFFF",
-      border: "1px solid #D4DED8",
+      background: "var(--qp-surface)",
+      border: "1px solid var(--qp-border)",
       borderRadius: sheet ? "24px 24px 0 0" : 16,
       padding: sheet ? "0.45rem 0.45rem 1.1rem" : "0.45rem",
-      boxShadow: "0 10px 28px rgba(18,63,64,0.12)",
-      color: "#123F40",
+      boxShadow: "var(--qp-shadow-lg)",
+      color: "var(--qp-ink)",
     }}>
       <div style={{ padding: "0.7rem 0.85rem 0.55rem" }}>
         <div style={{ fontWeight: 600, fontSize: "0.95rem" }}>{user.name || user.email}</div>
         {user.name && (
-          <div style={{ color: "#526563", fontSize: "0.8125rem", marginTop: "0.15rem", overflow: "hidden", textOverflow: "ellipsis" }}>{user.email}</div>
+          <div style={{ color: "var(--qp-muted)", fontSize: "0.8125rem", marginTop: "0.15rem", overflow: "hidden", textOverflow: "ellipsis" }}>{user.email}</div>
         )}
         <span style={{
           display: "inline-flex",
           marginTop: "0.45rem",
           padding: "0.12rem 0.55rem",
           borderRadius: 999,
-          background: "#FCF2D9",
-          color: "#785716",
+          background: "#F5EDD8",
+          color: "var(--qp-accent-text)",
           fontSize: "0.75rem",
           fontWeight: 600,
         }}>{role}</span>
@@ -685,7 +684,7 @@ function AccountPanel({
       {links.map((link) => (
         <Link key={link.href} href={link.href} onClick={onNavigate} style={item}>{link.label}</Link>
       ))}
-      <button type="button" onClick={onSignOut} style={{ ...item, color: "#9E3434" }}>{signOutLabel}</button>
+      <button type="button" onClick={onSignOut} style={{ ...item, color: "var(--qp-error, #9E3434)" }}>{signOutLabel}</button>
     </div>
   );
 }

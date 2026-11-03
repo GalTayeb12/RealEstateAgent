@@ -2,27 +2,27 @@
 
 /* ── Design token system ──────────────────────────────────────────────────── */
 @theme {
-  /* Palette */
-  --color-paper:       #F4F5F0;
-  --color-paper-card:  #FFFFFF;
+  /* Palette — single source of truth, mirrors quiet.css :root vars */
+  --color-paper:       #F5F2EC;
+  --color-paper-card:  #FBFAF7;
   --color-ink:         #123F40;
-  --color-ink-muted:   #526563;
+  --color-ink-muted:   #4E6566;
   --color-teal:        #123F40;
-  --color-teal-light:  #E9EEEA;
-  --color-gold:        #756039;
-  --color-gold-light:  #FCF2D9;
-  --color-gold-hover:  #756039;
+  --color-teal-light:  #EDEAE3;
+  --color-gold:        #B38B4D;
+  --color-gold-light:  #F5EDD8;
+  --color-gold-hover:  #8A6530;
   --color-danger:      #9E3434;
   --color-danger-light:#FBECEA;
 
   /* Field fill */
-  --color-field:       #E9EEEA;
-  --color-field-border:#718580;
+  --color-field:       #EDEAE3;
+  --color-field-border:#6B7E7F;
 
   /* Typography — mapped from next/font CSS variables */
-  --font-heading: var(--font-fraunces);
-  --font-sans:    var(--font-inter);
-  --font-mono:    var(--font-jetbrains);
+  --font-heading: var(--font-cormorant);
+  --font-sans:    var(--font-heebo);
+  --font-mono:    var(--font-heebo);
 }
 
 /* ── Base resets ──────────────────────────────────────────────────────────── */
@@ -31,8 +31,8 @@
 }
 
 html[lang] {
-  --font-fraunces: var(--font-heebo), "Heebo", sans-serif;
-  --font-inter: var(--font-heebo), "Heebo", sans-serif;
+  --font-cormorant: var(--font-cormorant), "Cormorant Garamond", serif;
+  --font-heebo: var(--font-heebo), "Heebo", sans-serif;
 }
 
 html[lang] * {
@@ -41,15 +41,15 @@ html[lang] * {
 
 html {
   font-family: var(--font-heebo), "Heebo", sans-serif;
-  color: #123F40;
-  background-color: #F4F5F0;
+  color: var(--qp-ink, #123F40);
+  background-color: var(--qp-bg, #F5F2EC);
   letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 :focus-visible {
-  outline: 2px solid #16766F;
+  outline: 2px solid var(--qp-focus, #16766F);
   outline-offset: 2px;
 }
 
@@ -97,7 +97,7 @@ input[type="url"] {
 .power-off-overlay {
   position: fixed;
   inset: 0;
-  background: #F4F5F0;
+  background: var(--qp-bg, #F5F2EC);
   z-index: 9999;
   animation: power-off-flicker 0.55s ease-in-out forwards;
 }

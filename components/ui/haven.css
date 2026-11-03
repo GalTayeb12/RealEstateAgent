@@ -1,19 +1,20 @@
 /* Haveniq future room. Scoped class names so the rest of the site stays as it is. */
 
 .hq {
-  --hq-night: #F4F5F0;
-  --hq-night-2: #F4F5F0;
-  --hq-ink: #123F40;
-  --hq-muted: #526563;
-  --hq-faint: #596963;
-  --hq-line: #D4DED8;
-  --hq-glass: #FFFFFF;
-  --hq-glass-2: #E9EEEA;
-  --hq-teal: #123F40;
+  /* Forward all hq vars to the qp token system */
+  --hq-night:     var(--qp-bg);
+  --hq-night-2:   var(--qp-bg);
+  --hq-ink:       var(--qp-ink);
+  --hq-muted:     var(--qp-muted);
+  --hq-faint:     var(--qp-muted);
+  --hq-line:      var(--qp-border);
+  --hq-glass:     var(--qp-surface);
+  --hq-glass-2:   var(--qp-soft);
+  --hq-teal:      var(--qp-ink);
   --hq-teal-deep: #0C3031;
-  --hq-gold: #756039;
-  --hq-gold-deep: #756039;
-  --hq-danger: #9E3434;
+  --hq-gold:      var(--qp-accent-text);
+  --hq-gold-deep: var(--qp-accent-text);
+  --hq-danger:    #9E3434;
   --hq-space-1: 0.25rem;
   --hq-space-2: 0.5rem;
   --hq-space-3: 0.75rem;
@@ -24,13 +25,13 @@
   --hq-radius: 16px;
   --hq-radius-sm: 12px;
   --hq-radius-lg: 22px;
-  --hq-shadow: none;
+  --hq-shadow: var(--qp-shadow);
   --hq-glow-gold: none;
   --hq-glow-teal: none;
-  --hq-ease: 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  --hq-ease: var(--qp-dur) var(--qp-ease);
   color: var(--hq-ink);
-  background: #F4F5F0;
-  font-family: var(--font-heebo, var(--font-inter)), sans-serif;
+  background: var(--qp-bg);
+  font-family: var(--font-heebo), sans-serif;
   min-height: 100vh;
   position: relative;
   isolation: isolate;
@@ -41,7 +42,7 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: #F4F5F0;
+  background: var(--qp-bg);
 }
 
 .hq-ambient__grid { display: none; }
@@ -100,7 +101,7 @@
 }
 
 .hq-num {
-  font-family: var(--font-jetbrains), ui-monospace, monospace;
+  font-family: var(--font-heebo), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
 }
@@ -129,7 +130,7 @@
 
 .hq-glass,
 .hq-card {
-  background: #FFFFFF;
+  background: var(--qp-surface);
   border: 1px solid var(--hq-line);
   border-radius: 16px;
   box-shadow: none;
@@ -171,7 +172,7 @@
 .hq-btn--primary {
   border: 1px solid transparent;
   color: #FFFFFF;
-  background: #123F40;
+  background: var(--qp-ink);
   min-height: 48px;
 }
 
@@ -182,7 +183,7 @@
 .hq-btn--secondary {
   border: 1px solid var(--hq-line);
   color: var(--hq-ink);
-  background: #FFFFFF;
+  background: var(--qp-surface);
 }
 
 .hq-btn--secondary:hover:not(:disabled) {
@@ -196,7 +197,7 @@
 }
 
 .hq-btn--ghost:hover:not(:disabled) {
-  background: #E9EEEA;
+  background: var(--qp-soft);
 }
 
 .hq-pill {
@@ -232,8 +233,8 @@
   width: 100%;
   box-sizing: border-box;
   border-radius: var(--hq-radius-sm);
-  border: 1px solid #718580;
-  background: #FFFFFF;
+  border: 1px solid var(--qp-muted);
+  background: var(--qp-surface);
   color: var(--hq-ink);
   min-height: 48px;
   border-radius: 8px;
@@ -244,8 +245,8 @@
 }
 
 .hq-field input:focus {
-  border-color: #16766F;
-  box-shadow: 0 0 0 2px #16766F;
+  border-color: var(--qp-focus, #16766F);
+  box-shadow: 0 0 0 2px var(--qp-focus, #16766F);
 }
 
 .hq-field__error {
@@ -264,7 +265,7 @@
   padding: 0.75rem 0.85rem;
   border-radius: var(--hq-radius);
   border: 1px solid var(--hq-line);
-  background: rgba(255, 255, 255, 0.03);
+  background: transparent;
   color: var(--hq-faint);
 }
 
@@ -277,7 +278,7 @@
 
 .hq-step small {
   display: block;
-  font-family: var(--font-jetbrains), monospace;
+  font-family: var(--font-heebo), monospace;
   letter-spacing: 0.08em;
   margin-bottom: 0.2rem;
 }
@@ -296,12 +297,12 @@
   bottom: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
-  background: #FFFFFF;
-  color: #123F40;
-  border: 1px solid #D4DED8;
+  background: var(--qp-surface);
+  color: var(--qp-ink);
+  border: 1px solid var(--qp-border);
   border-radius: 16px;
   padding: 0.7rem 1.1rem;
-  box-shadow: 0 10px 28px rgba(18,63,64,0.12);
+  box-shadow: var(--qp-shadow-lg);
   font-weight: 500;
 }
 
@@ -404,7 +405,7 @@ a.hq-btn {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.85rem 1.25rem;
-  background: #FFFFFF;
+  background: var(--qp-surface);
   border-bottom: 1px solid var(--hq-line);
   backdrop-filter: none;
 }

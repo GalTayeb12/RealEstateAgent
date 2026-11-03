@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from "react";
 import { useI18n } from "@/components/LocaleProvider";
+import { Logo } from "@/components/Logo";
 
 export function Ambient() {
   return (
@@ -42,12 +43,7 @@ export function Button({
 }
 
 export function Brand({ href = "/" }: { href?: string }) {
-  return (
-    <Link href={href} className="hq-brand" aria-label="Haveniq">
-      <img src="/haveniq_app_icon.png" alt="" width={32} height={32} />
-      Haveniq
-    </Link>
-  );
+  return <Logo href={href} height={22} />;
 }
 
 export function HqLang() {
