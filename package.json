@@ -8,7 +8,6 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:matching": "npx ts-node -r tsconfig-paths/register --project tsconfig.test.json lib/__tests__/matching.test.ts",
     "test:ledger": "npx tsx lib/__tests__/ledger.test.ts",
     "test:attributes": "npx tsx lib/__tests__/attributes.test.ts",
     "seed:neon": "npx tsx scripts/seed-neon.ts",
@@ -57,7 +56,6 @@
     "sharp": "^0.33.5",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "^5",
     "vite": "^8.3.5",
     "vitest": "^5.1.0"
