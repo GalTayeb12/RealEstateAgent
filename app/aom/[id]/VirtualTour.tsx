@@ -47,7 +47,7 @@ export function VirtualTour({ scenes }: { scenes: TourScene[] }) {
       </div>
 
       {/* Scene tabs + hint */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.875rem 1rem", background: "#F5F3EE", borderTop: "1px solid rgba(18,63,64,0.08)", overflowX: "auto" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.875rem 1rem", background: "var(--qp-bg)", borderTop: "1px solid rgba(18,63,64,0.08)", overflowX: "auto" }}>
         {scenes.map((scene) => {
           const isActive = scene.id === activeId;
           return (
@@ -58,7 +58,7 @@ export function VirtualTour({ scenes }: { scenes: TourScene[] }) {
                 padding: "0.4375rem 0.9375rem",
                 borderRadius: 999,
                 border: isActive ? "none" : "1.5px solid rgba(18,63,64,0.15)",
-                background: isActive ? "linear-gradient(155deg, #0C3031, #123332)" : "transparent",
+                background: isActive ? "linear-gradient(155deg, var(--qp-primary-hover), var(--qp-primary-active))" : "transparent",
                 color: isActive ? "#fff" : "var(--qp-muted)",
                 fontWeight: 600,
                 fontSize: "0.8125rem",

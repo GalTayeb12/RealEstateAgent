@@ -528,7 +528,7 @@ function CreateGroupForm({
       }}
     >
       <div
-        style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #E8E4DF" }}
+        style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--qp-border)" }}
       >
         <span
           style={{
@@ -845,7 +845,7 @@ export default function BuyerLeverageGroupsPage() {
               height='14'
               viewBox='0 0 24 24'
               fill='none'
-              stroke='#123F40'
+              stroke='var(--qp-ink)'
               strokeWidth='2.5'
               strokeLinecap='round'
               strokeLinejoin='round'

@@ -97,7 +97,7 @@ export default function PresenterBot({
             width: 38,
             height: 38,
             borderRadius: "50%",
-            background: "#e8e6e1",
+            background: "var(--qp-soft)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -147,8 +147,8 @@ export default function PresenterBot({
             key={i}
             style={{
               alignSelf: msg.isUser ? "flex-end" : "flex-start",
-              background: msg.isUser ? "#3578e5" : "#f0efeb",
-              color: msg.isUser ? "#fff" : "#1a1a1a",
+              background: msg.isUser ? "#3578e5" : "var(--qp-soft)",
+              color: msg.isUser ? "#fff" : "var(--qp-ink)",
               borderRadius: 12,
               padding: "8px 14px",
               fontSize: 13,
@@ -168,8 +168,8 @@ export default function PresenterBot({
             key={q.k}
             onClick={() => handleQuestion(q)}
             style={{
-              background: "#fff",
-              border: "1px solid #d0ccc4",
+              background: "var(--qp-surface)",
+              border: "1px solid var(--qp-border)",
               borderRadius: 16,
               padding: "5px 14px",
               fontSize: 12,

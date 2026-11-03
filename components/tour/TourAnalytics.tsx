@@ -64,7 +64,7 @@ export default function TourAnalytics({
           style={{
             background: "none",
             border: "none",
-            color: "#d27a12",
+            color: "var(--qp-accent)",
             cursor: "pointer",
             fontSize: 12,
             fontFamily: "inherit",
@@ -98,7 +98,7 @@ export default function TourAnalytics({
                     style={{
                       width: `${pct}%`,
                       height: "100%",
-                      background: "#d27a12",
+                      background: "var(--qp-accent)",
                       borderRadius: 4,
                       transition: "width 0.4s",
                     }}

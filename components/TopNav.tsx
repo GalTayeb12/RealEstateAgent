@@ -489,7 +489,7 @@ export default function TopNav() {
               width: "1.75rem",
               height: "1.75rem",
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #0C3031, var(--qp-ink))",
+              background: "linear-gradient(135deg, var(--qp-primary-hover), var(--qp-ink))",
               color: "#fff",
               fontSize: "0.625rem",
               fontWeight: 600,
@@ -517,7 +517,7 @@ export default function TopNav() {
               background: "none",
               fontSize: "0.9375rem",
               fontWeight: 500,
-              color: "var(--qp-error, #9E3434)",
+              color: "var(--qp-error)",
               cursor: "pointer",
               textAlign: "start",
             }}
@@ -589,7 +589,7 @@ function AccountButton({
           width: "2rem",
           height: "2rem",
           borderRadius: "50%",
-          background: "linear-gradient(135deg, #0C3031, var(--qp-ink))",
+          background: "linear-gradient(135deg, var(--qp-primary-hover), var(--qp-ink))",
           color: "#fff",
           fontSize: "0.8125rem",
           fontWeight: 600,
@@ -674,7 +674,7 @@ function AccountPanel({
           marginTop: "0.45rem",
           padding: "0.12rem 0.55rem",
           borderRadius: 999,
-          background: "#F5EDD8",
+          background: "var(--qp-warning-bg)",
           color: "var(--qp-accent-text)",
           fontSize: "0.75rem",
           fontWeight: 600,
@@ -684,7 +684,7 @@ function AccountPanel({
       {links.map((link) => (
         <Link key={link.href} href={link.href} onClick={onNavigate} style={item}>{link.label}</Link>
       ))}
-      <button type="button" onClick={onSignOut} style={{ ...item, color: "var(--qp-error, #9E3434)" }}>{signOutLabel}</button>
+      <button type="button" onClick={onSignOut} style={{ ...item, color: "var(--qp-error)" }}>{signOutLabel}</button>
     </div>
   );
 }

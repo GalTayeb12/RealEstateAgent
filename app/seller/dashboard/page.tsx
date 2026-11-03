@@ -141,7 +141,7 @@ function UnitTypeForm({
     setForm(prev => ({ ...prev, [key]: e.target.value }));
 
   return (
-    <div style={{ padding: "1.25rem 1.375rem", background: "#FDFCFB" }}>
+    <div style={{ padding: "1.25rem 1.375rem", background: "var(--qp-surface)" }}>
       <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-accent-text)", marginBottom: "1rem" }}>
         {isEdit ? "Edit unit type" : "Add unit type"}
       </div>
@@ -415,7 +415,7 @@ export default function SellerDashboardPage() {
                   fontSize: "0.6875rem", fontWeight: 600, minWidth: "1.25rem", height: "1.25rem",
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   borderRadius: "999px", padding: "0 0.3rem",
-                  background: tab === key ? "var(--qp-ink)" : "#E8E4DF",
+                  background: tab === key ? "var(--qp-ink)" : "var(--qp-border)",
                   color: tab === key ? "var(--qp-surface)" : "var(--qp-muted)",
                 }}>
                   {count}
@@ -515,7 +515,7 @@ export default function SellerDashboardPage() {
                                   padding: "1rem 1.375rem",
                                   borderTop: idx === 0 ? "none" : "1px solid var(--qp-bg)",
                                   display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem",
-                                  background: ut.active ? "transparent" : "#FDFCFB",
+                                  background: ut.active ? "transparent" : "var(--qp-surface)",
                                 }}>
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -570,7 +570,7 @@ export default function SellerDashboardPage() {
                           <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "0.875rem 1.375rem" }}>
                             <button
                               onClick={() => startAddUnitType(project.id)}
-                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)", background: "none", border: "1px dashed #B8D4D3", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
+                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)", background: "none", border: "1px dashed var(--qp-border)", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
                             >
                               + Add unit type
                             </button>
@@ -634,7 +634,7 @@ export default function SellerDashboardPage() {
                       </p>
 
                       {(offer.roundNumber ?? 0) >= 2 && offer.status === "pending" && (
-                        <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#EAF3F2", borderRadius: "0.5rem", borderLeft: "3px solid var(--qp-ink)" }}>
+                        <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "var(--qp-soft)", borderRadius: "0.5rem", borderLeft: "3px solid var(--qp-ink)" }}>
                           <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-ink)", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
                             <Money amount={offer.offeredPrice} />
                           </div>
@@ -657,7 +657,7 @@ export default function SellerDashboardPage() {
                       )}
 
                       {awaitingBuyer && (
-                        <div style={{ marginTop: "1rem", padding: "0.625rem 0.875rem", background: "#EAF3F2", borderRadius: "0.5rem", border: "1px solid #C0DBD9", fontSize: "0.8125rem", color: "var(--qp-ink)", fontWeight: 500 }}>
+                        <div style={{ marginTop: "1rem", padding: "0.625rem 0.875rem", background: "var(--qp-soft)", borderRadius: "0.5rem", border: "1px solid var(--qp-border)", fontSize: "0.8125rem", color: "var(--qp-ink)", fontWeight: 500 }}>
                           Awaiting buyer&apos;s response to your counter…
                         </div>
                       )}
@@ -666,7 +666,7 @@ export default function SellerDashboardPage() {
                         <div style={{ marginTop: "1rem" }}>
                           <Link
                             href={`/deal/${offer.id}`}
-                            style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "var(--qp-surface)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
+                            style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, var(--qp-primary-hover), var(--qp-primary-active))", color: "var(--qp-surface)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
                           >
                             {dealComplete ? "View signed contract →" : "View Deal Room →"}
                           </Link>
@@ -690,7 +690,7 @@ export default function SellerDashboardPage() {
                     </div>
 
                     {counteringOfferId === offer.id && (offer.roundNumber ?? 0) < 2 && (
-                      <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "1.125rem 1.375rem", background: "#FDFCFB", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                      <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "1.125rem 1.375rem", background: "var(--qp-surface)", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                         <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-accent-text)" }}>Counter offer</div>
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "8rem 1fr", gap: "0.75rem" }}>
                           <FormField label="מחיר נגד (₪) / Counter (ILS)">

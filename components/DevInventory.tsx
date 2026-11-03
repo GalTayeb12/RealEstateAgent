@@ -203,7 +203,7 @@ export default function DevInventory({
                               type="button"
                               disabled={busyId === unit.id}
                               onClick={() => void releaseHold(unit)}
-                              style={{ padding: "0.35rem 0.65rem", borderRadius: "0.35rem", border: "1px solid #E7C9C9", background: "#FDF6F6", color: "var(--qp-error)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}
+                              style={{ padding: "0.35rem 0.65rem", borderRadius: "0.35rem", border: "1px solid var(--qp-error-bg)", background: "var(--qp-error-bg)", color: "var(--qp-error)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}
                             >
                               {m.dev.releaseHold}
                             </button>

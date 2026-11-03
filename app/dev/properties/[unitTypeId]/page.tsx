@@ -97,7 +97,7 @@ const sectionHeaderStyle: React.CSSProperties = {
 };
 
 const primaryBtnStyle: React.CSSProperties = {
-  background: "linear-gradient(155deg, #0C3031, #123332)",
+  background: "linear-gradient(155deg, var(--qp-primary-hover), var(--qp-primary-active))",
   color: "var(--qp-surface)",
   borderRadius: 999,
   padding: "0.5625rem 1.375rem",
@@ -1025,7 +1025,7 @@ export default function UnitTypeEditPage() {
                   borderRadius: "0.5rem",
                   fontSize: "0.8125rem",
                   color: "var(--qp-warning)",
-                  border: "1px solid #F0D98A",
+                  border: "1px solid var(--qp-warning-bg)",
                 }}
               >
                 One or more files exceed 5 MB — large images will slow down
@@ -1165,7 +1165,7 @@ export default function UnitTypeEditPage() {
                     borderRadius: "0.5rem",
                     fontSize: "0.8125rem",
                     color: "var(--qp-warning)",
-                    border: "1px solid #F0D98A",
+                    border: "1px solid var(--qp-warning-bg)",
                   }}
                 >
                   One or more files exceed 5 MB — large images will slow down
@@ -1247,7 +1247,7 @@ export default function UnitTypeEditPage() {
                           borderRadius: "0.375rem",
                           padding: "0.25rem 0.5rem",
                           cursor: idx === 0 ? "not-allowed" : "pointer",
-                          color: idx === 0 ? "#C9C5BF" : "var(--qp-muted)",
+                          color: idx === 0 ? "var(--qp-muted)" : "var(--qp-muted)",
                           fontSize: "0.875rem",
                           lineHeight: 1,
                         }}
@@ -1270,7 +1270,7 @@ export default function UnitTypeEditPage() {
                               : "pointer",
                           color:
                             idx === panoramaImages.length - 1
-                              ? "#C9C5BF"
+                              ? "var(--qp-muted)"
                               : "var(--qp-muted)",
                           fontSize: "0.875rem",
                           lineHeight: 1,

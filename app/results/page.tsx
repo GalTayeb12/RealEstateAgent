@@ -647,7 +647,7 @@ function SendOfferPanel({
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <button
             onClick={submit} disabled={phase === "submitting"}
-            style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
+            style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, var(--qp-primary-hover), var(--qp-primary-active))", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
           >
             {phase === "submitting" ? m.results.sending : m.results.submitOffer}
           </button>
@@ -692,8 +692,8 @@ function MatchCard({
   );
 
   return (
-    <div style={{ background: "#FFFFFF", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(18,63,64,0.08)", boxShadow: outcome.valid ? "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)" : "0 1px 3px rgba(18,63,64,0.04)", opacity: outcome.valid ? 1 : 0.6 }}>
-      <div style={{ height: 4, background: outcome.valid ? "linear-gradient(90deg, #0C3031, #123332)" : "var(--qp-border)" }} />
+    <div style={{ background: "var(--qp-surface)", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(18,63,64,0.08)", boxShadow: outcome.valid ? "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)" : "0 1px 3px rgba(18,63,64,0.04)", opacity: outcome.valid ? 1 : 0.6 }}>
+      <div style={{ height: 4, background: outcome.valid ? "linear-gradient(90deg, var(--qp-primary-hover), var(--qp-primary-active))" : "var(--qp-border)" }} />
       <div style={{ padding: "1.75rem" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
           <div>
@@ -714,12 +714,12 @@ function MatchCard({
 
           <div style={{ flexShrink: 0, textAlign: "right" }}>
             {outcome.valid ? (
-              <div style={{ background: "linear-gradient(155deg, #EEF4F3, #E1EBE9)", borderRadius: 12, padding: "0.625rem 1rem", fontFamily: "var(--font-heebo, monospace)" }}>
+              <div style={{ background: "linear-gradient(155deg, var(--qp-soft), var(--qp-soft))", borderRadius: 12, padding: "0.625rem 1rem", fontFamily: "var(--font-heebo, monospace)" }}>
                 <div style={{ fontSize: "0.625rem", color: "var(--qp-ink)", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>{m.results.surplus}</div>
-                <div style={{ fontSize: "1.375rem", fontWeight: 600, color: "#123332", lineHeight: 1.1 }}>{outcome.zij.toFixed(1)}</div>
+                <div style={{ fontSize: "1.375rem", fontWeight: 600, color: "var(--qp-primary-active)", lineHeight: 1.1 }}>{outcome.zij.toFixed(1)}</div>
               </div>
             ) : (
-              <div style={{ background: "#FBECEA", borderRadius: 12, padding: "0.625rem 1rem" }}>
+              <div style={{ background: "var(--qp-error-bg)", borderRadius: 12, padding: "0.625rem 1rem" }}>
                 <div style={{ fontSize: "0.75rem", color: "var(--qp-error)", fontWeight: 600 }}>{m.results.notFeasible}</div>
                 <div style={{ fontSize: "0.6875rem", color: "var(--qp-error)", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
               </div>
@@ -733,7 +733,7 @@ function MatchCard({
               const text = formatAttributeValue(v);
               if (!text) return null;
               return (
-                <span key={k} style={{ fontSize: "0.75rem", background: "#E9EEEA", color: "var(--qp-ink)", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid #D4DED8", fontWeight: 500 }}>
+                <span key={k} style={{ fontSize: "0.75rem", background: "var(--qp-soft)", color: "var(--qp-ink)", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid var(--qp-border)", fontWeight: 500 }}>
                   {k}: {text}
                 </span>
               );
@@ -821,7 +821,7 @@ export default function ResultsPage() {
 
   if (missing) {
     return (
-      <main style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-inter, sans-serif)" }}>
+      <main style={{ minHeight: "100vh", background: "var(--qp-bg)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-heebo, sans-serif)" }}>
         <div style={{ textAlign: "center" }}>
           <p style={{ color: "var(--qp-muted)", marginBottom: "1rem", fontSize: "0.9375rem" }}>{m.results.noSession}</p>
           <Link href="/processing" style={{ color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>{m.results.runMatching} →</Link>
@@ -839,7 +839,7 @@ export default function ResultsPage() {
   let validRank = 0;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)" }}>
       <style>{`
         @media (max-width: 640px) {
           .hn-results-2col { grid-template-columns: 1fr !important; gap: 0.75rem !important; }
@@ -934,8 +934,8 @@ export default function ResultsPage() {
                     borderRadius: 999,
                     border: "1px solid",
                     borderColor: !rateLimit || rateLimit.remaining === 0 ? "var(--qp-border)" : "var(--qp-ink)",
-                    background: !rateLimit || rateLimit.remaining === 0 ? "transparent" : "linear-gradient(155deg, #0C3031, #123332)",
-                    color: !rateLimit || rateLimit.remaining === 0 ? "#C0BAB2" : "#fff",
+                    background: !rateLimit || rateLimit.remaining === 0 ? "transparent" : "linear-gradient(155deg, var(--qp-primary-hover), var(--qp-primary-active))",
+                    color: !rateLimit || rateLimit.remaining === 0 ? "var(--qp-disabled-text)" : "#fff",
                     fontSize: "0.875rem",
                     fontWeight: 600,
                     cursor: !rateLimit || rateLimit.remaining === 0 ? "not-allowed" : "pointer",
@@ -988,7 +988,7 @@ export default function ResultsPage() {
             </div>
             <div className="hn-results-recs" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(19rem, 1fr))", gap: "0.875rem" }}>
               {recommendations.map(r => (
-                <div key={r.id} style={{ background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.07)", padding: "1.125rem 1.25rem", display: "flex", gap: "0.875rem", alignItems: "flex-start" }}>
+                <div key={r.id} style={{ background: "var(--qp-bg)", borderRadius: 14, border: "1px solid rgba(18,63,64,0.07)", padding: "1.125rem 1.25rem", display: "flex", gap: "0.875rem", alignItems: "flex-start" }}>
                   <span style={{ fontSize: "1.375rem", lineHeight: 1, flexShrink: 0, marginTop: "0.1rem" }}>{r.icon}</span>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--qp-ink)", marginBottom: "0.3rem" }}>{r.label}</div>
@@ -1013,7 +1013,7 @@ export default function ResultsPage() {
               </div>
               <Link
                 href="/buyer/leverage-groups"
-                style={{ padding: "0.6875rem 1.375rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", flexShrink: 0, boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", whiteSpace: "nowrap" }}
+                style={{ padding: "0.6875rem 1.375rem", borderRadius: 999, background: "linear-gradient(155deg, var(--qp-primary-hover), var(--qp-primary-active))", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", flexShrink: 0, boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", whiteSpace: "nowrap" }}
               >
                 {m.results.viewGroups} →
               </Link>

@@ -120,8 +120,8 @@ function FloorPanel({
         position: "absolute",
         top: 0, bottom: 0, right: 0,
         width: 272,
-        background: "#FFFFFF",
-        borderLeft: "1px solid #D4DED8",
+        background: "var(--qp-surface)",
+        borderLeft: "1px solid var(--qp-border)",
         boxShadow: "none",
         display: "flex",
         flexDirection: "column",
@@ -137,13 +137,13 @@ function FloorPanel({
         padding: "8px 0 4px",
         flexShrink: 0,
       }}>
-        <div style={{ width: 36, height: 4, background: "#D4DED8", borderRadius: 2 }} />
+        <div style={{ width: 36, height: 4, background: "var(--qp-border)", borderRadius: 2 }} />
       </div>
 
       {/* ── Header ── */}
       <div style={{
         padding: "0.75rem 0.875rem",
-        borderBottom: "1px solid #D4DED8",
+        borderBottom: "1px solid var(--qp-border)",
         display: "flex",
         alignItems: "center",
         gap: "0.5rem",
@@ -153,9 +153,9 @@ function FloorPanel({
           onClick={onBack}
           title={copy.backToBuilding}
           style={{
-            background: "#E9EEEA",
+            background: "var(--qp-soft)",
             border: "none",
-            color: "#123F40",
+            color: "var(--qp-ink)",
             cursor: "pointer",
             width: 30,
             height: 30,
@@ -171,10 +171,10 @@ function FloorPanel({
         </button>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "#123F40", fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.2 }}>
+          <div style={{ color: "var(--qp-ink)", fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.2 }}>
             {floorTitle}
           </div>
-          <div style={{ color: "#526563", fontSize: "0.6875rem", marginTop: 1 }}>{building.name}</div>
+          <div style={{ color: "var(--qp-muted)", fontSize: "0.6875rem", marginTop: 1 }}>{building.name}</div>
         </div>
 
         {/* Floor navigation: prev / number / next */}
@@ -186,7 +186,7 @@ function FloorPanel({
             style={{
               background: "rgba(255,255,255,0.05)",
               border: "none",
-              color: selectedFloor.floor <= 1 ? "#596963" : "#123F40",
+              color: selectedFloor.floor <= 1 ? "var(--qp-muted)" : "var(--qp-ink)",
               cursor: selectedFloor.floor <= 1 ? "default" : "pointer",
               width: 26, height: 26,
               borderRadius: 5, fontSize: 12,
@@ -195,7 +195,7 @@ function FloorPanel({
           >
             ▼
           </button>
-          <span style={{ color: "#526563", fontSize: "0.6875rem", width: 22, textAlign: "center" }}>
+          <span style={{ color: "var(--qp-muted)", fontSize: "0.6875rem", width: 22, textAlign: "center" }}>
             {selectedFloor.floor}
           </span>
           <button
@@ -205,7 +205,7 @@ function FloorPanel({
             style={{
               background: "rgba(255,255,255,0.05)",
               border: "none",
-              color: selectedFloor.floor >= maxFloor ? "#596963" : "#123F40",
+              color: selectedFloor.floor >= maxFloor ? "var(--qp-muted)" : "var(--qp-ink)",
               cursor: selectedFloor.floor >= maxFloor ? "default" : "pointer",
               width: 26, height: 26,
               borderRadius: 5, fontSize: 12,
@@ -219,9 +219,9 @@ function FloorPanel({
 
       <div style={{
         padding: "0.3rem 0.875rem",
-        background: "#E9EEEA",
+        background: "var(--qp-soft)",
         fontSize: "0.625rem",
-        color: "#526563",
+        color: "var(--qp-muted)",
         flexShrink: 0,
       }}>
         {copy.escHint}
@@ -230,7 +230,7 @@ function FloorPanel({
       {/* ── Unit list ── */}
       <div style={{ flex: 1, overflowY: "auto" }}>
         {floorUnits.length === 0 ? (
-          <div style={{ padding: "1rem 0.875rem", color: "#526563", fontSize: "0.8125rem" }}>
+          <div style={{ padding: "1rem 0.875rem", color: "var(--qp-muted)", fontSize: "0.8125rem" }}>
             {copy.noUnits}
           </div>
         ) : (
@@ -253,11 +253,11 @@ function FloorPanel({
                 onMouseLeave={() => onUnitHover(null)}
                 style={{
                   padding: "0.5rem 0.875rem",
-                  borderBottom: "1px solid #E0E8E4",
+                  borderBottom: "1px solid var(--qp-border)",
                   cursor: "pointer",
                   background:
-                    isSelected ? "#E9EEEA"
-                    : isHovered ? "#F4F5F0"
+                    isSelected ? "var(--qp-soft)"
+                    : isHovered ? "var(--qp-bg)"
                     : "transparent",
                   transition: "background 0.12s",
                   display: "flex",
@@ -273,20 +273,20 @@ function FloorPanel({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.25rem" }}>
                     <span style={{
-                      color: isSelected ? "#123F40" : "#123F40",
+                      color: "var(--qp-ink)",
                       fontSize: "0.8125rem",
                       fontWeight: isSelected ? 700 : 600,
                     }}>
                       {copy.apartment} {unit.unitNumber}
                     </span>
-                    <span style={{ color: "#526563", fontSize: "0.6875rem", flexShrink: 0 }}>
+                    <span style={{ color: "var(--qp-muted)", fontSize: "0.6875rem", flexShrink: 0 }}>
                       {unit.unitLabel}
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 1 }}>
                     <span style={{ color: sc, fontSize: "0.625rem", fontWeight: 600 }}>{sl}</span>
                     {price > 0 && (
-                      <span style={{ color: "#8AAEC2", fontSize: "0.75rem" }}>
+                      <span style={{ color: "var(--qp-muted)", fontSize: "0.75rem" }}>
                         <Money amount={price} />
                       </span>
                     )}
@@ -302,7 +302,7 @@ function FloorPanel({
         padding: "0.5rem 0.875rem",
         borderTop: "1px solid rgba(255,255,255,0.06)",
         fontSize: "0.625rem",
-        color: "#526563",
+        color: "var(--qp-muted)",
         flexShrink: 0,
       }}>
         {copy.clickUnit}
@@ -414,8 +414,8 @@ function UnitCard({
         position: "absolute",
         top: 0, bottom: 0, right: 0,
         width: 288,
-        background: "#FFFFFF",
-        borderLeft: "1px solid #D4DED8",
+        background: "var(--qp-surface)",
+        borderLeft: "1px solid var(--qp-border)",
         boxShadow: "none",
         display: "flex",
         flexDirection: "column",
@@ -431,13 +431,13 @@ function UnitCard({
         padding: "8px 0 4px",
         flexShrink: 0,
       }}>
-        <div style={{ width: 36, height: 4, background: "#D4DED8", borderRadius: 2 }} />
+        <div style={{ width: 36, height: 4, background: "var(--qp-border)", borderRadius: 2 }} />
       </div>
 
       {/* ── Header ── */}
       <div style={{
         padding: "0.75rem 0.875rem",
-        borderBottom: "1px solid #D4DED8",
+        borderBottom: "1px solid var(--qp-border)",
         display: "flex",
         alignItems: "center",
         gap: "0.5rem",
@@ -447,9 +447,9 @@ function UnitCard({
           onClick={onBack}
           title={copy.backToFloor}
           style={{
-            background: "#E9EEEA",
+            background: "var(--qp-soft)",
             border: "none",
-            color: "#123F40",
+            color: "var(--qp-ink)",
             cursor: "pointer",
             width: 30, height: 30,
             borderRadius: 6, fontSize: 16,
@@ -460,13 +460,13 @@ function UnitCard({
           {isRtl ? "→" : "←"}
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "#123F40", fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.2 }}>
+          <div style={{ color: "var(--qp-ink)", fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.2 }}>
             {unitData
               ? `${copy.apartment} ${unitData.unitNumber}`
               : loading ? copy.loading : "—"}
           </div>
           {unitData && (
-            <div style={{ color: "#526563", fontSize: "0.6875rem", marginTop: 1 }}>
+            <div style={{ color: "var(--qp-muted)", fontSize: "0.6875rem", marginTop: 1 }}>
               {unitData.building.name} · {copy.floor} {unitData.floor}
             </div>
           )}
@@ -475,9 +475,9 @@ function UnitCard({
 
       <div style={{
         padding: "0.3rem 0.875rem",
-        background: "#E9EEEA",
+        background: "var(--qp-soft)",
         fontSize: "0.625rem",
-        color: "#526563",
+        color: "var(--qp-muted)",
         flexShrink: 0,
       }}>
         {copy.escHint}
@@ -487,7 +487,7 @@ function UnitCard({
       <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 0.875rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
 
         {loading && (
-          <div style={{ color: "#526563", fontSize: "0.8125rem" }}>{copy.loading}</div>
+          <div style={{ color: "var(--qp-muted)", fontSize: "0.8125rem" }}>{copy.loading}</div>
         )}
 
         {unitData && (
@@ -533,16 +533,16 @@ function UnitCard({
             {/* Price — data-display style */}
             {(unitData.price ?? unitData.listPrice) > 0 && (
               <div style={{
-                background: "#E9EEEA",
-                border: "1px solid #D4DED8",
+                background: "var(--qp-soft)",
+                border: "1px solid var(--qp-border)",
                 borderRadius: 10,
                 padding: "0.75rem 0.875rem",
               }}>
-                <div style={{ color: "#526563", fontSize: "0.75rem", marginBottom: 4 }}>{copy.price}</div>
-                <div style={{ color: "#123F40", fontSize: "1.125rem", fontWeight: 500, letterSpacing: "0", lineHeight: 1.1 }}>
+                <div style={{ color: "var(--qp-muted)", fontSize: "0.75rem", marginBottom: 4 }}>{copy.price}</div>
+                <div style={{ color: "var(--qp-ink)", fontSize: "1.125rem", fontWeight: 500, letterSpacing: "0", lineHeight: 1.1 }}>
                   <Money amount={(unitData.price ?? unitData.listPrice)} />
                 </div>
-                <div style={{ color: "#526563", fontSize: "0.6875rem", marginTop: 4, letterSpacing: "0.01em" }}>
+                <div style={{ color: "var(--qp-muted)", fontSize: "0.6875rem", marginTop: 4, letterSpacing: "0.01em" }}>
                   ≈ {formatUsdFromIls(unitData.price ?? unitData.listPrice)} {copy.estimatedUsd}
                 </div>
               </div>
@@ -550,7 +550,7 @@ function UnitCard({
 
             {/* Media links */}
             {!unitData.unitType.floorPlanUrl && unitData.unitType.galleryCount === 0 && unitData.unitType.panoramaCount === 0 && (
-              <div style={{ color: "#8AAEAA", fontSize: "0.6875rem", fontStyle: "italic" }}>
+              <div style={{ color: "var(--qp-muted)", fontSize: "0.6875rem", fontStyle: "italic" }}>
                 {copy.noFloorPlan}
               </div>
             )}
@@ -562,7 +562,7 @@ function UnitCard({
                     style={{
                       background: "rgba(68,120,180,0.15)",
                       border: "1px solid rgba(68,120,180,0.3)",
-                      color: "#8AAEC2",
+                      color: "var(--qp-muted)",
                       cursor: "pointer",
                       padding: "0.3rem 0.625rem",
                       borderRadius: 5,
@@ -577,7 +577,7 @@ function UnitCard({
                   <span style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#526563",
+                    color: "var(--qp-muted)",
                     padding: "0.3rem 0.625rem",
                     borderRadius: 5,
                     fontSize: "0.6875rem",
@@ -589,7 +589,7 @@ function UnitCard({
                   <span style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#526563",
+                    color: "var(--qp-muted)",
                     padding: "0.3rem 0.625rem",
                     borderRadius: 5,
                     fontSize: "0.6875rem",
@@ -609,7 +609,7 @@ function UnitCard({
                 background: "rgba(68,120,180,0.08)",
                 border: "1px solid rgba(68,120,180,0.22)",
                 borderRadius: 8,
-                color: "#8AAEC2",
+                color: "var(--qp-muted)",
                 fontSize: "0.8125rem",
                 fontWeight: 600,
                 textAlign: "center",
@@ -632,10 +632,10 @@ function UnitCard({
                     padding: "0.6875rem 1rem",
                     background: reserving
                       ? "rgba(20,90,100,0.4)"
-                      : "linear-gradient(135deg, #1A7A8A 0%, #15616E 100%)",
+                      : "var(--qp-ink)",
                     border: "1px solid rgba(100,220,200,0.25)",
                     borderRadius: 8,
-                    color: "#D4F5EF",
+                    color: "var(--qp-on-primary)",
                     fontSize: "0.875rem",
                     fontWeight: 600,
                     cursor: reserving ? "default" : "pointer",
@@ -647,7 +647,7 @@ function UnitCard({
                   {reserving ? copy.reserving : copy.reserve}
                 </button>
                 {reserveError && (
-                  <div style={{ color: "#E08080", fontSize: "0.75rem", marginTop: "0.375rem", textAlign: "center" }}>
+                  <div style={{ color: "var(--qp-error)", fontSize: "0.75rem", marginTop: "0.375rem", textAlign: "center" }}>
                     {reserveError}
                   </div>
                 )}
@@ -660,7 +660,7 @@ function UnitCard({
               style={{
                 background: "none",
                 border: "none",
-                color: "#526563",
+                color: "var(--qp-muted)",
                 cursor: "pointer",
                 fontSize: "0.625rem",
                 padding: 0,
@@ -712,10 +712,10 @@ function Row({ label, value }: { label: string; value: string }) {
     <div style={{
       display: "flex", justifyContent: "space-between", alignItems: "baseline",
       gap: "0.5rem", padding: "0.2rem 0",
-      borderBottom: "1px solid #E0E8E4",
+      borderBottom: "1px solid var(--qp-border)",
     }}>
-      <span style={{ color: "#526563", fontSize: "0.625rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
-      <span style={{ color: "#123F40", fontSize: "0.875rem", fontWeight: 600 }}>{value}</span>
+      <span style={{ color: "var(--qp-muted)", fontSize: "0.625rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+      <span style={{ color: "var(--qp-ink)", fontSize: "0.875rem", fontWeight: 600 }}>{value}</span>
     </div>
   );
 }
@@ -982,20 +982,20 @@ export default function BuildingExplorer({
       <div style={{
         textAlign: "center",
         padding: "1.5rem 1rem 0.5rem",
-        background: "#F4F5F0",
+        background: "var(--qp-bg)",
       }}>
         <h2 style={{
           fontFamily: "var(--font-fraunces, serif)",
           fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
           fontWeight: 500,
-          color: "#123F40",
+          color: "var(--qp-ink)",
           margin: "0 0 0.125rem",
           letterSpacing: "0",
         }}>
           {copy.title}
         </h2>
         {webgl && (
-          <p style={{ fontSize: "0.8125rem", color: "#9E9C96", margin: 0 }}>
+          <p style={{ fontSize: "0.8125rem", color: "var(--qp-muted)", margin: 0 }}>
             {selectedUnitId ? unitCopy.escHint : selectedFloor ? floorCopy.escHint : copy.drag}
           </p>
         )}
@@ -1027,7 +1027,7 @@ export default function BuildingExplorer({
               right: 0 !important; left: 0 !important; bottom: 0 !important;
               width: auto !important; height: 56vh !important;
               border-left: none !important;
-              border-top: 1px solid #D4DED8 !important;
+              border-top: 1px solid var(--qp-border) !important;
               border-radius: 14px 14px 0 0 !important;
               animation: none !important;
               box-shadow: 0 -4px 24px rgba(0,0,0,0.10) !important;
@@ -1087,16 +1087,16 @@ export default function BuildingExplorer({
           <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 2 }}>
             {/* top */}
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 70,
-              background: "linear-gradient(to bottom, #F4F5F0 0%, transparent 100%)" }} />
+              background: "linear-gradient(to bottom, var(--qp-bg) 0%, transparent 100%)" }} />
             {/* bottom */}
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 90,
-              background: "linear-gradient(to top, #F4F5F0 0%, transparent 100%)" }} />
+              background: "linear-gradient(to top, var(--qp-bg) 0%, transparent 100%)" }} />
             {/* left */}
             <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 80,
-              background: "linear-gradient(to right, #F4F5F0 0%, transparent 100%)" }} />
+              background: "linear-gradient(to right, var(--qp-bg) 0%, transparent 100%)" }} />
             {/* right */}
             <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 80,
-              background: "linear-gradient(to left, #F4F5F0 0%, transparent 100%)" }} />
+              background: "linear-gradient(to left, var(--qp-bg) 0%, transparent 100%)" }} />
           </div>
 
           {/* ── Breadcrumb HUD (clickable) ── */}
@@ -1109,12 +1109,12 @@ export default function BuildingExplorer({
               display: "flex",
               alignItems: "center",
               gap: "0.3rem",
-              background: "#FFFFFF",
-              border: "1px solid #D4DED8",
+              background: "var(--qp-surface)",
+              border: "1px solid var(--qp-border)",
               borderRadius: 20,
               padding: "0.25rem 0.75rem",
               fontSize: "0.75rem",
-              color: "#123F40",
+              color: "var(--qp-ink)",
               direction: "ltr",
             }}>
               {breadcrumbParts.map((part, i) => {
@@ -1125,26 +1125,26 @@ export default function BuildingExplorer({
                 };
                 return (
                   <span key={i} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                    {i > 0 && <span style={{ color: "#526563", fontSize: "0.625rem" }}>›</span>}
+                    {i > 0 && <span style={{ color: "var(--qp-muted)", fontSize: "0.625rem" }}>›</span>}
                     {!isLast ? (
                       <button
                         onClick={handleCrumbClick}
                         style={{
                           background: "none", border: "none",
-                          color: "#526563", cursor: "pointer",
+                          color: "var(--qp-muted)", cursor: "pointer",
                           fontSize: "0.75rem", padding: 0,
                           fontFamily: "inherit",
                           textDecoration: "underline",
                           textDecorationColor: "transparent",
                           transition: "color 0.1s",
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "#123F40")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "#526563")}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--qp-ink)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--qp-muted)")}
                       >
                         {part}
                       </button>
                     ) : (
-                      <span style={{ color: "#123F40", fontWeight: 700 }}>{part}</span>
+                      <span style={{ color: "var(--qp-ink)", fontWeight: 700 }}>{part}</span>
                     )}
                   </span>
                 );
@@ -1162,13 +1162,13 @@ export default function BuildingExplorer({
             alignItems: "center",
             gap: "0.625rem",
             flexWrap: "wrap",
-            background: "#FFFFFF",
-            border: "1px solid #D4DED8",
+            background: "var(--qp-surface)",
+            border: "1px solid var(--qp-border)",
             borderRadius: 20,
             padding: "0.3rem 0.875rem",
           }}>
             {legend.map((item) => (
-              <span key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.6875rem", color: "#526563", whiteSpace: "nowrap" }}>
+              <span key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.6875rem", color: "var(--qp-muted)", whiteSpace: "nowrap" }}>
                 <span style={{ width: 8, height: 8, borderRadius: 2, background: item.color, display: "inline-block", flexShrink: 0 }} />
                 {item.label}
               </span>
@@ -1176,7 +1176,7 @@ export default function BuildingExplorer({
             {hoverText && (
               <>
                 <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)", display: "inline-block", margin: "0 0.125rem" }} />
-                <span style={{ fontSize: "0.6875rem", color: "#526563" }}>{hoverText}</span>
+                <span style={{ fontSize: "0.6875rem", color: "var(--qp-muted)" }}>{hoverText}</span>
               </>
             )}
           </div>

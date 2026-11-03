@@ -461,7 +461,7 @@ export default function DevDashboardPage() {
               </a>
             )}
             <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-muted)" }}>Quality score</span>
-            <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1rem", fontWeight: 600, color: "var(--qp-accent-text)", background: "var(--qp-warning-bg)", padding: "0.2rem 0.625rem", borderRadius: "0.375rem", border: "1px solid #F5E9C4" }}>
+            <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1rem", fontWeight: 600, color: "var(--qp-accent-text)", background: "var(--qp-warning-bg)", padding: "0.2rem 0.625rem", borderRadius: "0.375rem", border: "1px solid var(--qp-warning-bg)" }}>
               {profile.qualityScore}
             </span>
           </div>
@@ -709,7 +709,7 @@ export default function DevDashboardPage() {
                             </button>
                           </div>
                           {projectVideoFiles[project.id] && projectVideoFiles[project.id]!.size > SIZE_VIDEO_WARN_MB * 1024 * 1024 && (
-                            <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", background: "var(--qp-warning-bg)", border: "1px solid #F0D98A", borderRadius: "0.375rem", fontSize: "0.8125rem", color: "var(--qp-warning)" }}>
+                            <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", background: "var(--qp-warning-bg)", border: "1px solid var(--qp-warning-bg)", borderRadius: "0.375rem", fontSize: "0.8125rem", color: "var(--qp-warning)" }}>
                               {m.dev.fileLarge}
                             </div>
                           )}
@@ -771,7 +771,7 @@ export default function DevDashboardPage() {
                           {addingUnitTypeToProjectId !== project.id && (
                             <button
                               onClick={() => startAddUnitType(project.id)}
-                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)", background: "none", border: "1px dashed #B8D4D3", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
+                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)", background: "none", border: "1px dashed var(--qp-border)", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
                             >
                               + Add unit type
                             </button>
@@ -831,7 +831,7 @@ export default function DevDashboardPage() {
                       <div style={{ marginTop: "1rem", display: "flex", gap: "0.625rem", flexWrap: "wrap", alignItems: "center" }}>
                         <Link
                           href={`/deal/${reservation.id}`}
-                          style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "var(--qp-surface)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, var(--qp-primary-hover), var(--qp-primary-active))", color: "var(--qp-surface)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
                         >
                           View Deal Room →
                         </Link>
@@ -839,7 +839,7 @@ export default function DevDashboardPage() {
                           <button
                             type="button"
                             onClick={() => void releaseReservation(reservation.id)}
-                            style={{ padding: "0.5rem 0.875rem", borderRadius: 999, border: "1px solid #E7C9C9", background: "var(--qp-surface)", color: "var(--qp-error)", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
+                            style={{ padding: "0.5rem 0.875rem", borderRadius: 999, border: "1px solid var(--qp-error-bg)", background: "var(--qp-surface)", color: "var(--qp-error)", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
                           >
                             {m.dev.releaseHold}
                           </button>

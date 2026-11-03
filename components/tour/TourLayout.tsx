@@ -196,7 +196,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
     zIndex: 200,
     display: "grid",
     gridTemplateColumns: "360px 1fr",
-    background: "#fff",
+    background: "var(--qp-surface)",
     fontFamily: "var(--font-heebo), sans-serif",
   };
 
@@ -222,32 +222,32 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
         {/* Panel skeleton */}
         <div
           className="tour-skel-panel"
-          style={{ padding: "20px 22px", borderLeft: "1px solid #e8e6e1", display: "flex", flexDirection: "column", gap: 12, height: "100%" }}
+          style={{ padding: "20px 22px", borderLeft: "1px solid var(--qp-soft)", display: "flex", flexDirection: "column", gap: 12, height: "100%" }}
         >
           {/* Title bar */}
-          <div className="tour-skel-pulse" style={{ height: 22, width: "60%", background: "#ece9e3", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
+          <div className="tour-skel-pulse" style={{ height: 22, width: "60%", background: "var(--qp-soft)", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
           {/* Facts grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 4 }}>
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="tour-skel-pulse" style={{ height: 52, background: "#f2f0ec", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: `${i * 0.08}s` }} />
+              <div key={i} className="tour-skel-pulse" style={{ height: 52, background: "var(--qp-soft)", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: `${i * 0.08}s` }} />
             ))}
           </div>
           {/* Profile cards */}
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="tour-skel-pulse" style={{ height: 54, background: "#f2f0ec", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: `${0.5 + i * 0.1}s` }} />
+            <div key={i} className="tour-skel-pulse" style={{ height: 54, background: "var(--qp-soft)", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: `${0.5 + i * 0.1}s` }} />
           ))}
           {/* Dana bot area */}
-          <div className="tour-skel-pulse" style={{ height: 90, background: "#f2f0ec", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: "0.8s" }} />
+          <div className="tour-skel-pulse" style={{ height: 90, background: "var(--qp-soft)", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: "0.8s" }} />
           {/* Analytics area */}
-          <div className="tour-skel-pulse" style={{ height: 70, background: "#f2f0ec", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: "0.9s" }} />
+          <div className="tour-skel-pulse" style={{ height: 70, background: "var(--qp-soft)", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: "0.9s" }} />
         </div>
         {/* Canvas skeleton */}
         <div
           className="tour-skel-stage"
-          style={{ background: "#e4e7ea", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10, height: "100%" }}
+          style={{ background: "var(--qp-soft)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10, height: "100%" }}
         >
-          <div className="tour-skel-pulse" style={{ width: 48, height: 48, borderRadius: "50%", background: "#d0d4d8", animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
-          <div style={{ color: "#8AAEC2", fontFamily: "var(--font-heebo), sans-serif", fontSize: 14, direction: "rtl" }}>{m.loading}</div>
+          <div className="tour-skel-pulse" style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--qp-border)", animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
+          <div style={{ color: "var(--qp-muted)", fontFamily: "var(--font-heebo), sans-serif", fontSize: 14, direction: "rtl" }}>{m.loading}</div>
         </div>
       </div>
     );
@@ -281,7 +281,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           padding: "20px 22px",
           direction: "rtl",
           fontFamily: "var(--font-heebo), sans-serif",
-          borderLeft: "1px solid #e8e6e1",
+          borderLeft: "1px solid var(--qp-soft)",
           position: "relative",
           height: "100%",
         }}
@@ -314,11 +314,11 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
             <span
               style={{
                 display: "inline-block",
-                background: "#f5f0e8",
+                background: "var(--qp-bg)",
                 borderRadius: 4,
                 padding: "2px 8px",
                 fontSize: 11,
-                color: "#b88a3a",
+                color: "var(--qp-accent-text)",
                 marginTop: 4,
               }}
             >
@@ -348,7 +348,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
             <div
               key={i}
               style={{
-                background: "#faf9f7",
+                background: "var(--qp-surface)",
                 borderRadius: 6,
                 padding: "8px 10px",
                 textAlign: "center",
@@ -365,7 +365,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>מותאם עבורך</div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 22, fontWeight: 700, color: "#d27a12" }}>{buyerProfile.match}%</span>
+              <span style={{ fontSize: 22, fontWeight: 700, color: "var(--qp-accent)" }}>{buyerProfile.match}%</span>
               <span style={{ fontSize: 13, color: "#444" }}>התאמה</span>
             </div>
             <ul style={{ paddingRight: 16, paddingLeft: 0, margin: 0, fontSize: 12, lineHeight: 1.7, color: "#444" }}>
@@ -374,7 +374,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           </div>
         ) : (
           <div style={{
-            background: "#fdf8f0", border: "1px solid #f0e0c0", borderRadius: 10,
+            background: "var(--qp-surface)", border: "1px solid var(--qp-warning-bg)", borderRadius: 10,
             padding: "12px 14px", marginBottom: 16, direction: "rtl",
           }}>
             <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>הכירו את הדירה כמו שהיא שלכם</div>
@@ -382,7 +382,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
               עברו ראיון קצר וראו את הדירה מרוהטת בדיוק בשבילכם.
             </div>
             <a href="/interview" style={{
-              display: "inline-block", background: "#d27a12", color: "#fff",
+              display: "inline-block", background: "var(--qp-accent)", color: "#fff",
               borderRadius: 6, padding: "5px 14px", fontSize: 12, fontWeight: 600,
               textDecoration: "none",
             }}>לראיון הקצר ←</a>
@@ -404,9 +404,9 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
                 style={{
                   padding: "4px 12px", borderRadius: 14, fontSize: 12,
                   fontFamily: "inherit", cursor: "pointer",
-                  background: profileId === chip.id ? "#d27a12" : "#f2f0ec",
+                  background: profileId === chip.id ? "var(--qp-accent)" : "var(--qp-soft)",
                   color: profileId === chip.id ? "#fff" : "#444",
-                  border: profileId === chip.id ? "none" : "1px solid #e0ddd8",
+                  border: profileId === chip.id ? "none" : "1px solid var(--qp-border)",
                 }}
               >
                 {chip.label}
@@ -453,7 +453,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
         className="tour-stage"
         style={{
           position: "relative",
-          background: "#e4e7ea",
+          background: "var(--qp-soft)",
           overflow: "hidden",
           height: "100%",
         }}
@@ -498,7 +498,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
                     opacity: 0,
                     pointerEvents: "none",
                     background: isFocused ? "rgba(210,122,18,0.92)" : "rgba(255,255,255,0.92)",
-                    color: isFocused ? "#fff" : "#1a1a1a",
+                    color: isFocused ? "#fff" : "var(--qp-ink)",
                     borderRadius: 8,
                     padding: "6px 12px",
                     fontSize: 13,
@@ -516,7 +516,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
                   <div style={{ fontWeight: 600 }}>{label}</div>
                   <div style={{ fontSize: 11, opacity: 0.8 }}>{room.area.toFixed(1)} {m.sqm}</div>
                   {rent != null && (
-                    <div style={{ fontSize: 11, opacity: 0.8, color: isFocused ? "#ffe8c0" : "#d27a12" }}>
+                    <div style={{ fontSize: 11, opacity: 0.8, color: isFocused ? "var(--qp-warning-bg)" : "var(--qp-accent)" }}>
                       {rent.toLocaleString()} ₪
                     </div>
                   )}
@@ -570,7 +570,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
                 fontFamily: "var(--font-heebo), sans-serif",
                 border: "none",
                 cursor: "pointer",
-                background: mode === m2 ? "#d27a12" : "#fff",
+                background: mode === m2 ? "var(--qp-accent)" : "var(--qp-surface)",
                 color: mode === m2 ? "#fff" : "#333",
                 fontWeight: mode === m2 ? 600 : 400,
               }}
@@ -633,8 +633,8 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
                   borderRadius: 16,
                   fontSize: 12,
                   fontFamily: "var(--font-heebo), sans-serif",
-                  border: active ? "2px solid #d27a12" : "1px solid rgba(255,255,255,0.7)",
-                  background: active ? "#d27a12" : "rgba(255,255,255,0.88)",
+                  border: active ? "2px solid var(--qp-accent)" : "1px solid rgba(255,255,255,0.7)",
+                  background: active ? "var(--qp-accent)" : "rgba(255,255,255,0.88)",
                   color: active ? "#fff" : "#333",
                   cursor: "pointer",
                   whiteSpace: "nowrap",

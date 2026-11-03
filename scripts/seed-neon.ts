@@ -30,6 +30,7 @@ const DEMO = {
 };
 
 async function upsertUser(email: string, password: string, role: string, extra: { name?: string; phone?: string } = {}) {
+  if (role === "admin") throw new Error("seed-neon: cannot create admin users via seed script.");
   const passwordHash = await bcrypt.hash(password, 12);
   return prisma.user.upsert({
     where: { email },
@@ -47,6 +48,13 @@ async function upsertUser(email: string, password: string, role: string, extra: 
 }
 
 async function main() {
+  const isDev = process.env.NODE_ENV === "development" || process.env.ALLOW_DEMO_USERS === "true";
+  if (!isDev) {
+    console.log("Skipping demo users (NODE_ENV is not 'development' and ALLOW_DEMO_USERS is not 'true').");
+    console.log("Set ALLOW_DEMO_USERS=true in .env.local to seed demo accounts.");
+    return;
+  }
+
   const buyer = await upsertUser(DEMO.buyer.email, DEMO.buyer.password, "buyer", {
     name: "דנה לוי",
   });

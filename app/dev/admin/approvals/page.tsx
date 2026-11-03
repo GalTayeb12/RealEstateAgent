@@ -491,7 +491,7 @@ function ApprovalsTab({ token }: { token: string }) {
 
   if (forbidden) {
     return (
-      <div style={{ background: "var(--qp-error-bg)", borderRadius: "0.875rem", border: "1px solid #E8BDBD", padding: "1.5rem", textAlign: "center" }}>
+      <div style={{ background: "var(--qp-error-bg)", borderRadius: "0.875rem", border: "1px solid var(--qp-error-bg)", padding: "1.5rem", textAlign: "center" }}>
         <div style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-error)", marginBottom: "0.375rem" }}>Access denied</div>
         <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--qp-error)" }}>This page requires an admin account.</p>
       </div>
