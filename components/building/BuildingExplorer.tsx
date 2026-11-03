@@ -846,19 +846,20 @@ export default function BuildingExplorer({
   );
 
   const handleUnitClick = useCallback((unitId: string) => {
-    setSelectedUnitId((prev) => {
-      const next = prev === unitId ? null : unitId;
-      const url = new URL(window.location.href);
-      if (next) {
-        url.searchParams.set("unit", next);
-      } else {
-        url.searchParams.delete("unit");
-        setUnitData(null);
-      }
-      window.history.pushState(null, "", url.toString());
-      return next;
-    });
+    setSelectedUnitId((prev) => (prev === unitId ? null : unitId));
   }, []);
+
+  // Sync URL with selectedUnitId — keep out of the setState updater
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (selectedUnitId) {
+      url.searchParams.set("unit", selectedUnitId);
+    } else {
+      url.searchParams.delete("unit");
+      setUnitData(null);
+    }
+    window.history.pushState(null, "", url.toString());
+  }, [selectedUnitId]);
 
   const handleUnitHover = useCallback((unitId: string | null) => {
     setHoveredUnitId(unitId);

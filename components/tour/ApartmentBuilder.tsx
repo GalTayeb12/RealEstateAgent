@@ -404,7 +404,7 @@ export interface ApartmentBuilderProps {
   wallGroupRef: React.RefObject<THREE.Group | null>;
 }
 
-export default function ApartmentBuilder({ model, profileId, wallGroupRef }: ApartmentBuilderProps) {
+export default function ApartmentBuilder({ model, profileId, wallGroupRef, mode }: ApartmentBuilderProps) {
   const { allWalls, allGlass, railings } = useWallData();
 
   const layoutItems = useMemo(() => {
@@ -415,6 +415,14 @@ export default function ApartmentBuilder({ model, profileId, wallGroupRef }: Apa
     <group>
       {/* Floors */}
       <Floors rooms={model.rooms} />
+
+      {/* Ceiling — only in walk mode to prevent sky showing through */}
+      {mode === "walk" && (
+        <mesh position={[5, 2.7, 3.4]} rotation={[Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[12.5, 11.5]} />
+          <meshStandardMaterial color={0xf5f4f0} roughness={0.9} side={THREE.BackSide} />
+        </mesh>
+      )}
 
       {/* Ground slab */}
       <mesh position={[6, -0.125, 3.35]} receiveShadow>

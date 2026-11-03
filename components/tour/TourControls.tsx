@@ -48,6 +48,7 @@ export default function TourControls({
   const { camera } = useThree();
   const orbitRef = useRef<{ target: THREE.Vector3 } | null>(null);
   const currentRoomRef = useRef<string | null>(null);
+  const fittedRef = useRef(false);
 
   const reducedMotion = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -67,6 +68,18 @@ export default function TourControls({
     if (!focusRoom) return 14;
     return Math.max(6.5, Math.max(focusRoom.w, focusRoom.d) * 1.7);
   }, [focusRoom]);
+
+  // Fit camera to full apartment bounds on first orbit mount, and when switching back to orbit
+  useEffect(() => {
+    if (mode === "orbit") {
+      if (!fittedRef.current) {
+        fittedRef.current = true;
+      }
+      camera.position.set(6, 18, 22);
+      camera.lookAt(6, 0.5, 3.4);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
 
   // When switching to walk mode, position camera inside apartment
   useEffect(() => {

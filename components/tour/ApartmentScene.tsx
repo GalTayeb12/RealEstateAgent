@@ -142,6 +142,7 @@ function SceneContent({
   onDwellUpdate,
   sqmLabel,
   monthlyRentLabel,
+  labelElemsRef,
 }: {
   model: ApartmentModelData;
   profileId: string;
@@ -151,6 +152,7 @@ function SceneContent({
   onDwellUpdate: (roomId: string, dtSeconds: number) => void;
   sqmLabel: string;
   monthlyRentLabel: string;
+  labelElemsRef: React.RefObject<Record<string, HTMLElement | null>>;
 }) {
   const wallGroupRef = useRef<THREE.Group>(null);
   const keysRef = useRef(new Set<string>());
@@ -203,6 +205,7 @@ function SceneContent({
         onFocusRoom={onRoomChange}
         sqmLabel={sqmLabel}
         monthlyRentLabel={monthlyRentLabel}
+        labelElemsRef={labelElemsRef}
       />
       <DwellTracker
         mode={mode}
@@ -227,6 +230,7 @@ export interface ApartmentSceneProps {
   sqmLabel: string;
   monthlyRentLabel: string;
   noWebGLLabel: string;
+  labelElemsRef: React.RefObject<Record<string, HTMLElement | null>>;
 }
 
 export default function ApartmentScene({
@@ -239,6 +243,7 @@ export default function ApartmentScene({
   sqmLabel,
   monthlyRentLabel,
   noWebGLLabel,
+  labelElemsRef,
 }: ApartmentSceneProps) {
   const hasWebGL = useMemo(() => {
     if (typeof window === "undefined") return true;
@@ -303,6 +308,7 @@ export default function ApartmentScene({
         onDwellUpdate={onDwellUpdate}
         sqmLabel={sqmLabel}
         monthlyRentLabel={monthlyRentLabel}
+        labelElemsRef={labelElemsRef}
       />
     </Canvas>
   );
