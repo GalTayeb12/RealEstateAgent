@@ -5,6 +5,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { parseAttributes } from "@/lib/attributes";
 
 export async function GET(
   _req: NextRequest,
@@ -51,8 +52,7 @@ export async function GET(
     { gallery: 0, panorama: 0 },
   );
 
-  let attributes: Record<string, unknown> = {};
-  try { attributes = JSON.parse(unit.unitType.attributes); } catch { /* ignore */ }
+  const attributes = parseAttributes(unit.unitType.attributes);
 
   return NextResponse.json({
     unit: {

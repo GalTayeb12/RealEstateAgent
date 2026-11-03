@@ -1,12 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { Component, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useI18n } from "@/components/LocaleProvider";
 import { Money } from "@/components/Money";
 import { formatUsdFromIls } from "@/lib/i18n/currency";
 import BuildingFallback from "./BuildingFallback";
 import type { ExplorerBuilding, FloorSelection, HoverInfo } from "./types";
+import type { StatusLabels } from "./BuildingGLBScene";
 
 const BuildingCanvas   = dynamic(() => import("./BuildingCanvas"),   { ssr: false });
 const BuildingGLBScene = dynamic(() => import("./BuildingGLBScene"), { ssr: false });
@@ -107,7 +109,7 @@ function FloorPanel({
   const floorTitle = isPenthouse ? copy.penthouse : `${copy.floor} ${selectedFloor.floor}`;
 
   const statusColor = (s: string) =>
-    s === "sold" ? "#8090A8" : s === "reserved" ? "#C89B3C" : "#8AAEC2";
+    s === "sold" ? "#8090A8" : s === "reserved" ? "#756039" : "#8AAEC2";
 
   const dir = isRtl ? "rtl" : "ltr";
 
@@ -118,10 +120,9 @@ function FloorPanel({
         position: "absolute",
         top: 0, bottom: 0, right: 0,
         width: 272,
-        background: "rgba(6,14,24,0.74)",
-        backdropFilter: "blur(20px) saturate(1.5)",
-        borderLeft: "1px solid rgba(90,180,255,0.13)",
-        boxShadow: "-8px 0 40px rgba(0,0,0,0.45), inset 1px 0 0 rgba(255,255,255,0.04)",
+        background: "#FFFFFF",
+        borderLeft: "1px solid #D4DED8",
+        boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         zIndex: 10,
@@ -129,10 +130,20 @@ function FloorPanel({
         direction: dir,
       }}
     >
+      {/* ── Mobile drag handle (hidden on desktop via CSS) ── */}
+      <div className="hn-sheet-handle" style={{
+        display: "none",
+        justifyContent: "center",
+        padding: "8px 0 4px",
+        flexShrink: 0,
+      }}>
+        <div style={{ width: 36, height: 4, background: "#D4DED8", borderRadius: 2 }} />
+      </div>
+
       {/* ── Header ── */}
       <div style={{
         padding: "0.75rem 0.875rem",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: "1px solid #D4DED8",
         display: "flex",
         alignItems: "center",
         gap: "0.5rem",
@@ -142,9 +153,9 @@ function FloorPanel({
           onClick={onBack}
           title={copy.backToBuilding}
           style={{
-            background: "rgba(255,255,255,0.06)",
+            background: "#E9EEEA",
             border: "none",
-            color: "#9AAAB8",
+            color: "#123F40",
             cursor: "pointer",
             width: 30,
             height: 30,
@@ -160,10 +171,10 @@ function FloorPanel({
         </button>
 
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "#CBD5E0", fontSize: "0.875rem", fontWeight: 700, lineHeight: 1.2 }}>
+          <div style={{ color: "#123F40", fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.2 }}>
             {floorTitle}
           </div>
-          <div style={{ color: "#4A6070", fontSize: "0.6875rem", marginTop: 1 }}>{building.name}</div>
+          <div style={{ color: "#526563", fontSize: "0.6875rem", marginTop: 1 }}>{building.name}</div>
         </div>
 
         {/* Floor navigation: prev / number / next */}
@@ -175,7 +186,7 @@ function FloorPanel({
             style={{
               background: "rgba(255,255,255,0.05)",
               border: "none",
-              color: selectedFloor.floor <= 1 ? "#2E3E4C" : "#9AAAB8",
+              color: selectedFloor.floor <= 1 ? "#596963" : "#123F40",
               cursor: selectedFloor.floor <= 1 ? "default" : "pointer",
               width: 26, height: 26,
               borderRadius: 5, fontSize: 12,
@@ -184,7 +195,7 @@ function FloorPanel({
           >
             ▼
           </button>
-          <span style={{ color: "#647888", fontSize: "0.6875rem", width: 22, textAlign: "center" }}>
+          <span style={{ color: "#526563", fontSize: "0.6875rem", width: 22, textAlign: "center" }}>
             {selectedFloor.floor}
           </span>
           <button
@@ -194,7 +205,7 @@ function FloorPanel({
             style={{
               background: "rgba(255,255,255,0.05)",
               border: "none",
-              color: selectedFloor.floor >= maxFloor ? "#2E3E4C" : "#9AAAB8",
+              color: selectedFloor.floor >= maxFloor ? "#596963" : "#123F40",
               cursor: selectedFloor.floor >= maxFloor ? "default" : "pointer",
               width: 26, height: 26,
               borderRadius: 5, fontSize: 12,
@@ -208,9 +219,9 @@ function FloorPanel({
 
       <div style={{
         padding: "0.3rem 0.875rem",
-        background: "rgba(0,0,0,0.2)",
+        background: "#E9EEEA",
         fontSize: "0.625rem",
-        color: "#3A5060",
+        color: "#526563",
         flexShrink: 0,
       }}>
         {copy.escHint}
@@ -219,7 +230,7 @@ function FloorPanel({
       {/* ── Unit list ── */}
       <div style={{ flex: 1, overflowY: "auto" }}>
         {floorUnits.length === 0 ? (
-          <div style={{ padding: "1rem 0.875rem", color: "#4A6070", fontSize: "0.8125rem" }}>
+          <div style={{ padding: "1rem 0.875rem", color: "#526563", fontSize: "0.8125rem" }}>
             {copy.noUnits}
           </div>
         ) : (
@@ -242,11 +253,11 @@ function FloorPanel({
                 onMouseLeave={() => onUnitHover(null)}
                 style={{
                   padding: "0.5rem 0.875rem",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  borderBottom: "1px solid #E0E8E4",
                   cursor: "pointer",
                   background:
-                    isSelected ? "rgba(68,136,204,0.18)"
-                    : isHovered ? "rgba(255,255,255,0.04)"
+                    isSelected ? "#E9EEEA"
+                    : isHovered ? "#F4F5F0"
                     : "transparent",
                   transition: "background 0.12s",
                   display: "flex",
@@ -262,13 +273,13 @@ function FloorPanel({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.25rem" }}>
                     <span style={{
-                      color: isSelected ? "#E8EFF6" : "#CBD5E0",
+                      color: isSelected ? "#123F40" : "#123F40",
                       fontSize: "0.8125rem",
                       fontWeight: isSelected ? 700 : 600,
                     }}>
                       {copy.apartment} {unit.unitNumber}
                     </span>
-                    <span style={{ color: "#7A8E9E", fontSize: "0.6875rem", flexShrink: 0 }}>
+                    <span style={{ color: "#526563", fontSize: "0.6875rem", flexShrink: 0 }}>
                       {unit.unitLabel}
                     </span>
                   </div>
@@ -291,7 +302,7 @@ function FloorPanel({
         padding: "0.5rem 0.875rem",
         borderTop: "1px solid rgba(255,255,255,0.06)",
         fontSize: "0.625rem",
-        color: "#3A5060",
+        color: "#526563",
         flexShrink: 0,
       }}>
         {copy.clickUnit}
@@ -338,6 +349,7 @@ function UnitCard({
     panorama: string;
     escHint: string;
     loading: string;
+    enterTour: string;
   };
   onBack: () => void;
   onBackToBuilding: () => void;
@@ -390,7 +402,7 @@ function UnitCard({
   }, [unitData]);
 
   const statusColor = (s: string) =>
-    s === "sold" ? "#8090A8" : s === "reserved" ? "#C89B3C" : "#52B880";
+    s === "sold" ? "#8090A8" : s === "reserved" ? "#756039" : "#52B880";
 
   const statusCopy = (s: string) =>
     s === "sold" ? copy.sold : s === "reserved" ? copy.reserved : copy.available;
@@ -402,10 +414,9 @@ function UnitCard({
         position: "absolute",
         top: 0, bottom: 0, right: 0,
         width: 288,
-        background: "rgba(6,14,24,0.74)",
-        backdropFilter: "blur(20px) saturate(1.5)",
-        borderLeft: "1px solid rgba(90,180,255,0.13)",
-        boxShadow: "-8px 0 40px rgba(0,0,0,0.45), inset 1px 0 0 rgba(255,255,255,0.04)",
+        background: "#FFFFFF",
+        borderLeft: "1px solid #D4DED8",
+        boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         zIndex: 10,
@@ -413,10 +424,20 @@ function UnitCard({
         direction: dir,
       }}
     >
+      {/* ── Mobile drag handle (hidden on desktop via CSS) ── */}
+      <div className="hn-sheet-handle" style={{
+        display: "none",
+        justifyContent: "center",
+        padding: "8px 0 4px",
+        flexShrink: 0,
+      }}>
+        <div style={{ width: 36, height: 4, background: "#D4DED8", borderRadius: 2 }} />
+      </div>
+
       {/* ── Header ── */}
       <div style={{
         padding: "0.75rem 0.875rem",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: "1px solid #D4DED8",
         display: "flex",
         alignItems: "center",
         gap: "0.5rem",
@@ -426,9 +447,9 @@ function UnitCard({
           onClick={onBack}
           title={copy.backToFloor}
           style={{
-            background: "rgba(255,255,255,0.06)",
+            background: "#E9EEEA",
             border: "none",
-            color: "#9AAAB8",
+            color: "#123F40",
             cursor: "pointer",
             width: 30, height: 30,
             borderRadius: 6, fontSize: 16,
@@ -439,13 +460,13 @@ function UnitCard({
           {isRtl ? "→" : "←"}
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: "#CBD5E0", fontSize: "0.875rem", fontWeight: 700, lineHeight: 1.2 }}>
+          <div style={{ color: "#123F40", fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.2 }}>
             {unitData
               ? `${copy.apartment} ${unitData.unitNumber}`
               : loading ? copy.loading : "—"}
           </div>
           {unitData && (
-            <div style={{ color: "#4A6070", fontSize: "0.6875rem", marginTop: 1 }}>
+            <div style={{ color: "#526563", fontSize: "0.6875rem", marginTop: 1 }}>
               {unitData.building.name} · {copy.floor} {unitData.floor}
             </div>
           )}
@@ -454,9 +475,9 @@ function UnitCard({
 
       <div style={{
         padding: "0.3rem 0.875rem",
-        background: "rgba(0,0,0,0.2)",
+        background: "#E9EEEA",
         fontSize: "0.625rem",
-        color: "#3A5060",
+        color: "#526563",
         flexShrink: 0,
       }}>
         {copy.escHint}
@@ -466,7 +487,7 @@ function UnitCard({
       <div style={{ flex: 1, overflowY: "auto", padding: "0.75rem 0.875rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
 
         {loading && (
-          <div style={{ color: "#4A6070", fontSize: "0.8125rem" }}>{copy.loading}</div>
+          <div style={{ color: "#526563", fontSize: "0.8125rem" }}>{copy.loading}</div>
         )}
 
         {unitData && (
@@ -479,7 +500,7 @@ function UnitCard({
                 flexShrink: 0,
                 boxShadow: `0 0 6px ${statusColor(unitData.status)}`,
               }} />
-              <span style={{ color: statusColor(unitData.status), fontSize: "0.75rem", fontWeight: 700 }}>
+              <span style={{ color: statusColor(unitData.status), fontSize: "0.75rem", fontWeight: 600 }}>
                 {statusCopy(unitData.status)}
               </span>
             </div>
@@ -512,22 +533,27 @@ function UnitCard({
             {/* Price — data-display style */}
             {(unitData.price ?? unitData.listPrice) > 0 && (
               <div style={{
-                background: "linear-gradient(135deg, rgba(20,40,60,0.7) 0%, rgba(10,24,36,0.5) 100%)",
-                border: "1px solid rgba(80,160,200,0.15)",
+                background: "#E9EEEA",
+                border: "1px solid #D4DED8",
                 borderRadius: 10,
                 padding: "0.75rem 0.875rem",
               }}>
-                <div style={{ color: "#3A7888", fontSize: "0.5625rem", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>{copy.price}</div>
-                <div style={{ color: "#E8F4FF", fontSize: "1.125rem", fontWeight: 800, letterSpacing: "-0.01em", lineHeight: 1.1 }}>
+                <div style={{ color: "#526563", fontSize: "0.75rem", marginBottom: 4 }}>{copy.price}</div>
+                <div style={{ color: "#123F40", fontSize: "1.125rem", fontWeight: 500, letterSpacing: "0", lineHeight: 1.1 }}>
                   <Money amount={(unitData.price ?? unitData.listPrice)} />
                 </div>
-                <div style={{ color: "#3A5060", fontSize: "0.6875rem", marginTop: 4, letterSpacing: "0.01em" }}>
+                <div style={{ color: "#526563", fontSize: "0.6875rem", marginTop: 4, letterSpacing: "0.01em" }}>
                   ≈ {formatUsdFromIls(unitData.price ?? unitData.listPrice)} {copy.estimatedUsd}
                 </div>
               </div>
             )}
 
             {/* Media links */}
+            {!unitData.unitType.floorPlanUrl && unitData.unitType.galleryCount === 0 && unitData.unitType.panoramaCount === 0 && (
+              <div style={{ color: "#8AAEAA", fontSize: "0.6875rem", fontStyle: "italic" }}>
+                {copy.noFloorPlan}
+              </div>
+            )}
             {(unitData.unitType.galleryCount > 0 || unitData.unitType.panoramaCount > 0 || unitData.unitType.floorPlanUrl) && (
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 {unitData.unitType.floorPlanUrl && (
@@ -551,7 +577,7 @@ function UnitCard({
                   <span style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#7A8E9E",
+                    color: "#526563",
                     padding: "0.3rem 0.625rem",
                     borderRadius: 5,
                     fontSize: "0.6875rem",
@@ -563,7 +589,7 @@ function UnitCard({
                   <span style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.08)",
-                    color: "#7A8E9E",
+                    color: "#526563",
                     padding: "0.3rem 0.625rem",
                     borderRadius: 5,
                     fontSize: "0.6875rem",
@@ -573,6 +599,27 @@ function UnitCard({
                 )}
               </div>
             )}
+
+            {/* Tour button — intercepts to modal overlay */}
+            <Link
+              href={`/tour/${unitData.id}`}
+              style={{
+                display: "block",
+                padding: "0.5rem 1rem",
+                background: "rgba(68,120,180,0.08)",
+                border: "1px solid rgba(68,120,180,0.22)",
+                borderRadius: 8,
+                color: "#8AAEC2",
+                fontSize: "0.8125rem",
+                fontWeight: 600,
+                textAlign: "center",
+                textDecoration: "none",
+                letterSpacing: "0.01em",
+                transition: "background 0.12s",
+              }}
+            >
+              {copy.enterTour}
+            </Link>
 
             {/* Reserve button */}
             {unitData.status === "available" && (
@@ -590,7 +637,7 @@ function UnitCard({
                     borderRadius: 8,
                     color: "#D4F5EF",
                     fontSize: "0.875rem",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     cursor: reserving ? "default" : "pointer",
                     transition: "opacity 0.15s",
                     letterSpacing: "0.01em",
@@ -613,7 +660,7 @@ function UnitCard({
               style={{
                 background: "none",
                 border: "none",
-                color: "#3A5060",
+                color: "#526563",
                 cursor: "pointer",
                 fontSize: "0.625rem",
                 padding: 0,
@@ -665,10 +712,10 @@ function Row({ label, value }: { label: string; value: string }) {
     <div style={{
       display: "flex", justifyContent: "space-between", alignItems: "baseline",
       gap: "0.5rem", padding: "0.2rem 0",
-      borderBottom: "1px solid rgba(255,255,255,0.04)",
+      borderBottom: "1px solid #E0E8E4",
     }}>
-      <span style={{ color: "#3A6070", fontSize: "0.625rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
-      <span style={{ color: "#C8D8E8", fontSize: "0.875rem", fontWeight: 700 }}>{value}</span>
+      <span style={{ color: "#526563", fontSize: "0.625rem", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+      <span style={{ color: "#123F40", fontSize: "0.875rem", fontWeight: 600 }}>{value}</span>
     </div>
   );
 }
@@ -756,15 +803,6 @@ export default function BuildingExplorer({
     window.history.pushState(null, "", url.toString());
   }, []);
 
-  useEffect(() => {
-    if (!selectedFloor && !selectedUnitId) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleBack();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [selectedFloor, selectedUnitId, handleBack]);
-
   // ── Handlers ──
   const onHover = useCallback((info: HoverInfo | null, id: string | null = null) => {
     setHover(info);
@@ -849,9 +887,50 @@ export default function BuildingExplorer({
 
   const floorPlanUrl = unitData?.unitType?.floorPlanUrl ?? null;
 
+  // ── Keyboard navigation (↑/↓ floors or units, Enter drill in, Esc back) ──
+  useEffect(() => {
+    if (!selectedFloor && !selectedUnitId) return;
+    const handler = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "Escape":
+          handleBack();
+          break;
+        case "ArrowUp":
+        case "ArrowDown": {
+          e.preventDefault();
+          if (selectedUnitId && floorUnits.length > 0) {
+            const idx = floorUnits.findIndex((u) => u.id === selectedUnitId);
+            const delta = e.key === "ArrowDown" ? 1 : -1;
+            const next = floorUnits[idx + delta];
+            if (next) handleUnitClick(next.id);
+          } else if (selectedFloor) {
+            handleFloorNav(e.key === "ArrowUp" ? 1 : -1);
+          }
+          break;
+        }
+        case "Enter": {
+          if (selectedFloor && !selectedUnitId && floorUnits.length > 0) {
+            const first = floorUnits.find((u) => u.status === "available") ?? floorUnits[0];
+            if (first) handleUnitClick(first.id);
+          }
+          break;
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selectedFloor, selectedUnitId, floorUnits, handleBack, handleFloorNav, handleUnitClick]);
+
   const copy = m.explorer;
   const floorCopy = m.floorView;
   const unitCopy = m.unitView;
+
+  const statusLabels: StatusLabels = useMemo(() => ({
+    available:    copy.available,
+    reserved:     copy.reserved,
+    sold:         copy.sold,
+    sampleLayout: floorCopy.sampleLayout,
+  }), [copy.available, copy.reserved, copy.sold, floorCopy.sampleLayout]);
 
   // ── Breadcrumb parts for HUD ──
   const breadcrumbParts = useMemo((): string[] | null => {
@@ -871,11 +950,11 @@ export default function BuildingExplorer({
     { color: "#8AAEC2", label: copy.available },
     { color: "#8090A8", label: copy.sold },
     { color: "#5C8AA2", label: copy.lobby },
-    { color: "#C89B3C", label: copy.reserved },
+    { color: "#756039", label: copy.reserved },
   ];
 
-  const showUnitCard = !!(selectedUnitId && selectedFloor && glbUrl);
-  const showFloorPanel = !!(selectedFloor && !selectedUnitId && selectedBuilding && glbUrl);
+  const showUnitCard = !!(selectedUnitId && selectedFloor && selectedBuilding);
+  const showFloorPanel = !!(selectedFloor && !selectedUnitId && selectedBuilding);
 
   // Hover status text (shown in HUD)
   const hoverText = useMemo(() => {
@@ -902,15 +981,15 @@ export default function BuildingExplorer({
       <div style={{
         textAlign: "center",
         padding: "1.5rem 1rem 0.5rem",
-        background: "#FAF8F4",
+        background: "#F4F5F0",
       }}>
         <h2 style={{
           fontFamily: "var(--font-fraunces, serif)",
           fontSize: "clamp(1.25rem, 2.5vw, 1.75rem)",
-          fontWeight: 800,
-          color: "#14130F",
+          fontWeight: 500,
+          color: "#123F40",
           margin: "0 0 0.125rem",
-          letterSpacing: "-0.01em",
+          letterSpacing: "0",
         }}>
           {copy.title}
         </h2>
@@ -945,11 +1024,14 @@ export default function BuildingExplorer({
             .hn-floor-panel {
               top: auto !important;
               right: 0 !important; left: 0 !important; bottom: 0 !important;
-              width: auto !important; height: 55vh !important;
+              width: auto !important; height: 56vh !important;
               border-left: none !important;
-              border-top: 1px solid rgba(90,180,255,0.15) !important;
+              border-top: 1px solid #D4DED8 !important;
+              border-radius: 14px 14px 0 0 !important;
               animation: none !important;
+              box-shadow: 0 -4px 24px rgba(0,0,0,0.10) !important;
             }
+            .hn-sheet-handle { display: flex !important; }
           }
         `}</style>
 
@@ -975,6 +1057,7 @@ export default function BuildingExplorer({
                   selectedUnitId={selectedUnitId}
                   hoveredUnitId={hoveredUnitId}
                   floorPlanUrl={floorPlanUrl}
+                  statusLabels={statusLabels}
                   onHover={onHover}
                   onFloorClick={handleFloorClick}
                   onUnitClick={handleUnitClick}
@@ -985,7 +1068,9 @@ export default function BuildingExplorer({
                   buildings={buildings}
                   activeUnitTypeId={activeUnitTypeId}
                   hoveredId={hoveredId}
+                  selectedFloor={selectedFloor}
                   onHover={onHover}
+                  onFloorClick={handleFloorClick}
                 />
               )}
             </CanvasGuard>
@@ -1001,45 +1086,68 @@ export default function BuildingExplorer({
           <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 2 }}>
             {/* top */}
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 70,
-              background: "linear-gradient(to bottom, #FAF8F4 0%, transparent 100%)" }} />
+              background: "linear-gradient(to bottom, #F4F5F0 0%, transparent 100%)" }} />
             {/* bottom */}
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 90,
-              background: "linear-gradient(to top, #FAF8F4 0%, transparent 100%)" }} />
+              background: "linear-gradient(to top, #F4F5F0 0%, transparent 100%)" }} />
             {/* left */}
             <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 80,
-              background: "linear-gradient(to right, #FAF8F4 0%, transparent 100%)" }} />
+              background: "linear-gradient(to right, #F4F5F0 0%, transparent 100%)" }} />
             {/* right */}
             <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 80,
-              background: "linear-gradient(to left, #FAF8F4 0%, transparent 100%)" }} />
+              background: "linear-gradient(to left, #F4F5F0 0%, transparent 100%)" }} />
           </div>
 
-          {/* ── Breadcrumb HUD ── */}
+          {/* ── Breadcrumb HUD (clickable) ── */}
           {breadcrumbParts && breadcrumbParts.length > 1 && (
             <div style={{
               position: "absolute",
               top: 16,
-              [isRtl ? "right" : "left"]: 16,
+              right: 16,
               zIndex: 5,
               display: "flex",
               alignItems: "center",
               gap: "0.3rem",
-              background: "rgba(6,14,24,0.68)",
-              backdropFilter: "blur(12px) saturate(1.3)",
-              border: "1px solid rgba(90,180,255,0.12)",
+              background: "#FFFFFF",
+              border: "1px solid #D4DED8",
               borderRadius: 20,
               padding: "0.25rem 0.75rem",
               fontSize: "0.75rem",
-              color: "#9AAAB8",
+              color: "#123F40",
               direction: "ltr",
             }}>
-              {breadcrumbParts.map((part, i) => (
-                <span key={i} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                  {i > 0 && <span style={{ color: "#3A5060", fontSize: "0.625rem" }}>›</span>}
-                  <span style={{ color: i === breadcrumbParts.length - 1 ? "#CBD5E0" : "#647888", fontWeight: i === breadcrumbParts.length - 1 ? 700 : 400 }}>
-                    {part}
+              {breadcrumbParts.map((part, i) => {
+                const isLast = i === breadcrumbParts.length - 1;
+                const handleCrumbClick = () => {
+                  if (i === 0) handleBackToBuilding();
+                  else if (i === 1 && selectedUnitId) handleBack();
+                };
+                return (
+                  <span key={i} style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    {i > 0 && <span style={{ color: "#526563", fontSize: "0.625rem" }}>›</span>}
+                    {!isLast ? (
+                      <button
+                        onClick={handleCrumbClick}
+                        style={{
+                          background: "none", border: "none",
+                          color: "#526563", cursor: "pointer",
+                          fontSize: "0.75rem", padding: 0,
+                          fontFamily: "inherit",
+                          textDecoration: "underline",
+                          textDecorationColor: "transparent",
+                          transition: "color 0.1s",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "#123F40")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "#526563")}
+                      >
+                        {part}
+                      </button>
+                    ) : (
+                      <span style={{ color: "#123F40", fontWeight: 700 }}>{part}</span>
+                    )}
                   </span>
-                </span>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -1053,14 +1161,13 @@ export default function BuildingExplorer({
             alignItems: "center",
             gap: "0.625rem",
             flexWrap: "wrap",
-            background: "rgba(6,14,24,0.68)",
-            backdropFilter: "blur(12px) saturate(1.3)",
-            border: "1px solid rgba(90,180,255,0.10)",
+            background: "#FFFFFF",
+            border: "1px solid #D4DED8",
             borderRadius: 20,
             padding: "0.3rem 0.875rem",
           }}>
             {legend.map((item) => (
-              <span key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.6875rem", color: "#7A8E9E", whiteSpace: "nowrap" }}>
+              <span key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.6875rem", color: "#526563", whiteSpace: "nowrap" }}>
                 <span style={{ width: 8, height: 8, borderRadius: 2, background: item.color, display: "inline-block", flexShrink: 0 }} />
                 {item.label}
               </span>
@@ -1068,7 +1175,7 @@ export default function BuildingExplorer({
             {hoverText && (
               <>
                 <span style={{ width: 1, height: 14, background: "rgba(255,255,255,0.1)", display: "inline-block", margin: "0 0.125rem" }} />
-                <span style={{ fontSize: "0.6875rem", color: "#647888" }}>{hoverText}</span>
+                <span style={{ fontSize: "0.6875rem", color: "#526563" }}>{hoverText}</span>
               </>
             )}
           </div>
@@ -1079,7 +1186,7 @@ export default function BuildingExplorer({
               unitData={unitData}
               loading={unitDataLoading}
               isRtl={isRtl}
-              copy={unitCopy}
+              copy={{ ...unitCopy, enterTour: unitCopy.enterTour }}
               onBack={handleBack}
               onBackToBuilding={handleBackToBuilding}
             />

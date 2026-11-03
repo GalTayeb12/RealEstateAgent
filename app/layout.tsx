@@ -66,8 +66,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   const locale = await getRequestLocale();
   return (
@@ -81,6 +83,7 @@ export default async function RootLayout({
           <TopNav />
           <div className="flex-1 flex flex-col min-h-0">{children}</div>
           <SiteFooter />
+          {modal}
         </LocaleProvider>
       </body>
     </html>

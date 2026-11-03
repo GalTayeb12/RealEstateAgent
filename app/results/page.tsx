@@ -11,12 +11,13 @@
  *   - "My offers" nav link with unread-update badge
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import Link from "next/link";
 import { computeElasticity, ElasticityResult } from "@/lib/elasticity";
+import { formatAttributeValue, parseAttributes } from "@/lib/attributes";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -106,19 +107,20 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
     <div style={{
       position: "fixed", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
       zIndex: 9999, display: "flex", alignItems: "center", gap: "0.75rem",
-      background: "#14130F", color: "#FAF8F4", borderRadius: 14,
-      padding: "0.875rem 1.25rem", boxShadow: "0 8px 30px rgba(0,0,0,0.3)",
+      background: "#FFFFFF", color: "#123F40", borderRadius: 16,
+      border: "1px solid #D4DED8",
+      padding: "0.875rem 1.25rem", boxShadow: "0 10px 28px rgba(18,63,64,0.12)",
       fontSize: "0.9375rem", fontWeight: 500, maxWidth: "90vw",
       animation: "slideUp 0.25s ease-out",
     }}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4CAF87" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#246046" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="20 6 9 17 4 12" />
       </svg>
       <span>{message}</span>
-      <Link href="/buyer/offers" style={{ color: "#C89B3C", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap", marginLeft: "0.25rem" }}>
+      <Link href="/buyer/offers" style={{ color: "#756039", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap", marginLeft: "0.25rem" }}>
         Track it →
       </Link>
-      <button onClick={onDismiss} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: "1rem", padding: "0 0.125rem", marginLeft: "0.25rem" }}>✕</button>
+      <button onClick={onDismiss} style={{ background: "none", border: "none", color: "#526563", cursor: "pointer", fontSize: "1rem", padding: "0 0.125rem", marginLeft: "0.25rem" }}>✕</button>
     </div>
   );
 }
@@ -173,6 +175,22 @@ function LeverageModal({
   }, [token, outcome.title]);
 
   useEffect(() => { load(); }, [load]);
+
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onCloseRef.current();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      previous?.focus();
+    };
+  }, []);
 
   // Join an existing group
   async function join(groupId: string) {
@@ -234,26 +252,31 @@ function LeverageModal({
         style={{ position: "fixed", inset: 0, background: "rgba(20,19,15,0.55)", zIndex: 1000, backdropFilter: "blur(3px)" }}
       />
       {/* Panel */}
-      <div style={{
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        style={{
         position: "fixed", top: "50%", left: "50%",
         transform: "translate(-50%, -50%)",
         zIndex: 1001, width: "min(92vw, 30rem)",
-        background: "#FAFAF7", borderRadius: 20,
-        border: "1px solid rgba(28,27,25,0.1)",
+        background: "#FFFFFF", borderRadius: 24,
+        border: "1px solid rgba(18,63,64,0.1)",
         boxShadow: "0 24px 64px -20px rgba(0,0,0,0.4)",
         overflow: "hidden",
       }}>
         {/* Header */}
-        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(28,27,25,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A", marginBottom: "0.2rem" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.2rem" }}>
               Group buying interest
             </div>
-            <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1rem", fontWeight: 700, color: "#14130F" }}>
+            <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1rem", fontWeight: 600, color: "#123F40" }}>
               {outcome.title}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1.25rem", lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", fontSize: "1.25rem", lineHeight: 1 }}>✕</button>
         </div>
 
         <div style={{ padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -261,18 +284,18 @@ function LeverageModal({
           {/* Loading */}
           {loading && (
             <div style={{ textAlign: "center", padding: "1.5rem 0" }}>
-              <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%", border: "2px solid rgba(28,27,25,0.08)", borderTopColor: "#1F4B4A", animation: "spin 0.9s linear infinite", margin: "0 auto" }} />
+              <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "#123F40", animation: "spin 0.9s linear infinite", margin: "0 auto" }} />
             </div>
           )}
 
           {/* Success confirmation */}
           {success && (
-            <div style={{ background: "#E8F0EF", borderRadius: 10, padding: "1rem 1.125rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F4B4A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+            <div style={{ background: "#E9EEEA", borderRadius: 10, padding: "1rem 1.125rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <div>
-                <div style={{ fontWeight: 700, color: "#1F4B4A", fontSize: "0.9375rem", marginBottom: "0.3rem" }}>
+                <div style={{ fontWeight: 600, color: "#123F40", fontSize: "0.9375rem", marginBottom: "0.3rem" }}>
                   {success === "join" ? m.results.youreIn : m.results.groupRegisteredTitle}
                 </div>
                 <div style={{ fontSize: "0.875rem", color: "#3A6B6A", lineHeight: 1.55 }}>{successMsg}</div>
@@ -286,11 +309,11 @@ function LeverageModal({
               {existingGroups.length > 0 ? (
                 <div>
                   {/* How it works blurb */}
-                  <div style={{ background: "#F5F3EE", borderRadius: 10, padding: "0.75rem 1rem", fontSize: "0.8125rem", color: "#6B6860", lineHeight: 1.55, marginBottom: "0.875rem" }}>
+                  <div style={{ background: "#F5F3EE", borderRadius: 10, padding: "0.75rem 1rem", fontSize: "0.8125rem", color: "#526563", lineHeight: 1.55, marginBottom: "0.875rem" }}>
                     Pool your interest with other buyers — we&rsquo;ll approach the developer once enough people are on board. No commitment required at this stage.
                   </div>
 
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6B6860", marginBottom: "0.625rem" }}>
+                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563", marginBottom: "0.625rem" }}>
                     Open group for this listing
                   </div>
 
@@ -300,26 +323,26 @@ function LeverageModal({
                       <div key={g.id} style={{ background: "#fff", border: "1px solid #E0DDD7", borderRadius: 12, padding: "0.875rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: "0.625rem" }}>
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1F4B4A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                               <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                             </svg>
-                            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 700, fontSize: "0.9375rem", color: "#1C1B19" }}>
+                            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, fontSize: "0.9375rem", color: "#123F40" }}>
                               {g.memberCount} {g.memberCount === 1 ? "buyer" : "buyers"} interested
                             </span>
                           </div>
-                          <div style={{ fontSize: "0.8125rem", color: "#9A958F", marginTop: "0.25rem" }}>
+                          <div style={{ fontSize: "0.8125rem", color: "#526563", marginTop: "0.25rem" }}>
                             Started {new Date(g.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                           </div>
                         </div>
                         {inGroup ? (
-                          <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#1F4B4A", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                             Joined ✓
                           </span>
                         ) : (
                           <button
                             onClick={() => join(g.id)}
-                            style={{ padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 12px -4px rgba(18,51,50,0.4)" }}
+                            style={{ padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 12px -4px rgba(18,51,50,0.4)" }}
                           >
                             Join group
                           </button>
@@ -331,14 +354,14 @@ function LeverageModal({
               ) : (
                 /* No group yet — show "start one" */
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
-                  <div style={{ background: "#F5F3EE", borderRadius: 10, padding: "0.875rem 1rem", fontSize: "0.875rem", color: "#6B6860", lineHeight: 1.6 }}>
+                  <div style={{ background: "#F5F3EE", borderRadius: 10, padding: "0.875rem 1rem", fontSize: "0.875rem", color: "#526563", lineHeight: 1.6 }}>
                     No group exists yet for this listing. Be the first to signal interest — we&rsquo;ll reach out to the developer once enough buyers are on board.
                   </div>
-                  {error && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#B04040" }}>{error}</p>}
+                  {error && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434" }}>{error}</p>}
                   <button
                     onClick={create}
                     disabled={submitting}
-                    style={{ padding: "0.6875rem 1.5rem", borderRadius: 999, background: submitting ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: submitting ? "not-allowed" : "pointer", boxShadow: submitting ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", alignSelf: "flex-start" }}
+                    style={{ padding: "0.6875rem 1.5rem", borderRadius: 999, background: submitting ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: submitting ? "not-allowed" : "pointer", boxShadow: submitting ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", alignSelf: "flex-start" }}
                   >
                     {submitting ? m.results.registering : m.results.signalInterest}
                   </button>
@@ -347,7 +370,7 @@ function LeverageModal({
 
               {/* Shared error for join actions */}
               {error && existingGroups.length > 0 && (
-                <p style={{ margin: 0, fontSize: "0.8125rem", color: "#B04040" }}>{error}</p>
+                <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434" }}>{error}</p>
               )}
             </>
           )}
@@ -381,12 +404,12 @@ function AlignmentBar({
 
   return (
     <div dir="ltr" style={{ marginTop: "1.25rem", direction: "ltr" }}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", marginBottom: "0.625rem", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6B6860" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", marginBottom: "0.625rem", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>
         <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#1F4B4A", display: "inline-block" }} />{m.results.sellerRange}
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#123F40", display: "inline-block" }} />{m.results.sellerRange}
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#C89B3C", display: "inline-block" }} />{m.results.yourRange}
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#756039", display: "inline-block" }} />{m.results.yourRange}
         </span>
         {valid && (
           <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
@@ -395,40 +418,40 @@ function AlignmentBar({
         )}
         {showElasticity && (
           <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "6px solid #1C1B19", display: "inline-block" }} />{m.results.suggestedMarker}
+            <span style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "6px solid #123F40", display: "inline-block" }} />{m.results.suggestedMarker}
           </span>
         )}
       </div>
 
       <div style={{ position: "relative" }}>
         <div style={{ position: "relative", height: "1.5rem", background: "#EFEDE6", borderRadius: 7, overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(eil), width: `${ail - eil}%`, background: "#1F4B4A", opacity: 0.35 }} />
-          <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(aj), width: `${ej - aj}%`, background: "#C89B3C", opacity: 0.4 }} />
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(eil), width: `${ail - eil}%`, background: "#123F40", opacity: 0.35 }} />
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(aj), width: `${ej - aj}%`, background: "#756039", opacity: 0.4 }} />
           {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(lowerBound), width: `${upperBound - lowerBound}%`, background: "#0E3332", opacity: 0.75 }} />}
           {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(pfij), width: 2, background: "#fff", transform: "translateX(-1px)" }} />}
         </div>
         {showElasticity && (
           <div
             title={`${m.results.suggestedMarker}: ${elasticity!.suggestedScore}`}
-            style={{ position: "absolute", top: "1.5rem", left: pct(elasticity!.suggestedScore), transform: "translateX(-50%)", marginTop: 3, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "7px solid #1C1B19" }}
+            style={{ position: "absolute", top: "1.5rem", left: pct(elasticity!.suggestedScore), transform: "translateX(-50%)", marginTop: 3, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "7px solid #123F40" }}
           />
         )}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: showElasticity ? "0.8rem" : "0.3rem", fontSize: "0.625rem", color: "#9A958F", fontFamily: "var(--font-jetbrains, monospace)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: showElasticity ? "0.8rem" : "0.3rem", fontSize: "0.625rem", color: "#526563", fontFamily: "var(--font-jetbrains, monospace)" }}>
         <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
       </div>
 
-      <div style={{ marginTop: "0.625rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", fontSize: "0.75rem", color: "#6B6860", fontFamily: "var(--font-jetbrains, monospace)" }}>
+      <div style={{ marginTop: "0.625rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", fontSize: "0.75rem", color: "#526563", fontFamily: "var(--font-jetbrains, monospace)" }}>
         <span>{m.results.sellerMin}: {eil}</span><span>{m.results.sellerTarget}: {ail}</span>
-        <span style={{ color: "#C89B3C" }}>{m.results.yourFloor}: {aj}</span>
-        <span style={{ color: "#C89B3C" }}>{m.results.yourIdeal}: {ej}</span>
-        {valid && <span style={{ color: "#1F4B4A", fontWeight: 700 }}>{m.results.matchScore}: {pfij}</span>}
-        {showElasticity && <span style={{ color: "#1C1B19", fontWeight: 700 }}>↓ {m.results.suggested}: {elasticity!.suggestedScore}</span>}
+        <span style={{ color: "#756039" }}>{m.results.yourFloor}: {aj}</span>
+        <span style={{ color: "#756039" }}>{m.results.yourIdeal}: {ej}</span>
+        {valid && <span style={{ color: "#123F40", fontWeight: 600 }}>{m.results.matchScore}: {pfij}</span>}
+        {showElasticity && <span style={{ color: "#123F40", fontWeight: 600 }}>↓ {m.results.suggested}: {elasticity!.suggestedScore}</span>}
       </div>
 
       {showElasticity && (
-        <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", color: "#6B6860", fontStyle: "italic", lineHeight: 1.5 }}>
+        <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", color: "#526563", fontStyle: "italic", lineHeight: 1.5 }}>
           {elasticity!.direction === "toward_seller"
             ? m.results.towardSeller
             : elasticity!.direction === "toward_buyer"
@@ -512,11 +535,11 @@ function SendOfferPanel({
   if (phase === "sent") {
     return (
       <div style={{ marginTop: "1.25rem", padding: "1rem 1.125rem", background: "linear-gradient(135deg, #EEF4F3, #E4EEEC)", borderRadius: 12, border: "1px solid #B8D4D3", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F4B4A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
         <div>
-          <div style={{ fontSize: "0.875rem", fontWeight: 700, color: "#1F4B4A" }}>
+          <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#123F40" }}>
             {m.results.offerSent} — <Money amount={Number(offeredPrice)} />
             <EstimatedPriceNote />
           </div>
@@ -531,7 +554,7 @@ function SendOfferPanel({
       <div style={{ marginTop: "1.5rem" }}>
         <button
           onClick={() => setPhase("open")}
-          style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: "pointer", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", letterSpacing: "0.01em" }}
+          style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", letterSpacing: "0.01em" }}
         >
           {isDeveloperUnit ? m.results.reserve : m.results.sendOffer}
         </button>
@@ -542,34 +565,34 @@ function SendOfferPanel({
   // Developer unit: simplified confirmation panel — no price input or terms
   if (isDeveloperUnit) {
     return (
-      <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(28,27,25,0.08)", overflow: "hidden" }}>
-        <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(28,27,25,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
-          <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A" }}>{m.results.reserve}</span>
-          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
+      <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
+        <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
+          <span style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#123F40" }}>{m.results.reserve}</span>
+          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
         </div>
         <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #E0DDD7", padding: "0.875rem 1rem" }}>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", color: "#9A958F", marginBottom: "0.25rem" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#526563", marginBottom: "0.25rem" }}>
               {m.results.reservingAt}
             </div>
-            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.25rem", fontWeight: 700, color: "#1F4B4A" }}>
+            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.25rem", fontWeight: 600, color: "#123F40" }}>
               {detail.priceFrom ? `${m.results.from} ` : ""}
               <Money amount={detail.price} />
             </div>
             <EstimatedPriceNote />
-            <div style={{ fontSize: "0.8125rem", color: "#9A958F", marginTop: "0.25rem" }}>
+            <div style={{ fontSize: "0.8125rem", color: "#526563", marginTop: "0.25rem" }}>
               {m.results.fixed}
             </div>
           </div>
-          {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#B04040", fontWeight: 500 }}>{errMsg}</p>}
+          {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434", fontWeight: 500 }}>{errMsg}</p>}
           <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
             <button
               onClick={submit} disabled={phase === "submitting"}
-              style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
+              style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
             >
               {phase === "submitting" ? m.results.reserving : m.results.confirm}
             </button>
-            <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "#9A958F", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
+            <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "#526563", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
               {m.results.cancel}
             </button>
           </div>
@@ -580,55 +603,55 @@ function SendOfferPanel({
 
   // Seller unit: standard offer form
   return (
-    <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(28,27,25,0.08)", overflow: "hidden" }}>
-      <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(28,27,25,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
-        <span style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#1F4B4A" }}>{m.results.makeOffer}</span>
-        <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#9A958F", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
+    <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
+      <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
+        <span style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#123F40" }}>{m.results.makeOffer}</span>
+        <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
       </div>
 
       <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
         <div>
-          <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
+          <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
             {m.results.yourPrice}
           </label>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", insetInlineStart: "0.875rem", top: "50%", transform: "translateY(-50%)", fontSize: "1rem", fontWeight: 700, color: "#6B6860", pointerEvents: "none" }}>₪</span>
+              <span style={{ position: "absolute", insetInlineStart: "0.875rem", top: "50%", transform: "translateY(-50%)", fontSize: "1rem", fontWeight: 600, color: "#526563", pointerEvents: "none" }}>₪</span>
               <input
                 type="number" min={1} step={1000} value={offeredPrice}
                 onChange={e => setOfferedPrice(e.target.value)}
-                style={{ background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.625rem 0.875rem 0.625rem 2rem", fontSize: "1.125rem", fontWeight: 700, fontFamily: "var(--font-jetbrains, monospace)", outline: "none", width: "12rem", boxSizing: "border-box" }}
-                onFocus={e => { e.target.style.borderColor = "#1F4B4A"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
+                style={{ background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.625rem 0.875rem 0.625rem 2rem", fontSize: "1.125rem", fontWeight: 600, fontFamily: "var(--font-jetbrains, monospace)", outline: "none", width: "12rem", boxSizing: "border-box" }}
+                onFocus={e => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
                 onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
               />
             </div>
-            {detail.price > 0 && <span style={{ fontSize: "0.8125rem", color: "#9A958F" }}>{m.results.listedAt} <Money amount={detail.price} /></span>}
+            {detail.price > 0 && <span style={{ fontSize: "0.8125rem", color: "#526563" }}>{m.results.listedAt} <Money amount={detail.price} /></span>}
           </div>
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
-            Terms <span style={{ fontWeight: 400, color: "#9A958F" }}>(optional)</span>
+          <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
+            Terms <span style={{ fontWeight: 400, color: "#526563" }}>(optional)</span>
           </label>
           <textarea
             rows={2} value={terms} onChange={e => setTerms(e.target.value)}
             placeholder="e.g. Cash purchase, 30-day settlement, no conditions"
             style={{ width: "100%", background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.625rem 0.875rem", fontSize: "0.9375rem", outline: "none", resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
-            onFocus={e => { e.target.style.borderColor = "#1F4B4A"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
+            onFocus={e => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
             onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
           />
         </div>
 
-        {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#B04040", fontWeight: 500 }}>{errMsg}</p>}
+        {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434", fontWeight: 500 }}>{errMsg}</p>}
 
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <button
             onClick={submit} disabled={phase === "submitting"}
-            style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 700, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
+            style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
           >
             {phase === "submitting" ? m.results.sending : m.results.submitOffer}
           </button>
-          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "#9A958F", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
+          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "#526563", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
             {m.results.cancel}
           </button>
         </div>
@@ -659,7 +682,7 @@ function MatchCard({
   onOpenLeverage: (o: MatchOutcome) => void;
 }) {
   const { m } = useI18n();
-  const attrs = detail?.attributes ?? {};
+  const attrs = parseAttributes(detail?.attributes);
   const eil = detail?.eil ?? outcome.lowerBound;
   const ail = detail?.ail ?? outcome.upperBound;
   const elasticity = computeElasticity(
@@ -669,20 +692,20 @@ function MatchCard({
   );
 
   return (
-    <div style={{ background: "#FFFFFF", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(28,27,25,0.08)", boxShadow: outcome.valid ? "0 2px 4px rgba(28,27,25,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)" : "0 1px 3px rgba(28,27,25,0.04)", opacity: outcome.valid ? 1 : 0.6 }}>
-      <div style={{ height: 4, background: outcome.valid ? "linear-gradient(90deg, #2F6664, #123332)" : "#E0DDD7" }} />
+    <div style={{ background: "#FFFFFF", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(18,63,64,0.08)", boxShadow: outcome.valid ? "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)" : "0 1px 3px rgba(18,63,64,0.04)", opacity: outcome.valid ? 1 : 0.6 }}>
+      <div style={{ height: 4, background: outcome.valid ? "linear-gradient(90deg, #0C3031, #123332)" : "#E0DDD7" }} />
       <div style={{ padding: "1.75rem" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
           <div>
-            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: outcome.valid ? "#1F4B4A" : "#9A958F", marginBottom: "0.375rem" }}>
+            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: outcome.valid ? "#123F40" : "#526563", marginBottom: "0.375rem" }}>
               {outcome.valid ? `${m.results.matchN} #${rank}` : m.results.notFeasible}
             </div>
-            <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.375rem", fontWeight: 800, color: "#14130F", margin: 0, lineHeight: 1.2, letterSpacing: "-0.01em" }}>
+            <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.375rem", fontWeight: 500, color: "#123F40", margin: 0, lineHeight: 1.2, letterSpacing: "0" }}>
               {outcome.title}
             </h2>
-            {detail?.description && <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "#6B6860", lineHeight: 1.5 }}>{detail.description}</p>}
+            {detail?.description && <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>{detail.description}</p>}
             {detail && detail.price > 0 && (
-              <p style={{ margin: "0.5rem 0 0", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 700, color: "#1F4B4A" }}>
+              <p style={{ margin: "0.5rem 0 0", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40" }}>
                 {detail.priceFrom ? `${m.results.from} ` : ""}
                 <Money amount={detail.price} />
               </p>
@@ -692,13 +715,13 @@ function MatchCard({
           <div style={{ flexShrink: 0, textAlign: "right" }}>
             {outcome.valid ? (
               <div style={{ background: "linear-gradient(155deg, #EEF4F3, #E1EBE9)", borderRadius: 12, padding: "0.625rem 1rem", fontFamily: "var(--font-jetbrains, monospace)" }}>
-                <div style={{ fontSize: "0.625rem", color: "#1F4B4A", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>{m.results.surplus}</div>
-                <div style={{ fontSize: "1.375rem", fontWeight: 700, color: "#123332", lineHeight: 1.1 }}>{outcome.zij.toFixed(1)}</div>
+                <div style={{ fontSize: "0.625rem", color: "#123F40", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600 }}>{m.results.surplus}</div>
+                <div style={{ fontSize: "1.375rem", fontWeight: 600, color: "#123332", lineHeight: 1.1 }}>{outcome.zij.toFixed(1)}</div>
               </div>
             ) : (
-              <div style={{ background: "#FAE8E8", borderRadius: 12, padding: "0.625rem 1rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "#B04040", fontWeight: 700 }}>{m.results.notFeasible}</div>
-                <div style={{ fontSize: "0.6875rem", color: "#B04040", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
+              <div style={{ background: "#FBECEA", borderRadius: 12, padding: "0.625rem 1rem" }}>
+                <div style={{ fontSize: "0.75rem", color: "#9E3434", fontWeight: 600 }}>{m.results.notFeasible}</div>
+                <div style={{ fontSize: "0.6875rem", color: "#9E3434", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
               </div>
             )}
           </div>
@@ -706,24 +729,28 @@ function MatchCard({
 
         {Object.keys(attrs).length > 0 && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "1rem" }}>
-            {Object.entries(attrs).map(([k, v]) => (
-              <span key={k} style={{ fontSize: "0.75rem", background: "#F5F3EE", color: "#55534C", borderRadius: 6, padding: "0.2rem 0.625rem", border: "1px solid rgba(28,27,25,0.08)", fontWeight: 500 }}>
-                {k}: {String(v)}
-              </span>
-            ))}
+            {Object.entries(attrs).map(([k, v]) => {
+              const text = formatAttributeValue(v);
+              if (!text) return null;
+              return (
+                <span key={k} style={{ fontSize: "0.75rem", background: "#E9EEEA", color: "#123F40", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid #D4DED8", fontWeight: 500 }}>
+                  {k}: {text}
+                </span>
+              );
+            })}
           </div>
         )}
 
         <AlignmentBar outcome={outcome} ej={ej} aj={aj} aom={{ eil, ail }} elasticity={elasticity} />
 
         <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          <Link href={`/aom/${outcome.aomId}`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#1F4B4A", textDecoration: "none" }}>
+          <Link href={`/aom/${outcome.aomId}`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", textDecoration: "none" }}>
             {m.results.viewDetails} →
           </Link>
           {outcome.valid && (
             <button
               onClick={() => onOpenLeverage(outcome)}
-              style={{ background: "none", border: "1px solid #C89B3C", borderRadius: 999, padding: "0.3rem 0.875rem", fontSize: "0.8125rem", fontWeight: 600, color: "#C89B3C", cursor: "pointer" }}
+              style={{ background: "none", border: "1px solid #756039", borderRadius: 999, padding: "0.3rem 0.875rem", fontSize: "0.8125rem", fontWeight: 600, color: "#756039", cursor: "pointer" }}
             >
               {m.results.groupDiscount}
             </button>
@@ -794,10 +821,10 @@ export default function ResultsPage() {
 
   if (missing) {
     return (
-      <main style={{ minHeight: "100vh", background: "#FAF8F4", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-inter, sans-serif)" }}>
+      <main style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-inter, sans-serif)" }}>
         <div style={{ textAlign: "center" }}>
-          <p style={{ color: "#6B6860", marginBottom: "1rem", fontSize: "0.9375rem" }}>{m.results.noSession}</p>
-          <Link href="/processing" style={{ color: "#1F4B4A", fontWeight: 700, textDecoration: "none" }}>{m.results.runMatching} →</Link>
+          <p style={{ color: "#526563", marginBottom: "1rem", fontSize: "0.9375rem" }}>{m.results.noSession}</p>
+          <Link href="/processing" style={{ color: "#123F40", fontWeight: 600, textDecoration: "none" }}>{m.results.runMatching} →</Link>
         </div>
       </main>
     );
@@ -812,15 +839,13 @@ export default function ResultsPage() {
   let validRank = 0;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#FAF8F4", fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)" }}>
+    <div style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)" }}>
       <style>{`
         @media (max-width: 640px) {
           .hn-results-2col { grid-template-columns: 1fr !important; gap: 0.75rem !important; }
           .hn-results-recs  { grid-template-columns: 1fr !important; }
         }
       `}</style>
-      <div style={{ position: "fixed", inset: 0, background: "radial-gradient(60% 40% at 85% 5%, rgba(47,102,100,0.07) 0%, transparent 55%), radial-gradient(40% 30% at 5% 85%, rgba(200,155,60,0.05) 0%, transparent 55%)", pointerEvents: "none", zIndex: 0 }} />
-
       {/* Toast */}
       {toast && <Toast message={m.results.offerToast} onDismiss={dismissToast} />}
 
@@ -830,68 +855,68 @@ export default function ResultsPage() {
       )}
 
       {/* Page intro */}
-      <div style={{ position: "relative", zIndex: 1, maxWidth: "56rem", margin: "0 auto", padding: "3rem 1.5rem 0" }}>
-        <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#1F4B4A", marginBottom: "0.625rem" }}>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "3rem 1.5rem 0" }}>
+        <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#123F40", marginBottom: "0.625rem" }}>
           {m.results.kicker}
         </div>
-        <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.25rem", fontWeight: 800, color: "#14130F", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "-0.02em" }}>
+        <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.25rem", fontWeight: 500, color: "#123F40", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "0" }}>
           {m.results.title}
         </h1>
-        <p style={{ margin: 0, color: "#6B6860", fontSize: "1rem", lineHeight: 1.5 }}>
+        <p style={{ margin: 0, color: "#526563", fontSize: "1rem", lineHeight: 1.5 }}>
           {m.results.summary.replace("{valid}", String(validMatches.length)).replace("{total}", String(ranked.length))}
         </p>
       </div>
 
       {/* Content */}
-      <main style={{ position: "relative", zIndex: 1, maxWidth: "56rem", margin: "0 auto", padding: "1.75rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      <main style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "1.75rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
         {/* Buyer profile card */}
-        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 2px 4px rgba(28,27,25,0.03), 0 16px 36px -16px rgba(18,51,50,0.10)", overflow: "hidden" }}>
-          <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, #B8892C)" }} />
+        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.03), 0 16px 36px -16px rgba(18,51,50,0.10)", overflow: "hidden" }}>
+          <div style={{ height: 4, background: "linear-gradient(90deg, #756039, #756039)" }} />
           <div style={{ padding: "1.75rem" }}>
-            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6B6860", marginBottom: "1.25rem" }}>{m.results.yourProfile}</div>
+            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "1.25rem" }}>{m.results.yourProfile}</div>
             <div className="hn-results-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem 2.5rem" }}>
               {[[m.results.type, prefs.property_type], [m.results.location, prefs.location], [m.results.bedrooms, prefs.bedrooms != null ? `${prefs.bedrooms}+` : "—"], [m.results.timeline, prefs.timeline]].map(([label, value]) => (
                 <div key={label}>
-                  <div style={{ fontSize: "0.6875rem", color: "#9A958F", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.2rem" }}>{label}</div>
-                  <div style={{ fontSize: "0.9375rem", color: "#1C1B19", fontWeight: 500 }}>{value}</div>
+                  <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.2rem" }}>{label}</div>
+                  <div style={{ fontSize: "0.9375rem", color: "#123F40", fontWeight: 500 }}>{value}</div>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(28,27,25,0.06)", display: "flex", gap: "2rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem" }}>
-              <div><span style={{ color: "#9A958F" }}>{m.results.yourIdeal} </span><span style={{ color: "#1F4B4A", fontWeight: 700 }}>{ej}</span></div>
-              <div><span style={{ color: "#9A958F" }}>{m.results.yourFloor} </span><span style={{ color: "#C89B3C", fontWeight: 700 }}>{aj}</span></div>
+            <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(18,63,64,0.06)", display: "flex", gap: "2rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem" }}>
+              <div><span style={{ color: "#526563" }}>{m.results.yourIdeal} </span><span style={{ color: "#123F40", fontWeight: 600 }}>{ej}</span></div>
+              <div><span style={{ color: "#526563" }}>{m.results.yourFloor} </span><span style={{ color: "#756039", fontWeight: 600 }}>{aj}</span></div>
             </div>
             {char.behavioral_insights && (
-              <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(28,27,25,0.06)" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.4rem" }}>{m.results.insights}</div>
-                <p style={{ fontSize: "0.9375rem", color: "#1C1B19", margin: 0, lineHeight: 1.65 }}>{char.behavioral_insights}</p>
+              <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(18,63,64,0.06)" }}>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#526563", marginBottom: "0.4rem" }}>{m.results.insights}</div>
+                <p style={{ fontSize: "0.9375rem", color: "#123F40", margin: 0, lineHeight: 1.65 }}>{char.behavioral_insights}</p>
               </div>
             )}
 
             {/* Retake interview section */}
-            <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(28,27,25,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.875rem" }}>
+            <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(18,63,64,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.875rem" }}>
               <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.25rem" }}>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#526563", marginBottom: "0.25rem" }}>
                   {m.results.quota}
                 </div>
                 {rateLimit ? (
-                  <div style={{ fontSize: "0.875rem", color: "#6B6860" }}>
-                    <span style={{ color: rateLimit.remaining === 0 ? "#B04040" : "#1C1B19", fontWeight: 600 }}>
+                  <div style={{ fontSize: "0.875rem", color: "#526563" }}>
+                    <span style={{ color: rateLimit.remaining === 0 ? "#9E3434" : "#123F40", fontWeight: 600 }}>
                       {rateLimit.attempts} / {MAX_INTERVIEWS_PER_DAY}
                     </span>{" "}
                     {m.results.usedToday}
                     {rateLimit.remaining === 0 && rateLimit.nextAvailableAt && (
-                      <span style={{ color: "#9A958F" }}>
+                      <span style={{ color: "#526563" }}>
                         {" "}— {m.results.resetsIn}{" "}
-                        <span style={{ color: "#C89B3C", fontWeight: 600 }}>
+                        <span style={{ color: "#756039", fontWeight: 600 }}>
                           {formatWait(rateLimit.nextAvailableAt, m.results.soon)}
                         </span>
                       </span>
                     )}
                   </div>
                 ) : (
-                  <div style={{ fontSize: "0.875rem", color: "#9A958F" }}>{m.common.loading}</div>
+                  <div style={{ fontSize: "0.875rem", color: "#526563" }}>{m.common.loading}</div>
                 )}
               </div>
 
@@ -908,8 +933,8 @@ export default function ResultsPage() {
                     padding: "0.5rem 1.125rem",
                     borderRadius: 999,
                     border: "1px solid",
-                    borderColor: !rateLimit || rateLimit.remaining === 0 ? "#E0DDD7" : "#1F4B4A",
-                    background: !rateLimit || rateLimit.remaining === 0 ? "transparent" : "linear-gradient(155deg, #2F6664, #123332)",
+                    borderColor: !rateLimit || rateLimit.remaining === 0 ? "#E0DDD7" : "#123F40",
+                    background: !rateLimit || rateLimit.remaining === 0 ? "transparent" : "linear-gradient(155deg, #0C3031, #123332)",
                     color: !rateLimit || rateLimit.remaining === 0 ? "#C0BAB2" : "#fff",
                     fontSize: "0.875rem",
                     fontWeight: 600,
@@ -922,12 +947,12 @@ export default function ResultsPage() {
                   {m.results.redo}
                 </button>
                 {rateLimit && rateLimit.remaining > 0 && (
-                  <div style={{ fontSize: "0.6875rem", color: "#9A958F", textAlign: "end" }}>
+                  <div style={{ fontSize: "0.6875rem", color: "#526563", textAlign: "end" }}>
                     {rateLimit.remaining} {m.results.retakesLeft}
                   </div>
                 )}
                 {rateLimit && rateLimit.remaining === 0 && rateLimit.nextAvailableAt && (
-                  <div style={{ fontSize: "0.6875rem", color: "#B04040", textAlign: "end" }}>
+                  <div style={{ fontSize: "0.6875rem", color: "#9E3434", textAlign: "end" }}>
                     {m.results.tryAgainIn} {formatWait(rateLimit.nextAvailableAt, m.results.soon)}
                   </div>
                 )}
@@ -957,17 +982,17 @@ export default function ResultsPage() {
 
         {/* Recommendations */}
         {validMatches.length > 0 && recommendations.length > 0 && (
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 1px 3px rgba(28,27,25,0.04)", padding: "1.75rem" }}>
-            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#6B6860", marginBottom: "1.25rem" }}>
+          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", padding: "1.75rem" }}>
+            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "1.25rem" }}>
               {m.results.nextSteps}
             </div>
             <div className="hn-results-recs" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(19rem, 1fr))", gap: "0.875rem" }}>
               {recommendations.map(r => (
-                <div key={r.id} style={{ background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(28,27,25,0.07)", padding: "1.125rem 1.25rem", display: "flex", gap: "0.875rem", alignItems: "flex-start" }}>
+                <div key={r.id} style={{ background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.07)", padding: "1.125rem 1.25rem", display: "flex", gap: "0.875rem", alignItems: "flex-start" }}>
                   <span style={{ fontSize: "1.375rem", lineHeight: 1, flexShrink: 0, marginTop: "0.1rem" }}>{r.icon}</span>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: "0.9375rem", color: "#1C1B19", marginBottom: "0.3rem" }}>{r.label}</div>
-                    <p style={{ margin: 0, fontSize: "0.875rem", color: "#6B6860", lineHeight: 1.6 }}>{r.blurb}</p>
+                    <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#123F40", marginBottom: "0.3rem" }}>{r.label}</div>
+                    <p style={{ margin: 0, fontSize: "0.875rem", color: "#526563", lineHeight: 1.6 }}>{r.blurb}</p>
                   </div>
                 </div>
               ))}
@@ -977,18 +1002,18 @@ export default function ResultsPage() {
 
         {/* Leverage groups CTA */}
         {validMatches.length > 0 && (
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(28,27,25,0.08)", boxShadow: "0 1px 3px rgba(28,27,25,0.04)", overflow: "hidden" }}>
-            <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, #B8892C)" }} />
+          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", overflow: "hidden" }}>
+            <div style={{ height: 4, background: "linear-gradient(90deg, #756039, #756039)" }} />
             <div style={{ padding: "1.5rem 1.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.25rem", flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontWeight: 700, color: "#14130F", fontSize: "1rem", marginBottom: "0.3rem", letterSpacing: "-0.01em" }}>{m.results.groupCtaTitle}</div>
-                <p style={{ margin: 0, fontSize: "0.9375rem", color: "#6B6860", lineHeight: 1.5 }}>
+                <div style={{ fontWeight: 600, color: "#123F40", fontSize: "1rem", marginBottom: "0.3rem", letterSpacing: "0" }}>{m.results.groupCtaTitle}</div>
+                <p style={{ margin: 0, fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>
                   {m.results.groupCtaBody}
                 </p>
               </div>
               <Link
                 href="/buyer/leverage-groups"
-                style={{ padding: "0.6875rem 1.375rem", borderRadius: 999, background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", fontSize: "0.875rem", fontWeight: 700, textDecoration: "none", flexShrink: 0, boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", whiteSpace: "nowrap" }}
+                style={{ padding: "0.6875rem 1.375rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", flexShrink: 0, boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", whiteSpace: "nowrap" }}
               >
                 {m.results.viewGroups} →
               </Link>

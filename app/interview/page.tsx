@@ -444,15 +444,15 @@ export default function InterviewPage() {
   };
 
   const quietButton: React.CSSProperties = {
-    padding: "0.5rem 1rem",
+    padding: "0.5rem 1.1rem",
     borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(6,14,24,0.55)",
-    color: "#F7F5F1",
-    fontSize: "0.8125rem",
-    fontWeight: 600,
+    border: "1px solid transparent",
+    background: "#123F40",
+    color: "#FFFFFF",
+    fontSize: "0.875rem",
+    fontWeight: 500,
+    minHeight: 48,
     cursor: "pointer",
-    backdropFilter: "blur(12px)",
   };
 
   return (
@@ -463,7 +463,7 @@ export default function InterviewPage() {
         left: 0,
         right: 0,
         bottom: 0,
-        background: "#000",
+        background: "#F4F5F0",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -522,13 +522,13 @@ export default function InterviewPage() {
         )}
 
         {state.phase === "checking" && (
-          <div style={{ color: "#6B6860", fontSize: "0.875rem", letterSpacing: "0.05em" }}>
+          <div style={{ color: "#526563", fontSize: "0.875rem" }}>
             {copy.checking}
           </div>
         )}
 
         {state.phase === "connecting" && (
-          <div style={{ color: "#6B6860", fontSize: "0.875rem", letterSpacing: "0.05em" }}>
+          <div style={{ color: "#526563", fontSize: "0.875rem" }}>
             {copy.connecting}
           </div>
         )}
@@ -536,7 +536,7 @@ export default function InterviewPage() {
         {state.phase === "rate-limited" && (
           <div
             style={{
-              color: "#F7F5F1",
+              color: "#123F40",
               fontSize: "0.9375rem",
               textAlign: "center",
               padding: "2rem",
@@ -547,10 +547,10 @@ export default function InterviewPage() {
               gap: "1rem",
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: "1rem" }}>{copy.limitTitle}</div>
-            <div style={{ color: "#9A958F", lineHeight: 1.6 }}>
+            <div style={{ fontWeight: 600, fontSize: "1rem" }}>{copy.limitTitle}</div>
+            <div style={{ color: "#526563", lineHeight: 1.6 }}>
               {copy.limitBody}{" "}
-              <span style={{ color: "#C89B3C", fontWeight: 600 }}>
+              <span style={{ color: "#756039", fontWeight: 600 }}>
                 {state.nextAvailableAt ? (formatWait(state.nextAvailableAt) || copy.limitFallback) : copy.limitFallback}
               </span>
               .
@@ -564,7 +564,7 @@ export default function InterviewPage() {
         {state.phase === "buyer-only" && (
           <div
             style={{
-              color: "#F7F5F1",
+              color: "#123F40",
               textAlign: "center",
               padding: "2rem",
               maxWidth: "28rem",
@@ -574,8 +574,8 @@ export default function InterviewPage() {
               gap: "0.75rem",
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: "1.05rem" }}>{copy.buyerOnlyTitle}</div>
-            <div style={{ color: "#9A958F", lineHeight: 1.6, fontSize: "0.9375rem" }}>{copy.buyerOnlyBody}</div>
+            <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{copy.buyerOnlyTitle}</div>
+            <div style={{ color: "#526563", lineHeight: 1.6, fontSize: "0.9375rem" }}>{copy.buyerOnlyBody}</div>
             <button type="button" onClick={homeForRole} style={{ ...quietButton, marginTop: "0.5rem" }}>
               {copy.back}
             </button>
@@ -594,14 +594,13 @@ export default function InterviewPage() {
               textAlign: "center",
               padding: "1rem 1.25rem",
               borderRadius: 16,
-              background: "rgba(6,14,24,0.72)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              backdropFilter: "blur(16px)",
-              color: "#F7F5F1",
+              background: "#FFFFFF",
+              border: "1px solid #D4DED8",
+              color: "#123F40",
             }}
           >
-            <div style={{ fontWeight: 700, marginBottom: "0.35rem" }}>{copy.micDeniedTitle}</div>
-            <div style={{ color: "#C5CDD4", fontSize: "0.875rem", lineHeight: 1.55, marginBottom: "0.85rem" }}>
+            <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>{copy.micDeniedTitle}</div>
+            <div style={{ color: "#526563", fontSize: "0.875rem", lineHeight: 1.7, marginBottom: "0.85rem" }}>
               {copy.micDeniedBody}
             </div>
             <button type="button" onClick={() => { void retryMicrophone(); }} style={quietButton}>
@@ -611,9 +610,9 @@ export default function InterviewPage() {
         )}
 
         {state.phase === "error" && (
-          <div style={{ color: "#B04040", fontSize: "0.875rem", textAlign: "center", padding: "1rem", maxWidth: "28rem" }}>
+          <div style={{ color: "#9E3434", fontSize: "0.875rem", textAlign: "center", padding: "1rem", maxWidth: "28rem" }}>
             <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{copy.connectionError}</div>
-            <div style={{ color: "#6B6860", marginBottom: "1rem" }}>{state.message}</div>
+            <div style={{ color: "#526563", marginBottom: "1rem" }}>{state.message}</div>
             <button type="button" onClick={() => window.location.reload()} style={quietButton}>
               {copy.tryAgain}
             </button>
@@ -621,7 +620,7 @@ export default function InterviewPage() {
         )}
 
         {state.phase === "ending" && (
-          <div style={{ color: "#6B6860", fontSize: "0.875rem" }}>{copy.saving}</div>
+          <div style={{ color: "#526563", fontSize: "0.875rem" }}>{copy.saving}</div>
         )}
 
         {state.phase === "live" && (

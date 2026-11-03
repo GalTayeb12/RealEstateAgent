@@ -12,7 +12,7 @@ export default function LanguageToggle() {
       aria-label={m.lang.label}
       style={{
         display: "inline-flex",
-        border: "1px solid #DDD9D3",
+        border: "1px solid #D4DED8",
         borderRadius: 999,
         overflow: "hidden",
         background: "#fff",
@@ -29,9 +29,9 @@ export default function LanguageToggle() {
             onClick={() => void setLocale(code)}
             style={{
               border: "none",
-              background: active ? "#1F4B4A" : "transparent",
+              background: active ? "#123F40" : "transparent",
               color: active ? "#fff" : "#55534C",
-              fontWeight: 700,
+              fontWeight: 600,
               fontSize: "0.75rem",
               padding: "0.4rem 0.75rem",
               cursor: "pointer",

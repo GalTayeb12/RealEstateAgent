@@ -1,0 +1,18 @@
+---
+description: Quiet Perspective visual system for Haveniq UI
+globs: "{app,components}/**/*.{tsx,css}"
+alwaysApply: false
+---
+
+# Quiet Perspective
+
+Before UI changes, read `docs/DESIGN_SYSTEM.md`.
+
+- Import shared pieces from `@/components/quiet` and use the `--qp-*` tokens, or the mapped Tailwind tokens in `app/globals.css`. Do not invent a second palette, a day/night theme, neon, or a cartoon skyline.
+- The architectural scroll scene belongs on the homepage and `/design-system` only. Other screens use the same type, color, fields, and buttons on a light ground.
+- Hebrew is RTL and English is LTR. Use logical CSS properties. Keep prices and match numbers isolated with `dir="ltr"`, and format money with `Money`.
+- Heebo only. Headings at weight 500. No artificial letter spacing.
+- Champagne gold (`--qp-gold`) is a line, not small text. Glass is one panel over a photograph, not a form.
+- Label illustrative listings, scores, and statistics as samples. Demo controls must not start a search, booking, or sign-out.
+- A zoom on a still photograph is not the 3D explorer. Do not describe it as one.
+- After UI work, check Hebrew and English, a 390px width, keyboard focus, dialog Escape, and `prefers-reduced-motion`.

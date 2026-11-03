@@ -45,7 +45,7 @@ export async function GET(
                       status: true,
                       price: true,
                       unitTypeId: true,
-                      unitType: { select: { unitLabel: true, price: true } },
+                      unitType: { select: { unitLabel: true, price: true, attributes: true } },
                     },
                   },
                 },
@@ -76,17 +76,28 @@ export async function GET(
           sortIndex: building.sortIndex,
           // Reserved for a future GLB. The explorer draws a procedural tower.
           modelUrl: building.modelUrl,
-          units: building.units.map((apartment) => ({
-            id: apartment.id,
-            floor: apartment.floor,
-            unitNumber: apartment.unitNumber,
-            positionIndex: apartment.positionIndex,
-            status: apartment.status,
-            price: apartment.price,
-            unitTypeId: apartment.unitTypeId,
-            unitLabel: apartment.unitType.unitLabel,
-            listPrice: apartment.unitType.price,
-          })),
+          units: building.units.map((apartment) => {
+            const attrs: Record<string, unknown> = JSON.parse(
+              apartment.unitType.attributes || "{}"
+            );
+            const balconyAttr = attrs.balcony;
+            const hasBalcony =
+              balconyAttr === undefined || balconyAttr === null
+                ? undefined                       // no data → isSample fallback
+                : Boolean(balconyAttr);            // truthy = has balcony
+            return {
+              id: apartment.id,
+              floor: apartment.floor,
+              unitNumber: apartment.unitNumber,
+              positionIndex: apartment.positionIndex,
+              status: apartment.status,
+              price: apartment.price,
+              unitTypeId: apartment.unitTypeId,
+              unitLabel: apartment.unitType.unitLabel,
+              listPrice: apartment.unitType.price,
+              hasBalcony,
+            };
+          }),
         }))
       : [];
     return NextResponse.json({

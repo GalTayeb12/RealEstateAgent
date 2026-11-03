@@ -78,24 +78,24 @@ interface ImportResult {
 // ── Status helpers ─────────────────────────────────────────────────────────────
 
 const AOM_STATUS: Record<string, { label: string; bg: string; color: string }> = {
-  available:      { label: "Available",      bg: "#E8F0EF", color: "#1F4B4A" },
-  in_negotiation: { label: "In negotiation", bg: "#FBF4E4", color: "#C89B3C" },
-  sold:           { label: "Sold",           bg: "#F0EDE8", color: "#6B6860" },
+  available:      { label: "Available",      bg: "#E9EEEA", color: "#123F40" },
+  in_negotiation: { label: "In negotiation", bg: "#FCF2D9", color: "#756039" },
+  sold:           { label: "Sold",           bg: "#E9EEEA", color: "#526563" },
 };
 
 const OFFER_STATUS: Record<string, { label: string; bg: string; color: string }> = {
-  pending:   { label: "Pending",   bg: "#FBF4E4", color: "#C89B3C" },
-  countered: { label: "Countered", bg: "#FBF4E4", color: "#C89B3C" },
-  accepted:  { label: "Accepted",  bg: "#E8F0EF", color: "#1F4B4A" },
-  rejected:  { label: "Rejected",  bg: "#FAE8E8", color: "#B04040" },
+  pending:   { label: "Pending",   bg: "#FCF2D9", color: "#756039" },
+  countered: { label: "Countered", bg: "#FCF2D9", color: "#756039" },
+  accepted:  { label: "Accepted",  bg: "#E9EEEA", color: "#123F40" },
+  rejected:  { label: "Rejected",  bg: "#FBECEA", color: "#9E3434" },
 };
 
 // ── Reusable sub-components ───────────────────────────────────────────────────
 
 function StatusBadge({ status, map }: { status: string; map: Record<string, { label: string; bg: string; color: string }> }) {
-  const s = map[status] ?? { label: status, bg: "#F0EDE8", color: "#6B6860" };
+  const s = map[status] ?? { label: status, bg: "#E9EEEA", color: "#526563" };
   return (
-    <span style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: s.bg, color: s.color }}>
+    <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: s.bg, color: s.color }}>
       {s.label}
     </span>
   );
@@ -103,7 +103,7 @@ function StatusBadge({ status, map }: { status: string; map: Record<string, { la
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 700, color: "#1C1B19", margin: "0 0 1rem" }}>
+    <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 600, color: "#123F40", margin: "0 0 1rem" }}>
       {children}
     </h2>
   );
@@ -111,9 +111,9 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 function ActionButton({ onClick, disabled, variant, children }: { onClick: () => void; disabled?: boolean; variant: "primary" | "ghost" | "danger"; children: React.ReactNode }) {
   const styles: Record<string, React.CSSProperties> = {
-    primary: { background: "#1F4B4A", color: "#fff", border: "1px solid #1F4B4A" },
-    ghost:   { background: "transparent", color: "#6B6860", border: "1px solid #DDD9D3" },
-    danger:  { background: "transparent", color: "#B04040", border: "1px solid #B04040" },
+    primary: { background: "#123F40", color: "#fff", border: "1px solid #123F40" },
+    ghost:   { background: "transparent", color: "#526563", border: "1px solid #D4DED8" },
+    danger:  { background: "transparent", color: "#9E3434", border: "1px solid #9E3434" },
   };
   return (
     <button
@@ -129,14 +129,14 @@ function ActionButton({ onClick, disabled, variant, children }: { onClick: () =>
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-      <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6B6860" }}>{label}</label>
+      <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>{label}</label>
       {children}
     </div>
   );
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "#F0EDE8", border: "1px solid #DDD9D3", borderRadius: "0.4rem",
+  background: "#E9EEEA", border: "1px solid #D4DED8", borderRadius: "0.4rem",
   padding: "0.5rem 0.75rem", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box",
 };
 
@@ -430,7 +430,7 @@ export default function DevDashboardPage() {
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <main style={{ minHeight: "100vh", background: "#F7F5F1", fontFamily: "var(--font-inter, sans-serif)" }}>
+    <main style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, sans-serif)" }}>
       <style>{`
         @media (max-width: 640px) {
           .hn-dev-topbar-inner { flex-wrap: wrap; gap: 0.5rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
@@ -441,34 +441,34 @@ export default function DevDashboardPage() {
       `}</style>
 
       {/* Top bar — sits below the global TopNav (sticky top: 3.25rem) */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #DDD9D3", position: "sticky", top: "3.25rem", zIndex: 10 }}>
-        <div className="hn-dev-topbar-inner" style={{ maxWidth: "62rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "3.25rem" }}>
-          <span style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#1C1B19" }}>{profile.companyName}</span>
+      <div style={{ background: "#fff", borderBottom: "1px solid #D4DED8", position: "sticky", top: "3.25rem", zIndex: 10 }}>
+        <div className="hn-dev-topbar-inner" style={{ maxWidth: "75rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "3.25rem" }}>
+          <span style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#123F40" }}>{profile.companyName}</span>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             {/* Google Calendar connection indicator */}
             {profile.googleConnected ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#1F4B4A" }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#1F4B4A", display: "inline-block" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#123F40" }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#123F40", display: "inline-block" }} />
                 Google Calendar connected
               </div>
             ) : (
               <a
                 href={`/api/auth/google?userId=${profile.userId}`}
-                style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#6B6860", textDecoration: "none", border: "1px solid #DDD9D3", borderRadius: "999px", padding: "0.2rem 0.625rem" }}
+                style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#526563", textDecoration: "none", border: "1px solid #D4DED8", borderRadius: "999px", padding: "0.2rem 0.625rem" }}
               >
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#DDD9D3", display: "inline-block" }} />
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#D4DED8", display: "inline-block" }} />
                 Connect Google Calendar
               </a>
             )}
-            <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6B6860" }}>Quality score</span>
-            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1rem", fontWeight: 700, color: "#C89B3C", background: "#FBF4E4", padding: "0.2rem 0.625rem", borderRadius: "0.375rem", border: "1px solid #F5E9C4" }}>
+            <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>Quality score</span>
+            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1rem", fontWeight: 600, color: "#756039", background: "#FCF2D9", padding: "0.2rem 0.625rem", borderRadius: "0.375rem", border: "1px solid #F5E9C4" }}>
               {profile.qualityScore}
             </span>
           </div>
         </div>
 
         {/* Tab nav */}
-        <div style={{ maxWidth: "62rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", gap: 0 }}>
+        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", gap: 0 }}>
           {([
             ["projects",     m.dev.myProjects,   totalProjects],
             ["reservations", m.dev.reservations,  reservations.length],
@@ -480,19 +480,19 @@ export default function DevDashboardPage() {
               style={{
                 padding: "0.75rem 1.25rem", border: "none", background: "none",
                 fontSize: "0.9375rem", fontWeight: tab === key ? 600 : 400,
-                color: tab === key ? "#1F4B4A" : "#6B6860",
-                borderBottom: tab === key ? "2px solid #1F4B4A" : "2px solid transparent",
+                color: tab === key ? "#123F40" : "#526563",
+                borderBottom: tab === key ? "2px solid #123F40" : "2px solid transparent",
                 cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem",
               }}
             >
               {label}
               {count > 0 && (
                 <span style={{
-                  fontSize: "0.6875rem", fontWeight: 700, minWidth: "1.25rem", height: "1.25rem",
+                  fontSize: "0.6875rem", fontWeight: 600, minWidth: "1.25rem", height: "1.25rem",
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   borderRadius: "999px", padding: "0 0.3rem",
-                  background: tab === key ? "#1F4B4A" : "#E8E4DF",
-                  color: tab === key ? "#fff" : "#6B6860",
+                  background: tab === key ? "#123F40" : "#E8E4DF",
+                  color: tab === key ? "#fff" : "#526563",
                 }}>
                   {count}
                 </span>
@@ -503,7 +503,7 @@ export default function DevDashboardPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: "62rem", margin: "0 auto", padding: "2rem 1.5rem" }}>
+      <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "2rem 1.5rem" }}>
 
         {/* ── MY PROJECTS ── */}
         {tab === "projects" && (
@@ -513,7 +513,7 @@ export default function DevDashboardPage() {
               <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
                 <button
                   onClick={() => { setShowProjectForm(true); setProjectForm(blankProjectForm); }}
-                  style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", background: "#1F4B4A", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer" }}
+                  style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", background: "#123F40", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer" }}
                 >
                   + {m.dev.newProject}
                 </button>
@@ -522,8 +522,8 @@ export default function DevDashboardPage() {
 
             {/* New project form */}
             {showProjectForm && (
-              <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", borderTop: "3px solid #C89B3C", padding: "1.5rem", marginBottom: "1.25rem" }}>
-                <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 700, color: "#1C1B19", margin: "0 0 1rem" }}>{m.dev.newProject}</h3>
+              <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", borderTop: "3px solid #756039", padding: "1.5rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 600, color: "#123F40", margin: "0 0 1rem" }}>{m.dev.newProject}</h3>
                 <div className="hn-dev-proj-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div style={{ gridColumn: "1 / -1" }}>
                     <FormField label={m.dev.projectName}>
@@ -545,7 +545,7 @@ export default function DevDashboardPage() {
             )}
 
             {projects.length === 0 && !showProjectForm && (
-              <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>{m.dev.noProjects}</p>
+              <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>{m.dev.noProjects}</p>
             )}
 
             {/* Project cards */}
@@ -556,7 +556,7 @@ export default function DevDashboardPage() {
                 const availableCount = activeUnitTypes.filter(ut => ut.aomStatus === "available").length;
 
                 return (
-                  <div key={project.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", overflow: "hidden" }}>
+                  <div key={project.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
                     {/* Project header — clickable to expand */}
                     <button
                       onClick={() => toggleExpand(project.id)}
@@ -564,15 +564,15 @@ export default function DevDashboardPage() {
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
-                          <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 700, color: "#1C1B19" }}>{project.name}</span>
+                          <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40" }}>{project.name}</span>
                           {project.status === "inactive" && (
-                            <span style={{ fontSize: "0.6875rem", fontWeight: 700, padding: "0.2rem 0.5rem", borderRadius: "999px", background: "#F0EDE8", color: "#6B6860", letterSpacing: "0.07em" }}>{m.dev.inactive}</span>
+                            <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.2rem 0.5rem", borderRadius: "999px", background: "#E9EEEA", color: "#526563", letterSpacing: "0.07em" }}>{m.dev.inactive}</span>
                           )}
                         </div>
                         {project.location && (
-                          <p style={{ margin: "0.2rem 0 0", fontSize: "0.875rem", color: "#6B6860" }}>{project.location}</p>
+                          <p style={{ margin: "0.2rem 0 0", fontSize: "0.875rem", color: "#526563" }}>{project.location}</p>
                         )}
-                        <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "#9A958F" }}>
+                        <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>
                           {project.unitTypes.length === 0
                             ? "No unit types yet"
                             : `${project.unitTypes.length} unit type${project.unitTypes.length !== 1 ? "s" : ""}${availableCount > 0 ? ` · ${availableCount} available` : ""}`
@@ -580,7 +580,7 @@ export default function DevDashboardPage() {
                         </p>
                       </div>
                       {/* Chevron */}
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9A958F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#526563" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                         style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0 }}>
                         <polyline points="6 9 12 15 18 9" />
                       </svg>
@@ -588,10 +588,10 @@ export default function DevDashboardPage() {
 
                     {/* Expanded content */}
                     {isExpanded && (
-                      <div style={{ borderTop: "1px solid #F0EDE8" }}>
+                      <div style={{ borderTop: "1px solid #E9EEEA" }}>
                         {/* Unit type rows */}
                         {project.unitTypes.length === 0 ? (
-                          <p style={{ padding: "1rem 1.375rem", fontSize: "0.875rem", color: "#9A958F", margin: 0 }}>No unit types yet — add one below.</p>
+                          <p style={{ padding: "1rem 1.375rem", fontSize: "0.875rem", color: "#526563", margin: 0 }}>No unit types yet — add one below.</p>
                         ) : (
                           <div>
                             {project.unitTypes.map((ut, idx) => {
@@ -601,42 +601,42 @@ export default function DevDashboardPage() {
                               return (
                                 <div key={ut.id} style={{
                                   padding: "1rem 1.375rem",
-                                  borderTop: idx === 0 ? "none" : "1px solid #F7F5F1",
+                                  borderTop: idx === 0 ? "none" : "1px solid #F4F5F0",
                                   display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem",
                                   background: ut.active ? "transparent" : "#FDFCFB",
                                 }}>
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                                      <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#1F4B4A", background: "#E8F0EF", padding: "0.15rem 0.5rem", borderRadius: "0.25rem" }}>
+                                      <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", background: "#E9EEEA", padding: "0.15rem 0.5rem", borderRadius: "0.25rem" }}>
                                         {ut.unitLabel}
                                       </span>
                                       {ut.price > 0 && (
-                                        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 700, color: "#1C1B19" }}>
+                                        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40" }}>
                                           <Money amount={ut.price} />
                                         </span>
                                       )}
                                       {ut.quantityTotal > 0 && (
-                                        <span style={{ fontSize: "0.8125rem", color: "#6B6860" }}>
+                                        <span style={{ fontSize: "0.8125rem", color: "#526563" }}>
                                           {ut.quantityAvailable}/{ut.quantityTotal} avail.
                                         </span>
                                       )}
                                       <StatusBadge status={ut.aomStatus} map={AOM_STATUS} />
                                     </div>
                                     {ut.description && (
-                                      <p style={{ margin: "0.25rem 0 0", fontSize: "0.8125rem", color: "#6B6860" }}>{ut.description}</p>
+                                      <p style={{ margin: "0.25rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>{ut.description}</p>
                                     )}
-                                    <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", color: "#6B6860" }}>
-                                      <span>Min. match required <strong style={{ color: "#1C1B19" }}>{ut.eil}</strong></span>
-                                      <span>Target match <strong style={{ color: "#1C1B19" }}>{ut.ail}</strong></span>
+                                    <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", color: "#526563" }}>
+                                      <span>Min. match required <strong style={{ color: "#123F40" }}>{ut.eil}</strong></span>
+                                      <span>Target match <strong style={{ color: "#123F40" }}>{ut.ail}</strong></span>
                                       {Object.entries(attrs).slice(0, 3).map(([k, v]) => (
-                                        <span key={k}>{k} <strong style={{ color: "#1C1B19" }}>{String(v)}</strong></span>
+                                        <span key={k}>{k} <strong style={{ color: "#123F40" }}>{String(v)}</strong></span>
                                       ))}
                                     </div>
                                   </div>
                                   <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
                                     <Link
                                       href={`/dev/properties/${ut.id}`}
-                                      style={{ padding: "0.4rem 0.875rem", borderRadius: "0.4rem", fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", border: "1px solid #DDD9D3", textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+                                      style={{ padding: "0.4rem 0.875rem", borderRadius: "0.4rem", fontSize: "0.8125rem", fontWeight: 600, color: "#526563", border: "1px solid #D4DED8", textDecoration: "none", display: "inline-flex", alignItems: "center" }}
                                     >
                                       {m.dev.editPhotos}
                                     </Link>
@@ -656,7 +656,7 @@ export default function DevDashboardPage() {
 
                         {/* Add unit type inline form */}
                         {addingUnitTypeToProjectId === project.id && (
-                          <div style={{ borderTop: "1px solid #F0EDE8" }}>
+                          <div style={{ borderTop: "1px solid #E9EEEA" }}>
                             <UnitTypeForm
                               form={unitTypeForm}
                               setForm={setUnitTypeForm}
@@ -668,28 +668,28 @@ export default function DevDashboardPage() {
                         )}
 
                         {/* ── Project video section ── */}
-                        <div style={{ borderTop: "1px solid #F0EDE8", padding: "0.875rem 1.375rem", background: "#F7F5F1" }}>
-                          <div style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A958F", marginBottom: "0.625rem" }}>
+                        <div style={{ borderTop: "1px solid #E9EEEA", padding: "0.875rem 1.375rem", background: "#F4F5F0" }}>
+                          <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "0.625rem" }}>
                             {m.dev.projectVideo}
                           </div>
                           {project.hasTeaserVideo ? (
                             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                              <span style={{ fontSize: "0.8125rem", color: "#1F4B4A", fontWeight: 600 }}>{m.dev.videoUploaded}</span>
+                              <span style={{ fontSize: "0.8125rem", color: "#123F40", fontWeight: 600 }}>{m.dev.videoUploaded}</span>
                               <button
                                 onClick={() => removeProjectVideo(project.id)}
-                                style={{ fontSize: "0.75rem", fontWeight: 600, color: "#B04040", background: "none", border: "1px solid #B04040", borderRadius: "0.375rem", padding: "0.25rem 0.625rem", cursor: "pointer" }}
+                                style={{ fontSize: "0.75rem", fontWeight: 600, color: "#9E3434", background: "none", border: "1px solid #9E3434", borderRadius: "0.375rem", padding: "0.25rem 0.625rem", cursor: "pointer" }}
                               >
                                 {m.dev.remove}
                               </button>
                             </div>
                           ) : (
-                            <span style={{ fontSize: "0.8125rem", color: "#9A958F" }}>{m.dev.noVideo}</span>
+                            <span style={{ fontSize: "0.8125rem", color: "#526563" }}>{m.dev.noVideo}</span>
                           )}
                           <div style={{ display: "flex", gap: "0.625rem", alignItems: "center", marginTop: "0.5rem", flexWrap: "wrap" }}>
                             <input
                               type="file"
                               accept="video/*"
-                              style={{ fontSize: "0.8125rem", color: "#1C1B19" }}
+                              style={{ fontSize: "0.8125rem", color: "#123F40" }}
                               onChange={e => {
                                 const f = e.target.files?.[0] ?? null;
                                 setProjectVideoFiles(prev => ({ ...prev, [project.id]: f }));
@@ -700,7 +700,7 @@ export default function DevDashboardPage() {
                               disabled={projectVideoUploading.has(project.id) || !projectVideoFiles[project.id]}
                               style={{
                                 fontSize: "0.8125rem", fontWeight: 600, color: "#fff",
-                                background: "#1F4B4A", border: "none", borderRadius: "0.375rem",
+                                background: "#123F40", border: "none", borderRadius: "0.375rem",
                                 padding: "0.3rem 0.75rem", cursor: projectVideoUploading.has(project.id) || !projectVideoFiles[project.id] ? "not-allowed" : "pointer",
                                 opacity: projectVideoUploading.has(project.id) || !projectVideoFiles[project.id] ? 0.55 : 1,
                               }}
@@ -709,7 +709,7 @@ export default function DevDashboardPage() {
                             </button>
                           </div>
                           {projectVideoFiles[project.id] && projectVideoFiles[project.id]!.size > SIZE_VIDEO_WARN_MB * 1024 * 1024 && (
-                            <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", background: "#FBF4E4", border: "1px solid #F0D98A", borderRadius: "0.375rem", fontSize: "0.8125rem", color: "#A07020" }}>
+                            <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", background: "#FCF2D9", border: "1px solid #F0D98A", borderRadius: "0.375rem", fontSize: "0.8125rem", color: "#A07020" }}>
                               {m.dev.fileLarge}
                             </div>
                           )}
@@ -717,15 +717,15 @@ export default function DevDashboardPage() {
 
                         {/* ── Import panel ── */}
                         {importingProjectId === project.id && (
-                          <div style={{ borderTop: "1px solid #F0EDE8", padding: "1rem 1.375rem", background: "#FDFCFB" }}>
-                            <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#C89B3C", marginBottom: "0.875rem" }}>
+                          <div style={{ borderTop: "1px solid #E9EEEA", padding: "1rem 1.375rem", background: "#FDFCFB" }}>
+                            <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#756039", marginBottom: "0.875rem" }}>
                               {m.dev.importTitle}
                             </div>
                             <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.75rem" }}>
                               <input
                                 type="file"
                                 accept=".xlsx,.xls,.csv"
-                                style={{ fontSize: "0.8125rem", color: "#1C1B19" }}
+                                style={{ fontSize: "0.8125rem", color: "#123F40" }}
                                 onChange={e => { setImportFile(e.target.files?.[0] ?? null); setImportResult(null); }}
                               />
                               <button
@@ -733,7 +733,7 @@ export default function DevDashboardPage() {
                                 disabled={importBusy || !importFile}
                                 style={{
                                   fontSize: "0.8125rem", fontWeight: 600, color: "#fff",
-                                  background: "#1F4B4A", border: "none", borderRadius: "0.375rem",
+                                  background: "#123F40", border: "none", borderRadius: "0.375rem",
                                   padding: "0.3rem 0.875rem", cursor: importBusy || !importFile ? "not-allowed" : "pointer",
                                   opacity: importBusy || !importFile ? 0.55 : 1,
                                 }}
@@ -742,22 +742,22 @@ export default function DevDashboardPage() {
                               </button>
                               <button
                                 onClick={cancelImport}
-                                style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", background: "none", border: "1px solid #DDD9D3", borderRadius: "0.375rem", padding: "0.3rem 0.75rem", cursor: "pointer" }}
+                                style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#526563", background: "none", border: "1px solid #D4DED8", borderRadius: "0.375rem", padding: "0.3rem 0.75rem", cursor: "pointer" }}
                               >
                                 {importResult ? m.dev.close : m.dev.cancel}
                               </button>
                             </div>
                             {importResult && (
-                              <div style={{ fontSize: "0.8125rem", color: "#1C1B19", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                                <div style={{ color: "#1F4B4A" }}>✓ {importResult.created} unit type{importResult.created !== 1 ? "s" : ""} created</div>
+                              <div style={{ fontSize: "0.8125rem", color: "#123F40", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                                <div style={{ color: "#123F40" }}>✓ {importResult.created} unit type{importResult.created !== 1 ? "s" : ""} created</div>
                                 {importResult.updated > 0 && (
-                                  <div style={{ color: "#1F4B4A" }}>✓ {importResult.updated} unit type{importResult.updated !== 1 ? "s" : ""} updated</div>
+                                  <div style={{ color: "#123F40" }}>✓ {importResult.updated} unit type{importResult.updated !== 1 ? "s" : ""} updated</div>
                                 )}
                                 {importResult.skipped.length > 0 && (
                                   <div>
                                     <div style={{ color: "#A07020" }}>⚠ {importResult.skipped.length} row{importResult.skipped.length !== 1 ? "s" : ""} skipped:</div>
                                     {importResult.skipped.map((s, i) => (
-                                      <div key={i} style={{ color: "#6B6860", paddingLeft: "0.875rem" }}>Row {s.row}: {s.reason}</div>
+                                      <div key={i} style={{ color: "#526563", paddingLeft: "0.875rem" }}>Row {s.row}: {s.reason}</div>
                                     ))}
                                   </div>
                                 )}
@@ -767,11 +767,11 @@ export default function DevDashboardPage() {
                         )}
 
                         {/* Add unit type + import buttons */}
-                        <div style={{ borderTop: "1px solid #F0EDE8", padding: "0.875rem 1.375rem", display: "flex", gap: "0.625rem", flexWrap: "wrap" }}>
+                        <div style={{ borderTop: "1px solid #E9EEEA", padding: "0.875rem 1.375rem", display: "flex", gap: "0.625rem", flexWrap: "wrap" }}>
                           {addingUnitTypeToProjectId !== project.id && (
                             <button
                               onClick={() => startAddUnitType(project.id)}
-                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#1F4B4A", background: "none", border: "1px dashed #B8D4D3", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
+                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", background: "none", border: "1px dashed #B8D4D3", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
                             >
                               + Add unit type
                             </button>
@@ -779,7 +779,7 @@ export default function DevDashboardPage() {
                           {importingProjectId !== project.id && (
                             <button
                               onClick={() => startImport(project.id)}
-                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#6B6860", background: "none", border: "1px dashed #DDD9D3", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
+                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#526563", background: "none", border: "1px dashed #D4DED8", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
                             >
                               Import from Excel / CSV
                             </button>
@@ -798,40 +798,40 @@ export default function DevDashboardPage() {
         {tab === "reservations" && (
           <div>
             <SectionHeading>{m.dev.reservations}</SectionHeading>
-            {reservations.length === 0 && <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>No reservations yet — buyers will appear here when they reserve your units at the listed price.</p>}
+            {reservations.length === 0 && <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>No reservations yet — buyers will appear here when they reserve your units at the listed price.</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {reservations.map(reservation => {
                 const isComplete = reservation.depositPaid && !!reservation.buyerSignature && !!reservation.developerSignature;
                 const statusLabel = isComplete ? "Complete" : reservation.depositPaid ? "Awaiting signatures" : "Deposit pending";
-                const statusBg = isComplete ? "#E8F0EF" : reservation.depositPaid ? "#FBF4E4" : "#FAE8E8";
-                const statusColor = isComplete ? "#1F4B4A" : reservation.depositPaid ? "#C89B3C" : "#B04040";
+                const statusBg = isComplete ? "#E9EEEA" : reservation.depositPaid ? "#FCF2D9" : "#FBECEA";
+                const statusColor = isComplete ? "#123F40" : reservation.depositPaid ? "#756039" : "#9E3434";
                 return (
-                  <div key={reservation.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", overflow: "hidden" }}>
+                  <div key={reservation.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
                     <div style={{ padding: "1.25rem 1.375rem" }}>
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
-                            <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 700, color: "#1C1B19" }}>
+                            <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40" }}>
                               {reservation.unitType.project.name} — {reservation.unitType.unitLabel}
                             </span>
-                            <span style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: statusBg, color: statusColor }}>
+                            <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: statusBg, color: statusColor }}>
                               {statusLabel}
                             </span>
                           </div>
-                          <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem", color: "#6B6860" }}>
-                            Buyer: <strong style={{ color: "#1C1B19" }}>{reservation.buyer.email}</strong>
+                          <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem", color: "#526563" }}>
+                            Buyer: <strong style={{ color: "#123F40" }}>{reservation.buyer.email}</strong>
                           </p>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: "0.6875rem", color: "#6B6860", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Reserved price</div>
-                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 700, color: "#1F4B4A" }}><Money amount={reservation.offeredPrice} /></div>
+                          <div style={{ fontSize: "0.6875rem", color: "#526563", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Reserved price</div>
+                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "#123F40" }}><Money amount={reservation.offeredPrice} /></div>
                           <EstimatedPriceNote />
                         </div>
                       </div>
                       <div style={{ marginTop: "1rem", display: "flex", gap: "0.625rem", flexWrap: "wrap", alignItems: "center" }}>
                         <Link
                           href={`/deal/${reservation.id}`}
-                          style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", fontSize: "0.8125rem", fontWeight: 700, textDecoration: "none" }}
+                          style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
                         >
                           View Deal Room →
                         </Link>
@@ -839,7 +839,7 @@ export default function DevDashboardPage() {
                           <button
                             type="button"
                             onClick={() => void releaseReservation(reservation.id)}
-                            style={{ padding: "0.5rem 0.875rem", borderRadius: 999, border: "1px solid #E7C9C9", background: "#fff", color: "#8C3030", fontSize: "0.8125rem", fontWeight: 700, cursor: "pointer" }}
+                            style={{ padding: "0.5rem 0.875rem", borderRadius: 999, border: "1px solid #E7C9C9", background: "#fff", color: "#8C3030", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
                           >
                             {m.dev.releaseHold}
                           </button>
@@ -858,44 +858,44 @@ export default function DevDashboardPage() {
         {tab === "groups" && (
           <div>
             <SectionHeading>{m.dev.groups}</SectionHeading>
-            {groups.length === 0 && <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>No group offers received yet.</p>}
+            {groups.length === 0 && <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>No group offers received yet.</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {groups.map(group => {
                 const canAct = group.status === "pending" || group.status === "countered";
                 const listingLabel = `${group.unitType.project.name} — ${group.unitType.unitLabel}`;
                 return (
-                  <div key={group.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", overflow: "hidden" }}>
+                  <div key={group.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
                     <div style={{ padding: "1.25rem 1.375rem" }}>
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", background: "#E8F0EF", borderRadius: "999px", padding: "0.2rem 0.625rem 0.2rem 0.375rem" }}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1F4B4A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", background: "#E9EEEA", borderRadius: "999px", padding: "0.2rem 0.625rem 0.2rem 0.375rem" }}>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                               </svg>
-                              <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem", fontWeight: 700, color: "#1F4B4A" }}>{group.memberCount} buyers</span>
+                              <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem", fontWeight: 600, color: "#123F40" }}>{group.memberCount} buyers</span>
                             </div>
-                            <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 700, color: "#1C1B19" }}>{listingLabel}</span>
+                            <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40" }}>{listingLabel}</span>
                             <StatusBadge status={group.status} map={OFFER_STATUS} />
                           </div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: "0.6875rem", color: "#6B6860", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Requested discount</div>
-                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 700, color: "#C89B3C" }}>{group.requestedDiscountPercent}%</div>
+                          <div style={{ fontSize: "0.6875rem", color: "#526563", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Requested discount</div>
+                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "#756039" }}>{group.requestedDiscountPercent}%</div>
                         </div>
                       </div>
 
-                      <p style={{ margin: "0.75rem 0 0", fontSize: "0.875rem", color: "#1C1B19", background: "#F7F5F1", borderRadius: "0.375rem", padding: "0.625rem 0.75rem", lineHeight: 1.55 }}>
+                      <p style={{ margin: "0.75rem 0 0", fontSize: "0.875rem", color: "#123F40", background: "#F4F5F0", borderRadius: "0.375rem", padding: "0.625rem 0.75rem", lineHeight: 1.55 }}>
                         {group.requestedTerms}
                       </p>
 
                       {group.counterDiscountPercent != null && (
-                        <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#FBF4E4", borderRadius: "0.5rem", borderLeft: "3px solid #C89B3C" }}>
-                          <div style={{ fontSize: "0.6875rem", fontWeight: 700, color: "#C89B3C", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
+                        <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#FCF2D9", borderRadius: "0.5rem", borderLeft: "3px solid #756039" }}>
+                          <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#756039", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
                             Your counter — {group.counterDiscountPercent}% discount
                           </div>
-                          <p style={{ margin: 0, fontSize: "0.875rem", color: "#1C1B19" }}>{group.counterTerms}</p>
+                          <p style={{ margin: 0, fontSize: "0.875rem", color: "#123F40" }}>{group.counterTerms}</p>
                         </div>
                       )}
 
@@ -914,8 +914,8 @@ export default function DevDashboardPage() {
                     </div>
 
                     {counteringGroupId === group.id && (
-                      <div style={{ borderTop: "1px solid #F0EDE8", padding: "1.125rem 1.375rem", background: "#FDFCFB", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#C89B3C" }}>Counter offer</div>
+                      <div style={{ borderTop: "1px solid #E9EEEA", padding: "1.125rem 1.375rem", background: "#FDFCFB", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                        <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#756039" }}>Counter offer</div>
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "10rem 1fr", gap: "0.75rem" }}>
                           <FormField label="Counter discount %">
                             <input type="number" step="0.5" value={groupCounter.counterDiscountPercent} onChange={e => setGroupCounter(f => ({ ...f, counterDiscountPercent: e.target.value }))}
@@ -965,7 +965,7 @@ function UnitTypeForm({
 
   return (
     <div style={{ padding: "1.25rem 1.375rem", background: "#FDFCFB" }}>
-      <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#C89B3C", marginBottom: "1rem" }}>
+      <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#756039", marginBottom: "1rem" }}>
         {isEdit ? "Edit unit type" : "Add unit type"}
       </div>
       <div className="hn-dev-unit-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.875rem" }}>

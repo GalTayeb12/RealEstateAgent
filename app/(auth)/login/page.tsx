@@ -103,7 +103,7 @@ export default function LoginPage() {
             <div className="hq-note hq-note--gold">
               <p style={{ margin: "0 0 0.5rem" }}>{m.auth.verifyBody}</p>
               {resendState === "sent" ? (
-                <p style={{ margin: 0, color: "var(--hq-teal)", fontWeight: 700 }}>{m.auth.resentBody}</p>
+                <p style={{ margin: 0, color: "var(--hq-teal)", fontWeight: 600 }}>{m.auth.resentBody}</p>
               ) : (
                 <button type="button" className="hq-inline" onClick={handleResend} disabled={resendState === "sending"}>
                   {resendState === "sending" ? m.auth.resending : m.auth.resend}

@@ -59,24 +59,24 @@ type Tab = "projects" | "offers";
 // ── Status helpers ─────────────────────────────────────────────────────────────
 
 const AOM_STATUS: Record<string, { label: string; bg: string; color: string }> = {
-  available:      { label: "Available",      bg: "#E8F0EF", color: "#1F4B4A" },
-  in_negotiation: { label: "In negotiation", bg: "#FBF4E4", color: "#C89B3C" },
-  sold:           { label: "Sold",           bg: "#F0EDE8", color: "#6B6860" },
+  available:      { label: "Available",      bg: "#E9EEEA", color: "#123F40" },
+  in_negotiation: { label: "In negotiation", bg: "#FCF2D9", color: "#756039" },
+  sold:           { label: "Sold",           bg: "#E9EEEA", color: "#526563" },
 };
 
 const OFFER_STATUS: Record<string, { label: string; bg: string; color: string }> = {
-  pending:   { label: "Pending",   bg: "#FBF4E4", color: "#C89B3C" },
-  countered: { label: "Countered", bg: "#FBF4E4", color: "#C89B3C" },
-  accepted:  { label: "Accepted",  bg: "#E8F0EF", color: "#1F4B4A" },
-  rejected:  { label: "Rejected",  bg: "#FAE8E8", color: "#B04040" },
+  pending:   { label: "Pending",   bg: "#FCF2D9", color: "#756039" },
+  countered: { label: "Countered", bg: "#FCF2D9", color: "#756039" },
+  accepted:  { label: "Accepted",  bg: "#E9EEEA", color: "#123F40" },
+  rejected:  { label: "Rejected",  bg: "#FBECEA", color: "#9E3434" },
 };
 
 // ── Reusable sub-components ───────────────────────────────────────────────────
 
 function StatusBadge({ status, map }: { status: string; map: Record<string, { label: string; bg: string; color: string }> }) {
-  const s = map[status] ?? { label: status, bg: "#F0EDE8", color: "#6B6860" };
+  const s = map[status] ?? { label: status, bg: "#E9EEEA", color: "#526563" };
   return (
-    <span style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: s.bg, color: s.color }}>
+    <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: s.bg, color: s.color }}>
       {s.label}
     </span>
   );
@@ -84,7 +84,7 @@ function StatusBadge({ status, map }: { status: string; map: Record<string, { la
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 700, color: "#1C1B19", margin: "0 0 1rem" }}>
+    <h2 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 600, color: "#123F40", margin: "0 0 1rem" }}>
       {children}
     </h2>
   );
@@ -92,9 +92,9 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 function ActionButton({ onClick, disabled, variant, children }: { onClick: () => void; disabled?: boolean; variant: "primary" | "ghost" | "danger"; children: React.ReactNode }) {
   const styles: Record<string, React.CSSProperties> = {
-    primary: { background: "#1F4B4A", color: "#fff", border: "1px solid #1F4B4A" },
-    ghost:   { background: "transparent", color: "#6B6860", border: "1px solid #DDD9D3" },
-    danger:  { background: "transparent", color: "#B04040", border: "1px solid #B04040" },
+    primary: { background: "#123F40", color: "#fff", border: "1px solid #123F40" },
+    ghost:   { background: "transparent", color: "#526563", border: "1px solid #D4DED8" },
+    danger:  { background: "transparent", color: "#9E3434", border: "1px solid #9E3434" },
   };
   return (
     <button
@@ -110,14 +110,14 @@ function ActionButton({ onClick, disabled, variant, children }: { onClick: () =>
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-      <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#6B6860" }}>{label}</label>
+      <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>{label}</label>
       {children}
     </div>
   );
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "#F0EDE8", border: "1px solid #DDD9D3", borderRadius: "0.4rem",
+  background: "#E9EEEA", border: "1px solid #D4DED8", borderRadius: "0.4rem",
   padding: "0.5rem 0.75rem", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box",
 };
 
@@ -142,7 +142,7 @@ function UnitTypeForm({
 
   return (
     <div style={{ padding: "1.25rem 1.375rem", background: "#FDFCFB" }}>
-      <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#C89B3C", marginBottom: "1rem" }}>
+      <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#756039", marginBottom: "1rem" }}>
         {isEdit ? "Edit unit type" : "Add unit type"}
       </div>
       <div className="hn-dev-unit-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.875rem" }}>
@@ -368,7 +368,7 @@ export default function SellerDashboardPage() {
   const totalProjects = projects.length;
 
   return (
-    <main style={{ minHeight: "100vh", background: "#F7F5F1", fontFamily: "var(--font-inter, sans-serif)" }}>
+    <main style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, sans-serif)" }}>
       <style>{`
         @media (max-width: 640px) {
           .hn-dev-topbar-inner { flex-wrap: wrap; gap: 0.5rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
@@ -379,21 +379,21 @@ export default function SellerDashboardPage() {
       `}</style>
 
       {/* Top bar */}
-      <div style={{ background: "#fff", borderBottom: "1px solid #DDD9D3", position: "sticky", top: "3.25rem", zIndex: 10 }}>
-        <div className="hn-dev-topbar-inner" style={{ maxWidth: "62rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "3.25rem" }}>
-          <span style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#1C1B19" }}>
+      <div style={{ background: "#fff", borderBottom: "1px solid #D4DED8", position: "sticky", top: "3.25rem", zIndex: 10 }}>
+        <div className="hn-dev-topbar-inner" style={{ maxWidth: "75rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "3.25rem" }}>
+          <span style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#123F40" }}>
             {profile.name ?? profile.email}
           </span>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <span style={{ fontSize: "0.75rem", color: "#6B6860" }}>{profile.phone}</span>
-            <span style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: "#E8F0EF", color: "#1F4B4A" }}>
+            <span style={{ fontSize: "0.75rem", color: "#526563" }}>{profile.phone}</span>
+            <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: "#E9EEEA", color: "#123F40" }}>
               Seller
             </span>
           </div>
         </div>
 
         {/* Tab nav */}
-        <div style={{ maxWidth: "62rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", gap: 0 }}>
+        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", gap: 0 }}>
           {([
             ["projects", "My Projects",     totalProjects],
             ["offers",   "Incoming Offers", pendingOffers > 0 ? pendingOffers : offers.length],
@@ -404,19 +404,19 @@ export default function SellerDashboardPage() {
               style={{
                 padding: "0.75rem 1.25rem", border: "none", background: "none",
                 fontSize: "0.9375rem", fontWeight: tab === key ? 600 : 400,
-                color: tab === key ? "#1F4B4A" : "#6B6860",
-                borderBottom: tab === key ? "2px solid #1F4B4A" : "2px solid transparent",
+                color: tab === key ? "#123F40" : "#526563",
+                borderBottom: tab === key ? "2px solid #123F40" : "2px solid transparent",
                 cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem",
               }}
             >
               {label}
               {count > 0 && (
                 <span style={{
-                  fontSize: "0.6875rem", fontWeight: 700, minWidth: "1.25rem", height: "1.25rem",
+                  fontSize: "0.6875rem", fontWeight: 600, minWidth: "1.25rem", height: "1.25rem",
                   display: "inline-flex", alignItems: "center", justifyContent: "center",
                   borderRadius: "999px", padding: "0 0.3rem",
-                  background: tab === key ? "#1F4B4A" : "#E8E4DF",
-                  color: tab === key ? "#fff" : "#6B6860",
+                  background: tab === key ? "#123F40" : "#E8E4DF",
+                  color: tab === key ? "#fff" : "#526563",
                 }}>
                   {count}
                 </span>
@@ -427,7 +427,7 @@ export default function SellerDashboardPage() {
       </div>
 
       {/* Content */}
-      <div style={{ maxWidth: "62rem", margin: "0 auto", padding: "2rem 1.5rem" }}>
+      <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "2rem 1.5rem" }}>
 
         {/* ── MY PROJECTS ── */}
         {tab === "projects" && (
@@ -436,15 +436,15 @@ export default function SellerDashboardPage() {
               <SectionHeading>My Projects</SectionHeading>
               <button
                 onClick={() => { setShowProjectForm(true); setProjectForm(blankProjectForm); }}
-                style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", background: "#1F4B4A", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer" }}
+                style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", background: "#123F40", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer" }}
               >
                 + New listing
               </button>
             </div>
 
             {showProjectForm && (
-              <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", borderTop: "3px solid #C89B3C", padding: "1.5rem", marginBottom: "1.25rem" }}>
-                <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 700, color: "#1C1B19", margin: "0 0 1rem" }}>New project</h3>
+              <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", borderTop: "3px solid #756039", padding: "1.5rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 600, color: "#123F40", margin: "0 0 1rem" }}>New project</h3>
                 <div className="hn-dev-proj-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div style={{ gridColumn: "1 / -1" }}>
                     <FormField label="Project name">
@@ -466,7 +466,7 @@ export default function SellerDashboardPage() {
             )}
 
             {projects.length === 0 && !showProjectForm && (
-              <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>No listings yet — create your first listing above.</p>
+              <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>No listings yet — create your first listing above.</p>
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -476,35 +476,35 @@ export default function SellerDashboardPage() {
                 const availableCount = activeUnitTypes.filter(ut => ut.aomStatus === "available").length;
 
                 return (
-                  <div key={project.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #DDD9D3", overflow: "hidden" }}>
+                  <div key={project.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
                     <button
                       onClick={() => toggleExpand(project.id)}
                       style={{ width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer", padding: "1.25rem 1.375rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}
                     >
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
-                          <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 700, color: "#1C1B19" }}>{project.name}</span>
+                          <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40" }}>{project.name}</span>
                         </div>
                         {project.location && (
-                          <p style={{ margin: "0.2rem 0 0", fontSize: "0.875rem", color: "#6B6860" }}>{project.location}</p>
+                          <p style={{ margin: "0.2rem 0 0", fontSize: "0.875rem", color: "#526563" }}>{project.location}</p>
                         )}
-                        <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "#9A958F" }}>
+                        <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>
                           {project.unitTypes.length === 0
                             ? "No unit types yet"
                             : `${project.unitTypes.length} unit type${project.unitTypes.length !== 1 ? "s" : ""}${availableCount > 0 ? ` · ${availableCount} available` : ""}`
                           }
                         </p>
                       </div>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9A958F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#526563" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                         style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s", flexShrink: 0 }}>
                         <polyline points="6 9 12 15 18 9" />
                       </svg>
                     </button>
 
                     {isExpanded && (
-                      <div style={{ borderTop: "1px solid #F0EDE8" }}>
+                      <div style={{ borderTop: "1px solid #E9EEEA" }}>
                         {project.unitTypes.length === 0 ? (
-                          <p style={{ padding: "1rem 1.375rem", fontSize: "0.875rem", color: "#9A958F", margin: 0 }}>No unit types yet — add one below.</p>
+                          <p style={{ padding: "1rem 1.375rem", fontSize: "0.875rem", color: "#526563", margin: 0 }}>No unit types yet — add one below.</p>
                         ) : (
                           <div>
                             {project.unitTypes.map((ut, idx) => {
@@ -513,35 +513,35 @@ export default function SellerDashboardPage() {
                               return (
                                 <div key={ut.id} style={{
                                   padding: "1rem 1.375rem",
-                                  borderTop: idx === 0 ? "none" : "1px solid #F7F5F1",
+                                  borderTop: idx === 0 ? "none" : "1px solid #F4F5F0",
                                   display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem",
                                   background: ut.active ? "transparent" : "#FDFCFB",
                                 }}>
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                                      <span style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#1F4B4A", background: "#E8F0EF", padding: "0.15rem 0.5rem", borderRadius: "0.25rem" }}>
+                                      <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", background: "#E9EEEA", padding: "0.15rem 0.5rem", borderRadius: "0.25rem" }}>
                                         {ut.unitLabel}
                                       </span>
                                       {ut.price > 0 && (
-                                        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 700, color: "#1C1B19" }}>
+                                        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40" }}>
                                           <Money amount={ut.price} />
                                         </span>
                                       )}
                                       {ut.quantityTotal > 0 && (
-                                        <span style={{ fontSize: "0.8125rem", color: "#6B6860" }}>
+                                        <span style={{ fontSize: "0.8125rem", color: "#526563" }}>
                                           {ut.quantityAvailable}/{ut.quantityTotal} avail.
                                         </span>
                                       )}
                                       <StatusBadge status={ut.aomStatus} map={AOM_STATUS} />
                                     </div>
                                     {ut.description && (
-                                      <p style={{ margin: "0.25rem 0 0", fontSize: "0.8125rem", color: "#6B6860" }}>{ut.description}</p>
+                                      <p style={{ margin: "0.25rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>{ut.description}</p>
                                     )}
-                                    <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", color: "#6B6860" }}>
-                                      <span>Min. match <strong style={{ color: "#1C1B19" }}>{ut.eil}</strong></span>
-                                      <span>Target match <strong style={{ color: "#1C1B19" }}>{ut.ail}</strong></span>
+                                    <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", color: "#526563" }}>
+                                      <span>Min. match <strong style={{ color: "#123F40" }}>{ut.eil}</strong></span>
+                                      <span>Target match <strong style={{ color: "#123F40" }}>{ut.ail}</strong></span>
                                       {Object.entries(attrs).slice(0, 3).map(([k, v]) => (
-                                        <span key={k}>{k} <strong style={{ color: "#1C1B19" }}>{String(v)}</strong></span>
+                                        <span key={k}>{k} <strong style={{ color: "#123F40" }}>{String(v)}</strong></span>
                                       ))}
                                     </div>
                                   </div>
@@ -555,7 +555,7 @@ export default function SellerDashboardPage() {
                         )}
 
                         {addingUnitTypeToProjectId === project.id && (
-                          <div style={{ borderTop: "1px solid #F0EDE8" }}>
+                          <div style={{ borderTop: "1px solid #E9EEEA" }}>
                             <UnitTypeForm
                               form={unitTypeForm}
                               setForm={setUnitTypeForm}
@@ -567,10 +567,10 @@ export default function SellerDashboardPage() {
                         )}
 
                         {addingUnitTypeToProjectId !== project.id && (
-                          <div style={{ borderTop: "1px solid #F0EDE8", padding: "0.875rem 1.375rem" }}>
+                          <div style={{ borderTop: "1px solid #E9EEEA", padding: "0.875rem 1.375rem" }}>
                             <button
                               onClick={() => startAddUnitType(project.id)}
-                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#1F4B4A", background: "none", border: "1px dashed #B8D4D3", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
+                              style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", background: "none", border: "1px dashed #B8D4D3", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
                             >
                               + Add unit type
                             </button>
@@ -589,7 +589,7 @@ export default function SellerDashboardPage() {
         {tab === "offers" && (
           <div>
             <SectionHeading>Incoming Offers</SectionHeading>
-            {offers.length === 0 && <p style={{ color: "#6B6860", textAlign: "center", padding: "3rem 0" }}>No offers received yet.</p>}
+            {offers.length === 0 && <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>No offers received yet.</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {offers.map(offer => {
                 const canAct = offer.status === "pending";
@@ -597,15 +597,15 @@ export default function SellerDashboardPage() {
                 const listingLabel = `${offer.unitType.project.name} — ${offer.unitType.unitLabel}`;
                 const dealComplete = offer.status === "accepted" && !!offer.buyerSignature && !!offer.developerSignature;
                 return (
-                  <div key={offer.id} style={{ background: "#fff", borderRadius: "0.875rem", border: `${dealComplete ? "2px" : "1px"} solid ${dealComplete ? "#C89B3C" : "#DDD9D3"}`, overflow: "hidden", borderTop: dealComplete ? "4px solid #C89B3C" : undefined }}>
+                  <div key={offer.id} style={{ background: "#fff", borderRadius: "0.875rem", border: `${dealComplete ? "2px" : "1px"} solid ${dealComplete ? "#756039" : "#D4DED8"}`, overflow: "hidden", borderTop: dealComplete ? "4px solid #756039" : undefined }}>
                     <div style={{ padding: "1.25rem 1.375rem" }}>
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
-                            <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 700, color: "#1C1B19" }}>{listingLabel}</span>
+                            <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40" }}>{listingLabel}</span>
                             {dealComplete ? (
-                              <span style={{ fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: "#FBF4E4", color: "#C89B3C", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#1F4B4A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: "#FCF2D9", color: "#756039", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#123F40" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                                   <polyline points="1.5 6 4.5 9 10.5 3"/>
                                 </svg>
                                 Deal complete
@@ -614,50 +614,50 @@ export default function SellerDashboardPage() {
                               <StatusBadge status={offer.status} map={OFFER_STATUS} />
                             )}
                           </div>
-                          <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem", color: "#6B6860" }}>
-                            From <strong style={{ color: "#1C1B19" }}>{offer.buyer.email}</strong>
+                          <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem", color: "#526563" }}>
+                            From <strong style={{ color: "#123F40" }}>{offer.buyer.email}</strong>
                           </p>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: "0.6875rem", color: "#6B6860", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Offered price</div>
-                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 700, color: "#1F4B4A" }}><Money amount={offer.offeredPrice} /><EstimatedPriceNote /></div>
+                          <div style={{ fontSize: "0.6875rem", color: "#526563", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Offered price</div>
+                          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "#123F40" }}><Money amount={offer.offeredPrice} /><EstimatedPriceNote /></div>
                           {offer.matchScore != null && (
-                            <div style={{ fontSize: "0.75rem", color: "#6B6860", marginTop: "0.25rem" }}>
-                              Match score: <strong style={{ color: "#1C1B19" }}>{offer.matchScore.toFixed(1)}</strong>
+                            <div style={{ fontSize: "0.75rem", color: "#526563", marginTop: "0.25rem" }}>
+                              Match score: <strong style={{ color: "#123F40" }}>{offer.matchScore.toFixed(1)}</strong>
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <p style={{ margin: "0.75rem 0 0", fontSize: "0.875rem", color: "#1C1B19", background: "#F7F5F1", borderRadius: "0.375rem", padding: "0.625rem 0.75rem", lineHeight: 1.55 }}>
+                      <p style={{ margin: "0.75rem 0 0", fontSize: "0.875rem", color: "#123F40", background: "#F4F5F0", borderRadius: "0.375rem", padding: "0.625rem 0.75rem", lineHeight: 1.55 }}>
                         {offer.terms}
                       </p>
 
                       {(offer.roundNumber ?? 0) >= 2 && offer.status === "pending" && (
-                        <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#EAF3F2", borderRadius: "0.5rem", borderLeft: "3px solid #1F4B4A" }}>
-                          <div style={{ fontSize: "0.6875rem", fontWeight: 700, color: "#1F4B4A", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
+                        <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#EAF3F2", borderRadius: "0.5rem", borderLeft: "3px solid #123F40" }}>
+                          <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#123F40", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
                             <Money amount={offer.offeredPrice} />
                           </div>
-                          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#6B6860", fontStyle: "italic" }}>
+                          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#526563", fontStyle: "italic" }}>
                             Final round — accept or reject only
                           </p>
                         </div>
                       )}
 
                       {offer.counterPrice != null && (
-                        <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#FBF4E4", borderRadius: "0.5rem", borderLeft: "3px solid #C89B3C" }}>
-                          <div style={{ fontSize: "0.6875rem", fontWeight: 700, color: "#C89B3C", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
+                        <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#FCF2D9", borderRadius: "0.5rem", borderLeft: "3px solid #756039" }}>
+                          <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#756039", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
                             <Money amount={offer.counterPrice ?? 0} />
                           </div>
-                          <p style={{ margin: 0, fontSize: "0.875rem", color: "#1C1B19" }}>{offer.counterTerms}</p>
+                          <p style={{ margin: 0, fontSize: "0.875rem", color: "#123F40" }}>{offer.counterTerms}</p>
                           {offer.counterExplanation && (
-                            <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "#6B6860", fontStyle: "italic" }}>&ldquo;{offer.counterExplanation}&rdquo;</p>
+                            <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "#526563", fontStyle: "italic" }}>&ldquo;{offer.counterExplanation}&rdquo;</p>
                           )}
                         </div>
                       )}
 
                       {awaitingBuyer && (
-                        <div style={{ marginTop: "1rem", padding: "0.625rem 0.875rem", background: "#EAF3F2", borderRadius: "0.5rem", border: "1px solid #C0DBD9", fontSize: "0.8125rem", color: "#1F4B4A", fontWeight: 500 }}>
+                        <div style={{ marginTop: "1rem", padding: "0.625rem 0.875rem", background: "#EAF3F2", borderRadius: "0.5rem", border: "1px solid #C0DBD9", fontSize: "0.8125rem", color: "#123F40", fontWeight: 500 }}>
                           Awaiting buyer&apos;s response to your counter…
                         </div>
                       )}
@@ -666,7 +666,7 @@ export default function SellerDashboardPage() {
                         <div style={{ marginTop: "1rem" }}>
                           <Link
                             href={`/deal/${offer.id}`}
-                            style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #2F6664, #123332)", color: "#fff", fontSize: "0.8125rem", fontWeight: 700, textDecoration: "none" }}
+                            style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
                           >
                             {dealComplete ? "View signed contract →" : "View Deal Room →"}
                           </Link>
@@ -690,8 +690,8 @@ export default function SellerDashboardPage() {
                     </div>
 
                     {counteringOfferId === offer.id && (offer.roundNumber ?? 0) < 2 && (
-                      <div style={{ borderTop: "1px solid #F0EDE8", padding: "1.125rem 1.375rem", background: "#FDFCFB", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", color: "#C89B3C" }}>Counter offer</div>
+                      <div style={{ borderTop: "1px solid #E9EEEA", padding: "1.125rem 1.375rem", background: "#FDFCFB", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                        <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#756039" }}>Counter offer</div>
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "8rem 1fr", gap: "0.75rem" }}>
                           <FormField label="מחיר נגד (₪) / Counter (ILS)">
                             <input type="number" step={1000} value={offerCounter.counterPrice} onChange={e => setOfferCounter(f => ({ ...f, counterPrice: e.target.value }))}

@@ -29,11 +29,9 @@ interface RateLimit {
 }
 
 const glass: React.CSSProperties = {
-  background: "rgba(8, 20, 32, 0.72)",
-  border: "1px solid rgba(255,255,255,0.12)",
-  borderRadius: 20,
-  backdropFilter: "blur(18px) saturate(1.3)",
-  boxShadow: "0 24px 48px -28px rgba(0,0,0,0.65)",
+  background: "#FFFFFF",
+  border: "1px solid #D4DED8",
+  borderRadius: 16,
 };
 
 function textOf(value: unknown): string {
@@ -145,10 +143,10 @@ export default function ProfilePage() {
   const field: React.CSSProperties = {
     width: "100%",
     padding: "0.7rem 0.9rem",
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(255,255,255,0.06)",
-    color: "#F4F7F8",
+    borderRadius: 8,
+    border: "1px solid #718580",
+    background: "#FFFFFF",
+    color: "#123F40",
     fontSize: "1rem",
     fontFamily: "inherit",
     outline: "none",
@@ -158,15 +156,15 @@ export default function ProfilePage() {
   return (
     <main style={{
       minHeight: "100vh",
-      background: "radial-gradient(70% 50% at 100% 0%, rgba(47,102,100,0.35), transparent 55%), radial-gradient(50% 40% at 0% 100%, rgba(200,155,60,0.12), transparent 50%), #071018",
-      color: "#F4F7F8",
+      background: "#F4F5F0",
+      color: "#123F40",
       fontFamily: "var(--font-heebo, var(--font-inter, sans-serif))",
       padding: "2.5rem 1.25rem 5rem",
     }}>
       {toast && (
         <div style={{
           position: "fixed", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
-          background: "rgba(8,20,32,0.92)", color: "#F4F7F8", border: "1px solid rgba(200,155,60,0.45)",
+          background: "#FFFFFF", color: "#123F40", border: "1px solid #D4DED8",
           borderRadius: 999, padding: "0.7rem 1.15rem", zIndex: 50, fontWeight: 600,
         }}>
           {m.profile.saved}
@@ -174,46 +172,45 @@ export default function ProfilePage() {
       )}
 
       <div style={{ maxWidth: "40rem", margin: "0 auto" }}>
-        <div style={{ fontSize: "0.75rem", letterSpacing: "0.16em", textTransform: "uppercase", color: "#C89B3C", fontWeight: 700, marginBottom: "0.4rem" }}>
+        <div style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, marginBottom: "0.4rem" }}>
           {m.profile.kicker}
         </div>
-        <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.1rem", fontWeight: 700, margin: "0 0 0.4rem" }}>
+        <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.1rem", fontWeight: 600, margin: "0 0 0.4rem" }}>
           {m.profile.title}
         </h1>
-        <p style={{ margin: "0 0 1.5rem", color: "#9AAAB8" }}>{m.profile.subtitle}</p>
+        <p style={{ margin: "0 0 1.5rem", color: "#526563", lineHeight: 1.7 }}>{m.profile.subtitle}</p>
 
-        {loading && <div style={{ color: "#9AAAB8" }}>{m.common.loading}</div>}
-        {error && <div style={{ color: "#F0A8A8", marginBottom: "1rem" }}>{error}</div>}
+        {loading && <div style={{ color: "#526563" }}>{m.common.loading}</div>}
+        {error && <div role="alert" style={{ color: "#9E3434", background: "#FBECEA", borderRadius: 8, padding: "0.75rem 1rem", marginBottom: "1rem" }}>{error}</div>}
 
         {!loading && profile && (
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <section style={{ ...glass, padding: "1.25rem 1.35rem" }}>
-              <label style={{ display: "block", fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.35rem" }}>{m.profile.email}</label>
-              <input value={profile.email} readOnly style={{ ...field, color: "#C5CDD4" }} />
+              <label style={{ display: "block", fontSize: "0.875rem", color: "#526563", marginBottom: "0.35rem" }}>{m.profile.email}</label>
+              <input value={profile.email} readOnly style={{ ...field, background: "#E9EEEA", color: "#526563" }} />
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginTop: "0.9rem" }} className="hn-profile-grid">
                 <div>
-                  <label style={{ display: "block", fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.35rem" }}>{m.profile.name}</label>
+                  <label style={{ display: "block", fontSize: "0.875rem", color: "#526563", marginBottom: "0.35rem" }}>{m.profile.name}</label>
                   <input value={name} onChange={(e) => setName(e.target.value)} style={field} />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.35rem" }}>{m.profile.phone}</label>
+                  <label style={{ display: "block", fontSize: "0.875rem", color: "#526563", marginBottom: "0.35rem" }}>{m.profile.phone}</label>
                   <input value={phone} onChange={(e) => setPhone(e.target.value)} style={field} />
                 </div>
               </div>
 
               <div style={{ marginTop: "0.9rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.35rem" }}>{m.profile.role}</div>
+                  <div style={{ fontSize: "0.875rem", color: "#526563", marginBottom: "0.35rem" }}>{m.profile.role}</div>
                   <span style={{
                     display: "inline-flex",
                     padding: "0.2rem 0.7rem",
                     borderRadius: 999,
-                    background: "rgba(200,155,60,0.16)",
-                    color: "#E4C27A",
-                    border: "1px solid rgba(200,155,60,0.35)",
+                    background: "#FCF2D9",
+                    color: "#785716",
                     fontSize: "0.8125rem",
-                    fontWeight: 700,
+                    fontWeight: 500,
                   }}>
                     {roleLabel[profile.role] ?? profile.role}
                   </span>
@@ -226,9 +223,10 @@ export default function ProfilePage() {
                     border: "none",
                     borderRadius: 999,
                     padding: "0.6rem 1.1rem",
-                    background: "linear-gradient(155deg, #2F6664, #123332)",
-                    color: "#fff",
-                    fontWeight: 700,
+                    background: saving ? "#E0E5E1" : "#123F40",
+                    color: saving ? "#596963" : "#fff",
+                    minHeight: 48,
+                    fontWeight: 600,
                     cursor: saving ? "wait" : "pointer",
                   }}
                 >
@@ -239,11 +237,11 @@ export default function ProfilePage() {
 
             {profile.role === "buyer" && (
               <section style={{ ...glass, padding: "1.25rem 1.35rem" }}>
-                <div style={{ fontSize: "0.75rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "#7EB8B6", fontWeight: 700, marginBottom: "0.9rem" }}>
+                <div style={{ fontSize: "1rem", color: "#123F40", fontWeight: 500, marginBottom: "0.9rem" }}>
                   {m.profile.interviewTitle}
                 </div>
                 {!prefs ? (
-                  <p style={{ margin: 0, color: "#9AAAB8" }}>{m.profile.interviewEmpty}</p>
+                  <p style={{ margin: 0, color: "#526563", lineHeight: 1.7 }}>{m.profile.interviewEmpty}</p>
                 ) : (
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem 1.25rem" }}>
                     {([
@@ -252,12 +250,12 @@ export default function ProfilePage() {
                       [m.profile.rooms, rooms],
                     ] as const).map(([label, value]) => (
                       <div key={label}>
-                        <div style={{ fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.2rem" }}>{label}</div>
-                        <div style={{ fontWeight: 650 }}>{value || m.profile.none}</div>
+                        <div style={{ fontSize: "0.875rem", color: "#526563", marginBottom: "0.2rem" }}>{label}</div>
+                        <div style={{ fontWeight: 500 }}>{value || m.profile.none}</div>
                       </div>
                     ))}
                     <div style={{ gridColumn: "1 / -1" }}>
-                      <div style={{ fontSize: "0.75rem", color: "#9AAAB8", marginBottom: "0.4rem" }}>{m.profile.matters}</div>
+                      <div style={{ fontSize: "0.875rem", color: "#526563", marginBottom: "0.4rem" }}>{m.profile.matters}</div>
                       {matters.length === 0 ? (
                         <div>{m.profile.none}</div>
                       ) : (
@@ -266,8 +264,9 @@ export default function ProfilePage() {
                             <span key={item} style={{
                               padding: "0.25rem 0.65rem",
                               borderRadius: 999,
-                              background: "rgba(255,255,255,0.08)",
-                              border: "1px solid rgba(255,255,255,0.12)",
+                              background: "#E9EEEA",
+                              border: "1px solid #D4DED8",
+                              color: "#123F40",
                               fontSize: "0.875rem",
                             }}>{item}</span>
                           ))}
@@ -278,7 +277,7 @@ export default function ProfilePage() {
                 )}
 
                 <div style={{ marginTop: "1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
-                  <div style={{ fontSize: "0.8125rem", color: "#9AAAB8" }}>
+                  <div style={{ fontSize: "0.875rem", color: "#526563" }}>
                     {rate
                       ? (rate.remaining === 0
                         ? m.profile.quotaBlocked
@@ -294,11 +293,12 @@ export default function ProfilePage() {
                     }}
                     style={{
                       borderRadius: 999,
-                      border: "1px solid rgba(200,155,60,0.45)",
-                      background: canRedo ? "rgba(200,155,60,0.16)" : "transparent",
-                      color: canRedo ? "#E4C27A" : "#6E7C88",
+                      border: "1px solid transparent",
+                      background: canRedo ? "#123F40" : "#E0E5E1",
+                      color: canRedo ? "#FFFFFF" : "#596963",
+                      minHeight: 48,
                       padding: "0.55rem 1rem",
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: canRedo ? "pointer" : "not-allowed",
                     }}
                   >

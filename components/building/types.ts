@@ -8,6 +8,12 @@ export interface ExplorerUnit {
   unitTypeId: string;
   unitLabel: string;
   listPrice: number;
+  /**
+   * true  = unit type confirms there is a balcony
+   * false = unit type confirms there is no balcony
+   * undefined = no data (building renders with isSample fallback)
+   */
+  hasBalcony?: boolean;
 }
 
 export interface ExplorerBuilding {

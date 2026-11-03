@@ -43,12 +43,12 @@ interface MatchedUnit {
 const STATUS: Record<string, { label: string; bg: string; color: string }> = {
   pending: {
     label: "Pending developer response",
-    bg: "#FBF4E4",
-    color: "#C89B3C",
+    bg: "#FCF2D9",
+    color: "#756039",
   },
-  countered: { label: "Developer countered", bg: "#FBF4E4", color: "#C89B3C" },
-  accepted: { label: "Accepted", bg: "#E8F0EF", color: "#1F4B4A" },
-  rejected: { label: "Rejected", bg: "#FAE8E8", color: "#B04040" },
+  countered: { label: "Developer countered", bg: "#FCF2D9", color: "#756039" },
+  accepted: { label: "Accepted", bg: "#E9EEEA", color: "#123F40" },
+  rejected: { label: "Rejected", bg: "#FBECEA", color: "#9E3434" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -76,7 +76,7 @@ function MemberPill({ count }: { count: number }) {
         display: "inline-flex",
         alignItems: "center",
         gap: "0.3rem",
-        background: "#E8F0EF",
+        background: "#E9EEEA",
         borderRadius: "999px",
         padding: "0.2rem 0.625rem 0.2rem 0.4rem",
       }}
@@ -86,7 +86,7 @@ function MemberPill({ count }: { count: number }) {
         height='12'
         viewBox='0 0 24 24'
         fill='none'
-        stroke='#1F4B4A'
+        stroke='#123F40'
         strokeWidth='2.5'
         strokeLinecap='round'
         strokeLinejoin='round'
@@ -100,8 +100,8 @@ function MemberPill({ count }: { count: number }) {
         style={{
           fontFamily: "var(--font-jetbrains, monospace)",
           fontSize: "0.8125rem",
-          fontWeight: 700,
-          color: "#1F4B4A",
+          fontWeight: 600,
+          color: "#123F40",
         }}
       >
         {count} {count === 1 ? "member" : "members"}
@@ -120,9 +120,9 @@ function GroupCard({ group }: { group: LeverageGroup }) {
       style={{
         background: "#fff",
         borderRadius: "0.875rem",
-        border: "1px solid #DDD9D3",
+        border: "1px solid #D4DED8",
         overflow: "hidden",
-        borderTop: `4px solid ${group.status === "accepted" ? "#1F4B4A" : group.status === "rejected" ? "#B04040" : "#C89B3C"}`,
+        borderTop: `4px solid ${group.status === "accepted" ? "#123F40" : group.status === "rejected" ? "#9E3434" : "#756039"}`,
       }}
     >
       <div style={{ padding: "1.25rem 1.5rem" }}>
@@ -141,14 +141,14 @@ function GroupCard({ group }: { group: LeverageGroup }) {
               style={{
                 fontFamily: "var(--font-fraunces, serif)",
                 fontSize: "1.125rem",
-                fontWeight: 700,
-                color: "#1C1B19",
+                fontWeight: 600,
+                color: "#123F40",
                 margin: "0 0 0.2rem",
               }}
             >
               {group.unitType.project.name} — {group.unitType.unitLabel}
             </h3>
-            <div style={{ fontSize: "0.8125rem", color: "#6B6860" }}>
+            <div style={{ fontSize: "0.8125rem", color: "#526563" }}>
               {group.unitType.project.location}
               {group.unitType.price > 0 &&
                 ` · ${formatPrice(group.unitType.price)}`}
@@ -169,11 +169,11 @@ function GroupCard({ group }: { group: LeverageGroup }) {
           <MemberPill count={group.memberCount} />
           {/* Discount requested 
           <div>
-            <span style={{ fontSize: "0.6875rem", color: "#6B6860", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Discount requested </span>
-            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 700, fontSize: "0.9375rem" }}>{group.requestedDiscountPercent}%</span>
+            <span style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Discount requested </span>
+            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, fontSize: "0.9375rem" }}>{group.requestedDiscountPercent}%</span>
           </div>*/}
           {group.requestedTerms && (
-            <div style={{ fontSize: "0.875rem", color: "#6B6860" }}>
+            <div style={{ fontSize: "0.875rem", color: "#526563" }}>
               {group.requestedTerms}
             </div>
           )}
@@ -182,7 +182,7 @@ function GroupCard({ group }: { group: LeverageGroup }) {
         {isCountered && group.counterDiscountPercent != null && (
           <div
             style={{
-              background: "#FBF4E4",
+              background: "#FCF2D9",
               borderRadius: "0.5rem",
               padding: "0.75rem 1rem",
               border: "1px solid #EDD9A3",
@@ -191,10 +191,10 @@ function GroupCard({ group }: { group: LeverageGroup }) {
             <div
               style={{
                 fontSize: "0.6875rem",
-                fontWeight: 700,
+                fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: "#C89B3C",
+                color: "#756039",
                 marginBottom: "0.375rem",
               }}
             >
@@ -204,19 +204,19 @@ function GroupCard({ group }: { group: LeverageGroup }) {
               style={{ display: "flex", gap: "1.5rem", fontSize: "0.875rem" }}
             >
               <div>
-                <span style={{ color: "#6B6860" }}>Counter discount </span>
+                <span style={{ color: "#526563" }}>Counter discount </span>
                 <span
                   style={{
                     fontFamily: "var(--font-jetbrains, monospace)",
-                    fontWeight: 700,
-                    color: "#C89B3C",
+                    fontWeight: 600,
+                    color: "#756039",
                   }}
                 >
                   {group.counterDiscountPercent}%
                 </span>
               </div>
               {group.counterTerms && (
-                <div style={{ color: "#1C1B19" }}>
+                <div style={{ color: "#123F40" }}>
                   &ldquo;{group.counterTerms}&rdquo;
                 </div>
               )}
@@ -227,7 +227,7 @@ function GroupCard({ group }: { group: LeverageGroup }) {
         <div
           style={{
             fontSize: "0.75rem",
-            color: "#9A958F",
+            color: "#526563",
             marginTop: "0.75rem",
           }}
         >
@@ -285,7 +285,7 @@ function JoinableGroupCard({
       style={{
         background: "#fff",
         borderRadius: "0.875rem",
-        border: "1px solid #DDD9D3",
+        border: "1px solid #D4DED8",
         overflow: "hidden",
       }}
     >
@@ -304,8 +304,8 @@ function JoinableGroupCard({
               style={{
                 fontFamily: "var(--font-fraunces, serif)",
                 fontSize: "1.0625rem",
-                fontWeight: 700,
-                color: "#1C1B19",
+                fontWeight: 600,
+                color: "#123F40",
                 margin: "0 0 0.2rem",
               }}
             >
@@ -314,7 +314,7 @@ function JoinableGroupCard({
             <div
               style={{
                 fontSize: "0.8125rem",
-                color: "#6B6860",
+                color: "#526563",
                 marginBottom: "0.625rem",
               }}
             >
@@ -331,15 +331,15 @@ function JoinableGroupCard({
               }}
             >
               <MemberPill count={group.memberCount} />
-              <span style={{ fontSize: "0.875rem", color: "#6B6860" }}>
+              <span style={{ fontSize: "0.875rem", color: "#526563" }}>
                 Requesting{" "}
-                <strong style={{ color: "#1C1B19" }}>
+                <strong style={{ color: "#123F40" }}>
                   {group.requestedDiscountPercent}%
                 </strong>{" "}
                 discount
               </span>
               {group.requestedTerms && (
-                <span style={{ fontSize: "0.8125rem", color: "#9A958F" }}>
+                <span style={{ fontSize: "0.8125rem", color: "#526563" }}>
                   &ldquo;{group.requestedTerms}&rdquo;
                 </span>
               )}
@@ -359,8 +359,8 @@ function JoinableGroupCard({
               <span
                 style={{
                   fontSize: "0.875rem",
-                  fontWeight: 700,
-                  color: "#1F4B4A",
+                  fontWeight: 600,
+                  color: "#123F40",
                 }}
               >
                 Joined!
@@ -372,7 +372,7 @@ function JoinableGroupCard({
                 style={{
                   padding: "0.5rem 1.125rem",
                   borderRadius: "0.5rem",
-                  background: "#1F4B4A",
+                  background: "#123F40",
                   color: "#fff",
                   border: "none",
                   fontSize: "0.875rem",
@@ -385,7 +385,7 @@ function JoinableGroupCard({
               </button>
             )}
             {error && (
-              <span style={{ fontSize: "0.75rem", color: "#B04040" }}>
+              <span style={{ fontSize: "0.75rem", color: "#9E3434" }}>
                 {error}
               </span>
             )}
@@ -457,7 +457,7 @@ function CreateGroupForm({
     return (
       <div
         style={{
-          background: "#E8F0EF",
+          background: "#E9EEEA",
           borderRadius: "0.75rem",
           padding: "1.25rem 1.5rem",
           display: "flex",
@@ -471,7 +471,7 @@ function CreateGroupForm({
           height='18'
           viewBox='0 0 24 24'
           fill='none'
-          stroke='#1F4B4A'
+          stroke='#123F40'
           strokeWidth='2.5'
           strokeLinecap='round'
           strokeLinejoin='round'
@@ -480,7 +480,7 @@ function CreateGroupForm({
         </svg>
         <div>
           <div
-            style={{ fontWeight: 700, color: "#1F4B4A", fontSize: "0.9375rem" }}
+            style={{ fontWeight: 600, color: "#123F40", fontSize: "0.9375rem" }}
           >
             Group request created
           </div>
@@ -503,13 +503,13 @@ function CreateGroupForm({
     fontWeight: 600,
     letterSpacing: "0.07em",
     textTransform: "uppercase" as const,
-    color: "#6B6860",
+    color: "#526563",
     marginBottom: "0.25rem",
     display: "block",
   };
   const inputStyle: React.CSSProperties = {
     background: "#fff",
-    border: "1px solid #DDD9D3",
+    border: "1px solid #D4DED8",
     borderRadius: "0.4rem",
     padding: "0.5rem 0.75rem",
     fontSize: "0.9375rem",
@@ -523,7 +523,7 @@ function CreateGroupForm({
       style={{
         background: "#fff",
         borderRadius: "0.875rem",
-        border: "1px solid #DDD9D3",
+        border: "1px solid #D4DED8",
         overflow: "hidden",
       }}
     >
@@ -533,10 +533,10 @@ function CreateGroupForm({
         <span
           style={{
             fontSize: "0.75rem",
-            fontWeight: 700,
+            fontWeight: 600,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: "#1F4B4A",
+            color: "#123F40",
           }}
         >
           Create a new group request
@@ -578,12 +578,12 @@ function CreateGroupForm({
               <div
                 style={{
                   fontSize: "0.75rem",
-                  color: "#9A958F",
+                  color: "#526563",
                   marginTop: "0.25rem",
                 }}
               >
                 Run{" "}
-                <Link href='/processing' style={{ color: "#1F4B4A" }}>
+                <Link href='/processing' style={{ color: "#123F40" }}>
                   matching
                 </Link>{" "}
                 first to pick from your results.
@@ -614,7 +614,7 @@ function CreateGroupForm({
         <div>
           <label style={labelStyle}>
             Terms{" "}
-            <span style={{ fontWeight: 400, color: "#9A958F" }}>
+            <span style={{ fontWeight: 400, color: "#526563" }}>
               (optional)
             </span>
           </label>
@@ -628,7 +628,7 @@ function CreateGroupForm({
         </div>
 
         {error && (
-          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#B04040" }}>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434" }}>
             {error}
           </p>
         )}
@@ -639,7 +639,7 @@ function CreateGroupForm({
           style={{
             padding: "0.625rem 1.5rem",
             borderRadius: "0.5rem",
-            background: "#1F4B4A",
+            background: "#123F40",
             color: "#fff",
             border: "none",
             fontSize: "0.875rem",
@@ -720,14 +720,14 @@ export default function BuyerLeverageGroupsPage() {
     <main
       style={{
         minHeight: "100vh",
-        background: "#F7F5F1",
+        background: "#F4F5F0",
         fontFamily: "var(--font-inter, sans-serif)",
         paddingBottom: "4rem",
       }}
     >
       {/* Header */}
-      <div style={{ borderBottom: "1px solid #DDD9D3", background: "#fff" }}>
-        <div style={{ maxWidth: "52rem", margin: "0 auto", padding: "1.5rem" }}>
+      <div style={{ borderBottom: "1px solid #D4DED8", background: "#fff" }}>
+        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
           <div
             style={{
               fontFamily: "var(--font-fraunces, serif)",
@@ -735,7 +735,7 @@ export default function BuyerLeverageGroupsPage() {
               fontWeight: 600,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "#1F4B4A",
+              color: "#123F40",
               marginBottom: "0.5rem",
             }}
           >
@@ -755,8 +755,8 @@ export default function BuyerLeverageGroupsPage() {
                 style={{
                   fontFamily: "var(--font-fraunces, serif)",
                   fontSize: "1.875rem",
-                  fontWeight: 700,
-                  color: "#1C1B19",
+                  fontWeight: 600,
+                  color: "#123F40",
                   margin: 0,
                 }}
               >
@@ -765,7 +765,7 @@ export default function BuyerLeverageGroupsPage() {
               <p
                 style={{
                   margin: "0.375rem 0 0",
-                  color: "#6B6860",
+                  color: "#526563",
                   fontSize: "0.9375rem",
                 }}
               >
@@ -780,7 +780,7 @@ export default function BuyerLeverageGroupsPage() {
                 href='/results'
                 style={{
                   fontSize: "0.875rem",
-                  color: "#6B6860",
+                  color: "#526563",
                   textDecoration: "none",
                 }}
               >
@@ -791,9 +791,9 @@ export default function BuyerLeverageGroupsPage() {
                 style={{
                   padding: "0.5rem 1.125rem",
                   borderRadius: "0.5rem",
-                  background: showForm ? "#F0EDE8" : "#1F4B4A",
-                  color: showForm ? "#6B6860" : "#fff",
-                  border: showForm ? "1px solid #DDD9D3" : "none",
+                  background: showForm ? "#E9EEEA" : "#123F40",
+                  color: showForm ? "#526563" : "#fff",
+                  border: showForm ? "1px solid #D4DED8" : "none",
                   fontSize: "0.875rem",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -808,7 +808,7 @@ export default function BuyerLeverageGroupsPage() {
 
       <div
         style={{
-          maxWidth: "52rem",
+          maxWidth: "75rem",
           margin: "0 auto",
           padding: "2rem 1.5rem",
           display: "flex",
@@ -821,7 +821,7 @@ export default function BuyerLeverageGroupsPage() {
           style={{
             background: "#fff",
             borderRadius: "0.875rem",
-            border: "1px solid #DDD9D3",
+            border: "1px solid #D4DED8",
             padding: "1.125rem 1.5rem",
             display: "flex",
             gap: "0.875rem",
@@ -834,7 +834,7 @@ export default function BuyerLeverageGroupsPage() {
               width: "2rem",
               height: "2rem",
               borderRadius: "50%",
-              background: "#E8F0EF",
+              background: "#E9EEEA",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -845,7 +845,7 @@ export default function BuyerLeverageGroupsPage() {
               height='14'
               viewBox='0 0 24 24'
               fill='none'
-              stroke='#1F4B4A'
+              stroke='#123F40'
               strokeWidth='2.5'
               strokeLinecap='round'
               strokeLinejoin='round'
@@ -860,7 +860,7 @@ export default function BuyerLeverageGroupsPage() {
               style={{
                 fontWeight: 600,
                 fontSize: "0.9375rem",
-                color: "#1C1B19",
+                color: "#123F40",
                 marginBottom: "0.25rem",
               }}
             >
@@ -870,7 +870,7 @@ export default function BuyerLeverageGroupsPage() {
               style={{
                 margin: 0,
                 fontSize: "0.875rem",
-                color: "#6B6860",
+                color: "#526563",
                 lineHeight: 1.6,
               }}
             >
@@ -891,7 +891,7 @@ export default function BuyerLeverageGroupsPage() {
           />
         )}
 
-        {loading && <p style={{ color: "#6B6860" }}>Loading…</p>}
+        {loading && <p style={{ color: "#526563" }}>Loading…</p>}
 
         {/* My groups */}
         {!loading && (
@@ -900,10 +900,10 @@ export default function BuyerLeverageGroupsPage() {
               <div
                 style={{
                   fontSize: "0.6875rem",
-                  fontWeight: 700,
+                  fontWeight: 600,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  color: "#6B6860",
+                  color: "#526563",
                   marginBottom: "0.75rem",
                 }}
               >
@@ -916,8 +916,8 @@ export default function BuyerLeverageGroupsPage() {
                     padding: "2rem 1.5rem",
                     background: "#fff",
                     borderRadius: "0.875rem",
-                    border: "1px solid #DDD9D3",
-                    color: "#6B6860",
+                    border: "1px solid #D4DED8",
+                    color: "#526563",
                   }}
                 >
                   <p style={{ margin: "0 0 1rem", fontSize: "0.9375rem" }}>
@@ -928,7 +928,7 @@ export default function BuyerLeverageGroupsPage() {
                     style={{
                       padding: "0.5rem 1.25rem",
                       borderRadius: "0.5rem",
-                      background: "#1F4B4A",
+                      background: "#123F40",
                       color: "#fff",
                       border: "none",
                       fontSize: "0.875rem",
@@ -960,10 +960,10 @@ export default function BuyerLeverageGroupsPage() {
                 <div
                   style={{
                     fontSize: "0.6875rem",
-                    fontWeight: 700,
+                    fontWeight: 600,
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
-                    color: "#6B6860",
+                    color: "#526563",
                     marginBottom: "0.75rem",
                   }}
                 >
