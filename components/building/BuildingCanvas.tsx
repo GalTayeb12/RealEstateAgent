@@ -4,43 +4,40 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   OrbitControls,
   Environment,
-  ContactShadows,
   PerformanceMonitor,
   Sky,
 } from "@react-three/drei";
-import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { TOUCH } from "three";
 import * as THREE from "three";
 import { useRef, useMemo, useState, useCallback, useEffect } from "react";
 import { layoutTowers } from "./layout";
+import { BuildingEnvironment } from "./BuildingEnvironment";
 import type { ExplorerBuilding, HoverInfo } from "./types";
 import type { TowerLayout, FloorLayout } from "./layout";
 
 // ─── Geometry constants ───────────────────────────────────────────────────────
-const DEPTH    = 1.18;  // building front-to-back depth
-const SHELL_T  = 0.088; // concrete wall thickness (sides + back)
-const SLAB_H   = 0.048; // floor-slab edge band height
-const SLAB_OVR = 0.058; // slab overhang beyond shell
-const MULL_W   = 0.024; // vertical mullion width
-const MULL_D   = 0.028; // vertical mullion depth
-const BAL_D    = 0.22;  // balcony depth
-const BAL_T    = 0.034; // balcony slab thickness
+const DEPTH    = 1.18;   // building front-to-back depth
+const SHELL_T  = 0.088;  // concrete wall thickness
+const SLAB_H   = 0.048;  // floor-slab band height
+const SLAB_OVR = 0.058;  // slab overhang
+const MULL_W   = 0.024;  // vertical mullion width
+const MULL_D   = 0.028;  // vertical mullion depth
+const BAL_D    = 0.30;   // balcony depth (increased from 0.22)
+const BAL_T    = 0.034;  // balcony slab thickness
 
-// ─── Material palette ─────────────────────────────────────────────────────────
-const C_SHELL  = "#C0BCA8"; // concrete sides & back — warm stone
-const C_SLAB   = "#EDE9E0"; // slab edge — bright cream, pops against dark glass
-const C_MULL   = "#888480"; // aluminum mullion — darker metal
-const C_ROOF   = "#1B4240"; // parapet / roof cap
-const C_GOLD   = "#C89B3C"; // luxury accent
-const C_POOL   = "#4A9AAE"; // reflecting pool
+// ─── Material colours ─────────────────────────────────────────────────────────
+const C_SHELL   = "#C0BCA8"; // facade body — warm concrete
+const C_SLAB    = "#EDE9E0"; // slab edge band — bright cream
+const C_MULL    = "#888480"; // aluminium mullion
+const C_ROOF    = "#1B4240"; // parapet / roof cap
+const C_GOLD    = "#756039"; // luxury accent
 
-// ─── Floor analysis helpers ───────────────────────────────────────────────────
+// ─── Floor analysis ───────────────────────────────────────────────────────────
 function floorAvail(floor: FloorLayout) {
   const total = floor.units.length;
   const avail = floor.units.filter((u) => u.status === "available").length;
   return { avail, total };
 }
-
 function topResidentialFloor(floors: FloorLayout[]) {
   const res = floors.filter((f) => !f.lobby);
   return res.length > 0 ? Math.max(...res.map((f) => f.floor)) : 0;
@@ -48,15 +45,9 @@ function topResidentialFloor(floors: FloorLayout[]) {
 
 // ─── Camera fly-in ────────────────────────────────────────────────────────────
 function CameraFlyIn({
-  from,
-  to,
-  lookAt,
-  onDone,
+  from, to, lookAt, onDone,
 }: {
-  from: THREE.Vector3;
-  to: THREE.Vector3;
-  lookAt: THREE.Vector3;
-  onDone: () => void;
+  from: THREE.Vector3; to: THREE.Vector3; lookAt: THREE.Vector3; onDone: () => void;
 }) {
   const prog = useRef(0);
   const done = useRef(false);
@@ -71,13 +62,10 @@ function CameraFlyIn({
   useFrame((_, dt) => {
     if (done.current) return;
     prog.current = Math.min(1, prog.current + dt * 0.42);
-    const t = 1 - Math.pow(1 - prog.current, 3); // ease-out cubic
+    const t = 1 - Math.pow(1 - prog.current, 3);
     camera.position.lerpVectors(from, to, t);
     camera.lookAt(lookAt);
-    if (prog.current >= 1) {
-      done.current = true;
-      onDone();
-    }
+    if (prog.current >= 1) { done.current = true; onDone(); }
   });
 
   return null;
@@ -96,57 +84,66 @@ interface FloorProps {
 
 function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave }: FloorProps) {
   const { y, h, w, lobby } = floor;
-  const cy = y + h / 2;
-  const faceZ = DEPTH / 2 + 0.002; // front glass z
+  const cy  = y + h / 2;
+  const faceZ = DEPTH / 2 + 0.002;
 
-  const topFloor = topResidentialFloor(floors);
-  const penthouse = !lobby && floor.floor === topFloor;
+  const topFloor    = topResidentialFloor(floors);
+  const penthouse   = !lobby && floor.floor === topFloor;
   const { avail, total } = floorAvail(floor);
-  const allSold = !lobby && total > 0 && avail === 0;
-  const withBalcony = !lobby && floor.floor % 2 === 0 && !penthouse;
+  const allSold     = !lobby && total > 0 && avail === 0;
 
-  // Setback: upper 28% of residential floors step back slightly
+  // Balcony on every residential floor (removed the even-floor restriction)
+  const withBalcony = !lobby && !penthouse && quality === "high";
+
+  // Setback: upper 28 % step back slightly
   const setback =
     !lobby && topFloor > 0 && floor.floor >= Math.ceil(topFloor * 0.72)
-      ? penthouse
-        ? 0.86
-        : 0.93
+      ? penthouse ? 0.86 : 0.93
       : 1.0;
   const fw = w * setback;
 
-  // Glass appearance — dark architectural glass
-  const glassColor = lobby ? "#0A2030" : allSold ? "#181E2C" : "#0A2030";
+  // Glass tint and emissive
+  const glassColor   = lobby ? "#0A2030" : allSold ? "#181E2C" : "#0A2030";
   const glassOpacity = lobby ? 0.72 : allSold ? 0.88 : 0.92;
   const glassEmissive = useMemo(
-    () =>
-      new THREE.Color(
-        lobby ? "#B06020" : hovered ? "#1040A0" : "#000000"
-      ),
-    [lobby, hovered]
+    () => new THREE.Color(lobby ? "#B06020" : hovered ? "#1040A0" : "#000000"),
+    [lobby, hovered],
   );
   const glassEmissiveInt = lobby ? 0.45 : hovered ? 0.38 : 0;
 
   const divisions = Math.max(2, floor.units.length);
 
+  // Warm interior-light colour — random per window based on floor + index
+  const windowLit = useCallback(
+    (i: number) => !lobby && !allSold && (floor.floor * 3 + i * 7) % 5 !== 0,
+    [lobby, allSold, floor.floor],
+  );
+
   return (
     <group>
-      {/* Concrete back */}
+      {/* ── Concrete back ── */}
       <mesh position={[cx, cy, -(DEPTH / 2) + SHELL_T / 2]} receiveShadow>
         <boxGeometry args={[fw, h, SHELL_T]} />
         <meshStandardMaterial color={C_SHELL} roughness={0.78} />
       </mesh>
-      {/* Concrete left side */}
+
+      {/* ── Concrete sides ── */}
       <mesh position={[cx - fw / 2 + SHELL_T / 2, cy, 0]} receiveShadow>
         <boxGeometry args={[SHELL_T, h, DEPTH]} />
         <meshStandardMaterial color={C_SHELL} roughness={0.78} />
       </mesh>
-      {/* Concrete right side */}
       <mesh position={[cx + fw / 2 - SHELL_T / 2, cy, 0]} receiveShadow>
         <boxGeometry args={[SHELL_T, h, DEPTH]} />
         <meshStandardMaterial color={C_SHELL} roughness={0.78} />
       </mesh>
 
-      {/* Glass curtain wall */}
+      {/* ── Slab edge band ── */}
+      <mesh position={[cx, y + SLAB_H / 2, 0]} receiveShadow>
+        <boxGeometry args={[fw + SLAB_OVR * 2, SLAB_H, DEPTH + SLAB_OVR]} />
+        <meshStandardMaterial color={C_SLAB} roughness={0.55} metalness={0.05} />
+      </mesh>
+
+      {/* ── Glass curtain wall ── */}
       <mesh position={[cx, cy + SLAB_H * 0.5, faceZ]} castShadow>
         <boxGeometry args={[fw - SHELL_T * 2, h - SLAB_H * 1.5, 0.026]} />
         <meshPhysicalMaterial
@@ -155,23 +152,36 @@ function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave }: 
           opacity={glassOpacity}
           metalness={0.22}
           roughness={0.04}
-          envMapIntensity={2.4}
-          reflectivity={0.94}
+          envMapIntensity={2.8}
+          reflectivity={0.96}
           emissive={glassEmissive}
           emissiveIntensity={glassEmissiveInt}
           side={THREE.FrontSide}
         />
       </mesh>
 
-      {/* Slab edge band */}
-      <mesh position={[cx, y + SLAB_H / 2, 0]} receiveShadow>
-        <boxGeometry args={[fw + SLAB_OVR * 2, SLAB_H, DEPTH + SLAB_OVR]} />
-        <meshStandardMaterial color={C_SLAB} roughness={0.55} metalness={0.05} />
-      </mesh>
+      {/* ── Interior window glow (warm light behind glass) ── */}
+      {!lobby && quality === "high" &&
+        Array.from({ length: divisions }, (_, i) => {
+          if (!windowLit(i)) return null;
+          const slot = (fw - SHELL_T * 2) / divisions;
+          const wx = cx - fw / 2 + SHELL_T + slot * (i + 0.5);
+          const alpha = 0.055 + 0.04 * ((floor.floor * 7 + i * 13) % 5) / 4;
+          return (
+            <mesh key={i} position={[wx, cy + SLAB_H * 0.4, faceZ - 0.005]}>
+              <planeGeometry args={[slot * 0.72, (h - SLAB_H * 2) * 0.68]} />
+              <meshBasicMaterial
+                color="#FFD880"
+                transparent
+                opacity={alpha}
+                depthWrite={false}
+              />
+            </mesh>
+          );
+        })}
 
-      {/* Vertical mullions */}
-      {!lobby &&
-        quality === "high" &&
+      {/* ── Vertical mullions ── */}
+      {!lobby && quality === "high" &&
         Array.from({ length: divisions - 1 }, (_, i) => {
           const slot = (fw - SHELL_T * 2) / divisions;
           const mx = cx - fw / 2 + SHELL_T + slot * (i + 1);
@@ -183,14 +193,13 @@ function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave }: 
           );
         })}
 
-      {/* Penthouse: bevel corners + gold top accent */}
+      {/* ── Penthouse top accent ── */}
       {penthouse && (
         <>
           <mesh position={[cx, y + h - 0.008, faceZ - 0.005]}>
             <boxGeometry args={[fw + 0.04, 0.040, 0.060]} />
             <meshStandardMaterial color={C_GOLD} metalness={0.90} roughness={0.13} />
           </mesh>
-          {/* Side accent fins */}
           <mesh position={[cx - fw / 2 - 0.01, cy, faceZ - DEPTH * 0.1]}>
             <boxGeometry args={[0.022, h * 0.85, 0.040]} />
             <meshStandardMaterial color={C_GOLD} metalness={0.88} roughness={0.15} />
@@ -202,45 +211,57 @@ function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave }: 
         </>
       )}
 
-      {/* Balcony (even floors, high quality) */}
-      {withBalcony && quality === "high" && (
+      {/* ── Balcony: every residential floor ── */}
+      {withBalcony && (
         <group>
           {/* Slab */}
           <mesh position={[cx, y + BAL_T / 2, faceZ + BAL_D / 2]} castShadow>
-            <boxGeometry args={[fw * 0.52, BAL_T, BAL_D]} />
+            <boxGeometry args={[fw * 0.68, BAL_T, BAL_D]} />
             <meshStandardMaterial color="#CCCAC0" roughness={0.70} />
           </mesh>
-          {/* Glass railing */}
+          {/* Glass railing — front */}
           <mesh position={[cx, y + BAL_T + 0.050, faceZ + BAL_D - 0.007]}>
-            <boxGeometry args={[fw * 0.52, 0.095, 0.011]} />
+            <boxGeometry args={[fw * 0.68, 0.092, 0.011]} />
             <meshPhysicalMaterial
               color="#88A8C0"
               transparent
-              opacity={0.50}
+              opacity={0.46}
               metalness={0.14}
               roughness={0.04}
-              envMapIntensity={2.0}
+              envMapIntensity={2.2}
             />
+          </mesh>
+          {/* Glass railing — left side */}
+          <mesh position={[cx - fw * 0.34 + 0.006, y + BAL_T + 0.050, faceZ + BAL_D / 2]}>
+            <boxGeometry args={[0.011, 0.092, BAL_D]} />
+            <meshPhysicalMaterial
+              color="#88A8C0" transparent opacity={0.38}
+              metalness={0.12} roughness={0.04} envMapIntensity={2.0}
+            />
+          </mesh>
+          {/* Glass railing — right side */}
+          <mesh position={[cx + fw * 0.34 - 0.006, y + BAL_T + 0.050, faceZ + BAL_D / 2]}>
+            <boxGeometry args={[0.011, 0.092, BAL_D]} />
+            <meshPhysicalMaterial
+              color="#88A8C0" transparent opacity={0.38}
+              metalness={0.12} roughness={0.04} envMapIntensity={2.0}
+            />
+          </mesh>
+          {/* Metal top rail */}
+          <mesh position={[cx, y + BAL_T + 0.097, faceZ + BAL_D - 0.007]}>
+            <boxGeometry args={[fw * 0.68 + 0.012, 0.014, 0.026]} />
+            <meshStandardMaterial color={C_MULL} metalness={0.75} roughness={0.18} />
           </mesh>
         </group>
       )}
 
-      {/* Invisible hit-box for floor hover */}
+      {/* ── Invisible hit-box for floor hover ── */}
       {!lobby && (
         <mesh
           position={[cx, cy, 0]}
-          onPointerEnter={(e) => {
-            e.stopPropagation();
-            onEnter();
-          }}
-          onPointerLeave={(e) => {
-            e.stopPropagation();
-            onLeave();
-          }}
-          onPointerOut={(e) => {
-            e.stopPropagation();
-            onLeave();
-          }}
+          onPointerEnter={(e) => { e.stopPropagation(); onEnter(); }}
+          onPointerLeave={(e) => { e.stopPropagation(); onLeave(); }}
+          onPointerOut={(e)   => { e.stopPropagation(); onLeave(); }}
         >
           <boxGeometry args={[fw + 0.14, h + 0.01, DEPTH + 0.18]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
@@ -252,11 +273,7 @@ function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave }: 
 
 // ─── Tower ────────────────────────────────────────────────────────────────────
 function LuxuryTower({
-  tower,
-  hoveredFloor,
-  quality,
-  onEnter,
-  onLeave,
+  tower, hoveredFloor, quality, onEnter, onLeave,
 }: {
   tower: TowerLayout;
   hoveredFloor: number | null;
@@ -266,7 +283,7 @@ function LuxuryTower({
 }) {
   const { floors, height, width, x: cx } = tower;
   const topFL = floors[floors.length - 1];
-  const topW = (topFL?.w ?? width) * (topFL ? 0.86 : 1);
+  const topW  = (topFL?.w ?? width) * (topFL ? 0.86 : 1);
 
   return (
     <group>
@@ -283,79 +300,47 @@ function LuxuryTower({
         />
       ))}
 
-      {/* Roof parapet cap */}
+      {/* ── Roof parapet cap ── */}
       <mesh position={[cx, height + 0.042, 0]} castShadow receiveShadow>
         <boxGeometry args={[topW + 0.12, 0.084, DEPTH + 0.12]} />
         <meshStandardMaterial color={C_ROOF} roughness={0.48} metalness={0.14} />
       </mesh>
 
-      {/* Crown / mechanical penthouse on roof */}
+      {/* ── Crown / mechanical penthouse ── */}
       <mesh position={[cx, height + 0.20, 0]}>
         <boxGeometry args={[topW * 0.34, 0.24, DEPTH * 0.36]} />
         <meshStandardMaterial color="#173A38" roughness={0.60} metalness={0.10} />
       </mesh>
 
-      {/* Gold crown line on front parapet */}
+      {/* ── Gold crown line on front parapet ── */}
       <mesh position={[cx, height + 0.086, DEPTH / 2 + 0.003]}>
         <boxGeometry args={[topW + 0.12, 0.009, 0.008]} />
         <meshStandardMaterial color={C_GOLD} metalness={0.92} roughness={0.12} />
       </mesh>
-    </group>
-  );
-}
 
-// ─── Ground ───────────────────────────────────────────────────────────────────
-function Ground({ r }: { r: number }) {
-  return (
-    <group>
-      {/* Grass */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
-        <circleGeometry args={[r, 72]} />
-        <meshStandardMaterial color="#B4C2A4" roughness={0.96} />
-      </mesh>
-      {/* Paved plaza */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.001, r * 0.12]} receiveShadow>
-        <planeGeometry args={[r * 0.54, r * 0.42]} />
-        <meshStandardMaterial color="#C6C2BA" roughness={0.76} metalness={0.04} />
-      </mesh>
-      {/* Reflecting pool in plaza */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.006, r * 0.30]}>
-        <planeGeometry args={[r * 0.20, r * 0.07]} />
-        <meshPhysicalMaterial
-          color={C_POOL}
-          metalness={0.65}
-          roughness={0.03}
-          envMapIntensity={3.0}
-        />
-      </mesh>
-      {/* Pool edge */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.003, r * 0.30]}>
-        <ringGeometry args={[r * 0.10, r * 0.115, 32]} />
-        <meshStandardMaterial color={C_SLAB} roughness={0.60} />
-      </mesh>
-    </group>
-  );
-}
+      {/* ── Solar water heaters (דודי שמש) — Israeli rooftop detail ── */}
+      {quality === "high" && [-0.28, 0.28].map((xOff, i) => (
+        <group key={i} position={[cx + topW * xOff, height + 0.19, DEPTH * 0.05]}>
+          {/* Collector plate */}
+          <mesh rotation={[0.35, 0, 0]}>
+            <boxGeometry args={[0.22, 0.05, 0.30]} />
+            <meshStandardMaterial color="#1A2A38" metalness={0.55} roughness={0.28} />
+          </mesh>
+          {/* Tank (horizontal cylinder) */}
+          <mesh position={[0, 0.18, -0.04]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.055, 0.055, 0.22, 10]} />
+            <meshStandardMaterial color="#8C9098" metalness={0.55} roughness={0.38} />
+          </mesh>
+        </group>
+      ))}
 
-// ─── Tree ─────────────────────────────────────────────────────────────────────
-function Tree({ x, z, s = 1 }: { x: number; z: number; s?: number }) {
-  return (
-    <group position={[x, 0, z]} scale={s}>
-      {/* Trunk */}
-      <mesh position={[0, 0.44, 0]} castShadow>
-        <cylinderGeometry args={[0.044, 0.062, 0.88, 8]} />
-        <meshStandardMaterial color="#483018" roughness={0.94} />
-      </mesh>
-      {/* Lower foliage */}
-      <mesh position={[0, 1.32, 0]} castShadow>
-        <coneGeometry args={[0.60, 1.22, 9]} />
-        <meshStandardMaterial color="#2C5434" roughness={0.88} />
-      </mesh>
-      {/* Upper foliage */}
-      <mesh position={[0, 1.76, 0]} castShadow>
-        <coneGeometry args={[0.38, 0.84, 9]} />
-        <meshStandardMaterial color="#386040" roughness={0.88} />
-      </mesh>
+      {/* ── AC / mechanical units on roof ── */}
+      {quality === "high" && [0.12, -0.10, 0.30].map((xOff, i) => (
+        <mesh key={i} position={[cx + xOff * topW, height + 0.11, (i - 1) * 0.16]}>
+          <boxGeometry args={[0.13, 0.09, 0.17]} />
+          <meshStandardMaterial color="#9A9A94" metalness={0.28} roughness={0.62} />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -367,6 +352,7 @@ function Scene({
   hoveredFloor,
   hoveredBuildingId,
   quality,
+  isMobile,
   setQuality,
   onFloorHover,
 }: {
@@ -375,35 +361,25 @@ function Scene({
   hoveredFloor: number | null;
   hoveredBuildingId: string | null;
   quality: "high" | "low";
+  isMobile: boolean;
   setQuality: (q: "high" | "low") => void;
-  onFloorHover: (
-    info: HoverInfo | null,
-    floor: number | null,
-    bid: string | null
-  ) => void;
+  onFloorHover: (info: HoverInfo | null, floor: number | null, bid: string | null) => void;
 }) {
-  const { towers, maxHeight } = useMemo(
-    () => layoutTowers(buildings),
-    [buildings]
-  );
-  const dist = Math.max(10, maxHeight * 1.55, towers.length * 6.5);
-  const target = useMemo<[number, number, number]>(
-    () => [0, maxHeight * 0.45, 0],
-    [maxHeight]
-  );
-  const targetVec = useMemo(
-    () => new THREE.Vector3(...target),
+  const { towers, maxHeight } = useMemo(() => layoutTowers(buildings), [buildings]);
+  const dist   = Math.max(10, maxHeight * 1.55, towers.length * 6.5);
+  const target = useMemo<[number, number, number]>(() => [0, maxHeight * 0.45, 0], [maxHeight]);
+  const targetVec = useMemo(() => new THREE.Vector3(...target),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [target[0], target[1], target[2]]
-  );
+    [target[0], target[1], target[2]]);
 
+  // Opening camera: slightly lower / more frontal than before → architectural 3/4 shot
   const startPos = useMemo(
-    () => new THREE.Vector3(dist * 0.48, maxHeight * 1.60, dist * 1.80),
-    [dist, maxHeight]
+    () => new THREE.Vector3(dist * 0.42, maxHeight * 1.40, dist * 1.70),
+    [dist, maxHeight],
   );
   const endPos = useMemo(
-    () => new THREE.Vector3(dist * 0.36, maxHeight * 0.34, dist * 0.90),
-    [dist, maxHeight]
+    () => new THREE.Vector3(dist * 0.32, maxHeight * 0.30, dist * 0.82),
+    [dist, maxHeight],
   );
 
   const [flyDone, setFlyDone] = useState(false);
@@ -422,48 +398,21 @@ function Scene({
           isPenthouse: !floor.lobby && floor.floor === top,
         },
         floor.floor,
-        tower.building.id
+        tower.building.id,
       );
     },
-    [onFloorHover]
+    [onFloorHover],
   );
 
-  const handleLeave = useCallback(() => {
-    onFloorHover(null, null, null);
-  }, [onFloorHover]);
+  const handleLeave = useCallback(() => { onFloorHover(null, null, null); }, [onFloorHover]);
 
   return (
     <>
-      {/* Lighting — golden hour */}
-      <ambientLight intensity={0.28} color="#FFD0A0" />
-      <hemisphereLight args={["#FFBC78", "#78A0C0", 0.58]} />
-      {/* Key light: low sun from side-back */}
-      <directionalLight
-        position={[-dist * 0.55, maxHeight * 1.85, dist * 0.38]}
-        intensity={2.6}
-        color="#FFCC88"
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-near={0.5}
-        shadow-camera-far={dist * 3.5}
-        shadow-camera-left={-dist}
-        shadow-camera-right={dist}
-        shadow-camera-top={maxHeight * 2}
-        shadow-camera-bottom={-4}
-        shadow-bias={-0.0006}
-      />
-      {/* Fill light: cool from opposite */}
-      <directionalLight
-        position={[dist * 0.85, maxHeight * 0.55, -dist * 0.55]}
-        intensity={0.38}
-        color="#A0C0DA"
-      />
-
-      {/* HDRI reflections */}
+      {/* ── HDRI reflections (sky shown via <Sky>) ── */}
       <Environment files="/hdri/venice_sunset_1k.hdr" />
 
-      {/* Procedural sky */}
-      {quality === "high" && (
+      {/* ── Procedural sky (high quality desktop) ── */}
+      {quality === "high" && !isMobile && (
         <Sky
           sunPosition={[-0.55, 0.055, -1]}
           turbidity={7}
@@ -473,11 +422,19 @@ function Scene({
           distance={450}
         />
       )}
-      {quality === "low" && (
+      {(quality === "low" || isMobile) && (
         <color attach="background" args={["#C08050"]} />
       )}
 
-      {/* Performance monitor — must live inside Canvas */}
+      {/* ── Shared environment: lights, ground, trees, shadows, N8AO ── */}
+      <BuildingEnvironment
+        maxHeight={maxHeight}
+        dist={dist}
+        quality={quality}
+        isMobile={isMobile}
+      />
+
+      {/* ── Performance monitor ── */}
       <PerformanceMonitor
         onDecline={() => setQuality("low")}
         onIncline={() => setQuality("high")}
@@ -488,51 +445,14 @@ function Scene({
         <LuxuryTower
           key={tower.building.id}
           tower={tower}
-          hoveredFloor={
-            hoveredBuildingId === tower.building.id ? hoveredFloor : null
-          }
+          hoveredFloor={hoveredBuildingId === tower.building.id ? hoveredFloor : null}
           quality={quality}
           onEnter={(fl) => handleEnter(tower, fl)}
           onLeave={handleLeave}
         />
       ))}
 
-      {/* Ground */}
-      <Ground r={dist * 0.62} />
-
-      {/* Contact shadows */}
-      {quality === "high" && (
-        <ContactShadows
-          position={[0, 0.002, 0]}
-          opacity={0.52}
-          scale={dist * 0.88}
-          blur={2.6}
-          far={maxHeight * 1.3}
-          color="#162A28"
-        />
-      )}
-
-      {/* Trees */}
-      {quality === "high" && (
-        <>
-          <Tree x={-dist * 0.24} z={-1.1} s={2.3} />
-          <Tree x={dist * 0.24} z={-1.7} s={2.0} />
-          <Tree x={-dist * 0.32} z={1.6} s={2.5} />
-          <Tree x={dist * 0.28} z={1.0} s={2.1} />
-          <Tree x={-dist * 0.14} z={-dist * 0.16} s={1.9} />
-          <Tree x={dist * 0.16} z={-dist * 0.14} s={2.0} />
-        </>
-      )}
-
-      {/* Post-processing */}
-      {quality === "high" && (
-        <EffectComposer>
-          <Bloom intensity={0.18} luminanceThreshold={0.88} mipmapBlur />
-          <Vignette eskil={false} offset={0.36} darkness={0.58} />
-        </EffectComposer>
-      )}
-
-      {/* Camera fly-in + orbit controls */}
+      {/* ── Camera fly-in + orbit controls ── */}
       {!flyDone && (
         <CameraFlyIn
           from={startPos}
@@ -564,35 +484,32 @@ export default function BuildingCanvas(props: {
   hoveredId: string | null;
   onHover: (info: HoverInfo | null, id: string | null) => void;
 }) {
-  const { towers, maxHeight } = useMemo(
-    () => layoutTowers(props.buildings),
-    [props.buildings]
-  );
+  const { towers, maxHeight } = useMemo(() => layoutTowers(props.buildings), [props.buildings]);
   const dist = Math.max(10, maxHeight * 1.55, towers.length * 6.5);
 
-  const [quality, setQuality] = useState<"high" | "low">("high");
-  const [hoveredFloor, setHoveredFloor] = useState<number | null>(null);
-  const [hoveredBuildingId, setHoveredBuildingId] = useState<string | null>(
-    null
-  );
+  const [quality,  setQuality]  = useState<"high" | "low">("high");
+  const [isMobile, setIsMobile] = useState(false);
+  const [hoveredFloor,      setHoveredFloor]      = useState<number | null>(null);
+  const [hoveredBuildingId, setHoveredBuildingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia("(max-width: 767px)").matches);
+  }, []);
 
   const handleFloorHover = useCallback(
     (info: HoverInfo | null, floor: number | null, bid: string | null) => {
       setHoveredFloor(floor);
       setHoveredBuildingId(bid);
-      props.onHover(
-        info,
-        floor !== null ? `floor-${bid}-${floor}` : null
-      );
+      props.onHover(info, floor !== null ? `floor-${bid}-${floor}` : null);
     },
-    [props.onHover]
+    [props.onHover],
   );
 
   return (
     <Canvas
-      dpr={[1, quality === "high" ? 1.75 : 1.2]}
+      dpr={[1, isMobile ? 1.2 : 1.75]}
       camera={{
-        position: [dist * 0.48, maxHeight * 1.60, dist * 1.80],
+        position: [dist * 0.42, maxHeight * 1.40, dist * 1.70],
         fov: 44,
         near: 0.1,
         far: dist * 6,
@@ -613,6 +530,7 @@ export default function BuildingCanvas(props: {
         hoveredFloor={hoveredFloor}
         hoveredBuildingId={hoveredBuildingId}
         quality={quality}
+        isMobile={isMobile}
         setQuality={setQuality}
         onFloorHover={handleFloorHover}
       />

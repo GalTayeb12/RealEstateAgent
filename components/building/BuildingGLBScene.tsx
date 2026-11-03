@@ -15,11 +15,11 @@
  *   Camera must be at NEGATIVE Z to face the glass facade.
  */
 
-import { Html, useGLTF, ContactShadows, Environment, OrbitControls, PerformanceMonitor } from "@react-three/drei";
+import { Html, useGLTF, Environment, OrbitControls, PerformanceMonitor } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
+import { BuildingEnvironment } from "./BuildingEnvironment";
 import type { ExplorerBuilding, FloorSelection, HoverInfo } from "./types";
 
 // ── Floor / scene metadata (matches pipeline meta.json) ──────────────────────
@@ -303,7 +303,7 @@ function UnitBlock({
           <div style={{
             color: "#FFFFFF",
             fontSize: 13,
-            fontWeight: 700,
+            fontWeight: 600,
             fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
             textShadow: "0 1px 4px rgba(0,0,0,0.95), 0 0 10px rgba(0,0,0,0.7)",
             whiteSpace: "nowrap",
@@ -503,6 +503,7 @@ function SceneContent({
   floorPlanUrl,
   maxHeight,
   sceneWidth,
+  isMobile,
   onHover,
   onFloorClick,
   onUnitClick,
@@ -516,6 +517,7 @@ function SceneContent({
   floorPlanUrl: string | null;
   maxHeight: number;
   sceneWidth: number;
+  isMobile: boolean;
   onHover: (info: HoverInfo | null, id: string | null) => void;
   onFloorClick: (buildingId: string, floor: number) => void;
   onUnitClick: (unitId: string) => void;
@@ -699,18 +701,17 @@ function SceneContent({
         }),
       )}
 
-      {/* Ground shadow */}
-      <ContactShadows
-        position={[0, -0.01, 0]}
-        width={Math.max(60, maxHeight * 3)}
-        height={Math.max(60, maxHeight * 3)}
-        blur={2.5}
-        far={maxHeight * 1.5}
-        opacity={0.5}
-        frames={1}
-      />
-
+      {/* HDRI (with background so sky shows from the baked environment map) */}
       <Environment files="/hdri/potsdamer_platz_1k.hdr" background />
+
+      {/* Shared environment: lights (subtle fill), ground, trees, N8AO, vignette */}
+      <BuildingEnvironment
+        maxHeight={maxHeight}
+        dist={Math.max(sceneWidth * 0.82, maxHeight * 2.2)}
+        quality={quality}
+        isMobile={isMobile}
+        lightIntensity={0.18}
+      />
 
       <OrbitControls
         ref={orbitRef}
@@ -723,13 +724,6 @@ function SceneContent({
         enableDamping
         dampingFactor={0.08}
       />
-
-      {quality === "high" && (
-        <EffectComposer>
-          <Bloom luminanceThreshold={0.85} luminanceSmoothing={0.9} intensity={0.4} />
-          <Vignette eskil={false} offset={0.3} darkness={0.7} />
-        </EffectComposer>
-      )}
     </>
   );
 }
@@ -762,7 +756,12 @@ export default function BuildingGLBScene({
   onUnitClick: (unitId: string) => void;
   onUnitHover: (unitId: string | null) => void;
 }) {
-  const [meta, setMeta] = useState<SceneMeta | null>(null);
+  const [meta,     setMeta]     = useState<SceneMeta | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia("(max-width: 767px)").matches);
+  }, []);
 
   useEffect(() => {
     fetch(metaUrl)
@@ -827,7 +826,7 @@ export default function BuildingGLBScene({
         stencil: false,
         depth: true,
       }}
-      dpr={[1, 2]}
+      dpr={[1, isMobile ? 1.2 : 2]}
       style={{ width: "100%", height: "100%" }}
     >
       <SceneContent
@@ -839,6 +838,7 @@ export default function BuildingGLBScene({
         floorPlanUrl={floorPlanUrl}
         maxHeight={maxHeight}
         sceneWidth={sceneWidth}
+        isMobile={isMobile}
         onHover={onHover}
         onFloorClick={onFloorClick}
         onUnitClick={onUnitClick}
