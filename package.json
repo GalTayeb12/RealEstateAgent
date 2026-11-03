@@ -11,7 +11,6 @@
     "test:ledger": "npx tsx lib/__tests__/ledger.test.ts",
     "test:attributes": "npx tsx lib/__tests__/attributes.test.ts",
     "test": "npm run test:matching && npm run test:ledger && npm run test:attributes",
-    "seed": "node scripts/seed.mjs",
     "seed:neon": "npx tsx scripts/seed-neon.ts",
     "make-admin": "node scripts/make-admin.mjs",
     "build:building": "npx tsx scripts/building/pipeline.ts"
