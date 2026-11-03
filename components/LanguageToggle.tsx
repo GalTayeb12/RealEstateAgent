@@ -12,10 +12,10 @@ export default function LanguageToggle() {
       aria-label={m.lang.label}
       style={{
         display: "inline-flex",
-        border: "1px solid #D4DED8",
+        border: "1px solid var(--qp-border)",
         borderRadius: 999,
         overflow: "hidden",
-        background: "#fff",
+        background: "var(--qp-surface)",
       }}
     >
       {(["he", "en"] as const).map((code) => {
@@ -29,13 +29,13 @@ export default function LanguageToggle() {
             onClick={() => void setLocale(code)}
             style={{
               border: "none",
-              background: active ? "#123F40" : "transparent",
-              color: active ? "#fff" : "#55534C",
+              background: active ? "var(--qp-ink)" : "transparent",
+              color: active ? "#fff" : "var(--qp-muted)",
               fontWeight: 600,
               fontSize: "0.75rem",
               padding: "0.4rem 0.75rem",
               cursor: "pointer",
-              fontFamily: "var(--font-inter, sans-serif)",
+              fontFamily: "var(--font-heebo, sans-serif)",
             }}
           >
             {label[code]}

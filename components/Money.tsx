@@ -13,7 +13,7 @@ export function EstimatedPriceNote() {
   const { locale, m } = useI18n();
   if (locale !== "en") return null;
   return (
-    <p style={{ margin: "0.35rem 0 0", fontSize: "0.75rem", color: "#526563", lineHeight: 1.4 }}>
+    <p style={{ margin: "0.35rem 0 0", fontSize: "0.75rem", color: "var(--qp-muted)", lineHeight: 1.4 }}>
       {m.currency.estimated}
     </p>
   );

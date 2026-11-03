@@ -3,10 +3,12 @@
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
-import { Brand, Card, GlassPanel, HqLang } from "@/components/ui";
-import "@/components/ui/haven.css";
-import "./home-hero.css";
+import { GlassPanel } from "@/components/quiet";
+import { Logo } from "@/components/Logo";
+import LanguageToggle from "@/components/LanguageToggle";
+import "@/components/quiet/quiet.css";
 
 const SELLER_EIL = 55;
 const SELLER_AIL = 84;
@@ -64,40 +66,40 @@ export default function Home() {
   const hebrewTitle = locale === "he";
 
   return (
-    <main className="hq">
-      <section className="hh" aria-label={m.quiet.heroNav}>
-        <div className="hh__media">
+    <main>
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <section className="qp-home-hero" aria-label={m.quiet.heroNav}>
+        <div className="qp-home-hero__media">
           {photoFailed ? (
-            <p className="hh__missing">{m.quiet.missingPhoto}</p>
+            <p className="qp-home-hero__missing">{m.quiet.missingPhoto}</p>
           ) : (
             <Image
-              src="/images/haveniq-hero-v2.jpg"
+              src="/images/hero-desktop.jpg"
               alt={m.quiet.heroAlt}
               fill
               priority
-              unoptimized
               sizes="100vw"
-              className="hh__img"
+              className="qp-home-hero__img"
               onError={() => setPhotoFailed(true)}
             />
           )}
         </div>
 
-        <header className="hh__bar">
-          <div className="hh__brand">
-            <Brand />
+        <header className="qp-home-nav">
+          <div>
+            <Logo href="/" height={22} />
           </div>
-          <nav className={`hh__links${menuOpen ? " is-open" : ""}`} aria-label={m.home.how}>
+          <nav className={`qp-home-nav__links${menuOpen ? " is-open" : ""}`} aria-label={m.home.how}>
             {navLinks.map((link) => (
               <a key={link.href} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}</a>
             ))}
           </nav>
-          <div className="hh__tools">
-            <HqLang />
-            <Link href="/login" className="hh__login">{m.home.signIn}</Link>
+          <div className="qp-home-nav__tools">
+            <LanguageToggle />
+            <Link href="/login" className="qp-home-login">{m.home.signIn}</Link>
             <button
               type="button"
-              className="hh__menu-btn"
+              className="qp-home-menu-btn"
               aria-expanded={menuOpen}
               aria-label={menuOpen ? m.nav.closeMenu : m.nav.openMenu}
               onClick={() => setMenuOpen((open) => !open)}
@@ -113,27 +115,27 @@ export default function Home() {
           </div>
         </header>
 
-        <div className="hh__copy">
-          <h1 className="hh__title">
+        <div className="qp-home-hero__copy">
+          <h1 className="qp-home-hero__title">
             {hebrewTitle ? (
               <>
-                <span className="hh__line">יש הרבה בתים.</span>
-                <span className="hh__line">אחד מהם שלך.</span>
+                <span className="qp-home-hero__line">יש הרבה בתים.</span>
+                <span className="qp-home-hero__line">אחד מהם שלך.</span>
               </>
             ) : (
               m.quiet.heroTitle
             )}
           </h1>
-          <p className="hh__body">{m.quiet.heroBody}</p>
-          <Link href="/register" className="hh__cta">
+          <p className="qp-home-hero__body">{m.quiet.heroBody}</p>
+          <Link href="/register" className="qp-home-hero__cta">
             <span>{m.quiet.heroCta}</span>
             <span aria-hidden>{hebrewTitle ? "←" : "→"}</span>
           </Link>
-          <div className="hh__pros" ref={prosRef}>
+          <div className="qp-home-hero__pros" ref={prosRef}>
             <button
               ref={prosButtonRef}
               type="button"
-              className="hh__pros-btn"
+              className="qp-home-hero__pros-btn"
               aria-expanded={prosOpen}
               aria-controls={prosMenuId}
               onClick={() => setProsOpen((open) => !open)}
@@ -141,7 +143,7 @@ export default function Home() {
               {m.home.forPros}
             </button>
             {prosOpen && (
-              <ul id={prosMenuId} className="hh__menu" role="menu" aria-label={m.home.openPros}>
+              <ul id={prosMenuId} className="qp-home-hero__menu" role="menu" aria-label={m.home.openPros}>
                 <li role="none">
                   <Link role="menuitem" href="/dev/register" onClick={() => setProsOpen(false)}>{m.nav.roleDeveloper}</Link>
                 </li>
@@ -153,7 +155,7 @@ export default function Home() {
           </div>
         </div>
 
-        <a className="hh__cue" href="#how-it-works">
+        <a className="qp-home-hero__cue" href="#how-it-works">
           <span>{m.home.scrollCue}</span>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
             <path d="M3 6l5 5 5-5" />
@@ -161,120 +163,132 @@ export default function Home() {
         </a>
       </section>
 
-      <div className="hq-page">
+      {/* ── Content ───────────────────────────────────────────────────────── */}
+      <div className="qp-page">
 
-        <p className="hq-quiet">{m.home.quiet}</p>
+        <p className="qp-quiet">{m.home.quiet}</p>
 
-        <section id="how-it-works" className="hq-block">
-          <div className="hq-kicker">{m.home.howKicker}</div>
+        <section id="how-it-works" className="qp-block">
+          <div className="qp-kicker">{m.home.howKicker}</div>
           <h2>{m.home.howTitle}</h2>
-          <div className="hq-grid" style={{ marginTop: "1.25rem" }}>
+          <div className="qp-grid" style={{ marginTop: "1.25rem" }}>
             {steps.map((step, index) => (
-              <Card key={step.title} kicker={`0${index + 1}`} title={step.title}>{step.body}</Card>
+              <div key={step.title} className="qp-card">
+                <div className="qp-kicker">{`0${index + 1}`}</div>
+                <h3 style={{ fontSize: "1.15rem", marginBottom: "0.45rem" }}>{step.title}</h3>
+                <div style={{ color: "var(--qp-muted)", lineHeight: 1.55 }}>{step.body}</div>
+              </div>
             ))}
           </div>
         </section>
 
-        <section id="scoring" className="hq-block">
-          <div className="hq-grid" style={{ alignItems: "center" }}>
+        <section id="scoring" className="qp-block">
+          <div className="qp-grid" style={{ alignItems: "center" }}>
             <div>
-              <div className="hq-kicker">{m.home.techKicker}</div>
+              <div className="qp-kicker">{m.home.techKicker}</div>
               <h2>{m.home.techTitle}</h2>
-              <p className="hq-lead">{m.home.techBody}</p>
+              <p className="qp-lead">{m.home.techBody}</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "1.1rem", maxWidth: "22rem", marginTop: "1.5rem" }}>
                 <label>
-                  <span className="hq-split" style={{ fontSize: "0.8125rem", color: "var(--hq-muted)", marginBottom: "0.4rem" }}>
+                  <span className="qp-split" style={{ fontSize: "0.8125rem", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>
                     <span>{m.home.ideal}</span>
-                    <span className="hq-num" style={{ color: "var(--hq-gold)" }}>{ej}</span>
+                    <span className="qp-num" style={{ color: "var(--qp-accent-text)" }}>{ej}</span>
                   </span>
-                  <input className="hq-range" type="range" min={60} max={100} value={ej} onChange={(e) => setEj(Number(e.target.value))} />
+                  <input className="qp-range" type="range" min={60} max={100} value={ej} onChange={(e) => setEj(Number(e.target.value))} />
                 </label>
                 <label>
-                  <span className="hq-split" style={{ fontSize: "0.8125rem", color: "var(--hq-muted)", marginBottom: "0.4rem" }}>
+                  <span className="qp-split" style={{ fontSize: "0.8125rem", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>
                     <span>{m.home.floor}</span>
-                    <span className="hq-num" style={{ color: "var(--hq-gold)" }}>{aj}</span>
+                    <span className="qp-num" style={{ color: "var(--qp-accent-text)" }}>{aj}</span>
                   </span>
-                  <input className="hq-range" type="range" min={40} max={80} value={aj} onChange={(e) => setAj(Number(e.target.value))} />
+                  <input className="qp-range" type="range" min={40} max={80} value={aj} onChange={(e) => setAj(Number(e.target.value))} />
                 </label>
               </div>
             </div>
 
             <GlassPanel>
               <div style={{ padding: "1.35rem" }}>
-                <div className="hq-split" style={{ marginBottom: "1.1rem" }}>
+                <div className="qp-split" style={{ marginBottom: "1.1rem" }}>
                   <div>
-                    <div className="hq-kicker">{m.home.sampleMatch}</div>
+                    <div className="qp-kicker">{m.home.sampleMatch}</div>
                     <div style={{ fontWeight: 600 }}>{m.home.sampleName}</div>
                   </div>
                   {feasible ? (
                     <div style={{ textAlign: "end" }}>
-                      <div className="hq-kicker">{m.home.surplus}</div>
-                      <div className="hq-num hq-score" style={{ fontSize: "1.6rem" }}>{zij}</div>
+                      <div className="qp-kicker">{m.home.surplus}</div>
+                      <div className="qp-num qp-score" style={{ fontSize: "1.6rem" }}>{zij}</div>
                     </div>
                   ) : (
-                    <span className="hq-pill hq-pill--danger">{m.home.noOverlap}</span>
+                    <span className="qp-badge qp-badge--error">{m.home.noOverlap}</span>
                   )}
                 </div>
-                <div className="hq-axis">
-                  <div className="hq-bar" aria-hidden>
+                <div className="qp-axis" dir="ltr">
+                  <div className="qp-bar" aria-hidden>
                     <span style={{ left: "55%", width: "29%", background: "rgba(18,63,64,0.28)" }} />
-                    <span style={{ left: `${Math.max(0, Math.min(100, aj))}%`, width: `${Math.max(0, ej - aj)}%`, background: "rgba(181,160,120,0.55)" }} />
+                    <span style={{ left: `${Math.max(0, Math.min(100, aj))}%`, width: `${Math.max(0, ej - aj)}%`, background: "rgba(179,139,77,0.45)" }} />
                     {feasible && (
-                      <span style={{ left: `${Math.max(0, Math.min(100, lowerBound))}%`, width: `${Math.max(0, upperBound - lowerBound)}%`, background: "var(--hq-gold)" }} />
+                      <span style={{ left: `${Math.max(0, Math.min(100, lowerBound))}%`, width: `${Math.max(0, upperBound - lowerBound)}%`, background: "var(--qp-accent)" }} />
                     )}
                   </div>
-                  <div className="hq-ticks hq-num">
+                  <div className="qp-ticks qp-num">
                     <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
                   </div>
                 </div>
-                <div className="hq-legend">
+                <div className="qp-legend">
                   <span><i style={{ background: "rgba(18,63,64,0.45)" }} />{m.home.sellerRange}</span>
-                  <span><i style={{ background: "var(--hq-gold)" }} />{m.home.yourRange}</span>
+                  <span><i style={{ background: "var(--qp-accent)" }} />{m.home.yourRange}</span>
                 </div>
               </div>
             </GlassPanel>
           </div>
         </section>
 
-        <section className="hq-block">
-          <div className="hq-kicker">{m.home.verifiedKicker}</div>
+        <section className="qp-block">
+          <div className="qp-kicker">{m.home.verifiedKicker}</div>
           <h2>{m.home.verifiedTitle}</h2>
-          <div className="hq-grid" style={{ marginTop: "1.25rem" }}>
-            <Card title={m.home.v1t}>{m.home.v1b}</Card>
-            <Card title={m.home.v2t}>{m.home.v2b}</Card>
-            <Card title={m.home.v3t}>{m.home.v3b}</Card>
+          <div className="qp-grid" style={{ marginTop: "1.25rem" }}>
+            {[
+              { title: m.home.v1t, body: m.home.v1b },
+              { title: m.home.v2t, body: m.home.v2b },
+              { title: m.home.v3t, body: m.home.v3b },
+            ].map((card) => (
+              <div key={card.title} className="qp-card">
+                <h3 style={{ fontSize: "1.15rem", marginBottom: "0.45rem" }}>{card.title}</h3>
+                <div style={{ color: "var(--qp-muted)", lineHeight: 1.55 }}>{card.body}</div>
+              </div>
+            ))}
           </div>
         </section>
 
-        <section id="group-buying" className="hq-block">
-          <div className="hq-grid" style={{ alignItems: "center" }}>
+        <section id="group-buying" className="qp-block">
+          <div className="qp-grid" style={{ alignItems: "center" }}>
             <div>
-              <div className="hq-kicker">{m.home.groupKicker}</div>
+              <div className="qp-kicker">{m.home.groupKicker}</div>
               <h2>{m.home.groupTitle}</h2>
-              <p className="hq-lead">{m.home.groupBody}</p>
-              <Link href="/buyer/leverage-groups" className="hq-btn hq-btn--ghost" style={{ marginTop: "1.25rem" }}>{m.home.findGroup}</Link>
+              <p className="qp-lead">{m.home.groupBody}</p>
+              <Link href="/buyer/leverage-groups" className="qp-btn qp-btn--secondary" style={{ marginTop: "1.25rem", display: "inline-flex" }}>{m.home.findGroup}</Link>
             </div>
             <GlassPanel>
               <div style={{ padding: "1.5rem", textAlign: "center" }}>
-                <div className="hq-people hq-num">
+                <div className="qp-people qp-num">
                   <span>1</span><span>2</span><span>3</span>
                 </div>
                 <div style={{ marginTop: "1.25rem" }}>
-                  <div className="hq-kicker">{m.home.requested}</div>
+                  <div className="qp-kicker">{m.home.requested}</div>
                   <div style={{ fontWeight: 600, fontSize: "1.15rem" }}>{m.home.groupSample}</div>
-                  <div className="hq-num" style={{ color: "var(--hq-gold)", marginTop: "0.4rem" }}>{m.home.groupDiscount}</div>
+                  <div className="qp-num" style={{ color: "var(--qp-accent-text)", marginTop: "0.4rem" }}>{m.home.groupDiscount}</div>
                 </div>
               </div>
             </GlassPanel>
           </div>
         </section>
 
-        <section className="hq-block">
+        <section className="qp-block">
           <GlassPanel>
             <div style={{ padding: "3rem 1.5rem", textAlign: "center" }}>
               <h2 style={{ fontSize: "clamp(1.8rem, 3vw, 2.4rem)" }}>{m.home.ctaTitleA}<br />{m.home.ctaTitleB}</h2>
-              <p className="hq-lead" style={{ margin: "0.8rem auto 1.5rem" }}>{m.home.ctaBody}</p>
-              <Link href="/register" className="hq-btn hq-btn--primary">{m.home.getStarted}</Link>
+              <p className="qp-lead" style={{ margin: "0.8rem auto 1.5rem" }}>{m.home.ctaBody}</p>
+              <Link href="/register" className="qp-btn qp-btn--primary" style={{ display: "inline-flex" }}>{m.home.getStarted}</Link>
             </div>
           </GlassPanel>
         </section>
