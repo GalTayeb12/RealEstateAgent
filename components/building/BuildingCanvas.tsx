@@ -92,8 +92,15 @@ function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave }: 
   const { avail, total } = floorAvail(floor);
   const allSold     = !lobby && total > 0 && avail === 0;
 
-  // Balcony on every residential floor (removed the even-floor restriction)
-  const withBalcony = !lobby && !penthouse && quality === "high";
+  // Balcony: driven by UnitType.attributes.balcony when available.
+  // If any unit explicitly has hasBalcony=true → show.
+  // If any unit explicitly has hasBalcony=false → hide.
+  // If all units have hasBalcony=undefined (no data) → show as isSample fallback.
+  const someTrue  = floor.units.some((u) => u.hasBalcony === true);
+  const someFalse = floor.units.some((u) => u.hasBalcony === false);
+  const hasData   = someTrue || someFalse;
+  const withBalcony =
+    !lobby && !penthouse && quality === "high" && (someTrue || !hasData);
 
   // Setback: upper 28 % step back slightly
   const setback =
@@ -166,12 +173,14 @@ function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave }: 
           if (!windowLit(i)) return null;
           const slot = (fw - SHELL_T * 2) / divisions;
           const wx = cx - fw / 2 + SHELL_T + slot * (i + 0.5);
-          const alpha = 0.055 + 0.04 * ((floor.floor * 7 + i * 13) % 5) / 4;
+          // Keep opacity well below bloom threshold (luminance < 0.88).
+          // This adds barely-visible warmth in daylight; no glow artefact.
+          const alpha = 0.022 + 0.014 * ((floor.floor * 7 + i * 13) % 5) / 4;
           return (
             <mesh key={i} position={[wx, cy + SLAB_H * 0.4, faceZ - 0.005]}>
               <planeGeometry args={[slot * 0.72, (h - SLAB_H * 2) * 0.68]} />
               <meshBasicMaterial
-                color="#FFD880"
+                color="#E8C870"
                 transparent
                 opacity={alpha}
                 depthWrite={false}
