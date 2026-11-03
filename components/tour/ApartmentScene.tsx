@@ -8,42 +8,6 @@ import TourControls from "./TourControls";
 import RoomLabels from "./RoomLabels";
 import type { ApartmentModelData, Room } from "@/lib/tour/types";
 
-// ─── Floor click raycaster (inside Canvas) ──────────────────────────────────
-function FloorClickHandler({
-  walkTargetRef,
-  mode,
-}: {
-  walkTargetRef: React.MutableRefObject<THREE.Vector3 | null>;
-  mode: "orbit" | "walk";
-}) {
-  const { camera, gl } = useThree();
-  const raycaster = useRef(new THREE.Raycaster());
-  const plane = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
-
-  useEffect(() => {
-    if (mode !== "walk") return;
-    const canvas = gl.domElement;
-    const handler = (e: PointerEvent) => {
-      if (e.button !== 0) return;
-      const rect = canvas.getBoundingClientRect();
-      const mouse = new THREE.Vector2(
-        ((e.clientX - rect.left) / rect.width) * 2 - 1,
-        -((e.clientY - rect.top) / rect.height) * 2 + 1,
-      );
-      raycaster.current.setFromCamera(mouse, camera);
-      const intersection = new THREE.Vector3();
-      raycaster.current.ray.intersectPlane(plane.current, intersection);
-      if (intersection) {
-        walkTargetRef.current = intersection.clone();
-      }
-    };
-    canvas.addEventListener("pointerdown", handler);
-    return () => canvas.removeEventListener("pointerdown", handler);
-  }, [mode, camera, gl, walkTargetRef]);
-
-  return null;
-}
-
 // ─── Walk look (drag to look) ───────────────────────────────────────────────
 function WalkLookHandler({
   mode,
@@ -142,6 +106,7 @@ function SceneContent({
   onDwellUpdate,
   sqmLabel,
   monthlyRentLabel,
+  labelElemsRef,
 }: {
   model: ApartmentModelData;
   profileId: string;
@@ -151,10 +116,10 @@ function SceneContent({
   onDwellUpdate: (roomId: string, dtSeconds: number) => void;
   sqmLabel: string;
   monthlyRentLabel: string;
+  labelElemsRef: React.RefObject<Record<string, HTMLElement | null>>;
 }) {
   const wallGroupRef = useRef<THREE.Group>(null);
   const keysRef = useRef(new Set<string>());
-  const walkTargetRef = useRef<THREE.Vector3 | null>(null);
   // Shared yaw/pitch refs — both WalkLookHandler and TourControls read/write
   // the same angles so mouse-drag look and keyboard turn stay in sync.
   const yawRef = useRef(0);
@@ -190,7 +155,6 @@ function SceneContent({
         onRoomChange={onRoomChange}
         wallGroupRef={wallGroupRef}
         keysRef={keysRef}
-        walkTargetRef={walkTargetRef}
         yawRef={yawRef}
         pitchRef={pitchRef}
       />
@@ -203,6 +167,7 @@ function SceneContent({
         onFocusRoom={onRoomChange}
         sqmLabel={sqmLabel}
         monthlyRentLabel={monthlyRentLabel}
+        labelElemsRef={labelElemsRef}
       />
       <DwellTracker
         mode={mode}
@@ -210,7 +175,6 @@ function SceneContent({
         rooms={model.rooms}
         onDwellUpdate={onDwellUpdate}
       />
-      <FloorClickHandler walkTargetRef={walkTargetRef} mode={mode} />
       <WalkLookHandler mode={mode} yawRef={yawRef} pitchRef={pitchRef} />
     </>
   );
@@ -227,6 +191,7 @@ export interface ApartmentSceneProps {
   sqmLabel: string;
   monthlyRentLabel: string;
   noWebGLLabel: string;
+  labelElemsRef: React.RefObject<Record<string, HTMLElement | null>>;
 }
 
 export default function ApartmentScene({
@@ -239,6 +204,7 @@ export default function ApartmentScene({
   sqmLabel,
   monthlyRentLabel,
   noWebGLLabel,
+  labelElemsRef,
 }: ApartmentSceneProps) {
   const hasWebGL = useMemo(() => {
     if (typeof window === "undefined") return true;
@@ -303,6 +269,7 @@ export default function ApartmentScene({
         onDwellUpdate={onDwellUpdate}
         sqmLabel={sqmLabel}
         monthlyRentLabel={monthlyRentLabel}
+        labelElemsRef={labelElemsRef}
       />
     </Canvas>
   );

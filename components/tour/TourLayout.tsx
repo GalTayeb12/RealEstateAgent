@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import type { ApartmentModelData } from "@/lib/tour/types";
@@ -49,13 +49,25 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
   const router = useRouter();
   const [model, setModel] = useState<ApartmentModelData | null>(null);
   const [isSample, setIsSample] = useState(false);
-  const [profileId, setProfileId] = useState("family");
+  // Fix 3d: start with "neutral" profile
+  const [profileId, setProfileId] = useState("neutral");
   const [mode, setMode] = useState<"orbit" | "walk">("orbit");
   const [focusRoomId, setFocusRoomId] = useState<string | null>(null);
   const [currentWalkRoom, setCurrentWalkRoom] = useState<string | null>(null);
   const [dwell, setDwell] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const sessionRef = useRef(generateSessionId());
+
+  // Fix 2: back URL state
+  const [backUrl, setBackUrl] = useState<string | null>(null);
+
+  // Fix 3a: buyer profile (deferred — stays null for now)
+  const [buyerProfile] = useState<{
+    match: number; why: string[]; persona: string;
+  } | null>(null);
+
+  // Fix 4b+c: shared label elements ref
+  const labelElemsRef = useRef<Record<string, HTMLElement | null>>({});
 
   // Load data
   useEffect(() => {
@@ -68,7 +80,9 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
         if (unitRes.ok) {
           const unitData = await unitRes.json();
           const utId = unitData.unit?.unitTypeId;
+          // Fix 2: store backUrl
           if (utId) {
+            if (!cancelled) setBackUrl(`/aom/${utId}?unit=${unitId}`);
             const modelRes = await fetch(`/api/tour/model/${utId}`);
             if (modelRes.ok) {
               const { model: dbModel } = await modelRes.json();
@@ -96,11 +110,19 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
     return () => { cancelled = true; };
   }, [unitId]);
 
-  // Escape to close
+  // Fix 1: body scroll lock
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
+  // Fix 2: Escape handler — navigate to backUrl when available
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isModal) {
+        if (backUrl) {
+          router.push(backUrl);
+        } else if (isModal) {
           router.back();
         } else {
           window.history.back();
@@ -109,7 +131,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isModal, router]);
+  }, [isModal, router, backUrl]);
 
   // Room change callback
   const handleRoomChange = useCallback(
@@ -161,22 +183,28 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
   }, []);
 
   const close = useCallback(() => {
-    if (isModal) router.back();
+    if (backUrl) router.push(backUrl);
+    else if (isModal) router.back();
     else window.history.back();
-  }, [isModal, router]);
+  }, [isModal, router, backUrl]);
+
+  // Fix 1: always fixed, full viewport
+  const containerStyle: React.CSSProperties = {
+    position: "fixed",
+    inset: 0,
+    height: "100dvh",
+    zIndex: 200,
+    display: "grid",
+    gridTemplateColumns: "360px 1fr",
+    background: "#fff",
+    fontFamily: "var(--font-heebo), sans-serif",
+  };
 
   if (loading || !model) {
     return (
       <div
-        style={{
-          position: isModal ? "fixed" : "relative",
-          inset: 0,
-          zIndex: isModal ? 200 : undefined,
-          display: "grid",
-          gridTemplateColumns: "372px 1fr",
-          background: "#fff",
-          fontFamily: "var(--font-heebo), sans-serif",
-        }}
+        className="tour-skel-wrap"
+        style={containerStyle}
       >
         <style>{`
           @keyframes tourSkelPulse {
@@ -186,15 +214,15 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
             .tour-skel-pulse { animation: none !important; }
           }
           @media (max-width: 860px) {
-            .tour-skel-wrap { grid-template-columns: 1fr !important; grid-template-rows: 60vh 1fr !important; }
-            .tour-skel-panel { order: 2 !important; }
-            .tour-skel-stage { order: 1 !important; }
+            .tour-skel-wrap { grid-template-columns: 1fr !important; grid-template-rows: 55dvh 45dvh !important; }
+            .tour-skel-panel { order: 2 !important; height: 100% !important; }
+            .tour-skel-stage { order: 1 !important; height: 100% !important; }
           }
         `}</style>
         {/* Panel skeleton */}
         <div
           className="tour-skel-panel"
-          style={{ padding: "20px 22px", borderLeft: "1px solid #e8e6e1", display: "flex", flexDirection: "column", gap: 12 }}
+          style={{ padding: "20px 22px", borderLeft: "1px solid #e8e6e1", display: "flex", flexDirection: "column", gap: 12, height: "100%" }}
         >
           {/* Title bar */}
           <div className="tour-skel-pulse" style={{ height: 22, width: "60%", background: "#ece9e3", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
@@ -216,7 +244,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
         {/* Canvas skeleton */}
         <div
           className="tour-skel-stage"
-          style={{ background: "#e4e7ea", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10 }}
+          style={{ background: "#e4e7ea", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10, height: "100%" }}
         >
           <div className="tour-skel-pulse" style={{ width: 48, height: 48, borderRadius: "50%", background: "#d0d4d8", animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
           <div style={{ color: "#8AAEC2", fontFamily: "var(--font-heebo), sans-serif", fontSize: 14, direction: "rtl" }}>{m.loading}</div>
@@ -232,22 +260,16 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
     <div
       className="tour-grid"
       style={{
-        position: isModal ? "fixed" : "relative",
-        inset: 0,
-        zIndex: isModal ? 200 : undefined,
-        display: "grid",
-        gridTemplateColumns: "372px 1fr",
-        background: "#fff",
+        ...containerStyle,
         animation: "tourFadeIn 0.35s ease",
-        minHeight: isModal ? undefined : "100vh",
       }}
     >
       <style>{`
         @keyframes tourFadeIn { from { opacity: 0 } to { opacity: 1 } }
         @media (max-width: 860px) {
-          .tour-grid { grid-template-columns: 1fr !important; grid-template-rows: 60vh 1fr !important; }
-          .tour-panel { order: 2 !important; }
-          .tour-stage { order: 1 !important; }
+          .tour-grid { grid-template-columns: 1fr !important; grid-template-rows: 55dvh 45dvh !important; }
+          .tour-panel { order: 2 !important; height: 100% !important; }
+          .tour-stage { order: 1 !important; height: 100% !important; }
         }
       `}</style>
 
@@ -261,6 +283,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           fontFamily: "var(--font-heebo), sans-serif",
           borderLeft: "1px solid #e8e6e1",
           position: "relative",
+          height: "100%",
         }}
       >
         {/* Close button */}
@@ -285,7 +308,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
         {/* Header */}
         <div style={{ marginBottom: 16 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-            {model.profiles.find((p) => p.id === profileId)?.name ?? ""}
+            {model.facts.areaSqm} {m.sqm}
           </h2>
           {isSample && (
             <span
@@ -337,62 +360,59 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           ))}
         </div>
 
-        {/* Profile selector */}
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-            {m.profileTitle}
-            <span style={{ fontWeight: 400, color: "#aaa", marginRight: 6, fontSize: 11 }}>
-              {m.profileTag}
-            </span>
+        {/* ── Fix 3b: Profile section ─────────────────────────────── */}
+        {buyerProfile ? (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>מותאם עבורך</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 22, fontWeight: 700, color: "#d27a12" }}>{buyerProfile.match}%</span>
+              <span style={{ fontSize: 13, color: "#444" }}>התאמה</span>
+            </div>
+            <ul style={{ paddingRight: 16, paddingLeft: 0, margin: 0, fontSize: 12, lineHeight: 1.7, color: "#444" }}>
+              {buyerProfile.why.map((w, i) => <li key={i}>{w}</li>)}
+            </ul>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {model.profiles.map((p) => (
+        ) : (
+          <div style={{
+            background: "#fdf8f0", border: "1px solid #f0e0c0", borderRadius: 10,
+            padding: "12px 14px", marginBottom: 16, direction: "rtl",
+          }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>הכירו את הדירה כמו שהיא שלכם</div>
+            <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
+              עברו ראיון קצר וראו את הדירה מרוהטת בדיוק בשבילכם.
+            </div>
+            <a href="/interview" style={{
+              display: "inline-block", background: "#d27a12", color: "#fff",
+              borderRadius: 6, padding: "5px 14px", fontSize: 12, fontWeight: 600,
+              textDecoration: "none",
+            }}>לראיון הקצר ←</a>
+          </div>
+        )}
+
+        {/* ── Fix 3b: Style chips ──────────────────────────────────── */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>נסה סגנון אחר</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {([
+              { id: "family",   label: "משפחה" },
+              { id: "wfh",      label: "עבודה מהבית" },
+              { id: "investor", label: "השכרה" },
+            ] as const).map(chip => (
               <button
-                key={p.id}
-                onClick={() => handleProfileChange(p.id)}
+                key={chip.id}
+                onClick={() => handleProfileChange(chip.id)}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "10px 14px",
-                  background: profileId === p.id ? "#f0ebe3" : "#faf9f7",
-                  border: profileId === p.id ? "2px solid #d27a12" : "1px solid #e8e6e1",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  textAlign: "start",
-                  fontFamily: "inherit",
-                  width: "100%",
+                  padding: "4px 12px", borderRadius: 14, fontSize: 12,
+                  fontFamily: "inherit", cursor: "pointer",
+                  background: profileId === chip.id ? "#d27a12" : "#f2f0ec",
+                  color: profileId === chip.id ? "#fff" : "#444",
+                  border: profileId === chip.id ? "none" : "1px solid #e0ddd8",
                 }}
               >
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>{p.name}</div>
-                  <div style={{ fontSize: 11, color: "#888" }}>{p.sub}</div>
-                </div>
-                <div
-                  style={{
-                    background: profileId === p.id ? "#d27a12" : "#e8e6e1",
-                    color: profileId === p.id ? "#fff" : "#666",
-                    borderRadius: 6,
-                    padding: "2px 8px",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {p.match}% {m.matchLabel}
-                </div>
+                {chip.label}
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Why section */}
-        <div style={{ marginBottom: 18 }}>
-          <ul style={{ paddingRight: 18, paddingLeft: 0, margin: 0, fontSize: 12, lineHeight: 1.7, color: "#444" }}>
-            {model.profiles
-              .find((p) => p.id === profileId)
-              ?.why.map((w, i) => <li key={i}>{w}</li>)}
-          </ul>
         </div>
 
         {/* Dana bot */}
@@ -429,7 +449,15 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
       </div>
 
       {/* ─── Right stage ────────────────────────────────────────────── */}
-      <div className="tour-stage" style={{ position: "relative", background: "#e4e7ea", overflow: "hidden" }}>
+      <div
+        className="tour-stage"
+        style={{
+          position: "relative",
+          background: "#e4e7ea",
+          overflow: "hidden",
+          height: "100%",
+        }}
+      >
         <ApartmentScene
           model={model}
           profileId={profileId}
@@ -440,7 +468,84 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           sqmLabel={m.sqm}
           monthlyRentLabel={m.monthlyRent}
           noWebGLLabel={m.noWebGL}
+          labelElemsRef={labelElemsRef}
         />
+
+        {/* Fix 4b+c: Room label overlay */}
+        {model && mode === "orbit" && (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              pointerEvents: "none",
+              zIndex: 5,
+              overflow: "hidden",
+            }}
+          >
+            {model.rooms.map((room) => {
+              const profile = model.profiles.find((p) => p.id === profileId);
+              const label = profile?.labels[room.id] ?? room.name;
+              const rent = profile?.rent?.[room.id];
+              const isFocused = focusRoomId === room.id;
+              return (
+                <div
+                  key={room.id}
+                  ref={(el) => { labelElemsRef.current[room.id] = el; }}
+                  onClick={() => handleRoomChange(room.id)}
+                  style={{
+                    position: "absolute",
+                    top: 0, left: 0,
+                    opacity: 0,
+                    pointerEvents: "none",
+                    background: isFocused ? "rgba(210,122,18,0.92)" : "rgba(255,255,255,0.92)",
+                    color: isFocused ? "#fff" : "#1a1a1a",
+                    borderRadius: 8,
+                    padding: "6px 12px",
+                    fontSize: 13,
+                    fontFamily: "var(--font-heebo), sans-serif",
+                    direction: "rtl",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                    userSelect: "none",
+                    lineHeight: 1.4,
+                    transition: "background 0.15s",
+                  }}
+                >
+                  <div style={{ fontWeight: 600 }}>{label}</div>
+                  <div style={{ fontSize: 11, opacity: 0.8 }}>{room.area.toFixed(1)} {m.sqm}</div>
+                  {rent != null && (
+                    <div style={{ fontSize: 11, opacity: 0.8, color: isFocused ? "#ffe8c0" : "#d27a12" }}>
+                      {rent.toLocaleString()} ₪
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Fix 2: Back button (top-right of stage) */}
+        <button
+          onClick={() => { if (backUrl) router.push(backUrl); else close(); }}
+          style={{
+            position: "absolute",
+            top: 14, right: 14, zIndex: 20,
+            background: "rgba(255,255,255,0.92)",
+            border: "1px solid rgba(0,0,0,0.1)",
+            borderRadius: 8,
+            padding: "6px 14px",
+            fontSize: 13,
+            fontFamily: "var(--font-heebo), sans-serif",
+            cursor: "pointer",
+            display: "flex", alignItems: "center", gap: 6,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+            direction: "rtl",
+          }}
+        >
+          ← חזרה לבניין
+        </button>
 
         {/* Mode toggle (top-left) */}
         <div
@@ -475,12 +580,12 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           ))}
         </div>
 
-        {/* Walk mode: current room indicator (top-right) */}
+        {/* Walk mode: current room indicator — Fix 2: moved to top:56 to avoid back button collision */}
         {mode === "walk" && walkRoomObj && (
           <div
             style={{
               position: "absolute",
-              top: 14,
+              top: 56,
               right: 14,
               background: "rgba(255,255,255,0.92)",
               borderRadius: 8,
@@ -542,7 +647,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           })}
         </div>
 
-        {/* Touch movement pad (walk mode, bottom-right) */}
+        {/* Fix 6: Touch movement pad (walk mode, bottom-right) — 4 arrows only */}
         {mode === "walk" && <TouchPad />}
 
         {/* Hint text */}
@@ -577,13 +682,12 @@ function TouchPad() {
     window.dispatchEvent(new KeyboardEvent(down ? "keydown" : "keyup", { key }));
   }, []);
 
+  // Fix 6: only 4 direction arrows
   const buttons = [
-    { label: "\u25B2", key: "w", row: 0, col: 1 },
-    { label: "\u25C0", key: "q", row: 1, col: 0 },
-    { label: "\u25BC", key: "s", row: 1, col: 1 },
-    { label: "\u25B6", key: "e", row: 1, col: 2 },
-    { label: "A", key: "a", row: 2, col: 0 },
-    { label: "D", key: "d", row: 2, col: 2 },
+    { label: "▲", key: "ArrowUp",    row: 0, col: 1 },
+    { label: "◀", key: "ArrowLeft",  row: 1, col: 0 },
+    { label: "▼", key: "ArrowDown",  row: 1, col: 1 },
+    { label: "▶", key: "ArrowRight", row: 1, col: 2 },
   ];
 
   return (
@@ -594,7 +698,7 @@ function TouchPad() {
         right: 14,
         display: "grid",
         gridTemplateColumns: "42px 42px 42px",
-        gridTemplateRows: "42px 42px 42px",
+        gridTemplateRows: "42px 42px",
         gap: 3,
         zIndex: 10,
       }}

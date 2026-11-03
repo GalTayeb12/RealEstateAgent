@@ -1,9 +1,11 @@
 "use client";
 
-import { Html } from "@react-three/drei";
+import { useEffect } from "react";
+import { useThree, useFrame } from "@react-three/fiber";
+import * as THREE from "three";
 import type { Room, Profile } from "@/lib/tour/types";
 
-interface RoomLabelsProps {
+export interface RoomLabelsProps {
   rooms: Room[];
   profileId: string;
   profiles: Profile[];
@@ -12,69 +14,55 @@ interface RoomLabelsProps {
   onFocusRoom: (id: string) => void;
   sqmLabel: string;
   monthlyRentLabel: string;
+  /** Ref map from room id → the overlay DOM element (set by the overlay component) */
+  labelElemsRef: React.RefObject<Record<string, HTMLElement | null>>;
 }
+
+const _v = new THREE.Vector3();
 
 export default function RoomLabels({
   rooms,
-  profileId,
-  profiles,
-  focusRoomId,
   mode,
-  onFocusRoom,
-  sqmLabel,
-  monthlyRentLabel,
+  labelElemsRef,
 }: RoomLabelsProps) {
-  if (mode === "walk") return null;
+  const { camera, size } = useThree();
 
-  const profile = profiles.find((p) => p.id === profileId);
+  useFrame(() => {
+    if (mode === "walk") return;
+    const elems = labelElemsRef.current;
+    if (!elems) return;
 
-  return (
-    <group>
-      {rooms.map((room) => {
-        const label = profile?.labels[room.id] ?? room.name;
-        const isFocused = focusRoomId === room.id;
-        const rent = profile?.rent?.[room.id];
+    rooms.forEach((r) => {
+      const el = elems[r.id];
+      if (!el) return;
 
-        return (
-          <Html
-            key={room.id}
-            position={[room.cx, 1.25, room.cz]}
-            center
-            distanceFactor={12}
-            style={{ pointerEvents: "auto" }}
-          >
-            <div
-              onClick={() => onFocusRoom(room.id)}
-              style={{
-                background: isFocused ? "rgba(210,122,18,0.92)" : "rgba(255,255,255,0.92)",
-                color: isFocused ? "#fff" : "#1a1a1a",
-                borderRadius: 8,
-                padding: "6px 12px",
-                fontSize: 13,
-                fontFamily: "var(--font-heebo), sans-serif",
-                direction: "rtl",
-                textAlign: "center",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                userSelect: "none",
-                transition: "background 0.2s",
-                lineHeight: 1.4,
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{label}</div>
-              <div style={{ fontSize: 11, opacity: 0.8 }}>
-                {room.area.toFixed(1)} {sqmLabel}
-              </div>
-              {rent != null && (
-                <div style={{ fontSize: 11, opacity: 0.8, color: isFocused ? "#ffe8c0" : "#d27a12" }}>
-                  {rent.toLocaleString()} {monthlyRentLabel}
-                </div>
-              )}
-            </div>
-          </Html>
-        );
-      })}
-    </group>
-  );
+      _v.set(r.cx, 1.3, r.cz).project(camera);
+
+      // z > 1 means behind camera
+      if (_v.z > 1) {
+        el.style.opacity = "0";
+        el.style.pointerEvents = "none";
+        return;
+      }
+
+      const x = ((_v.x + 1) / 2) * size.width;
+      const y = ((1 - _v.y) / 2) * size.height;
+
+      el.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%)`;
+      el.style.opacity = "1";
+      el.style.pointerEvents = "auto";
+    });
+  });
+
+  // Hide all when switching to walk
+  useEffect(() => {
+    if (mode !== "walk") return;
+    const elems = labelElemsRef.current;
+    if (!elems) return;
+    Object.values(elems).forEach((el) => {
+      if (el) { el.style.opacity = "0"; el.style.pointerEvents = "none"; }
+    });
+  }, [mode, labelElemsRef]);
+
+  return null;
 }

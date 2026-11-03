@@ -600,7 +600,7 @@ export const he = {
     hintOrbit:
       "גררו לסיבוב · גלגלת לזום · לחיצה על חדר להתמקדות",
     hintWalk:
-      "W/S או חיצים לתנועה · גררו כדי להסתכל · לחיצה על הרצפה כדי ללכת לשם",
+      "חיצים או W/S לתנועה · גררו כדי להסתכל מסביב",
     herePrefix: "אתם ב",
     loading: "טוען סיור…",
     noWebGL:
@@ -1215,7 +1215,7 @@ export const en: Messages = {
     hintOrbit:
       "Drag to orbit - scroll to zoom - click a room to focus",
     hintWalk:
-      "W/S or arrows to move - drag to look - click the floor to walk there",
+      "Arrows or W/S to move · drag to look around",
     herePrefix: "You are in",
     loading: "Loading tour...",
     noWebGL:
