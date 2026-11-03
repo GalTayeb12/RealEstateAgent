@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useMemo } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -21,6 +21,9 @@ interface TourControlsProps {
   wallGroupRef: React.RefObject<THREE.Group | null>;
   keysRef: React.RefObject<Set<string>>;
   walkTargetRef: React.RefObject<THREE.Vector3 | null>;
+  /** Shared with WalkLookHandler so mouse-drag look and key look use the same angles */
+  yawRef: React.MutableRefObject<number>;
+  pitchRef: React.MutableRefObject<number>;
 }
 
 /** Find which room the position is in (AABB check). */
@@ -39,12 +42,17 @@ export default function TourControls({
   wallGroupRef,
   keysRef,
   walkTargetRef,
+  yawRef,
+  pitchRef,
 }: TourControlsProps) {
   const { camera } = useThree();
   const orbitRef = useRef<{ target: THREE.Vector3 } | null>(null);
   const currentRoomRef = useRef<string | null>(null);
-  const yawRef = useRef(0);
-  const pitchRef = useRef(0);
+
+  const reducedMotion = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }, []);
 
   // Wall scale target
   const wallScaleTarget = mode === "orbit" ? 0.42 : 1.0;
@@ -78,17 +86,22 @@ export default function TourControls({
   }, [mode]);
 
   useFrame((_, dt) => {
-    // Animate wall scale
+    // Animate wall scale (skip lerp if reduced motion)
     if (wallGroupRef.current) {
-      const cur = wallGroupRef.current.scale.y;
-      const factor = 1 - Math.exp(-dt * 6);
-      wallGroupRef.current.scale.y = cur + (wallScaleTarget - cur) * factor;
+      if (reducedMotion) {
+        wallGroupRef.current.scale.y = wallScaleTarget;
+      } else {
+        const cur = wallGroupRef.current.scale.y;
+        const factor = 1 - Math.exp(-dt * 6);
+        wallGroupRef.current.scale.y = cur + (wallScaleTarget - cur) * factor;
+      }
     }
 
     if (mode === "orbit") {
-      // Lerp orbit target
+      // Lerp orbit target (snap immediately if reduced motion)
       if (orbitRef.current) {
-        orbitRef.current.target.lerp(targetPos, 1 - Math.exp(-dt * 4));
+        const orbitFactor = reducedMotion ? 1.0 : 1 - Math.exp(-dt * 4);
+        orbitRef.current.target.lerp(targetPos, orbitFactor);
       }
       return;
     }

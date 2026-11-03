@@ -172,16 +172,55 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           position: isModal ? "fixed" : "relative",
           inset: 0,
           zIndex: isModal ? 200 : undefined,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          display: "grid",
+          gridTemplateColumns: "372px 1fr",
           background: "#fff",
           fontFamily: "var(--font-heebo), sans-serif",
-          fontSize: 16,
-          color: "#888",
         }}
       >
-        {m.loading}
+        <style>{`
+          @keyframes tourSkelPulse {
+            0%,100% { opacity: 1 } 50% { opacity: 0.45 }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .tour-skel-pulse { animation: none !important; }
+          }
+          @media (max-width: 860px) {
+            .tour-skel-wrap { grid-template-columns: 1fr !important; grid-template-rows: 60vh 1fr !important; }
+            .tour-skel-panel { order: 2 !important; }
+            .tour-skel-stage { order: 1 !important; }
+          }
+        `}</style>
+        {/* Panel skeleton */}
+        <div
+          className="tour-skel-panel"
+          style={{ padding: "20px 22px", borderLeft: "1px solid #e8e6e1", display: "flex", flexDirection: "column", gap: 12 }}
+        >
+          {/* Title bar */}
+          <div className="tour-skel-pulse" style={{ height: 22, width: "60%", background: "#ece9e3", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
+          {/* Facts grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 4 }}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="tour-skel-pulse" style={{ height: 52, background: "#f2f0ec", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: `${i * 0.08}s` }} />
+            ))}
+          </div>
+          {/* Profile cards */}
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="tour-skel-pulse" style={{ height: 54, background: "#f2f0ec", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: `${0.5 + i * 0.1}s` }} />
+          ))}
+          {/* Dana bot area */}
+          <div className="tour-skel-pulse" style={{ height: 90, background: "#f2f0ec", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: "0.8s" }} />
+          {/* Analytics area */}
+          <div className="tour-skel-pulse" style={{ height: 70, background: "#f2f0ec", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: "0.9s" }} />
+        </div>
+        {/* Canvas skeleton */}
+        <div
+          className="tour-skel-stage"
+          style={{ background: "#e4e7ea", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10 }}
+        >
+          <div className="tour-skel-pulse" style={{ width: 48, height: 48, borderRadius: "50%", background: "#d0d4d8", animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
+          <div style={{ color: "#8AAEC2", fontFamily: "var(--font-heebo), sans-serif", fontSize: 14, direction: "rtl" }}>{m.loading}</div>
+        </div>
       </div>
     );
   }
@@ -400,6 +439,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           onDwellUpdate={handleDwellUpdate}
           sqmLabel={m.sqm}
           monthlyRentLabel={m.monthlyRent}
+          noWebGLLabel={m.noWebGL}
         />
 
         {/* Mode toggle (top-left) */}

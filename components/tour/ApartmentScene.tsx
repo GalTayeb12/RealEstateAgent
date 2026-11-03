@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import ApartmentBuilder from "./ApartmentBuilder";
@@ -155,6 +155,8 @@ function SceneContent({
   const wallGroupRef = useRef<THREE.Group>(null);
   const keysRef = useRef(new Set<string>());
   const walkTargetRef = useRef<THREE.Vector3 | null>(null);
+  // Shared yaw/pitch refs — both WalkLookHandler and TourControls read/write
+  // the same angles so mouse-drag look and keyboard turn stay in sync.
   const yawRef = useRef(0);
   const pitchRef = useRef(0);
 
@@ -189,6 +191,8 @@ function SceneContent({
         wallGroupRef={wallGroupRef}
         keysRef={keysRef}
         walkTargetRef={walkTargetRef}
+        yawRef={yawRef}
+        pitchRef={pitchRef}
       />
       <RoomLabels
         rooms={model.rooms}
@@ -222,6 +226,7 @@ export interface ApartmentSceneProps {
   onDwellUpdate: (roomId: string, dtSeconds: number) => void;
   sqmLabel: string;
   monthlyRentLabel: string;
+  noWebGLLabel: string;
 }
 
 export default function ApartmentScene({
@@ -233,7 +238,44 @@ export default function ApartmentScene({
   onDwellUpdate,
   sqmLabel,
   monthlyRentLabel,
+  noWebGLLabel,
 }: ApartmentSceneProps) {
+  const hasWebGL = useMemo(() => {
+    if (typeof window === "undefined") return true;
+    try {
+      const canvas = document.createElement("canvas");
+      return !!(
+        window.WebGLRenderingContext &&
+        (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+      );
+    } catch {
+      return false;
+    }
+  }, []);
+
+  if (!hasWebGL) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#e4e7ea",
+          fontFamily: "var(--font-heebo), sans-serif",
+          fontSize: 14,
+          color: "#555",
+          textAlign: "center",
+          padding: "2rem",
+          direction: "rtl",
+        }}
+      >
+        {noWebGLLabel}
+      </div>
+    );
+  }
+
   return (
     <Canvas
       dpr={[1, 1.5]}
