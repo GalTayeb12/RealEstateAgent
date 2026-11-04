@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
         select: { quotaResetAt: true },
       });
       quotaResetAt = userRow?.quotaResetAt ?? null;
-    } catch {
-      // If quotaResetAt is unavailable (schema mismatch), ignore and use windowStart.
+    } catch (e) {
+      console.warn("[rate-limit] quotaResetAt fallback triggered — ORM cache mismatch?", e);
     }
 
     const [profile, attempts] = await Promise.all([

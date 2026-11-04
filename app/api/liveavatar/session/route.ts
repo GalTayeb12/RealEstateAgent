@@ -47,8 +47,8 @@ export async function POST(req: NextRequest) {
         select: { quotaResetAt: true },
       });
       quotaResetAt = uq?.quotaResetAt ?? null;
-    } catch {
-      // Graceful fallback when ORM schema cache lags the DB migration.
+    } catch (e) {
+      console.warn("[liveavatar/session] quotaResetAt fallback triggered — ORM cache mismatch?", e);
     }
     const since = quotaResetAt && quotaResetAt > windowStart ? quotaResetAt : windowStart;
     const recentAttempts = await prisma.interviewAttempt.findMany({
