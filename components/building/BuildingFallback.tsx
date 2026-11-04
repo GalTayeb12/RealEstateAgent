@@ -2,11 +2,10 @@
 
 import { layoutTowers } from "./layout";
 import type { ExplorerBuilding, HoverInfo } from "./types";
+import { statusVar } from "@/lib/statusColors";
 
-function cellColor(status: string, sameType: boolean): string {
-  if (status === "reserved") return "#756039";
-  if (status === "sold") return "#C5C0B8";
-  return sameType ? "#2F8F86" : "#8FB8B4";
+function cellColor(status: string): string {
+  return statusVar(status);
 }
 
 export default function BuildingFallback({
@@ -67,7 +66,7 @@ export default function BuildingFallback({
                       height: 36,
                       border: unit.unitTypeId === activeUnitTypeId ? "2px solid var(--qp-ink)" : "1px solid rgba(18,63,64,0.08)",
                       borderRadius: 4,
-                      background: cellColor(unit.status, unit.unitTypeId === activeUnitTypeId),
+                      background: cellColor(unit.status),
                       cursor: "pointer",
                       padding: 0,
                     }}

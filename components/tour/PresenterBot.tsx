@@ -117,8 +117,8 @@ export default function PresenterBot({
               width: 10,
               height: 10,
               borderRadius: "50%",
-              background: "#4caf50",
-              border: "2px solid #fff",
+              background: "var(--qp-accent)",
+              border: "2px solid var(--qp-surface)",
             }}
           />
         </div>
@@ -147,8 +147,8 @@ export default function PresenterBot({
             key={i}
             style={{
               alignSelf: msg.isUser ? "flex-end" : "flex-start",
-              background: msg.isUser ? "#3578e5" : "var(--qp-soft)",
-              color: msg.isUser ? "#fff" : "var(--qp-ink)",
+              background: msg.isUser ? "var(--qp-ink)" : "var(--qp-soft)",
+              color: msg.isUser ? "var(--qp-on-primary)" : "var(--qp-ink)",
               borderRadius: 12,
               padding: "8px 14px",
               fontSize: 13,

@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Component, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { statusVar } from "@/lib/statusColors";
 import { useI18n } from "@/components/LocaleProvider";
 import { Money } from "@/components/Money";
 import { formatUsdFromIls } from "@/lib/i18n/currency";
@@ -108,8 +109,7 @@ function FloorPanel({
   const isPenthouse = selectedFloor.floor === maxFloor && floorUnits.length > 0;
   const floorTitle = isPenthouse ? copy.penthouse : `${copy.floor} ${selectedFloor.floor}`;
 
-  const statusColor = (s: string) =>
-    s === "sold" ? "#8090A8" : s === "reserved" ? "#756039" : "#8AAEC2";
+  const statusColor = statusVar;
 
   const dir = isRtl ? "rtl" : "ltr";
 
@@ -401,8 +401,7 @@ function UnitCard({
     }
   }, [unitData]);
 
-  const statusColor = (s: string) =>
-    s === "sold" ? "#8090A8" : s === "reserved" ? "#756039" : "#52B880";
+  const statusColor = statusVar;
 
   const statusCopy = (s: string) =>
     s === "sold" ? copy.sold : s === "reserved" ? copy.reserved : copy.available;
@@ -948,10 +947,10 @@ export default function BuildingExplorer({
   }, [selectedBuilding, selectedFloor, maxFloor, floorUnits, selectedUnitId, unitData, floorCopy, unitCopy]);
 
   const legend = [
-    { color: "#8AAEC2", label: copy.available },
-    { color: "#8090A8", label: copy.sold },
-    { color: "#5C8AA2", label: copy.lobby },
-    { color: "#756039", label: copy.reserved },
+    { color: "var(--qp-status-available)", label: copy.available },
+    { color: "var(--qp-status-sold)",      label: copy.sold },
+    { color: "var(--qp-status-service)",   label: copy.lobby },
+    { color: "var(--qp-status-reserved)",  label: copy.reserved },
   ];
 
   const showUnitCard = !!(selectedUnitId && selectedFloor && selectedBuilding);

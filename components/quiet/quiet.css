@@ -35,6 +35,12 @@
   --qp-info:            #285F7A;
   --qp-info-bg:         #E9F2F7;
 
+  /* ── Unit status (building explorer + 3-D scene) ── */
+  --qp-status-available: #4A9099; /* muted teal — matches STATUS_COLORS.available in lib/statusColors.ts */
+  --qp-status-reserved:  #B38B4D; /* brand gold — = qp-accent */
+  --qp-status-sold:      #8A8F98; /* cool gray */
+  --qp-status-service:   #9C9890; /* warm gray — lobby / service floors */
+
   /* ── Spacing scale ── */
   --qp-space-1: 4px;
   --qp-space-2: 8px;

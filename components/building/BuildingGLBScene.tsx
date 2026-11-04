@@ -21,6 +21,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { BuildingEnvironment } from "./BuildingEnvironment";
 import type { ExplorerBuilding, FloorSelection, HoverInfo } from "./types";
+import { statusHex } from "@/lib/statusColors";
 
 // ── Floor / scene metadata (matches pipeline meta.json) ──────────────────────
 export interface FloorMeta {
@@ -334,7 +335,7 @@ function UnitBlock({
           zIndexRange={[10, 20]}
         >
           <div style={{
-            fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
+            fontFamily: "var(--font-heebo, sans-serif)",
             whiteSpace: "nowrap",
             textAlign: "center",
             background: isSelected
@@ -432,7 +433,7 @@ function UnitDollhouseView({
             color: "#7A9DB8",
             fontSize: 11,
             fontWeight: 600,
-            fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
+            fontFamily: "var(--font-heebo, sans-serif)",
             background: "rgba(14,28,40,0.75)",
             padding: "3px 8px",
             borderRadius: 4,
@@ -500,10 +501,10 @@ function FloorOpenView({
           zIndexRange={[6, 10]}
         >
           <div style={{
-            fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)",
+            fontFamily: "var(--font-heebo, sans-serif)",
             fontSize: 10,
             fontWeight: 600,
-            color: "#8AAEC2",
+            color: "var(--qp-status-available)",
             background: "rgba(0,0,0,0.55)",
             border: "1px solid rgba(68,120,180,0.35)",
             padding: "2px 8px",
@@ -518,10 +519,7 @@ function FloorOpenView({
 
       {/* Flat floor-plan unit plates */}
       {layout.map(({ unit, position, size }) => {
-        const color =
-          unit.status === "sold"     ? "#5A6878" :
-          unit.status === "reserved" ? "#B08A30" :
-          "#2E6E9A";
+        const color = statusHex(unit.status);
 
         const isThisSelected = unit.id === selectedUnitId;
         const isDimmed = selectedUnitId !== null && !isThisSelected;
@@ -889,7 +887,7 @@ export default function BuildingGLBScene({
 
   if (!enrichedMeta) {
     return (
-      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "#647888" }}>
+      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--qp-muted)" }}>
         Loading 3D model…
       </div>
     );
