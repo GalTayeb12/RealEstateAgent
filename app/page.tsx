@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useId } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useI18n } from "@/components/LocaleProvider";
@@ -21,6 +22,7 @@ function GoldCheck() {
 
 /* ─── Page ──────────────────────────────────────────────────────────────────── */
 export default function Home() {
+  const router = useRouter();
   const { m, locale } = useI18n();
   const isHe = locale === "he";
 
@@ -220,7 +222,7 @@ export default function Home() {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     color: "#fff", marginInlineStart: 4,
                   }}
-                  onClick={() => window.location.href = "/interview"}
+                  onClick={() => router.push("/interview")}
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                     <rect x="4.5" y="1" width="5" height="8" rx="2.5" fill="currentColor" />

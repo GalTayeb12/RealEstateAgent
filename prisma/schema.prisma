@@ -32,6 +32,7 @@ model User {
   groupMemberships          LeverageGroupMember[] @relation("BuyerGroupMemberships")
   verificationTokens        VerificationToken[]
   interviewAttempts         InterviewAttempt[]
+  quotaResetAt              DateTime?           // set by admin reset; attempts before this timestamp are ignored
 }
 
 model VerificationToken {

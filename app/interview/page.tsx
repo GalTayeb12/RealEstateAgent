@@ -3,16 +3,20 @@
  * /interview — buyers only.
  *
  * Live path:
- *   0. Role gate, rate-limit, existing-profile check.
- *   1. User clicks "Start conversation" → audio element primed inside gesture.
- *   2. POST /api/liveavatar/session → LiveKit credentials (HeyGen + ElevenLabs).
- *   3. Join the room, attach video and audio to unmuted elements, start playback.
- *   4. Enable the microphone. The conversation starts as soon as the avatar is ready.
- *   5. Buffer transcript lines in memory (not shown). End saves them → /processing.
+ *   0. Cinematic opening plays while the LiveKit connection runs in the background.
+ *   1. Rate-limit + profile check inside connect(); quotaWasReset bypasses the
+ *      hasCompletedProfile redirect so an admin-reset user can retake.
+ *   2. POST /api/liveavatar/session → LiveKit credentials.
+ *   3. Join the room, attach video/audio, start playback.
+ *   4. Enable the microphone. Conversation starts as the avatar is ready.
+ *   5. Buffer transcript lines → /processing on end.
  *
- * Audio autoplay: the connection is initiated inside the "Start conversation"
- * click handler, so room.startAudio() runs while the user-activation flag is
- * still live. A "🔊 Enable sound" button handles the NotAllowedError fallback.
+ * Audio autoplay: the connection effect runs ONCE on mount (state.phase is NOT
+ * in its deps — that caused triple-connect and triple quota burn on every phase
+ * change).  When the user arrived via client-side navigation (router.push)
+ * navigator.userActivation.hasBeenActive is true, so room.startAudio() succeeds.
+ * Direct URL / refresh shows a "Tap to enter" overlay which calls unlockSound()
+ * inside the click handler.
  */
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -30,8 +34,70 @@ import {
 } from "@/lib/liveavatar";
 import { useI18n } from "@/components/LocaleProvider";
 
+// ── Cinematic sound (Web Audio API, zero external files) ──────────────────────
+
+function playCinematicSound(): void {
+  try {
+    const ctx = new AudioContext();
+    const now = ctx.currentTime;
+
+    // Synthetic reverb: white noise × exponential decay → ConvolverNode
+    const irLen = Math.round(ctx.sampleRate * 2.0);
+    const ir = ctx.createBuffer(2, irLen, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const ch = ir.getChannelData(c);
+      for (let i = 0; i < irLen; i++) {
+        ch[i] = (Math.random() * 2 - 1) * Math.exp(-2.5 * i / irLen);
+      }
+    }
+    const reverb = ctx.createConvolver();
+    reverb.buffer = ir;
+
+    const dry = ctx.createGain();
+    dry.gain.value = 0.62;
+    dry.connect(ctx.destination);
+    const wet = ctx.createGain();
+    wet.gain.value = 0.32;
+    wet.connect(reverb);
+    reverb.connect(ctx.destination);
+
+    function tone(
+      freq: number, type: OscillatorType,
+      startAt: number, attack: number, hold: number, decay: number, peak: number
+    ) {
+      const osc = ctx.createOscillator();
+      osc.type = type;
+      osc.frequency.value = freq;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, now + startAt);
+      g.gain.linearRampToValueAtTime(peak, now + startAt + attack);
+      g.gain.setValueAtTime(peak, now + startAt + attack + hold);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + startAt + attack + hold + decay);
+      osc.connect(g);
+      g.connect(dry);
+      g.connect(wet);
+      osc.start(now + startAt);
+      osc.stop(now + startAt + attack + hold + decay + 0.1);
+    }
+
+    // A minor pentatonic chord build-up (~2.5 s total)
+    tone(55,   "sine",     0,    0.60, 0.60, 1.30, 0.22); // A1 sub
+    tone(82.4, "sine",     0.10, 0.50, 0.50, 1.10, 0.14); // E2
+    tone(110,  "sine",     0.15, 0.40, 0.40, 1.00, 0.11); // A2
+    tone(165,  "sine",     0.20, 0.30, 0.30, 1.00, 0.08); // E3
+    tone(220,  "triangle", 0.25, 0.25, 0.30, 1.10, 0.06); // A3 warm
+    tone(440,  "sine",     0.30, 0.15, 0.20, 0.90, 0.035);// A4 shimmer
+    tone(880,  "sine",     0.40, 0.08, 0.10, 0.65, 0.020);// A5 sparkle
+
+    setTimeout(() => { ctx.close().catch(() => {}); }, 3600);
+  } catch {
+    // Web Audio blocked or unavailable — silent
+  }
+}
+
+// ── Type helpers ──────────────────────────────────────────────────────────────
+
 type InterviewState =
-  | { phase: "start" }
   | { phase: "checking" }
   | { phase: "connecting" }
   | { phase: "live"; room: Room }
@@ -52,32 +118,120 @@ function formatWait(nextAvailableAt: string): string {
 
 function isMicBlocked(err: unknown): boolean {
   const name = err instanceof DOMException ? err.name : (err as { name?: string })?.name;
-  return name === "NotAllowedError" || name === "PermissionDeniedError" || name === "NotFoundError" || name === "SecurityError";
+  return (
+    name === "NotAllowedError" ||
+    name === "PermissionDeniedError" ||
+    name === "NotFoundError" ||
+    name === "SecurityError"
+  );
 }
 
 function readStoredUser(): { role?: string } | null {
   try {
     const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) as { role?: string } : null;
+    return raw ? (JSON.parse(raw) as { role?: string }) : null;
   } catch {
     return null;
   }
 }
 
+// ── Speaker icons ─────────────────────────────────────────────────────────────
+
+function SpeakerOnIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor" />
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+
+function SpeakerOffIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor" />
+      <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function InterviewPage() {
   const router = useRouter();
   const { m } = useI18n();
   const copy = m.interview;
+
+  // Media refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // Session refs
   const roomRef = useRef<Room | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const transcriptRef = useRef<TranscriptLine[]>([]);
   const endingRef = useRef(false);
   const endConversationRef = useRef<() => Promise<void>>(async () => {});
-  const [state, setState] = useState<InterviewState>({ phase: "start" });
+  const cinematicSoundPlayedRef = useRef(false);
+
+  // Interview state machine
+  const [state, setState] = useState<InterviewState>({ phase: "checking" });
   const [needsSound, setNeedsSound] = useState(false);
   const [avatarSpeaking, setAvatarSpeaking] = useState(false);
+
+  // Cinematic state
+  const [cinematicVisible, setCinematicVisible] = useState(true);
+  const [tapNeeded, setTapNeeded] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [prefersReduced, setPrefersReduced] = useState(false);
+
+  // ── Cinematic bootstrap (runs once on mount) ──────────────────────────────
+
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setPrefersReduced(reduced);
+
+    const muted = localStorage.getItem("interview-muted") === "1";
+    setIsMuted(muted);
+
+    // navigator.userActivation.hasBeenActive is true when the user arrived via
+    // client-side navigation (they clicked a button on the previous page).
+    const ua = (
+      navigator as unknown as { userActivation?: { hasBeenActive: boolean } }
+    ).userActivation;
+    const hasActivation = ua?.hasBeenActive ?? false;
+
+    if (!hasActivation) {
+      setTapNeeded(true);
+      return; // timer starts on tap
+    }
+
+    // Client-side navigation — play sound immediately
+    if (!muted && !reduced) {
+      cinematicSoundPlayedRef.current = true;
+      playCinematicSound();
+    }
+
+    const duration = reduced ? 700 : 2500;
+    const timer = setTimeout(() => setCinematicVisible(false), duration);
+    return () => clearTimeout(timer);
+  }, []); // intentionally empty — runs once
+
+  // Dismiss cinematic when a terminal state is reached
+  useEffect(() => {
+    if (
+      state.phase === "rate-limited" ||
+      state.phase === "buyer-only" ||
+      state.phase === "error"
+    ) {
+      const t = setTimeout(() => setCinematicVisible(false), 900);
+      return () => clearTimeout(t);
+    }
+  }, [state.phase]);
+
+  // ── Audio helpers ─────────────────────────────────────────────────────────
 
   const pushLine = useCallback((line: TranscriptLine) => {
     const last = transcriptRef.current[transcriptRef.current.length - 1];
@@ -93,45 +247,48 @@ export default function InterviewPage() {
       await el.play();
       return !el.paused;
     } catch {
-      // Autoplay blocked. The sound button unlocks this on a click.
       return false;
     }
   }, []);
 
-  const attachTrack = useCallback((track: RemoteTrack) => {
-    if (track.kind === Track.Kind.Video && videoRef.current) {
-      track.attach(videoRef.current);
-      void playElement(videoRef.current);
-    }
-    if (track.kind === Track.Kind.Audio && audioRef.current) {
-      const el = audioRef.current;
-      console.log("[LiveAvatar audio] Remote audio track received:", track.sid);
-      console.log("[LiveAvatar audio] Element muted before attach:", el.muted);
-      console.log("[LiveAvatar audio] srcObject before attach:", el.srcObject);
-      track.attach(el);
-      console.log("[LiveAvatar audio] srcObject after attach:", el.srcObject);
-      console.log("[LiveAvatar audio] Element muted after attach:", el.muted);
-      void playElement(el).then((ok) => {
-        console.log("[LiveAvatar audio] play() ok:", ok, "paused:", el.paused, "muted:", el.muted, "volume:", el.volume);
-        if (!ok) setNeedsSound(true);
-      });
-    }
-  }, [playElement]);
+  const attachTrack = useCallback(
+    (track: RemoteTrack) => {
+      if (track.kind === Track.Kind.Video && videoRef.current) {
+        track.attach(videoRef.current);
+        void playElement(videoRef.current);
+      }
+      if (track.kind === Track.Kind.Audio && audioRef.current) {
+        const el = audioRef.current;
+        console.log("[LiveAvatar audio] track received:", track.sid);
+        console.log("[LiveAvatar audio] muted before attach:", el.muted, "srcObject:", el.srcObject);
+        track.attach(el);
+        console.log("[LiveAvatar audio] srcObject after attach:", el.srcObject, "muted:", el.muted);
+        void playElement(el).then((ok) => {
+          console.log("[LiveAvatar audio] play() ok:", ok, "paused:", el.paused, "muted:", el.muted, "volume:", el.volume);
+          if (!ok) setNeedsSound(true);
+        });
+      }
+    },
+    [playElement]
+  );
 
-  const attachExisting = useCallback((room: Room) => {
-    room.remoteParticipants.forEach((participant) => {
-      participant.trackPublications.forEach((pub: RemoteTrackPublication) => {
-        if (pub.track) attachTrack(pub.track);
+  const attachExisting = useCallback(
+    (room: Room) => {
+      room.remoteParticipants.forEach((participant) => {
+        participant.trackPublications.forEach((pub: RemoteTrackPublication) => {
+          if (pub.track) attachTrack(pub.track);
+        });
       });
-    });
-  }, [attachTrack]);
+    },
+    [attachTrack]
+  );
 
   const unlockSound = useCallback(async () => {
     const room = roomRef.current;
     try {
       await room?.startAudio();
     } catch {
-      // Still try the elements; the click itself is the user gesture.
+      // The click itself is the gesture; still try the elements.
     }
     await playElement(audioRef.current);
     await playElement(videoRef.current);
@@ -142,13 +299,40 @@ export default function InterviewPage() {
     await room.localParticipant.setMicrophoneEnabled(true);
   }, []);
 
-  // connect() is called from the "Start conversation" click handler so that
-  // room.startAudio() runs while the browser's user-activation flag is still set.
-  const connectRef = useRef<(() => void) | null>(null);
+  // ── Cinematic tap handler ─────────────────────────────────────────────────
+
+  const tapHandledRef = useRef(false);
+  const handleCinematicTap = useCallback(() => {
+    if (tapHandledRef.current) return;
+    tapHandledRef.current = true;
+
+    if (!cinematicSoundPlayedRef.current && !isMuted && !prefersReduced) {
+      cinematicSoundPlayedRef.current = true;
+      playCinematicSound();
+    }
+
+    // Unlock LiveKit audio (room may already be connected)
+    void unlockSound();
+
+    setTapNeeded(false);
+    const duration = prefersReduced ? 700 : 2500;
+    setTimeout(() => setCinematicVisible(false), duration);
+  }, [isMuted, prefersReduced, unlockSound]);
+
+  // ── Mute toggle ───────────────────────────────────────────────────────────
+
+  const toggleMute = useCallback(() => {
+    setIsMuted((prev) => {
+      const next = !prev;
+      localStorage.setItem("interview-muted", next ? "1" : "0");
+      return next;
+    });
+  }, []);
+
+  // ── Connection effect (runs ONCE on mount — state.phase intentionally omitted
+  //    from deps to prevent double/triple connects on every phase transition) ──
 
   useEffect(() => {
-    if (state.phase === "start") return;   // wait for user gesture
-
     let cancelled = false;
 
     async function connect() {
@@ -182,20 +366,22 @@ export default function InterviewPage() {
         }
 
         if (limitRes.ok) {
-          const { hasCompletedProfile, remaining, nextAvailableAt } =
+          const { hasCompletedProfile, remaining, nextAvailableAt, quotaWasReset } =
             (await limitRes.json()) as {
               hasCompletedProfile: boolean;
               remaining: number;
               nextAvailableAt: string | null;
+              quotaWasReset: boolean;
             };
 
           const isRetake = sessionStorage.getItem("requestedRetake") === "true";
-          // A refresh drops the click that started this visit. Keep the
-          // interview open so the sound button can unlock playback.
+          // Keep the page open on refresh so the sound button can unlock playback.
           const resumed = sessionStorage.getItem("interviewActive") === "1";
           sessionStorage.removeItem("requestedRetake");
 
-          if (hasCompletedProfile && !isRetake && !resumed) {
+          // Redirect only if: has profile, not a retake, not a resume, AND quota
+          // was not recently reset (admin reset means user should be allowed back in).
+          if (hasCompletedProfile && !isRetake && !resumed && !quotaWasReset) {
             sessionStorage.removeItem("interviewActive");
             if (!cancelled) router.push("/processing");
             return;
@@ -227,15 +413,23 @@ export default function InterviewPage() {
           return;
         }
         if (res.status === 403) {
-          const data = (await res.json().catch(() => ({}))) as { code?: string; error?: string };
+          const data = (await res.json().catch(() => ({}))) as {
+            code?: string;
+            error?: string;
+          };
           if (!cancelled && data.code === "BUYER_ONLY") setState({ phase: "buyer-only" });
           else if (!cancelled) setState({ phase: "error", message: data.error ?? "Forbidden" });
           return;
         }
         if (res.status === 429) {
-          const data = (await res.json().catch(() => ({}))) as { nextAvailableAt?: string };
+          const data = (await res.json().catch(() => ({}))) as {
+            nextAvailableAt?: string;
+          };
           if (!cancelled) {
-            setState({ phase: "rate-limited", nextAvailableAt: data.nextAvailableAt ?? "" });
+            setState({
+              phase: "rate-limited",
+              nextAvailableAt: data.nextAvailableAt ?? "",
+            });
           }
           return;
         }
@@ -244,19 +438,17 @@ export default function InterviewPage() {
           throw new Error(error ?? "Session API returned " + res.status);
         }
 
-        const { livekit_url, livekit_client_token, session_id } = (await res.json()) as {
-          livekit_url: string;
-          livekit_client_token: string;
-          session_id?: string;
-        };
+        const { livekit_url, livekit_client_token, session_id } =
+          (await res.json()) as {
+            livekit_url: string;
+            livekit_client_token: string;
+            session_id?: string;
+          };
 
         if (cancelled) return;
         sessionIdRef.current = session_id ?? null;
 
-        const room = new Room({
-          adaptiveStream: true,
-          dynacast: true,
-        });
+        const room = new Room({ adaptiveStream: true, dynacast: true });
         roomRef.current = room;
 
         room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
@@ -277,19 +469,24 @@ export default function InterviewPage() {
           setAvatarSpeaking(speakers.some((s) => s instanceof RemoteParticipant));
         });
 
-        room.on(RoomEvent.DataReceived, (payload: Uint8Array, _participant, _kind, topic?: string) => {
-          if (topic && topic !== "agent-response") return;
-          try {
-            const parsed = parseAgentResponsePayload(new TextDecoder().decode(payload));
-            if (parsed === "session_stopped") {
-              void endConversationRef.current();
-              return;
+        room.on(
+          RoomEvent.DataReceived,
+          (payload: Uint8Array, _participant, _kind, topic?: string) => {
+            if (topic && topic !== "agent-response") return;
+            try {
+              const parsed = parseAgentResponsePayload(
+                new TextDecoder().decode(payload)
+              );
+              if (parsed === "session_stopped") {
+                void endConversationRef.current();
+                return;
+              }
+              if (parsed) pushLine(parsed);
+            } catch {
+              // Malformed payload — ignore
             }
-            if (parsed) pushLine(parsed);
-          } catch {
-            // Malformed payload — ignore
           }
-        });
+        );
 
         await room.connect(livekit_url, livekit_client_token);
         attachExisting(room);
@@ -299,30 +496,37 @@ export default function InterviewPage() {
           return;
         }
 
-        // Show the avatar before the microphone prompt resolves. A missing
-        // device or a pending permission must not leave the screen on "connecting".
+        // Attempt to start audio playback. If the user arrived via client-side
+        // navigation this will succeed; if they refreshed, the cinematic's
+        // "tap to enter" button already called unlockSound() with a fresh gesture,
+        // or the "🔊 Enable sound" button will appear as a fallback.
         let playbackBlocked = false;
         try {
           await room.startAudio();
         } catch {
-          // NotAllowedError when this load has no user gesture (refresh).
           playbackBlocked = true;
         }
         const audioPlaying = await playElement(audioRef.current);
         await playElement(videoRef.current);
-        if (!cancelled) setNeedsSound(playbackBlocked || !audioPlaying || !room.canPlaybackAudio);
+        if (!cancelled)
+          setNeedsSound(playbackBlocked || !audioPlaying || !room.canPlaybackAudio);
         if (cancelled) return;
         setState({ phase: "live", room });
 
         let micBlocked = false;
         const micPromise = enableMicrophone(room);
-        // A hung permission prompt must not reject later as an unhandled error.
         micPromise.catch(() => {});
         try {
           await Promise.race([
             micPromise,
-            new Promise((_, reject) => {
-              setTimeout(() => reject(new DOMException("Microphone timed out", "NotAllowedError")), 8000);
+            new Promise<void>((_, reject) => {
+              setTimeout(
+                () =>
+                  reject(
+                    new DOMException("Microphone timed out", "NotAllowedError")
+                  ),
+                8000
+              );
             }),
           ]);
         } catch (err) {
@@ -338,7 +542,6 @@ export default function InterviewPage() {
       }
     }
 
-    connectRef.current = () => { connect(); };
     connect();
 
     return () => {
@@ -357,7 +560,14 @@ export default function InterviewPage() {
       }
       roomRef.current?.disconnect();
     };
-  }, [attachExisting, attachTrack, enableMicrophone, playElement, pushLine, router, state.phase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  // ^ Intentionally empty deps: the connection runs exactly once on mount.
+  //   Stable callbacks (attachExisting, attachTrack, etc.) are captured at first render.
+  //   Adding state.phase here would re-run connect() on every phase transition,
+  //   burning the user's quota 3× per session attempt.
+
+  // ── Retry / end helpers ───────────────────────────────────────────────────
 
   const retryMicrophone = useCallback(async () => {
     const room = roomRef.current;
@@ -417,7 +627,7 @@ export default function InterviewPage() {
           }
         }
       } catch {
-        // Fall through to the empty-transcript error below.
+        // Fall through to empty-transcript error
       }
     }
 
@@ -455,7 +665,10 @@ export default function InterviewPage() {
 
   endConversationRef.current = endConversation;
 
+  // ── Derived display state ─────────────────────────────────────────────────
+
   const showVideo = state.phase === "live" || state.phase === "mic-denied";
+
   const homeForRole = () => {
     const role = readStoredUser()?.role;
     if (role === "admin") router.push("/dev/admin/approvals");
@@ -475,6 +688,8 @@ export default function InterviewPage() {
     minHeight: 48,
     cursor: "pointer",
   };
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <main
@@ -497,13 +712,137 @@ export default function InterviewPage() {
           from { transform: scaleY(0.35); opacity: 0.6; }
           to   { transform: scaleY(1.0);  opacity: 1.0; }
         }
+        @keyframes logoReveal {
+          from { opacity: 0; transform: scale(0.90) translateY(8px); }
+          to   { opacity: 1; transform: scale(1)    translateY(0);   }
+        }
+        @keyframes tapPulse {
+          0%, 100% { opacity: 0.65; }
+          50%       { opacity: 1;    }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cine-logo { animation-duration: 0.4s !important; }
+        }
       `}</style>
+
+      {/* ── Cinematic overlay ────────────────────────────────────────────── */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 20,
+          background: "#091F20",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          opacity: cinematicVisible ? 1 : 0,
+          transition: "opacity 1.2s ease-in-out",
+          pointerEvents: cinematicVisible ? "all" : "none",
+        }}
+      >
+        {/* Mute / unmute button */}
+        <button
+          type="button"
+          aria-label={isMuted ? copy.unmuteLabel : copy.muteLabel}
+          onClick={toggleMute}
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 20,
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: "50%",
+            width: 40,
+            height: 40,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "rgba(245,240,232,0.75)",
+            transition: "background 0.2s",
+          }}
+        >
+          {isMuted ? <SpeakerOffIcon /> : <SpeakerOnIcon />}
+        </button>
+
+        {/* Logo */}
+        <div
+          className="cine-logo"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "0.75rem",
+            animationName: "logoReveal",
+            animationDuration: "1.4s",
+            animationFillMode: "both",
+            animationTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "clamp(2rem, 6vw, 3rem)",
+              fontWeight: 700,
+              color: "#F5F0E8",
+              letterSpacing: "-0.02em",
+              fontFamily: "var(--font-heebo, sans-serif)",
+            }}
+          >
+            Haveniq
+          </span>
+          <div
+            style={{
+              width: 40,
+              height: 1.5,
+              background: "#C89B3C",
+              borderRadius: 1,
+              opacity: 0.6,
+            }}
+          />
+        </div>
+
+        {/* Tap to enter — shown when no user activation on mount */}
+        {tapNeeded && (
+          <button
+            type="button"
+            onClick={handleCinematicTap}
+            style={{
+              marginTop: "2.75rem",
+              background: "none",
+              border: "1px solid rgba(245,240,232,0.22)",
+              color: "rgba(245,240,232,0.75)",
+              borderRadius: 999,
+              padding: "0.625rem 1.875rem",
+              fontSize: "0.9375rem",
+              letterSpacing: "0.025em",
+              cursor: "pointer",
+              fontFamily: "var(--font-heebo, sans-serif)",
+              animationName: "tapPulse",
+              animationDuration: "2.4s",
+              animationIterationCount: "infinite",
+              animationTimingFunction: "ease-in-out",
+            }}
+          >
+            {copy.tapToEnter}
+          </button>
+        )}
+      </div>
+
+      {/* ── Avatar area ──────────────────────────────────────────────────── */}
+
       <audio
         ref={audioRef}
         autoPlay
         playsInline
         muted={false}
-        style={{ position: "fixed", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+        style={{
+          position: "fixed",
+          width: 1,
+          height: 1,
+          opacity: 0,
+          pointerEvents: "none",
+        }}
       />
 
       <div
@@ -531,6 +870,7 @@ export default function InterviewPage() {
           }}
         />
 
+        {/* Enable sound button */}
         {needsSound && showVideo && (
           <button
             type="button"
@@ -548,7 +888,7 @@ export default function InterviewPage() {
           </button>
         )}
 
-        {/* Speaking indicator — 3 pulsing bars near bottom of avatar */}
+        {/* Speaking indicator — 3 pulsing bars */}
         {avatarSpeaking && showVideo && (
           <div
             style={{
@@ -585,58 +925,11 @@ export default function InterviewPage() {
           </div>
         )}
 
-        {state.phase === "start" && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "1rem",
-              textAlign: "center",
-              padding: "2rem",
-            }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                // Prime audio + video elements with a user gesture NOW,
-                // before the async connection flow starts. This satisfies
-                // Chrome's autoplay policy for the elements even after the
-                // user-activation window expires during network calls.
-                if (audioRef.current) {
-                  audioRef.current.muted = false;
-                  audioRef.current.play().catch(() => {});
-                }
-                if (videoRef.current) {
-                  videoRef.current.muted = false;
-                  videoRef.current.play().catch(() => {});
-                }
-                setState({ phase: "checking" });
-              }}
-              style={{
-                ...quietButton,
-                fontSize: "1rem",
-                padding: "0.75rem 2.25rem",
-                fontWeight: 600,
-              }}
-            >
-              {copy.start}
-            </button>
-            <div style={{ color: "var(--qp-muted)", fontSize: "0.8125rem" }}>
-              {copy.startHint}
-            </div>
-          </div>
-        )}
+        {/* Connection states */}
 
-        {state.phase === "checking" && (
+        {(state.phase === "checking" || state.phase === "connecting") && (
           <div style={{ color: "var(--qp-muted)", fontSize: "0.875rem" }}>
-            {copy.checking}
-          </div>
-        )}
-
-        {state.phase === "connecting" && (
-          <div style={{ color: "var(--qp-muted)", fontSize: "0.875rem" }}>
-            {copy.connecting}
+            {state.phase === "checking" ? copy.checking : copy.connecting}
           </div>
         )}
 
@@ -658,11 +951,17 @@ export default function InterviewPage() {
             <div style={{ color: "var(--qp-muted)", lineHeight: 1.6 }}>
               {copy.limitBody}{" "}
               <span style={{ color: "var(--qp-accent-text)", fontWeight: 600 }}>
-                {state.nextAvailableAt ? (formatWait(state.nextAvailableAt) || copy.limitFallback) : copy.limitFallback}
+                {state.nextAvailableAt
+                  ? formatWait(state.nextAvailableAt) || copy.limitFallback
+                  : copy.limitFallback}
               </span>
               .
             </div>
-            <button type="button" onClick={() => router.push("/results")} style={quietButton}>
+            <button
+              type="button"
+              onClick={() => router.push("/results")}
+              style={quietButton}
+            >
               {copy.backToResults}
             </button>
           </div>
@@ -681,9 +980,23 @@ export default function InterviewPage() {
               gap: "0.75rem",
             }}
           >
-            <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>{copy.buyerOnlyTitle}</div>
-            <div style={{ color: "var(--qp-muted)", lineHeight: 1.6, fontSize: "0.9375rem" }}>{copy.buyerOnlyBody}</div>
-            <button type="button" onClick={homeForRole} style={{ ...quietButton, marginTop: "0.5rem" }}>
+            <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>
+              {copy.buyerOnlyTitle}
+            </div>
+            <div
+              style={{
+                color: "var(--qp-muted)",
+                lineHeight: 1.6,
+                fontSize: "0.9375rem",
+              }}
+            >
+              {copy.buyerOnlyBody}
+            </div>
+            <button
+              type="button"
+              onClick={homeForRole}
+              style={{ ...quietButton, marginTop: "0.5rem" }}
+            >
               {copy.back}
             </button>
           </div>
@@ -706,28 +1019,59 @@ export default function InterviewPage() {
               color: "var(--qp-ink)",
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>{copy.micDeniedTitle}</div>
-            <div style={{ color: "var(--qp-muted)", fontSize: "0.875rem", lineHeight: 1.7, marginBottom: "0.85rem" }}>
+            <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
+              {copy.micDeniedTitle}
+            </div>
+            <div
+              style={{
+                color: "var(--qp-muted)",
+                fontSize: "0.875rem",
+                lineHeight: 1.7,
+                marginBottom: "0.85rem",
+              }}
+            >
               {copy.micDeniedBody}
             </div>
-            <button type="button" onClick={() => { void retryMicrophone(); }} style={quietButton}>
+            <button
+              type="button"
+              onClick={() => { void retryMicrophone(); }}
+              style={quietButton}
+            >
               {copy.tryAgain}
             </button>
           </div>
         )}
 
         {state.phase === "error" && (
-          <div style={{ color: "var(--qp-error)", fontSize: "0.875rem", textAlign: "center", padding: "1rem", maxWidth: "28rem" }}>
-            <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>{copy.connectionError}</div>
-            <div style={{ color: "var(--qp-muted)", marginBottom: "1rem" }}>{state.message}</div>
-            <button type="button" onClick={() => window.location.reload()} style={quietButton}>
+          <div
+            style={{
+              color: "var(--qp-error)",
+              fontSize: "0.875rem",
+              textAlign: "center",
+              padding: "1rem",
+              maxWidth: "28rem",
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
+              {copy.connectionError}
+            </div>
+            <div style={{ color: "var(--qp-muted)", marginBottom: "1rem" }}>
+              {state.message}
+            </div>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              style={quietButton}
+            >
               {copy.tryAgain}
             </button>
           </div>
         )}
 
         {state.phase === "ending" && (
-          <div style={{ color: "var(--qp-muted)", fontSize: "0.875rem" }}>{copy.saving}</div>
+          <div style={{ color: "var(--qp-muted)", fontSize: "0.875rem" }}>
+            {copy.saving}
+          </div>
         )}
 
         {state.phase === "live" && (

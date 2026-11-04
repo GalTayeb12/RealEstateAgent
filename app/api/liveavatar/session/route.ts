@@ -37,7 +37,15 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Rate limit: max 2 sessions per rolling 24 h ───────────────────────
-    const since = new Date(Date.now() - WINDOW_MS);
+    // Respect quotaResetAt: if admin reset the quota, only count attempts
+    // that started after the reset timestamp.
+    const windowStart = new Date(Date.now() - WINDOW_MS);
+    const userForQuota = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { quotaResetAt: true },
+    });
+    const quotaResetAt = userForQuota?.quotaResetAt ?? null;
+    const since = quotaResetAt && quotaResetAt > windowStart ? quotaResetAt : windowStart;
     const recentAttempts = await prisma.interviewAttempt.findMany({
       where: { userId: payload.userId, startedAt: { gte: since } },
       orderBy: { startedAt: "asc" },

@@ -689,6 +689,9 @@ export const he = {
     backToResults: "חזרה לתוצאות",
     connectionError: "שגיאת חיבור",
     emptyTranscript: "לא נקלט תמלול. התחילו את הראיון מחדש.",
+    tapToEnter: "לחצו כדי להיכנס",
+    muteLabel: "השתקת הצליל",
+    unmuteLabel: "הפעלת הצליל",
   },
   quiet: {
     back: "חזרה לאישורים",
@@ -1589,6 +1592,9 @@ export const en: Messages = {
     backToResults: "Back to results",
     connectionError: "Connection error",
     emptyTranscript: "We didn't capture the conversation. Please start the interview again.",
+    tapToEnter: "Tap to enter",
+    muteLabel: "Mute sound",
+    unmuteLabel: "Unmute sound",
   },
   quiet: {
     back: "Back to approvals",

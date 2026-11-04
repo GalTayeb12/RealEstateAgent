@@ -1,14 +1,13 @@
 /**
  * POST /api/dev/admin/users/[id]/reset-interview-quota
  *
- * Deletes the buyer's interview attempts from the rolling 24-hour window
- * so they can start again. Admin only. Buyers only.
+ * Stamps quotaResetAt = now() on the buyer so that the rolling window for
+ * rate-limiting is measured from this moment onward.  Interview history is
+ * preserved — no records are deleted.  Admin only. Buyers only.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/adminAuth";
-
-const WINDOW_MS = 24 * 60 * 60 * 1000;
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const guard = requireAdmin(req);
@@ -27,10 +26,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     );
   }
 
-  const since = new Date(Date.now() - WINDOW_MS);
-  const deleted = await prisma.interviewAttempt.deleteMany({
-    where: { userId: id, startedAt: { gte: since } },
+  const resetAt = new Date();
+  await prisma.user.update({
+    where: { id },
+    data: { quotaResetAt: resetAt },
   });
 
-  return NextResponse.json({ deleted: deleted.count });
+  return NextResponse.json({ resetAt: resetAt.toISOString() });
 }
