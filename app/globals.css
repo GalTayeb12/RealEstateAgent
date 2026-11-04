@@ -30,11 +30,6 @@
   box-sizing: border-box;
 }
 
-html[lang] {
-  --font-cormorant: var(--font-cormorant), "Cormorant Garamond", serif;
-  --font-heebo: var(--font-heebo), "Heebo", sans-serif;
-}
-
 html[lang] * {
   letter-spacing: 0 !important;
 }
