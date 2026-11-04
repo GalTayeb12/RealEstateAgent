@@ -536,8 +536,10 @@ export default function InterviewPage() {
         if (cancelled) return;
         if (micBlocked) setState({ phase: "mic-denied" });
       } catch (err) {
+        const msg = (err as Error).message;
+        console.error("[interview] connection error:", msg);
         if (!cancelled) {
-          setState({ phase: "error", message: (err as Error).message });
+          setState({ phase: "error", message: msg });
         }
       }
     }
@@ -1056,7 +1058,7 @@ export default function InterviewPage() {
               {copy.connectionError}
             </div>
             <div style={{ color: "var(--qp-muted)", marginBottom: "1rem" }}>
-              {state.message}
+              {copy.connectionErrorBody}
             </div>
             <button
               type="button"

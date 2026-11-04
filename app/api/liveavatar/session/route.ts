@@ -40,11 +40,16 @@ export async function POST(req: NextRequest) {
     // Respect quotaResetAt: if admin reset the quota, only count attempts
     // that started after the reset timestamp.
     const windowStart = new Date(Date.now() - WINDOW_MS);
-    const userForQuota = await prisma.user.findUnique({
-      where: { id: payload.userId },
-      select: { quotaResetAt: true },
-    });
-    const quotaResetAt = userForQuota?.quotaResetAt ?? null;
+    let quotaResetAt: Date | null = null;
+    try {
+      const uq = await prisma.user.findUnique({
+        where: { id: payload.userId },
+        select: { quotaResetAt: true },
+      });
+      quotaResetAt = uq?.quotaResetAt ?? null;
+    } catch {
+      // Graceful fallback when ORM schema cache lags the DB migration.
+    }
     const since = quotaResetAt && quotaResetAt > windowStart ? quotaResetAt : windowStart;
     const recentAttempts = await prisma.interviewAttempt.findMany({
       where: { userId: payload.userId, startedAt: { gte: since } },
@@ -206,7 +211,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ livekit_url, livekit_client_token, session_id });
   } catch (err) {
-    console.error("LiveAvatar session error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("LiveAvatar session error:", msg);
+    // Return the real message in dev so it surfaces in the browser console.
+    return NextResponse.json(
+      { error: process.env.NODE_ENV === "development" ? msg : "Internal server error" },
+      { status: 500 }
+    );
   }
 }

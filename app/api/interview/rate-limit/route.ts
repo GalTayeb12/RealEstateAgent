@@ -17,55 +17,76 @@ const MAX_ATTEMPTS = 2;
 const WINDOW_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export async function GET(req: NextRequest) {
-  const payload = extractToken(req.headers.get("authorization"));
-  if (!payload) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const payload = extractToken(req.headers.get("authorization"));
+    if (!payload) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (payload.role !== "buyer") {
+      return NextResponse.json(
+        { error: "Interview is available to buyer accounts only", code: "BUYER_ONLY" },
+        { status: 403 }
+      );
+    }
+
+    const windowStart = new Date(Date.now() - WINDOW_MS);
+
+    // Fetch quotaResetAt separately — extra select on User avoids joining on every call.
+    // Falls back gracefully when the column is not yet in the ORM cache.
+    let quotaResetAt: Date | null = null;
+    try {
+      const userRow = await prisma.user.findUnique({
+        where: { id: payload.userId },
+        select: { quotaResetAt: true },
+      });
+      quotaResetAt = userRow?.quotaResetAt ?? null;
+    } catch {
+      // If quotaResetAt is unavailable (schema mismatch), ignore and use windowStart.
+    }
+
+    const [profile, attempts] = await Promise.all([
+      prisma.buyerProfile.findUnique({
+        where: { userId: payload.userId },
+        select: { id: true },
+      }),
+      prisma.interviewAttempt.findMany({
+        where: {
+          userId: payload.userId,
+          startedAt: {
+            gte:
+              quotaResetAt && quotaResetAt > windowStart ? quotaResetAt : windowStart,
+          },
+        },
+        orderBy: { startedAt: "asc" },
+        select: { startedAt: true },
+      }),
+    ]);
+
+    const since =
+      quotaResetAt && quotaResetAt > windowStart ? quotaResetAt : windowStart;
+    const quotaWasReset = quotaResetAt !== null && quotaResetAt > windowStart;
+    const count = attempts.length;
+    const remaining = Math.max(0, MAX_ATTEMPTS - count);
+
+    let nextAvailableAt: string | null = null;
+    if (count >= MAX_ATTEMPTS && attempts[0]) {
+      nextAvailableAt = new Date(
+        attempts[0].startedAt.getTime() + WINDOW_MS
+      ).toISOString();
+    }
+
+    void since; // used only for the attempts query above
+
+    return NextResponse.json({
+      attempts: count,
+      remaining,
+      nextAvailableAt,
+      hasCompletedProfile: profile !== null,
+      quotaWasReset,
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[GET /api/interview/rate-limit] error:", msg);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
-  if (payload.role !== "buyer") {
-    return NextResponse.json(
-      { error: "Interview is available to buyer accounts only", code: "BUYER_ONLY" },
-      { status: 403 }
-    );
-  }
-
-  const windowStart = new Date(Date.now() - WINDOW_MS);
-
-  const [user, profile] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: payload.userId },
-      select: { quotaResetAt: true },
-    }),
-    prisma.buyerProfile.findUnique({
-      where: { userId: payload.userId },
-      select: { id: true },
-    }),
-  ]);
-
-  // Use the later of (now - 24h) and quotaResetAt so that attempts made
-  // before an admin reset are excluded from the count.
-  const quotaResetAt = user?.quotaResetAt ?? null;
-  const since = quotaResetAt && quotaResetAt > windowStart ? quotaResetAt : windowStart;
-  const quotaWasReset = quotaResetAt !== null && quotaResetAt > windowStart;
-
-  const attempts = await prisma.interviewAttempt.findMany({
-    where: { userId: payload.userId, startedAt: { gte: since } },
-    orderBy: { startedAt: "asc" },
-    select: { startedAt: true },
-  });
-
-  const count = attempts.length;
-  const remaining = Math.max(0, MAX_ATTEMPTS - count);
-
-  let nextAvailableAt: string | null = null;
-  if (count >= MAX_ATTEMPTS && attempts[0]) {
-    nextAvailableAt = new Date(attempts[0].startedAt.getTime() + WINDOW_MS).toISOString();
-  }
-
-  return NextResponse.json({
-    attempts: count,
-    remaining,
-    nextAvailableAt,
-    hasCompletedProfile: profile !== null,
-    quotaWasReset,
-  });
 }
