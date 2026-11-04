@@ -87,15 +87,15 @@ interface AdminLeverageGroup {
 // ── Shared styles ──────────────────────────────────────────────────────────────
 
 const STATUS_STYLE: Record<string, { background: string; color: string; label: string }> = {
-  pending:  { background: "var(--qp-warning-bg)", color: "var(--qp-accent-text)", label: "Pending review" },
-  approved: { background: "var(--qp-soft)", color: "var(--qp-ink)", label: "Approved" },
-  rejected: { background: "var(--qp-error-bg)", color: "var(--qp-error)", label: "Rejected" },
+  pending:  { background: "#FCF2D9", color: "#756039", label: "Pending review" },
+  approved: { background: "#E9EEEA", color: "#123F40", label: "Approved" },
+  rejected: { background: "#FBECEA", color: "#9E3434", label: "Rejected" },
 };
 
 const ROLE_STYLE: Record<string, { bg: string; color: string }> = {
-  buyer:     { bg: "var(--qp-soft)", color: "var(--qp-ink)" },
-  developer: { bg: "var(--qp-warning-bg)", color: "var(--qp-accent-text)" },
-  admin:     { bg: "var(--qp-error-bg)", color: "var(--qp-error)" },
+  buyer:     { bg: "#E9EEEA", color: "#123F40" },
+  developer: { bg: "#FCF2D9", color: "#756039" },
+  admin:     { bg: "#FBECEA", color: "#9E3434" },
 };
 
 // ── Stats cards ────────────────────────────────────────────────────────────────
@@ -110,10 +110,10 @@ function StatsCards({ stats }: { stats: Stats }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(11rem, 1fr))", gap: "0.875rem" }}>
       {cards.map(c => (
-        <div key={c.label} style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", padding: "1.25rem 1.375rem" }}>
-          <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.375rem" }}>{c.label}</div>
-          <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1.75rem", fontWeight: 600, color: "var(--qp-ink)", lineHeight: 1 }}>{c.value}</div>
-          <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)", marginTop: "0.375rem" }}>{c.sub}</div>
+        <div key={c.label} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", padding: "1.25rem 1.375rem" }}>
+          <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563", marginBottom: "0.375rem" }}>{c.label}</div>
+          <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.75rem", fontWeight: 600, color: "#123F40", lineHeight: 1 }}>{c.value}</div>
+          <div style={{ fontSize: "0.75rem", color: "#526563", marginTop: "0.375rem" }}>{c.sub}</div>
         </div>
       ))}
     </div>
@@ -179,26 +179,26 @@ function UserTable({ token }: { token: string }) {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", overflow: "hidden" }}>
+    <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
       {/* Filters */}
-      <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--qp-soft)", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
-        <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--qp-ink)", marginRight: "auto" }}>
-          Users <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.875rem", color: "var(--qp-muted)", fontWeight: 400 }}>({total})</span>
+      <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #E9EEEA", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#123F40", marginRight: "auto" }}>
+          Users <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.875rem", color: "#526563", fontWeight: 400 }}>({total})</span>
         </div>
         {resetNote && (
-          <div style={{ fontSize: "0.8125rem", color: "var(--qp-ink)", fontWeight: 600 }}>{resetNote}</div>
+          <div style={{ fontSize: "0.8125rem", color: "#123F40", fontWeight: 600 }}>{resetNote}</div>
         )}
         <input
           type="text"
           placeholder="Search by email…"
           value={q}
           onChange={e => setQ(e.target.value)}
-          style={{ padding: "0.4375rem 0.75rem", border: "1px solid var(--qp-border)", borderRadius: "0.375rem", fontSize: "0.875rem", outline: "none", minWidth: "13rem" }}
+          style={{ padding: "0.4375rem 0.75rem", border: "1px solid #D4DED8", borderRadius: "0.375rem", fontSize: "0.875rem", outline: "none", minWidth: "13rem" }}
         />
         <select
           value={role}
           onChange={e => setRole(e.target.value)}
-          style={{ padding: "0.4375rem 0.75rem", border: "1px solid var(--qp-border)", borderRadius: "0.375rem", fontSize: "0.875rem", outline: "none", fontFamily: "inherit" }}
+          style={{ padding: "0.4375rem 0.75rem", border: "1px solid #D4DED8", borderRadius: "0.375rem", fontSize: "0.875rem", outline: "none", fontFamily: "inherit" }}
         >
           <option value="">All roles</option>
           <option value="buyer">Buyers</option>
@@ -209,16 +209,16 @@ function UserTable({ token }: { token: string }) {
 
       {/* Table */}
       {loading ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: "var(--qp-muted)" }}>Loading…</div>
+        <div style={{ padding: "2rem", textAlign: "center", color: "#526563" }}>Loading…</div>
       ) : users.length === 0 ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: "var(--qp-muted)" }}>No users found.</div>
+        <div style={{ padding: "2rem", textAlign: "center", color: "#526563" }}>No users found.</div>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--qp-soft)" }}>
+              <tr style={{ borderBottom: "1px solid #E9EEEA" }}>
                 {["Email", "Role", "Company", "Registered", ""].map(h => (
-                  <th key={h} style={{ padding: "0.625rem 1.25rem", textAlign: "left", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-muted)", whiteSpace: "nowrap" }}>{h}</th>
+                  <th key={h} style={{ padding: "0.625rem 1.25rem", textAlign: "left", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563", whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -226,8 +226,8 @@ function UserTable({ token }: { token: string }) {
               {users.map((u, i) => {
                 const roleStyle = ROLE_STYLE[u.role] ?? ROLE_STYLE.buyer;
                 return (
-                  <tr key={u.id} style={{ borderBottom: i < users.length - 1 ? "1px solid var(--qp-bg)" : "none" }}>
-                    <td style={{ padding: "0.75rem 1.25rem", color: "var(--qp-ink)", fontFamily: "var(--font-heebo, monospace)", fontSize: "0.8125rem" }}>
+                  <tr key={u.id} style={{ borderBottom: i < users.length - 1 ? "1px solid #F4F5F0" : "none" }}>
+                    <td style={{ padding: "0.75rem 1.25rem", color: "#123F40", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem" }}>
                       {u.email}
                     </td>
                     <td style={{ padding: "0.75rem 1.25rem" }}>
@@ -235,18 +235,18 @@ function UserTable({ token }: { token: string }) {
                         {u.role}
                       </span>
                     </td>
-                    <td style={{ padding: "0.75rem 1.25rem", color: "var(--qp-muted)" }}>
+                    <td style={{ padding: "0.75rem 1.25rem", color: "#526563" }}>
                       {u.developerProfile ? (
                         <div>
-                          <div style={{ color: "var(--qp-ink)", fontWeight: 500 }}>{u.developerProfile.companyName}</div>
-                          <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)" }}>
+                          <div style={{ color: "#123F40", fontWeight: 500 }}>{u.developerProfile.companyName}</div>
+                          <div style={{ fontSize: "0.75rem", color: "#526563" }}>
                             {STATUS_STYLE[u.developerProfile.crnStatus]?.label ?? u.developerProfile.crnStatus}
                             {" · "}Score {u.developerProfile.qualityScore}
                           </div>
                         </div>
                       ) : "—"}
                     </td>
-                    <td style={{ padding: "0.75rem 1.25rem", color: "var(--qp-muted)", whiteSpace: "nowrap", fontSize: "0.8125rem" }}>
+                    <td style={{ padding: "0.75rem 1.25rem", color: "#526563", whiteSpace: "nowrap", fontSize: "0.8125rem" }}>
                       {new Date(u.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                     <td style={{ padding: "0.75rem 1.25rem", whiteSpace: "nowrap" }}>
@@ -260,9 +260,9 @@ function UserTable({ token }: { token: string }) {
                             fontWeight: 600,
                             padding: "0.35rem 0.7rem",
                             borderRadius: 999,
-                            border: "1px solid var(--qp-ink)",
-                            background: "var(--qp-surface)",
-                            color: "var(--qp-ink)",
+                            border: "1px solid #123F40",
+                            background: "#fff",
+                            color: "#123F40",
                             cursor: resettingId === u.id ? "wait" : "pointer",
                           }}
                         >
@@ -280,11 +280,11 @@ function UserTable({ token }: { token: string }) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div style={{ padding: "0.875rem 1.5rem", borderTop: "1px solid var(--qp-soft)", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
+        <div style={{ padding: "0.875rem 1.5rem", borderTop: "1px solid #E9EEEA", display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: "0.8125rem", color: "#526563" }}>
           <span>Page {page} of {totalPages}</span>
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: "0.3rem 0.75rem", border: "1px solid var(--qp-border)", borderRadius: "0.375rem", background: "var(--qp-surface)", cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.4 : 1, fontSize: "0.8125rem" }}>← Prev</button>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "0.3rem 0.75rem", border: "1px solid var(--qp-border)", borderRadius: "0.375rem", background: "var(--qp-surface)", cursor: page === totalPages ? "not-allowed" : "pointer", opacity: page === totalPages ? 0.4 : 1, fontSize: "0.8125rem" }}>Next →</button>
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: "0.3rem 0.75rem", border: "1px solid #D4DED8", borderRadius: "0.375rem", background: "#fff", cursor: page === 1 ? "not-allowed" : "pointer", opacity: page === 1 ? 0.4 : 1, fontSize: "0.8125rem" }}>← Prev</button>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "0.3rem 0.75rem", border: "1px solid #D4DED8", borderRadius: "0.375rem", background: "#fff", cursor: page === totalPages ? "not-allowed" : "pointer", opacity: page === totalPages ? 0.4 : 1, fontSize: "0.8125rem" }}>Next →</button>
           </div>
         </div>
       )}
@@ -318,41 +318,41 @@ function ResearchSection({ profileId, raw, token, onRefreshed }: { profileId: st
   const hasConcerns = research && research.flagsOrConcerns.length > 0;
 
   return (
-    <div style={{ borderTop: "1px solid var(--qp-soft)", marginTop: "0.875rem" }}>
+    <div style={{ borderTop: "1px solid #E9EEEA", marginTop: "0.875rem" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button onClick={() => setOpen(v => !v)} style={{ textAlign: "left", padding: "0.625rem 0", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
-          <span style={{ fontSize: "0.75rem", color: "var(--qp-muted)", transition: "transform 0.15s", display: "inline-block", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
-          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-muted)" }}>AI web research (supporting info)</span>
-          {hasConcerns && <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "var(--qp-error-bg)", color: "var(--qp-error)", marginLeft: "0.25rem" }}>{research!.flagsOrConcerns.length} flag{research!.flagsOrConcerns.length > 1 ? "s" : ""}</span>}
-          {research && !isUnavailable && research.foundOnlinePresence && !hasConcerns && <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "var(--qp-soft)", color: "var(--qp-ink)", marginLeft: "0.25rem" }}>Online presence found</span>}
+          <span style={{ fontSize: "0.75rem", color: "#526563", transition: "transform 0.15s", display: "inline-block", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#526563" }}>AI web research (supporting info)</span>
+          {hasConcerns && <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "#FBECEA", color: "#9E3434", marginLeft: "0.25rem" }}>{research!.flagsOrConcerns.length} flag{research!.flagsOrConcerns.length > 1 ? "s" : ""}</span>}
+          {research && !isUnavailable && research.foundOnlinePresence && !hasConcerns && <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "#E9EEEA", color: "#123F40", marginLeft: "0.25rem" }}>Online presence found</span>}
         </button>
         {(isPending || isUnavailable) && (
-          <button onClick={triggerResearch} disabled={refreshing} style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.25rem 0.625rem", borderRadius: "0.375rem", border: "1px solid var(--qp-border)", background: "var(--qp-surface)", color: "var(--qp-muted)", cursor: refreshing ? "not-allowed" : "pointer", opacity: refreshing ? 0.6 : 1, flexShrink: 0 }}>
+          <button onClick={triggerResearch} disabled={refreshing} style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.25rem 0.625rem", borderRadius: "0.375rem", border: "1px solid #D4DED8", background: "#fff", color: "#526563", cursor: refreshing ? "not-allowed" : "pointer", opacity: refreshing ? 0.6 : 1, flexShrink: 0 }}>
             {refreshing ? "Running (~60s)…" : "Run research"}
           </button>
         )}
       </div>
       {open && (
         <div style={{ paddingBottom: "0.875rem" }}>
-          <div style={{ background: "var(--qp-bg)", borderRadius: "0.5rem", padding: "0.5rem 0.75rem", fontSize: "0.75rem", color: "var(--qp-muted)", marginBottom: "0.75rem", display: "flex", alignItems: "flex-start", gap: "0.375rem" }}>
+          <div style={{ background: "#F4F5F0", borderRadius: "0.5rem", padding: "0.5rem 0.75rem", fontSize: "0.75rem", color: "#526563", marginBottom: "0.75rem", display: "flex", alignItems: "flex-start", gap: "0.375rem" }}>
             <span style={{ fontWeight: 600, flexShrink: 0 }}>AI research — not verified.</span>
             <span>Auxiliary signal only. Do not treat as ground truth.</span>
           </div>
-          {isPending && <p style={{ fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>Research in progress — check back in a moment.</p>}
-          {!isPending && isUnavailable && <p style={{ fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>{research?.summary ?? "Research unavailable."}</p>}
+          {isPending && <p style={{ fontSize: "0.875rem", color: "#526563", margin: 0 }}>Research in progress — check back in a moment.</p>}
+          {!isPending && isUnavailable && <p style={{ fontSize: "0.875rem", color: "#526563", margin: 0 }}>{research?.summary ?? "Research unavailable."}</p>}
           {!isPending && !isUnavailable && research && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)" }}>Online presence</span>
-                <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: research.foundOnlinePresence ? "var(--qp-soft)" : "var(--qp-error-bg)", color: research.foundOnlinePresence ? "var(--qp-ink)" : "var(--qp-error)" }}>
+                <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#526563" }}>Online presence</span>
+                <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: research.foundOnlinePresence ? "#E9EEEA" : "#FBECEA", color: research.foundOnlinePresence ? "#123F40" : "#9E3434" }}>
                   {research.foundOnlinePresence ? "Found" : "Not found"}
                 </span>
               </div>
-              <div style={{ fontSize: "0.875rem", color: "var(--qp-ink)", lineHeight: 1.6, whiteSpace: "pre-line" }}>{research.summary}</div>
+              <div style={{ fontSize: "0.875rem", color: "#123F40", lineHeight: 1.6, whiteSpace: "pre-line" }}>{research.summary}</div>
               {hasConcerns && (
-                <div style={{ background: "var(--qp-error-bg)", borderRadius: "0.5rem", padding: "0.625rem 0.875rem" }}>
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-error)", marginBottom: "0.375rem" }}>Flags / concerns</div>
-                  <ul style={{ margin: 0, padding: "0 0 0 1.125rem", fontSize: "0.875rem", color: "var(--qp-error)" }}>
+                <div style={{ background: "#FBECEA", borderRadius: "0.5rem", padding: "0.625rem 0.875rem" }}>
+                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9E3434", marginBottom: "0.375rem" }}>Flags / concerns</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 1.125rem", fontSize: "0.875rem", color: "#9E3434" }}>
                     {research.flagsOrConcerns.map((flag, i) => <li key={i}>{flag}</li>)}
                   </ul>
                 </div>
@@ -390,37 +390,37 @@ function RegistrySection({ profileId, raw, token, onRefreshed }: { profileId: st
   const hasHardFlag = result && (result.nameMismatch || result.statusFlag || !result.found);
 
   return (
-    <div style={{ borderTop: "1px solid var(--qp-soft)", marginTop: "0.5rem" }}>
+    <div style={{ borderTop: "1px solid #E9EEEA", marginTop: "0.5rem" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <button onClick={() => setOpen(v => !v)} style={{ textAlign: "left", padding: "0.625rem 0", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem", flex: 1 }}>
-          <span style={{ fontSize: "0.75rem", color: "var(--qp-muted)", transition: "transform 0.15s", display: "inline-block", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
-          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-muted)" }}>Companies registry lookup</span>
-          {hasHardFlag && <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "var(--qp-error-bg)", color: "var(--qp-error)", marginLeft: "0.25rem" }}>{result!.flags.length} flag{result!.flags.length > 1 ? "s" : ""}</span>}
-          {result && result.found && !hasHardFlag && <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "var(--qp-soft)", color: "var(--qp-ink)", marginLeft: "0.25rem" }}>Active &amp; matched</span>}
+          <span style={{ fontSize: "0.75rem", color: "#526563", transition: "transform 0.15s", display: "inline-block", transform: open ? "rotate(90deg)" : "rotate(0deg)" }}>▶</span>
+          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#526563" }}>Companies registry lookup</span>
+          {hasHardFlag && <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "#FBECEA", color: "#9E3434", marginLeft: "0.25rem" }}>{result!.flags.length} flag{result!.flags.length > 1 ? "s" : ""}</span>}
+          {result && result.found && !hasHardFlag && <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "#E9EEEA", color: "#123F40", marginLeft: "0.25rem" }}>Active &amp; matched</span>}
         </button>
         {(isPending || isUnavailable) && (
-          <button onClick={triggerLookup} disabled={refreshing} style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.25rem 0.625rem", borderRadius: "0.375rem", border: "1px solid var(--qp-border)", background: "var(--qp-surface)", color: "var(--qp-muted)", cursor: refreshing ? "not-allowed" : "pointer", opacity: refreshing ? 0.6 : 1, flexShrink: 0 }}>
+          <button onClick={triggerLookup} disabled={refreshing} style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.25rem 0.625rem", borderRadius: "0.375rem", border: "1px solid #D4DED8", background: "#fff", color: "#526563", cursor: refreshing ? "not-allowed" : "pointer", opacity: refreshing ? 0.6 : 1, flexShrink: 0 }}>
             {refreshing ? "Looking up…" : "Run lookup"}
           </button>
         )}
       </div>
       {open && (
         <div style={{ paddingBottom: "0.875rem" }}>
-          <div style={{ background: "var(--qp-bg)", borderRadius: "0.5rem", padding: "0.5rem 0.75rem", fontSize: "0.75rem", color: "var(--qp-muted)", marginBottom: "0.75rem", display: "flex", alignItems: "flex-start", gap: "0.375rem" }}>
+          <div style={{ background: "#F4F5F0", borderRadius: "0.5rem", padding: "0.5rem 0.75rem", fontSize: "0.75rem", color: "#526563", marginBottom: "0.75rem", display: "flex", alignItems: "flex-start", gap: "0.375rem" }}>
             <span style={{ fontWeight: 600, flexShrink: 0 }}>Unofficial — best-effort.</span>
             <span>Data from data.gov.il (Ministry of Justice, updated daily). May lag real-world changes.</span>
           </div>
-          {isPending && <p style={{ fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>Registry lookup not yet run.</p>}
-          {!isPending && isUnavailable && <p style={{ fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>Registry lookup unavailable — could not reach data.gov.il.</p>}
+          {isPending && <p style={{ fontSize: "0.875rem", color: "#526563", margin: 0 }}>Registry lookup not yet run.</p>}
+          {!isPending && isUnavailable && <p style={{ fontSize: "0.875rem", color: "#526563", margin: 0 }}>Registry lookup unavailable — could not reach data.gov.il.</p>}
           {!isPending && !isUnavailable && result && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)" }}>Found in registry</span>
-                <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: result.found ? "var(--qp-soft)" : "var(--qp-error-bg)", color: result.found ? "var(--qp-ink)" : "var(--qp-error)" }}>{result.found ? "Yes" : "No"}</span>
+                <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#526563" }}>Found in registry</span>
+                <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: result.found ? "#E9EEEA" : "#FBECEA", color: result.found ? "#123F40" : "#9E3434" }}>{result.found ? "Yes" : "No"}</span>
                 {result.found && result.status && (
                   <>
-                    <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)" }}>Status</span>
-                    <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: result.statusFlag ? "var(--qp-error-bg)" : "var(--qp-soft)", color: result.statusFlag ? "var(--qp-error)" : "var(--qp-ink)" }}>{result.status}</span>
+                    <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#526563" }}>Status</span>
+                    <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: result.statusFlag ? "#FBECEA" : "#E9EEEA", color: result.statusFlag ? "#9E3434" : "#123F40" }}>{result.status}</span>
                   </>
                 )}
               </div>
@@ -428,21 +428,21 @@ function RegistrySection({ profileId, raw, token, onRefreshed }: { profileId: st
                 <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
                   {([["Registered name", result.registeredName ?? "—"], result.registeredNameEn ? ["English name", result.registeredNameEn] : null, ["Entity type", result.entityType ?? "—"], ["Incorporated", result.incorporationDate ?? "—"]] as ([string, string] | null)[]).filter((x): x is [string, string] => x !== null).map(([label, value]) => (
                     <div key={label as string}>
-                      <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
-                      <div style={{ fontSize: "0.875rem", color: "var(--qp-ink)" }}>{value}</div>
+                      <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</div>
+                      <div style={{ fontSize: "0.875rem", color: "#123F40" }}>{value}</div>
                     </div>
                   ))}
                 </div>
               )}
               {hasFlags && (
-                <div style={{ background: "var(--qp-error-bg)", borderRadius: "0.5rem", padding: "0.625rem 0.875rem" }}>
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-error)", marginBottom: "0.375rem" }}>Flags / concerns</div>
-                  <ul style={{ margin: 0, padding: "0 0 0 1.125rem", fontSize: "0.875rem", color: "var(--qp-error)" }}>
+                <div style={{ background: "#FBECEA", borderRadius: "0.5rem", padding: "0.625rem 0.875rem" }}>
+                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#9E3434", marginBottom: "0.375rem" }}>Flags / concerns</div>
+                  <ul style={{ margin: 0, padding: "0 0 0 1.125rem", fontSize: "0.875rem", color: "#9E3434" }}>
                     {result.flags.map((flag, i) => <li key={i}>{flag}</li>)}
                   </ul>
                 </div>
               )}
-              {!hasFlags && result.found && <p style={{ fontSize: "0.8125rem", color: "var(--qp-ink)", margin: 0 }}>No issues found — CRN matches an active company with consistent name.</p>}
+              {!hasFlags && result.found && <p style={{ fontSize: "0.8125rem", color: "#123F40", margin: 0 }}>No issues found — CRN matches an active company with consistent name.</p>}
             </div>
           )}
         </div>
@@ -491,37 +491,37 @@ function ApprovalsTab({ token }: { token: string }) {
 
   if (forbidden) {
     return (
-      <div style={{ background: "var(--qp-error-bg)", borderRadius: "0.875rem", border: "1px solid var(--qp-error-bg)", padding: "1.5rem", textAlign: "center" }}>
-        <div style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-error)", marginBottom: "0.375rem" }}>Access denied</div>
-        <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--qp-error)" }}>This page requires an admin account.</p>
+      <div style={{ background: "#FBECEA", borderRadius: "0.875rem", border: "1px solid #E8BDBD", padding: "1.5rem", textAlign: "center" }}>
+        <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 600, color: "#9E3434", marginBottom: "0.375rem" }}>Access denied</div>
+        <p style={{ margin: 0, fontSize: "0.9375rem", color: "#9E3434" }}>This page requires an admin account.</p>
       </div>
     );
   }
-  if (loading) return <p style={{ color: "var(--qp-muted)" }}>Loading…</p>;
-  if (profiles.length === 0) return <p style={{ color: "var(--qp-muted)" }}>No developer accounts found.</p>;
+  if (loading) return <p style={{ color: "#526563" }}>Loading…</p>;
+  if (profiles.length === 0) return <p style={{ color: "#526563" }}>No developer accounts found.</p>;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
       {profiles.map(p => {
         const st = STATUS_STYLE[p.crnStatus] ?? STATUS_STYLE.pending;
         return (
-          <div key={p.id} style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", overflow: "hidden" }}>
+          <div key={p.id} style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
             <div style={{ padding: "1.25rem 1.5rem" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <span style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)" }}>{p.companyName}</span>
+                    <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 600, color: "#123F40" }}>{p.companyName}</span>
                     <span style={{ fontSize: "0.75rem", fontWeight: 600, padding: "0.2rem 0.625rem", borderRadius: 999, background: st.background, color: st.color }}>{st.label}</span>
                   </div>
                   <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap" }}>
                     {[["CRN", p.crn], ["Contact", p.contactName], ["Phone", p.phone], ["Email", p.user.email]].map(([label, value]) => (
                       <div key={label}>
-                        <span style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label} </span>
-                        <span style={{ fontSize: "0.875rem", color: "var(--qp-ink)", fontFamily: label === "CRN" ? "var(--font-heebo, monospace)" : undefined }}>{value}</span>
+                        <span style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{label} </span>
+                        <span style={{ fontSize: "0.875rem", color: "#123F40", fontFamily: label === "CRN" ? "var(--font-jetbrains, monospace)" : undefined }}>{value}</span>
                       </div>
                     ))}
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)", marginTop: "0.125rem" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#526563", marginTop: "0.125rem" }}>
                     Registered {new Date(p.user.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                     {" · "}Baseline score <strong>{Math.round(p.baselineScore)}</strong>
                   </div>
@@ -531,14 +531,14 @@ function ApprovalsTab({ token }: { token: string }) {
                   <button
                     onClick={() => respond(p.id, "approve")}
                     disabled={p.crnStatus === "approved" || !!busy}
-                    style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", border: "1px solid var(--qp-ink)", background: p.crnStatus === "approved" ? "var(--qp-soft)" : "var(--qp-ink)", color: p.crnStatus === "approved" ? "var(--qp-ink)" : "var(--qp-surface)", fontSize: "0.875rem", fontWeight: 600, cursor: p.crnStatus === "approved" ? "default" : "pointer", opacity: busy ? 0.6 : 1 }}
+                    style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", border: "1px solid #123F40", background: p.crnStatus === "approved" ? "#E9EEEA" : "#123F40", color: p.crnStatus === "approved" ? "#123F40" : "#fff", fontSize: "0.875rem", fontWeight: 600, cursor: p.crnStatus === "approved" ? "default" : "pointer", opacity: busy ? 0.6 : 1 }}
                   >
                     {busy === p.id + "approve" ? "…" : p.crnStatus === "approved" ? "Approved" : "Approve"}
                   </button>
                   <button
                     onClick={() => respond(p.id, "reject")}
                     disabled={p.crnStatus === "rejected" || !!busy}
-                    style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", border: "1px solid var(--qp-border)", background: p.crnStatus === "rejected" ? "var(--qp-error-bg)" : "var(--qp-surface)", color: p.crnStatus === "rejected" ? "var(--qp-error)" : "var(--qp-muted)", fontSize: "0.875rem", fontWeight: 600, cursor: p.crnStatus === "rejected" ? "default" : "pointer", opacity: busy ? 0.6 : 1 }}
+                    style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", border: "1px solid #D4DED8", background: p.crnStatus === "rejected" ? "#FBECEA" : "#fff", color: p.crnStatus === "rejected" ? "#9E3434" : "#526563", fontSize: "0.875rem", fontWeight: 600, cursor: p.crnStatus === "rejected" ? "default" : "pointer", opacity: busy ? 0.6 : 1 }}
                   >
                     {busy === p.id + "reject" ? "…" : p.crnStatus === "rejected" ? "Rejected" : "Reject"}
                   </button>
@@ -558,10 +558,10 @@ function ApprovalsTab({ token }: { token: string }) {
 // ── Leverage groups table ─────────────────────────────────────────────────────
 
 const GROUP_STATUS: Record<string, { label: string; bg: string; color: string }> = {
-  pending:   { label: "Open",      bg: "var(--qp-soft)", color: "var(--qp-ink)" },
-  countered: { label: "Countered", bg: "var(--qp-warning-bg)", color: "var(--qp-accent-text)" },
-  accepted:  { label: "Accepted",  bg: "var(--qp-soft)", color: "var(--qp-ink)" },
-  rejected:  { label: "Closed",    bg: "var(--qp-error-bg)", color: "var(--qp-error)" },
+  pending:   { label: "Open",      bg: "#E9EEEA", color: "#123F40" },
+  countered: { label: "Countered", bg: "#FCF2D9", color: "#756039" },
+  accepted:  { label: "Accepted",  bg: "#E9EEEA", color: "#123F40" },
+  rejected:  { label: "Closed",    bg: "#FBECEA", color: "#9E3434" },
 };
 
 function LeverageGroupsTable({ token }: { token: string }) {
@@ -580,30 +580,30 @@ function LeverageGroupsTable({ token }: { token: string }) {
   const openGroups = groups.filter(g => g.status === "pending" || g.status === "countered");
 
   return (
-    <div style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", overflow: "hidden" }}>
-      <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--qp-soft)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--qp-ink)" }}>
+    <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
+      <div style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #E9EEEA", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#123F40" }}>
           Group buying interest
         </div>
-        <span style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.875rem", color: "var(--qp-muted)" }}>
+        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.875rem", color: "#526563" }}>
           ({openGroups.length} open)
         </span>
-        <div style={{ marginLeft: "auto", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
+        <div style={{ marginLeft: "auto", fontSize: "0.8125rem", color: "#526563" }}>
           Approach the developer when a group has enough members
         </div>
       </div>
 
       {loading ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: "var(--qp-muted)" }}>Loading…</div>
+        <div style={{ padding: "2rem", textAlign: "center", color: "#526563" }}>Loading…</div>
       ) : groups.length === 0 ? (
-        <div style={{ padding: "2rem", textAlign: "center", color: "var(--qp-muted)" }}>No group requests yet.</div>
+        <div style={{ padding: "2rem", textAlign: "center", color: "#526563" }}>No group requests yet.</div>
       ) : (
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.875rem" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid var(--qp-soft)" }}>
+              <tr style={{ borderBottom: "1px solid #E9EEEA" }}>
                 {["Listing", "Members", "Status", "Created"].map(h => (
-                  <th key={h} style={{ padding: "0.625rem 1.25rem", textAlign: "left", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-muted)", whiteSpace: "nowrap" }}>{h}</th>
+                  <th key={h} style={{ padding: "0.625rem 1.25rem", textAlign: "left", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563", whiteSpace: "nowrap" }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -612,27 +612,27 @@ function LeverageGroupsTable({ token }: { token: string }) {
                 const st = GROUP_STATUS[g.status] ?? GROUP_STATUS.pending;
                 const isHighlight = g.memberCount >= 3 && g.status === "pending";
                 return (
-                  <tr key={g.id} style={{ borderBottom: i < groups.length - 1 ? "1px solid var(--qp-bg)" : "none", background: isHighlight ? "rgba(31,75,74,0.03)" : "transparent" }}>
+                  <tr key={g.id} style={{ borderBottom: i < groups.length - 1 ? "1px solid #F4F5F0" : "none", background: isHighlight ? "rgba(31,75,74,0.03)" : "transparent" }}>
                     <td style={{ padding: "0.75rem 1.25rem" }}>
-                      <div style={{ fontWeight: 500, color: "var(--qp-ink)" }}>
+                      <div style={{ fontWeight: 500, color: "#123F40" }}>
                         {g.unitType.project.name} — {g.unitType.unitLabel}
                       </div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#526563" }}>
                         {g.unitType.project.location}
                         {g.unitType.price > 0 && ` · ${formatPrice(g.unitType.price)}`}
                       </div>
                     </td>
                     <td style={{ padding: "0.75rem 1.25rem" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={isHighlight ? "var(--qp-ink)" : "var(--qp-muted)"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={isHighlight ? "#123F40" : "#526563"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                           <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                         </svg>
-                        <span style={{ fontFamily: "var(--font-heebo, monospace)", fontWeight: 600, color: "var(--qp-ink)", fontSize: "0.9375rem" }}>
+                        <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, color: isHighlight ? "#123F40" : "#123F40", fontSize: "0.9375rem" }}>
                           {g.memberCount}
                         </span>
                         {isHighlight && (
-                          <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "var(--qp-soft)", color: "var(--qp-ink)" }}>
+                          <span style={{ fontSize: "0.6875rem", fontWeight: 600, padding: "0.1rem 0.5rem", borderRadius: 999, background: "#E9EEEA", color: "#123F40" }}>
                             Ready to approach
                           </span>
                         )}
@@ -643,7 +643,7 @@ function LeverageGroupsTable({ token }: { token: string }) {
                         {st.label}
                       </span>
                     </td>
-                    <td style={{ padding: "0.75rem 1.25rem", color: "var(--qp-muted)", whiteSpace: "nowrap", fontSize: "0.8125rem" }}>
+                    <td style={{ padding: "0.75rem 1.25rem", color: "#526563", whiteSpace: "nowrap", fontSize: "0.8125rem" }}>
                       {new Date(g.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                   </tr>
@@ -671,8 +671,8 @@ function OverviewTab({ token }: { token: string }) {
       .catch(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <p style={{ color: "var(--qp-muted)" }}>Loading…</p>;
-  if (!stats) return <p style={{ color: "var(--qp-error)" }}>Failed to load stats — make sure you&apos;re logged in as admin.</p>;
+  if (loading) return <p style={{ color: "#526563" }}>Loading…</p>;
+  if (!stats) return <p style={{ color: "#9E3434" }}>Failed to load stats — make sure you&apos;re logged in as admin.</p>;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
@@ -736,8 +736,8 @@ export default function AdminApprovalsPage() {
   // Render nothing until auth is confirmed — prevents any flash of admin content
   if (authStatus === "checking") {
     return (
-      <main style={{ minHeight: "100vh", background: "var(--qp-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "var(--qp-ink)", animation: "spin 0.9s linear infinite" }} />
+      <main style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "#123F40", animation: "spin 0.9s linear infinite" }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </main>
     );
@@ -747,31 +747,31 @@ export default function AdminApprovalsPage() {
     padding: "0.5rem 1.125rem",
     borderRadius: "0.5rem",
     border: "none",
-    background: active ? "var(--qp-ink)" : "transparent",
-    color: active ? "var(--qp-surface)" : "var(--qp-muted)",
+    background: active ? "#123F40" : "transparent",
+    color: active ? "#fff" : "#526563",
     fontSize: "0.875rem",
     fontWeight: 600,
     cursor: "pointer",
   });
 
   return (
-    <main style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)" }}>
+    <main style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, sans-serif)" }}>
       {/* Header */}
-      <div style={{ background: "var(--qp-surface)", borderBottom: "1px solid var(--qp-border)" }}>
+      <div style={{ background: "#fff", borderBottom: "1px solid #D4DED8" }}>
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
-          <div style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--qp-ink)", marginBottom: "0.5rem" }}>
+          <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.5rem" }}>
             Haveniq — Admin
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
             <div>
-              <h1 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.875rem", fontWeight: 600, color: "var(--qp-ink)", margin: 0 }}>
+              <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.875rem", fontWeight: 600, color: "#123F40", margin: 0 }}>
                 Admin dashboard
               </h1>
-              <p style={{ margin: "0.375rem 0 0", color: "var(--qp-muted)", fontSize: "0.9375rem" }}>
+              <p style={{ margin: "0.375rem 0 0", color: "#526563", fontSize: "0.9375rem" }}>
                 Admin only — requires role: admin.
               </p>
             </div>
-            <div style={{ display: "flex", gap: "0.375rem", background: "var(--qp-soft)", borderRadius: "0.625rem", padding: "0.25rem" }}>
+            <div style={{ display: "flex", gap: "0.375rem", background: "#E9EEEA", borderRadius: "0.625rem", padding: "0.25rem" }}>
               <button style={tabStyle(tab === "overview")} onClick={() => setTab("overview")}>Overview</button>
               <button style={tabStyle(tab === "approvals")} onClick={() => setTab("approvals")}>Developer approvals</button>
             </div>

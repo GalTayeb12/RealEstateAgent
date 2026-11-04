@@ -43,12 +43,12 @@ interface MatchedUnit {
 const STATUS: Record<string, { label: string; bg: string; color: string }> = {
   pending: {
     label: "Pending developer response",
-    bg: "var(--qp-warning-bg)",
-    color: "var(--qp-accent-text)",
+    bg: "#FCF2D9",
+    color: "#756039",
   },
-  countered: { label: "Developer countered", bg: "var(--qp-warning-bg)", color: "var(--qp-accent-text)" },
-  accepted: { label: "Accepted", bg: "var(--qp-soft)", color: "var(--qp-ink)" },
-  rejected: { label: "Rejected", bg: "var(--qp-error-bg)", color: "var(--qp-error)" },
+  countered: { label: "Developer countered", bg: "#FCF2D9", color: "#756039" },
+  accepted: { label: "Accepted", bg: "#E9EEEA", color: "#123F40" },
+  rejected: { label: "Rejected", bg: "#FBECEA", color: "#9E3434" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -76,7 +76,7 @@ function MemberPill({ count }: { count: number }) {
         display: "inline-flex",
         alignItems: "center",
         gap: "0.3rem",
-        background: "var(--qp-soft)",
+        background: "#E9EEEA",
         borderRadius: "999px",
         padding: "0.2rem 0.625rem 0.2rem 0.4rem",
       }}
@@ -86,7 +86,7 @@ function MemberPill({ count }: { count: number }) {
         height='12'
         viewBox='0 0 24 24'
         fill='none'
-        stroke='var(--qp-ink)'
+        stroke='#123F40'
         strokeWidth='2.5'
         strokeLinecap='round'
         strokeLinejoin='round'
@@ -98,10 +98,10 @@ function MemberPill({ count }: { count: number }) {
       </svg>
       <span
         style={{
-          fontFamily: "var(--font-heebo, monospace)",
+          fontFamily: "var(--font-jetbrains, monospace)",
           fontSize: "0.8125rem",
           fontWeight: 600,
-          color: "var(--qp-ink)",
+          color: "#123F40",
         }}
       >
         {count} {count === 1 ? "member" : "members"}
@@ -118,11 +118,11 @@ function GroupCard({ group }: { group: LeverageGroup }) {
   return (
     <div
       style={{
-        background: "var(--qp-surface)",
+        background: "#fff",
         borderRadius: "0.875rem",
-        border: "1px solid var(--qp-border)",
+        border: "1px solid #D4DED8",
         overflow: "hidden",
-        borderTop: `4px solid ${group.status === "accepted" ? "var(--qp-ink)" : group.status === "rejected" ? "var(--qp-error)" : "var(--qp-accent-text)"}`,
+        borderTop: `4px solid ${group.status === "accepted" ? "#123F40" : group.status === "rejected" ? "#9E3434" : "#756039"}`,
       }}
     >
       <div style={{ padding: "1.25rem 1.5rem" }}>
@@ -139,16 +139,16 @@ function GroupCard({ group }: { group: LeverageGroup }) {
           <div>
             <h3
               style={{
-                fontFamily: "var(--font-heebo, serif)",
+                fontFamily: "var(--font-fraunces, serif)",
                 fontSize: "1.125rem",
                 fontWeight: 600,
-                color: "var(--qp-ink)",
+                color: "#123F40",
                 margin: "0 0 0.2rem",
               }}
             >
               {group.unitType.project.name} — {group.unitType.unitLabel}
             </h3>
-            <div style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
+            <div style={{ fontSize: "0.8125rem", color: "#526563" }}>
               {group.unitType.project.location}
               {group.unitType.price > 0 &&
                 ` · ${formatPrice(group.unitType.price)}`}
@@ -169,11 +169,11 @@ function GroupCard({ group }: { group: LeverageGroup }) {
           <MemberPill count={group.memberCount} />
           {/* Discount requested 
           <div>
-            <span style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Discount requested </span>
-            <span style={{ fontFamily: "var(--font-heebo, monospace)", fontWeight: 600, fontSize: "0.9375rem" }}>{group.requestedDiscountPercent}%</span>
+            <span style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Discount requested </span>
+            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, fontSize: "0.9375rem" }}>{group.requestedDiscountPercent}%</span>
           </div>*/}
           {group.requestedTerms && (
-            <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>
+            <div style={{ fontSize: "0.875rem", color: "#526563" }}>
               {group.requestedTerms}
             </div>
           )}
@@ -182,10 +182,10 @@ function GroupCard({ group }: { group: LeverageGroup }) {
         {isCountered && group.counterDiscountPercent != null && (
           <div
             style={{
-              background: "var(--qp-warning-bg)",
+              background: "#FCF2D9",
               borderRadius: "0.5rem",
               padding: "0.75rem 1rem",
-              border: "1px solid var(--qp-border)",
+              border: "1px solid #EDD9A3",
             }}
           >
             <div
@@ -194,7 +194,7 @@ function GroupCard({ group }: { group: LeverageGroup }) {
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                color: "var(--qp-accent-text)",
+                color: "#756039",
                 marginBottom: "0.375rem",
               }}
             >
@@ -204,19 +204,19 @@ function GroupCard({ group }: { group: LeverageGroup }) {
               style={{ display: "flex", gap: "1.5rem", fontSize: "0.875rem" }}
             >
               <div>
-                <span style={{ color: "var(--qp-muted)" }}>Counter discount </span>
+                <span style={{ color: "#526563" }}>Counter discount </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-heebo, monospace)",
+                    fontFamily: "var(--font-jetbrains, monospace)",
                     fontWeight: 600,
-                    color: "var(--qp-accent-text)",
+                    color: "#756039",
                   }}
                 >
                   {group.counterDiscountPercent}%
                 </span>
               </div>
               {group.counterTerms && (
-                <div style={{ color: "var(--qp-ink)" }}>
+                <div style={{ color: "#123F40" }}>
                   &ldquo;{group.counterTerms}&rdquo;
                 </div>
               )}
@@ -227,7 +227,7 @@ function GroupCard({ group }: { group: LeverageGroup }) {
         <div
           style={{
             fontSize: "0.75rem",
-            color: "var(--qp-muted)",
+            color: "#526563",
             marginTop: "0.75rem",
           }}
         >
@@ -283,9 +283,9 @@ function JoinableGroupCard({
   return (
     <div
       style={{
-        background: "var(--qp-surface)",
+        background: "#fff",
         borderRadius: "0.875rem",
-        border: "1px solid var(--qp-border)",
+        border: "1px solid #D4DED8",
         overflow: "hidden",
       }}
     >
@@ -302,10 +302,10 @@ function JoinableGroupCard({
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3
               style={{
-                fontFamily: "var(--font-heebo, serif)",
+                fontFamily: "var(--font-fraunces, serif)",
                 fontSize: "1.0625rem",
                 fontWeight: 600,
-                color: "var(--qp-ink)",
+                color: "#123F40",
                 margin: "0 0 0.2rem",
               }}
             >
@@ -314,7 +314,7 @@ function JoinableGroupCard({
             <div
               style={{
                 fontSize: "0.8125rem",
-                color: "var(--qp-muted)",
+                color: "#526563",
                 marginBottom: "0.625rem",
               }}
             >
@@ -331,15 +331,15 @@ function JoinableGroupCard({
               }}
             >
               <MemberPill count={group.memberCount} />
-              <span style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>
+              <span style={{ fontSize: "0.875rem", color: "#526563" }}>
                 Requesting{" "}
-                <strong style={{ color: "var(--qp-ink)" }}>
+                <strong style={{ color: "#123F40" }}>
                   {group.requestedDiscountPercent}%
                 </strong>{" "}
                 discount
               </span>
               {group.requestedTerms && (
-                <span style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
+                <span style={{ fontSize: "0.8125rem", color: "#526563" }}>
                   &ldquo;{group.requestedTerms}&rdquo;
                 </span>
               )}
@@ -360,7 +360,7 @@ function JoinableGroupCard({
                 style={{
                   fontSize: "0.875rem",
                   fontWeight: 600,
-                  color: "var(--qp-ink)",
+                  color: "#123F40",
                 }}
               >
                 Joined!
@@ -372,8 +372,8 @@ function JoinableGroupCard({
                 style={{
                   padding: "0.5rem 1.125rem",
                   borderRadius: "0.5rem",
-                  background: "var(--qp-ink)",
-                  color: "var(--qp-on-primary)",
+                  background: "#123F40",
+                  color: "#fff",
                   border: "none",
                   fontSize: "0.875rem",
                   fontWeight: 600,
@@ -385,7 +385,7 @@ function JoinableGroupCard({
               </button>
             )}
             {error && (
-              <span style={{ fontSize: "0.75rem", color: "var(--qp-error)" }}>
+              <span style={{ fontSize: "0.75rem", color: "#9E3434" }}>
                 {error}
               </span>
             )}
@@ -457,13 +457,13 @@ function CreateGroupForm({
     return (
       <div
         style={{
-          background: "var(--qp-soft)",
+          background: "#E9EEEA",
           borderRadius: "0.75rem",
           padding: "1.25rem 1.5rem",
           display: "flex",
           alignItems: "center",
           gap: "0.75rem",
-          border: "1px solid var(--qp-border)",
+          border: "1px solid #B8D4D3",
         }}
       >
         <svg
@@ -471,7 +471,7 @@ function CreateGroupForm({
           height='18'
           viewBox='0 0 24 24'
           fill='none'
-          stroke='var(--qp-ink)'
+          stroke='#123F40'
           strokeWidth='2.5'
           strokeLinecap='round'
           strokeLinejoin='round'
@@ -480,14 +480,14 @@ function CreateGroupForm({
         </svg>
         <div>
           <div
-            style={{ fontWeight: 600, color: "var(--qp-ink)", fontSize: "0.9375rem" }}
+            style={{ fontWeight: 600, color: "#123F40", fontSize: "0.9375rem" }}
           >
             Group request created
           </div>
           <div
             style={{
               fontSize: "0.8125rem",
-              color: "var(--qp-muted)",
+              color: "#3A6B6A",
               marginTop: "0.125rem",
             }}
           >
@@ -503,13 +503,13 @@ function CreateGroupForm({
     fontWeight: 600,
     letterSpacing: "0.07em",
     textTransform: "uppercase" as const,
-    color: "var(--qp-muted)",
+    color: "#526563",
     marginBottom: "0.25rem",
     display: "block",
   };
   const inputStyle: React.CSSProperties = {
-    background: "var(--qp-surface)",
-    border: "1px solid var(--qp-border)",
+    background: "#fff",
+    border: "1px solid #D4DED8",
     borderRadius: "0.4rem",
     padding: "0.5rem 0.75rem",
     fontSize: "0.9375rem",
@@ -521,14 +521,14 @@ function CreateGroupForm({
   return (
     <div
       style={{
-        background: "var(--qp-surface)",
+        background: "#fff",
         borderRadius: "0.875rem",
-        border: "1px solid var(--qp-border)",
+        border: "1px solid #D4DED8",
         overflow: "hidden",
       }}
     >
       <div
-        style={{ padding: "1rem 1.5rem", borderBottom: "1px solid var(--qp-border)" }}
+        style={{ padding: "1rem 1.5rem", borderBottom: "1px solid #E8E4DF" }}
       >
         <span
           style={{
@@ -536,7 +536,7 @@ function CreateGroupForm({
             fontWeight: 600,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: "var(--qp-ink)",
+            color: "#123F40",
           }}
         >
           Create a new group request
@@ -578,12 +578,12 @@ function CreateGroupForm({
               <div
                 style={{
                   fontSize: "0.75rem",
-                  color: "var(--qp-muted)",
+                  color: "#526563",
                   marginTop: "0.25rem",
                 }}
               >
                 Run{" "}
-                <Link href='/processing' style={{ color: "var(--qp-ink)" }}>
+                <Link href='/processing' style={{ color: "#123F40" }}>
                   matching
                 </Link>{" "}
                 first to pick from your results.
@@ -604,7 +604,7 @@ function CreateGroupForm({
             onChange={(e) => setDiscountPct(e.target.value)}
             style={{
               ...inputStyle,
-              fontFamily: "var(--font-heebo, monospace)",
+              fontFamily: "var(--font-jetbrains, monospace)",
               maxWidth: "10rem",
             }}
           />
@@ -614,7 +614,7 @@ function CreateGroupForm({
         <div>
           <label style={labelStyle}>
             Terms{" "}
-            <span style={{ fontWeight: 400, color: "var(--qp-muted)" }}>
+            <span style={{ fontWeight: 400, color: "#526563" }}>
               (optional)
             </span>
           </label>
@@ -628,7 +628,7 @@ function CreateGroupForm({
         </div>
 
         {error && (
-          <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--qp-error)" }}>
+          <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434" }}>
             {error}
           </p>
         )}
@@ -639,8 +639,8 @@ function CreateGroupForm({
           style={{
             padding: "0.625rem 1.5rem",
             borderRadius: "0.5rem",
-            background: "var(--qp-ink)",
-            color: "var(--qp-on-primary)",
+            background: "#123F40",
+            color: "#fff",
             border: "none",
             fontSize: "0.875rem",
             fontWeight: 600,
@@ -720,22 +720,22 @@ export default function BuyerLeverageGroupsPage() {
     <main
       style={{
         minHeight: "100vh",
-        background: "var(--qp-bg)",
-        fontFamily: "var(--font-heebo, sans-serif)",
+        background: "#F4F5F0",
+        fontFamily: "var(--font-inter, sans-serif)",
         paddingBottom: "4rem",
       }}
     >
       {/* Header */}
-      <div style={{ borderBottom: "1px solid var(--qp-border)", background: "var(--qp-surface)" }}>
+      <div style={{ borderBottom: "1px solid #D4DED8", background: "#fff" }}>
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
           <div
             style={{
-              fontFamily: "var(--font-heebo, serif)",
+              fontFamily: "var(--font-fraunces, serif)",
               fontSize: "0.75rem",
               fontWeight: 600,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "var(--qp-ink)",
+              color: "#123F40",
               marginBottom: "0.5rem",
             }}
           >
@@ -753,10 +753,10 @@ export default function BuyerLeverageGroupsPage() {
             <div>
               <h1
                 style={{
-                  fontFamily: "var(--font-heebo, serif)",
+                  fontFamily: "var(--font-fraunces, serif)",
                   fontSize: "1.875rem",
                   fontWeight: 600,
-                  color: "var(--qp-ink)",
+                  color: "#123F40",
                   margin: 0,
                 }}
               >
@@ -765,7 +765,7 @@ export default function BuyerLeverageGroupsPage() {
               <p
                 style={{
                   margin: "0.375rem 0 0",
-                  color: "var(--qp-muted)",
+                  color: "#526563",
                   fontSize: "0.9375rem",
                 }}
               >
@@ -780,7 +780,7 @@ export default function BuyerLeverageGroupsPage() {
                 href='/results'
                 style={{
                   fontSize: "0.875rem",
-                  color: "var(--qp-muted)",
+                  color: "#526563",
                   textDecoration: "none",
                 }}
               >
@@ -791,9 +791,9 @@ export default function BuyerLeverageGroupsPage() {
                 style={{
                   padding: "0.5rem 1.125rem",
                   borderRadius: "0.5rem",
-                  background: showForm ? "var(--qp-soft)" : "var(--qp-ink)",
-                  color: showForm ? "var(--qp-muted)" : "var(--qp-on-primary)",
-                  border: showForm ? "1px solid var(--qp-border)" : "none",
+                  background: showForm ? "#E9EEEA" : "#123F40",
+                  color: showForm ? "#526563" : "#fff",
+                  border: showForm ? "1px solid #D4DED8" : "none",
                   fontSize: "0.875rem",
                   fontWeight: 600,
                   cursor: "pointer",
@@ -819,9 +819,9 @@ export default function BuyerLeverageGroupsPage() {
         {/* How it works */}
         <div
           style={{
-            background: "var(--qp-surface)",
+            background: "#fff",
             borderRadius: "0.875rem",
-            border: "1px solid var(--qp-border)",
+            border: "1px solid #D4DED8",
             padding: "1.125rem 1.5rem",
             display: "flex",
             gap: "0.875rem",
@@ -834,7 +834,7 @@ export default function BuyerLeverageGroupsPage() {
               width: "2rem",
               height: "2rem",
               borderRadius: "50%",
-              background: "var(--qp-soft)",
+              background: "#E9EEEA",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -845,7 +845,7 @@ export default function BuyerLeverageGroupsPage() {
               height='14'
               viewBox='0 0 24 24'
               fill='none'
-              stroke='var(--qp-ink)'
+              stroke='#123F40'
               strokeWidth='2.5'
               strokeLinecap='round'
               strokeLinejoin='round'
@@ -860,7 +860,7 @@ export default function BuyerLeverageGroupsPage() {
               style={{
                 fontWeight: 600,
                 fontSize: "0.9375rem",
-                color: "var(--qp-ink)",
+                color: "#123F40",
                 marginBottom: "0.25rem",
               }}
             >
@@ -870,7 +870,7 @@ export default function BuyerLeverageGroupsPage() {
               style={{
                 margin: 0,
                 fontSize: "0.875rem",
-                color: "var(--qp-muted)",
+                color: "#526563",
                 lineHeight: 1.6,
               }}
             >
@@ -891,7 +891,7 @@ export default function BuyerLeverageGroupsPage() {
           />
         )}
 
-        {loading && <p style={{ color: "var(--qp-muted)" }}>Loading…</p>}
+        {loading && <p style={{ color: "#526563" }}>Loading…</p>}
 
         {/* My groups */}
         {!loading && (
@@ -903,7 +903,7 @@ export default function BuyerLeverageGroupsPage() {
                   fontWeight: 600,
                   letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  color: "var(--qp-muted)",
+                  color: "#526563",
                   marginBottom: "0.75rem",
                 }}
               >
@@ -914,10 +914,10 @@ export default function BuyerLeverageGroupsPage() {
                   style={{
                     textAlign: "center",
                     padding: "2rem 1.5rem",
-                    background: "var(--qp-surface)",
+                    background: "#fff",
                     borderRadius: "0.875rem",
-                    border: "1px solid var(--qp-border)",
-                    color: "var(--qp-muted)",
+                    border: "1px solid #D4DED8",
+                    color: "#526563",
                   }}
                 >
                   <p style={{ margin: "0 0 1rem", fontSize: "0.9375rem" }}>
@@ -928,8 +928,8 @@ export default function BuyerLeverageGroupsPage() {
                     style={{
                       padding: "0.5rem 1.25rem",
                       borderRadius: "0.5rem",
-                      background: "var(--qp-ink)",
-                      color: "var(--qp-on-primary)",
+                      background: "#123F40",
+                      color: "#fff",
                       border: "none",
                       fontSize: "0.875rem",
                       fontWeight: 600,
@@ -963,7 +963,7 @@ export default function BuyerLeverageGroupsPage() {
                     fontWeight: 600,
                     letterSpacing: "0.1em",
                     textTransform: "uppercase",
-                    color: "var(--qp-muted)",
+                    color: "#526563",
                     marginBottom: "0.75rem",
                   }}
                 >

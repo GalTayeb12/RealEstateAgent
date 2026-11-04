@@ -68,7 +68,7 @@ function fmtDate(iso: string) {
 
 function CheckIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--qp-on-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -101,42 +101,42 @@ function Step({
   return (
     <div style={{
       display: "flex", gap: "1rem", padding: "1.125rem 1.375rem",
-      background: isDone ? "var(--qp-soft)" : isActive ? "var(--qp-surface)" : "var(--qp-bg)",
+      background: isDone ? "#F0F6F5" : isActive ? "#fff" : "#FAFAF9",
       borderRadius: "0.625rem",
-      border: `1px solid ${isDone ? "var(--qp-border)" : isActive ? "var(--qp-border)" : "var(--qp-border)"}`,
+      border: `1px solid ${isDone ? "#B8D4D3" : isActive ? "#D4DED8" : "#EDEBE7"}`,
       opacity: state === "upcoming" ? 0.6 : 1,
     }}>
       <div style={{
         flexShrink: 0, width: 32, height: 32, borderRadius: "50%",
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: isDone ? "var(--qp-ink)" : isActive ? "var(--qp-accent-text)" : "var(--qp-soft)",
+        background: isDone ? "#123F40" : isActive ? "#756039" : "#E8E4DF",
         marginTop: 2,
       }}>
         {isDone
           ? <CheckIcon />
-          : <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: isActive ? "var(--qp-on-primary)" : "var(--qp-muted)" }}>{num}</span>
+          : <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: isActive ? "#fff" : "#526563" }}>{num}</span>
         }
       </div>
       <div style={{ flex: 1 }}>
         <div style={{
           fontSize: "0.9375rem", fontWeight: 600,
-          color: isDone ? "var(--qp-ink)" : isActive ? "var(--qp-ink)" : "var(--qp-muted)",
-          marginBottom: "0.2rem", fontFamily: "var(--font-heebo, sans-serif)",
+          color: isDone ? "#123F40" : isActive ? "#123F40" : "#526563",
+          marginBottom: "0.2rem", fontFamily: "var(--font-inter, sans-serif)",
         }}>
           {title}
         </div>
-        <div style={{ fontSize: "0.8125rem", color: "var(--qp-muted)", lineHeight: 1.5 }}>
+        <div style={{ fontSize: "0.8125rem", color: "#526563", lineHeight: 1.5 }}>
           {description}
         </div>
         {action && <div style={{ marginTop: "0.875rem" }}>{action}</div>}
       </div>
       <div style={{ flexShrink: 0, display: "flex", alignItems: "flex-start", paddingTop: 6 }}>
         {isDone && (
-          <span style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-ink)", background: "var(--qp-soft)", borderRadius: 999, padding: "0.15rem 0.5rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <span style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#123F40", background: "#D4EDEA", borderRadius: 999, padding: "0.15rem 0.5rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
             Done
           </span>
         )}
-        {isActive && <ClockIcon color="var(--qp-accent-text)" />}
+        {isActive && <ClockIcon color="#756039" />}
       </div>
     </div>
   );
@@ -173,7 +173,7 @@ function SignatureModal({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    ctx.strokeStyle = "var(--qp-ink)";
+    ctx.strokeStyle = "#123F40";
     ctx.lineWidth   = 2;
     ctx.lineCap     = "round";
     ctx.lineJoin    = "round";
@@ -300,23 +300,23 @@ function SignatureModal({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: "var(--qp-surface)", borderRadius: "1rem", width: "100%", maxWidth: "34rem",
+        background: "#fff", borderRadius: "1rem", width: "100%", maxWidth: "34rem",
         boxShadow: "0 32px 64px -24px rgba(18,51,50,0.4)",
         display: "flex", flexDirection: "column", maxHeight: "90vh", overflow: "hidden",
       }}>
         {/* Modal header */}
-        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--qp-border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #E9EEEA", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontFamily: "var(--font-heebo, serif)", fontWeight: 600, fontSize: "1.125rem", color: "var(--qp-ink)" }}>
+            <div style={{ fontFamily: "var(--font-fraunces, serif)", fontWeight: 600, fontSize: "1.125rem", color: "#123F40" }}>
               Sign contract
             </div>
-            <div style={{ fontSize: "0.8125rem", color: "var(--qp-muted)", marginTop: "0.125rem" }}>
-              Signing as: <strong style={{ color: "var(--qp-ink)" }}>{role === "buyer" ? "Buyer" : role === "seller" ? "Seller" : "Developer"}</strong>
+            <div style={{ fontSize: "0.8125rem", color: "#526563", marginTop: "0.125rem" }}>
+              Signing as: <strong style={{ color: "#123F40" }}>{role === "buyer" ? "Buyer" : role === "seller" ? "Seller" : "Developer"}</strong>
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--qp-muted)", padding: "0.25rem", lineHeight: 0 }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", padding: "0.25rem", lineHeight: 0 }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -330,21 +330,21 @@ function SignatureModal({
 
             {/* Contract text */}
             <div>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--qp-muted)", marginBottom: "0.5rem" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563", marginBottom: "0.5rem" }}>
                 Agreement text
               </div>
               <pre style={{
-                fontFamily: "var(--font-heebo, monospace)",
+                fontFamily: "var(--font-jetbrains, monospace)",
                 fontSize: "0.75rem",
                 lineHeight: 1.7,
-                color: "var(--qp-ink)",
-                background: "var(--qp-soft)",
+                color: "#123F40",
+                background: "#F5F3EE",
                 borderRadius: "0.5rem",
                 padding: "1rem",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
                 margin: 0,
-                border: "1px solid var(--qp-border)",
+                border: "1px solid #E0DDD7",
               }}>
                 {contractText}
               </pre>
@@ -352,8 +352,8 @@ function SignatureModal({
 
             {/* Full legal name */}
             <div>
-              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>
-                Full legal name <span style={{ color: "var(--qp-error)" }}>*</span>
+              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.4rem" }}>
+                Full legal name <span style={{ color: "#9E3434" }}>*</span>
               </label>
               <input
                 type="text"
@@ -362,25 +362,25 @@ function SignatureModal({
                 onChange={(e) => setTypedName(e.target.value)}
                 placeholder="Type your full legal name"
                 style={{
-                  width: "100%", background: "var(--qp-soft)", border: "1.5px solid var(--qp-border)",
+                  width: "100%", background: "#F5F3EE", border: "1.5px solid #E0DDD7",
                   borderRadius: "0.625rem", padding: "0.75rem 1rem",
-                  fontSize: "0.9375rem", color: "var(--qp-ink)", outline: "none", boxSizing: "border-box",
+                  fontSize: "0.9375rem", color: "#123F40", outline: "none", boxSizing: "border-box",
                 }}
-                onFocus={(e) => { e.target.style.borderColor = "var(--qp-ink)"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
-                onBlur={(e) => { e.target.style.borderColor = "var(--qp-border)"; e.target.style.boxShadow = "none"; }}
+                onFocus={(e) => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
+                onBlur={(e) => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
               />
             </div>
 
             {/* Signature pad */}
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)" }}>
-                  Draw your signature <span style={{ color: "var(--qp-error)" }}>*</span>
+                <label style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C" }}>
+                  Draw your signature <span style={{ color: "#9E3434" }}>*</span>
                 </label>
                 <button
                   type="button"
                   onClick={clearCanvas}
-                  style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--qp-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  style={{ fontSize: "0.75rem", fontWeight: 600, color: "#526563", background: "none", border: "none", cursor: "pointer", padding: 0 }}
                 >
                   Clear
                 </button>
@@ -400,15 +400,15 @@ function SignatureModal({
                   display: "block",
                   width: "100%",
                   height: 120,
-                  background: "var(--qp-soft)",
-                  border: `1.5px solid ${hasDrawn ? "var(--qp-ink)" : "var(--qp-border)"}`,
+                  background: "#F5F3EE",
+                  border: `1.5px solid ${hasDrawn ? "#123F40" : "#E0DDD7"}`,
                   borderRadius: "0.625rem",
                   cursor: "crosshair",
                   touchAction: "none",
                 }}
               />
               {!hasDrawn && (
-                <p style={{ margin: "0.375rem 0 0", fontSize: "0.75rem", color: "var(--qp-muted)" }}>
+                <p style={{ margin: "0.375rem 0 0", fontSize: "0.75rem", color: "#526563" }}>
                   Use your mouse or finger to draw your signature above.
                 </p>
               )}
@@ -420,16 +420,16 @@ function SignatureModal({
                 type="checkbox"
                 checked={checked}
                 onChange={(e) => setChecked(e.target.checked)}
-                style={{ marginTop: "0.1rem", flexShrink: 0, accentColor: "var(--qp-ink)", width: 16, height: 16 }}
+                style={{ marginTop: "0.1rem", flexShrink: 0, accentColor: "#123F40", width: 16, height: 16 }}
               />
-              <span style={{ fontSize: "0.875rem", color: "var(--qp-muted)", lineHeight: 1.5 }}>
+              <span style={{ fontSize: "0.875rem", color: "#55534C", lineHeight: 1.5 }}>
                 I confirm the above and am signing this document on my own behalf.
               </span>
             </label>
 
             {/* Error */}
             {error && (
-              <div style={{ background: "var(--qp-error-bg)", border: "1px solid rgba(176,64,64,0.2)", borderRadius: "0.5rem", padding: "0.75rem 1rem", fontSize: "0.875rem", color: "var(--qp-error)" }}>
+              <div style={{ background: "#FBECEA", border: "1px solid rgba(176,64,64,0.2)", borderRadius: "0.5rem", padding: "0.75rem 1rem", fontSize: "0.875rem", color: "#9E3434" }}>
                 {error}
               </div>
             )}
@@ -440,8 +440,8 @@ function SignatureModal({
               disabled={!canSubmit}
               style={{
                 width: "100%", padding: "0.875rem", borderRadius: 999,
-                fontSize: "0.9375rem", fontWeight: 600, color: "var(--qp-on-primary)",
-                background: canSubmit ? "var(--qp-ink)" : "rgba(31,75,74,0.35)",
+                fontSize: "0.9375rem", fontWeight: 600, color: "#fff",
+                background: canSubmit ? "linear-gradient(155deg, #123F40, #123332)" : "rgba(31,75,74,0.35)",
                 border: "none",
                 cursor: canSubmit ? "pointer" : "not-allowed",
                 boxShadow: canSubmit ? "0 10px 24px -10px rgba(18,51,50,0.55)" : "none",
@@ -562,8 +562,8 @@ export default function DealRoomPage() {
 
   if (loading) {
     return (
-      <main style={{ minHeight: "100vh", background: "var(--qp-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "var(--qp-ink)", animation: "spin 0.9s linear infinite" }} />
+      <main style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "#123F40", animation: "spin 0.9s linear infinite" }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </main>
     );
@@ -574,20 +574,20 @@ export default function DealRoomPage() {
   if (error) {
     const backHref = role === "developer" ? "/dev/dashboard" : role === "seller" ? "/seller/dashboard" : errorCode === 403 ? "/buyer/offers" : "/";
     return (
-      <main style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <main style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, sans-serif)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
         <div style={{ maxWidth: "28rem", width: "100%", textAlign: "center" }}>
-          <div style={{ width: "3.5rem", height: "3.5rem", borderRadius: "50%", background: "var(--qp-error-bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--qp-error)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div style={{ width: "3.5rem", height: "3.5rem", borderRadius: "50%", background: "#FBECEA", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9E3434" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
-          <h1 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.375rem", fontWeight: 600, color: "var(--qp-ink)", margin: "0 0 0.5rem" }}>
+          <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.375rem", fontWeight: 600, color: "#123F40", margin: "0 0 0.5rem" }}>
             {errorCode === 403 ? "Access denied" : "Deal not found"}
           </h1>
-          <p style={{ color: "var(--qp-muted)", fontSize: "0.9375rem", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
+          <p style={{ color: "#526563", fontSize: "0.9375rem", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
             {error}
           </p>
-          <Link href={backHref} style={{ display: "inline-block", padding: "0.625rem 1.5rem", borderRadius: 999, background: "var(--qp-ink)", color: "var(--qp-on-primary)", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}>
+          <Link href={backHref} style={{ display: "inline-block", padding: "0.625rem 1.5rem", borderRadius: 999, background: "#123F40", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}>
             ← Back to dashboard
           </Link>
         </div>
@@ -620,7 +620,7 @@ export default function DealRoomPage() {
 
   const depositAction = role !== "buyer" ? (
     // Developer read-only view
-    <span style={{ fontSize: "0.8125rem", color: "var(--qp-accent-text)", fontWeight: 600 }}>
+    <span style={{ fontSize: "0.8125rem", color: "#756039", fontWeight: 600 }}>
       {offer.depositPaid ? "Paid by buyer" : "Waiting on buyer"}
     </span>
   ) : step2 === "active" ? (
@@ -629,7 +629,7 @@ export default function DealRoomPage() {
       disabled={payingDeposit}
       style={{
         padding: "0.5rem 1.25rem", borderRadius: 999, border: "none",
-        background: "var(--qp-accent-text)", color: "var(--qp-on-primary)", fontSize: "0.875rem", fontWeight: 600,
+        background: "#756039", color: "#fff", fontSize: "0.875rem", fontWeight: 600,
         cursor: payingDeposit ? "not-allowed" : "pointer",
         opacity: payingDeposit ? 0.7 : 1,
       }}
@@ -651,7 +651,7 @@ export default function DealRoomPage() {
       {/* Own signing row */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
         {mySig ? (
-          <span style={{ fontSize: "0.8125rem", color: "var(--qp-ink)", fontWeight: 600 }}>
+          <span style={{ fontSize: "0.8125rem", color: "#123F40", fontWeight: 600 }}>
             ✓ You signed as <em>{mySig.typedName}</em> on {fmtDate(mySig.signedAt)}
           </span>
         ) : (
@@ -659,7 +659,7 @@ export default function DealRoomPage() {
             onClick={() => setShowSignModal(true)}
             style={{
               padding: "0.5rem 1.125rem", borderRadius: 999, border: "none",
-              background: "var(--qp-ink)", color: "var(--qp-on-primary)", fontSize: "0.875rem", fontWeight: 600,
+              background: "#123F40", color: "#fff", fontSize: "0.875rem", fontWeight: 600,
               cursor: "pointer",
             }}
           >
@@ -669,9 +669,9 @@ export default function DealRoomPage() {
       </div>
 
       {/* Counterpart row */}
-      <div style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
+      <div style={{ fontSize: "0.8125rem", color: "#526563" }}>
         {otherSig
-          ? <span style={{ color: "var(--qp-ink)", fontWeight: 600 }}>✓ {otherLabel} signed as <em>{otherSig.typedName}</em> on {fmtDate(otherSig.signedAt)}</span>
+          ? <span style={{ color: "#123F40", fontWeight: 600 }}>✓ {otherLabel} signed as <em>{otherSig.typedName}</em> on {fmtDate(otherSig.signedAt)}</span>
           : <span>Waiting for {otherLabel} to sign</span>
         }
       </div>
@@ -694,40 +694,40 @@ export default function DealRoomPage() {
         />
       )}
 
-      <main style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)", paddingBottom: "4rem" }}>
+      <main style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, sans-serif)", paddingBottom: "4rem" }}>
         <style>{`
           @media (max-width: 640px) {
             .hn-deal-summary-grid { grid-template-columns: 1fr !important; }
-            .hn-deal-summary-grid > div { border-right: none !important; border-bottom: 1px solid var(--qp-border) !important; }
+            .hn-deal-summary-grid > div { border-right: none !important; border-bottom: 1px solid #E9EEEA !important; }
           }
         `}</style>
 
         {/* Header */}
-        <div style={{ borderBottom: "1px solid var(--qp-border)", background: "var(--qp-surface)" }}>
+        <div style={{ borderBottom: "1px solid #D4DED8", background: "#fff" }}>
           <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
-            <div style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--qp-ink)", marginBottom: "0.5rem" }}>
+            <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.5rem" }}>
               Haveniq
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
               <div>
-                <h1 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.875rem", fontWeight: 600, color: "var(--qp-ink)", margin: 0 }}>
+                <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.875rem", fontWeight: 600, color: "#123F40", margin: 0 }}>
                   Deal Room
                 </h1>
-                <p style={{ margin: "0.375rem 0 0", color: "var(--qp-muted)", fontSize: "0.9375rem" }}>
+                <p style={{ margin: "0.375rem 0 0", color: "#526563", fontSize: "0.9375rem" }}>
                   {offer.unitType.project.name} — {offer.unitType.unitLabel}
                 </p>
               </div>
               <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                 {role === "developer" ? (
-                  <Link href="/dev/dashboard" style={{ fontSize: "0.875rem", color: "var(--qp-muted)", fontWeight: 500, textDecoration: "none" }}>
+                  <Link href="/dev/dashboard" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
                     ← Dashboard
                   </Link>
                 ) : role === "seller" ? (
-                  <Link href="/seller/dashboard" style={{ fontSize: "0.875rem", color: "var(--qp-muted)", fontWeight: 500, textDecoration: "none" }}>
+                  <Link href="/seller/dashboard" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
                     ← Dashboard
                   </Link>
                 ) : (
-                  <Link href="/buyer/offers" style={{ fontSize: "0.875rem", color: "var(--qp-muted)", fontWeight: 500, textDecoration: "none" }}>
+                  <Link href="/buyer/offers" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
                     ← My offers
                   </Link>
                 )}
@@ -739,27 +739,27 @@ export default function DealRoomPage() {
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
           {/* Status card */}
-          <div style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", borderTop: "4px solid var(--qp-ink)", overflow: "hidden" }}>
+          <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #B8D4D3", borderTop: "4px solid #123F40", overflow: "hidden" }}>
             <div style={{ padding: "1.5rem 1.75rem" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.625rem", flexWrap: "wrap" }}>
-                    <span style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.25rem", fontWeight: 600, color: "var(--qp-ink)" }}>
+                    <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.25rem", fontWeight: 600, color: "#123F40" }}>
                       Deal accepted
                     </span>
-                    <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "0.2rem 0.75rem", borderRadius: 999, background: "var(--qp-soft)", color: "var(--qp-ink)", border: "1px solid var(--qp-border)" }}>
+                    <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "0.2rem 0.75rem", borderRadius: 999, background: "#D4EDEA", color: "#123F40", border: "1px solid #B8D4D3" }}>
                       Reserved
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.9375rem", color: "var(--qp-muted)" }}>
+                  <div style={{ fontSize: "0.9375rem", color: "#526563" }}>
                     {offer.unitType.project.name} · {offer.unitType.project.location}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>
+                  <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>
                     Final price
                   </div>
-                  <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "2rem", fontWeight: 600, color: "var(--qp-ink)" }}>
+                  <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "2rem", fontWeight: 600, color: "#123F40" }}>
                     {formatPrice(finalPrice)}
                     <EstimatedPriceNote />
                   </div>
@@ -769,9 +769,9 @@ export default function DealRoomPage() {
           </div>
 
           {/* Summary table */}
-          <div style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", overflow: "hidden" }}>
-            <div style={{ padding: "1rem 1.5rem 0.5rem", borderBottom: "1px solid var(--qp-border)" }}>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--qp-muted)" }}>Deal summary</div>
+          <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
+            <div style={{ padding: "1rem 1.5rem 0.5rem", borderBottom: "1px solid #E9EEEA" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>Deal summary</div>
             </div>
             <div className="hn-deal-summary-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
               {([
@@ -780,11 +780,11 @@ export default function DealRoomPage() {
                 ["Agreed price",        formatPrice(finalPrice)],
                 ["Date agreed",         dateAccepted],
               ] as [string, string][]).map(([label, value], i) => (
-                <div key={label} style={{ padding: "1rem 1.5rem", borderBottom: i < 2 ? "1px solid var(--qp-border)" : undefined, borderRight: i % 2 === 0 ? "1px solid var(--qp-border)" : undefined }}>
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--qp-muted)", marginBottom: "0.3rem" }}>
+                <div key={label} style={{ padding: "1rem 1.5rem", borderBottom: i < 2 ? "1px solid #E9EEEA" : undefined, borderRight: i % 2 === 0 ? "1px solid #E9EEEA" : undefined }}>
+                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#526563", marginBottom: "0.3rem" }}>
                     {label}
                   </div>
-                  <div style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--qp-ink)", fontFamily: label === "Agreed price" ? "var(--font-heebo, monospace)" : undefined }}>
+                  <div style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#123F40", fontFamily: label === "Agreed price" ? "var(--font-jetbrains, monospace)" : undefined }}>
                     {value}
                   </div>
                 </div>
@@ -793,9 +793,9 @@ export default function DealRoomPage() {
           </div>
 
           {/* Checklist */}
-          <div style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", overflow: "hidden" }}>
-            <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid var(--qp-border)" }}>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--qp-muted)" }}>
+          <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
+            <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid #E9EEEA" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>
                 {(role === "developer" || role === "seller") ? "Deal status" : "What happens next"}
               </div>
             </div>
@@ -865,9 +865,9 @@ export default function DealRoomPage() {
                 style={{
                   padding: "0.55rem 1.125rem",
                   borderRadius: 999,
-                  border: "1px solid var(--qp-border)",
-                  background: "var(--qp-surface)",
-                  color: "var(--qp-error)",
+                  border: "1px solid #E7C9C9",
+                  background: "#fff",
+                  color: "#8C3030",
                   fontSize: "0.875rem",
                   fontWeight: 600,
                   cursor: cancelling ? "wait" : "pointer",
@@ -875,45 +875,45 @@ export default function DealRoomPage() {
               >
                 {m.deal.cancelHold}
               </button>
-              {cancelError && <p style={{ margin: 0, color: "var(--qp-error)", fontSize: "0.8125rem" }}>{cancelError}</p>}
+              {cancelError && <p style={{ margin: 0, color: "#9E3434", fontSize: "0.8125rem" }}>{cancelError}</p>}
             </div>
           )}
 
           {/* Video call */}
           {offer.meetingLink && (
-            <div style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", overflow: "hidden" }}>
-              <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid var(--qp-border)" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--qp-muted)" }}>Video call</div>
+            <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
+              <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid #E9EEEA" }}>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>Video call</div>
               </div>
               <div style={{ padding: "1rem 1.5rem", display: "flex", alignItems: "center", gap: "0.875rem", flexWrap: "wrap" }}>
                 <a
                   href={offer.meetingLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "var(--qp-ink)", color: "var(--qp-on-primary)", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "#123F40", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--qp-on-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
                   Join call
                 </a>
-                <span style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>A video call was set up as part of this deal.</span>
+                <span style={{ fontSize: "0.8125rem", color: "#526563" }}>A video call was set up as part of this deal.</span>
               </div>
             </div>
           )}
 
           {/* Documents */}
-          <div style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", overflow: "hidden" }}>
-            <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid var(--qp-border)" }}>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--qp-muted)" }}>Documents</div>
+          <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
+            <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid #E9EEEA" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>Documents</div>
             </div>
             <div style={{ padding: "1rem 1.5rem" }}>
               <button
                 onClick={downloadPdf}
                 disabled={pdfLoading}
-                style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1.25rem", borderRadius: "0.5rem", border: "1px solid var(--qp-border)", background: "var(--qp-surface)", color: "var(--qp-ink)", fontSize: "0.875rem", fontWeight: 600, cursor: pdfLoading ? "not-allowed" : "pointer", opacity: pdfLoading ? 0.7 : 1 }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1.25rem", borderRadius: "0.5rem", border: "1px solid #D4DED8", background: "#fff", color: "#123F40", fontSize: "0.875rem", fontWeight: 600, cursor: pdfLoading ? "not-allowed" : "pointer", opacity: pdfLoading ? 0.7 : 1 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--qp-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline points="14 2 14 8 20 8"/>
                   <line x1="12" y1="18" x2="12" y2="12"/>
@@ -921,15 +921,15 @@ export default function DealRoomPage() {
                 </svg>
                 {pdfLoading ? "Generating…" : "Deal summary.pdf"}
               </button>
-              <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>Summarises all deal details for your records.</p>
+              <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>Summarises all deal details for your records.</p>
             </div>
           </div>
 
           {/* Ledger reference */}
           {offer.ledgerBlockHash && (
-            <div style={{ textAlign: "center", fontSize: "0.75rem", color: "var(--qp-muted)" }}>
+            <div style={{ textAlign: "center", fontSize: "0.75rem", color: "#526563" }}>
               Recorded on ledger:{" "}
-              <span style={{ fontFamily: "var(--font-heebo, monospace)" }}>
+              <span style={{ fontFamily: "var(--font-jetbrains, monospace)" }}>
                 {offer.ledgerBlockHash.slice(0, 20)}…
               </span>
             </div>

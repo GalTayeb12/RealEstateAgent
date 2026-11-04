@@ -27,8 +27,8 @@ interface UnitTypeRef {
 }
 
 const cell: React.CSSProperties = {
-  background: "var(--qp-surface)",
-  border: "1px solid var(--qp-border)",
+  background: "#fff",
+  border: "1px solid #D4DED8",
   borderRadius: "0.35rem",
   padding: "0.35rem 0.5rem",
   fontSize: "0.8125rem",
@@ -121,18 +121,18 @@ export default function DevInventory({
 
   if (buildings.length === 0) {
     return (
-      <p style={{ margin: 0, padding: "0.875rem 1.375rem", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
+      <p style={{ margin: 0, padding: "0.875rem 1.375rem", fontSize: "0.8125rem", color: "#526563" }}>
         {m.dev.noApartments}
       </p>
     );
   }
 
   return (
-    <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "1rem 1.375rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--qp-muted)" }}>
+    <div style={{ borderTop: "1px solid #E9EEEA", padding: "1rem 1.375rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563" }}>
         {m.dev.apartments}
       </div>
-      {error && <p style={{ margin: 0, color: "var(--qp-error)", fontSize: "0.8125rem" }}>{error}</p>}
+      {error && <p style={{ margin: 0, color: "#9E3434", fontSize: "0.8125rem" }}>{error}</p>}
       {buildings.map((building) => (
         <div key={building.id} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <form
@@ -142,22 +142,22 @@ export default function DevInventory({
             }}
             style={{ display: "flex", gap: "0.625rem", flexWrap: "wrap", alignItems: "end" }}
           >
-            <label style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600 }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.6875rem", color: "#526563", fontWeight: 600 }}>
               {m.dev.buildingName}
               <input name="name" defaultValue={building.name} style={{ ...cell, minWidth: "8rem" }} />
             </label>
-            <label style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600 }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.6875rem", color: "#526563", fontWeight: 600 }}>
               {m.dev.floors}
               <input name="floorCount" type="number" min={1} defaultValue={building.floorCount} style={{ ...cell, width: "5.5rem" }} />
             </label>
-            <label style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.6875rem", color: "var(--qp-muted)", fontWeight: 600 }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.6875rem", color: "#526563", fontWeight: 600 }}>
               {m.dev.perFloor}
               <input name="unitsPerFloor" type="number" min={1} defaultValue={building.unitsPerFloor} style={{ ...cell, width: "5.5rem" }} />
             </label>
             <button
               type="submit"
               disabled={busyId === building.id}
-              style={{ padding: "0.4rem 0.75rem", borderRadius: "0.35rem", border: "1px solid var(--qp-ink)", background: "var(--qp-ink)", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
+              style={{ padding: "0.4rem 0.75rem", borderRadius: "0.35rem", border: "1px solid #123F40", background: "#123F40", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
             >
               {m.dev.saveRow}
             </button>
@@ -166,7 +166,7 @@ export default function DevInventory({
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8125rem" }}>
               <thead>
-                <tr style={{ color: "var(--qp-muted)", textAlign: "start" }}>
+                <tr style={{ color: "#526563", textAlign: "start" }}>
                   <th style={{ fontWeight: 600, padding: "0.35rem" }}>{m.dev.floor}</th>
                   <th style={{ fontWeight: 600, padding: "0.35rem" }}>{m.dev.unitNumber}</th>
                   <th style={{ fontWeight: 600, padding: "0.35rem" }}>{m.dev.position}</th>
@@ -178,7 +178,7 @@ export default function DevInventory({
               </thead>
               <tbody>
                 {building.units.map((unit) => (
-                  <tr key={unit.id} style={{ borderTop: "1px solid var(--qp-soft)" }}>
+                  <tr key={unit.id} style={{ borderTop: "1px solid #E9EEEA" }}>
                     <td colSpan={7} style={{ padding: 0 }}>
                       <form
                         onSubmit={(event) => {
@@ -190,7 +190,7 @@ export default function DevInventory({
                         <input name="floor" type="number" defaultValue={unit.floor} style={cell} />
                         <input name="unitNumber" defaultValue={unit.unitNumber} style={cell} />
                         <input name="positionIndex" type="number" min={0} defaultValue={unit.positionIndex} style={cell} />
-                        <span style={{ color: "var(--qp-ink)" }}>{typeLabel.get(unit.unitTypeId) ?? unit.unitTypeId}</span>
+                        <span style={{ color: "#123F40" }}>{typeLabel.get(unit.unitTypeId) ?? unit.unitTypeId}</span>
                         <input name="price" type="number" min={0} defaultValue={unit.price ?? ""} placeholder="—" style={cell} />
                         <select name="status" defaultValue={unit.status} style={cell}>
                           <option value="available">{m.dev.statusAvailable}</option>
@@ -203,7 +203,7 @@ export default function DevInventory({
                               type="button"
                               disabled={busyId === unit.id}
                               onClick={() => void releaseHold(unit)}
-                              style={{ padding: "0.35rem 0.65rem", borderRadius: "0.35rem", border: "1px solid var(--qp-error-bg)", background: "var(--qp-error-bg)", color: "var(--qp-error)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}
+                              style={{ padding: "0.35rem 0.65rem", borderRadius: "0.35rem", border: "1px solid #E7C9C9", background: "#FDF6F6", color: "#8C3030", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}
                             >
                               {m.dev.releaseHold}
                             </button>
@@ -211,7 +211,7 @@ export default function DevInventory({
                           <button
                             type="submit"
                             disabled={busyId === unit.id}
-                            style={{ padding: "0.35rem 0.65rem", borderRadius: "0.35rem", border: "1px solid var(--qp-border)", background: "var(--qp-surface)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer" }}
+                            style={{ padding: "0.35rem 0.65rem", borderRadius: "0.35rem", border: "1px solid #D4DED8", background: "#fff", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer" }}
                           >
                             {m.dev.saveRow}
                           </button>

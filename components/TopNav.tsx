@@ -96,22 +96,8 @@ function roleLabel(role: string, m: ReturnType<typeof useI18n>["m"]): string {
   return role;
 }
 
-function accountLinks(role: string, m: ReturnType<typeof useI18n>["m"]): { href: string; label: string }[] {
-  if (role === "buyer") {
-    return [
-      { href: "/results", label: m.nav.myResults },
-      { href: "/buyer/offers", label: m.nav.offers },
-      { href: "/buyer/leverage-groups", label: m.nav.groups },
-    ];
-  }
-  if (role === "developer") {
-    return [
-      { href: "/dev/dashboard", label: m.nav.devDashboard },
-      { href: "/dev/dashboard?tab=reservations", label: m.nav.reservations },
-    ];
-  }
-  if (role === "seller") return [{ href: "/seller/dashboard", label: m.nav.myDashboard }];
-  if (role === "admin") return [{ href: "/dev/admin/approvals", label: m.nav.approvals }];
+// Profile dropdown only shows account-level items (nav links are in the top bar).
+function accountLinks(_role: string, _m: ReturnType<typeof useI18n>["m"]): { href: string; label: string }[] {
   return [];
 }
 
@@ -219,41 +205,36 @@ export default function TopNav() {
     }}>
       <style>{`
         @media (max-width: 640px) {
-          .hn-nav-divider { display: none !important; }
-          .hn-nav-links   { display: none !important; }
-          .hn-nav-right   { display: none !important; }
-          .hn-hamburger   { display: flex !important; }
-          .hn-nav-lang-mobile { display: flex !important; }
-        }
-        @media (max-width: 480px) {
-          .hn-guest-extra { display: none !important; }
+          .hn-nav-links        { display: none !important; }
+          .hn-nav-right        { display: none !important; }
+          .hn-hamburger        { display: flex !important; }
+          .hn-nav-lang-mobile  { display: flex !important; }
         }
         @media (min-width: 641px) {
-          .hn-hamburger    { display: none !important; }
-          .hn-mobile-menu  { display: none !important; }
-          .hn-nav-lang-mobile { display: none !important; }
+          .hn-hamburger        { display: none !important; }
+          .hn-mobile-menu      { display: none !important; }
+          .hn-nav-lang-mobile  { display: none !important; }
         }
       `}</style>
 
-      {/* ── Main bar ─────────────────────────────────────────────────────────── */}
+      {/* ── Main bar: 3-column grid — logo | links (centered) | tools ─────────── */}
       <div style={{
         maxWidth: "72rem",
         margin: "0 auto",
         padding: "0 1.5rem",
         height: "3.25rem",
-        display: "flex",
+        display: "grid",
+        gridTemplateColumns: "1fr auto 1fr",
         alignItems: "center",
-        gap: "1.5rem",
       }}>
-        {/* Logo */}
+        {/* Col 1: Logo */}
         <Logo href={showAppNav ? dashHref : "/"} height={22} />
 
-        {showAppNav && (
-        <div className="hn-nav-divider" style={{ width: 1, height: "1.125rem", background: "var(--qp-border)", flexShrink: 0 }} />
-        )}
-
-        {/* Nav links — desktop only */}
-        <div className="hn-nav-links" style={{ display: showAppNav ? "flex" : "none", alignItems: "center", gap: "0.125rem", flex: 1 }}>
+        {/* Col 2: Nav links (centered) — desktop only */}
+        <div
+          className="hn-nav-links"
+          style={{ display: showAppNav ? "flex" : "none", alignItems: "center", gap: "0.125rem" }}
+        >
           {showAppNav && links.map(({ key, href, badgeKey }) => {
             const label = m.nav[key];
             const active = pathname === href || pathname.startsWith(href + "/");
@@ -300,9 +281,11 @@ export default function TopNav() {
           })}
         </div>
 
-        {/* Guest pages: keep the language toggle in the same bar */}
-        {!showAppNav && (
-          <div style={{ marginInlineStart: "auto", display: "flex", alignItems: "center", gap: "0.875rem", flexShrink: 0 }}>
+        {/* Col 3: Right tools (justify-self end) */}
+        <div style={{ justifySelf: "end", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+
+          {/* Desktop: lang toggle + avatar */}
+          <div className="hn-nav-right" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <LanguageToggle />
             {user && (
               <AccountButton
@@ -320,89 +303,64 @@ export default function TopNav() {
               />
             )}
           </div>
-        )}
 
-        {/* Right side: language + avatar + sign out — desktop only */}
-        <div className="hn-nav-right" style={{ display: showAppNav ? "flex" : "none", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
-          <LanguageToggle />
-          {user && (
-            <span className="hn-account-desktop">
-              <AccountButton
-                letter={letter}
-                open={accountOpen}
-                onToggle={() => setAccountOpen((open) => !open)}
-                showMenu={accountOpen && !narrow}
-                user={user}
-                links={linksForMenu}
-                role={roleLabel(user.role, m)}
-                profileLabel={m.nav.myProfile}
-                signOutLabel={m.nav.signOut}
-                onNavigate={() => setAccountOpen(false)}
-                onSignOut={signOut}
-              />
-            </span>
+          {/* Mobile app nav: lang + avatar (shown via CSS) */}
+          {showAppNav && (
+            <div className="hn-nav-lang-mobile" style={{ display: "none", alignItems: "center", gap: "0.5rem" }}>
+              <LanguageToggle />
+              {user && (
+                <AccountButton
+                  letter={letter}
+                  open={accountOpen}
+                  onToggle={() => setAccountOpen((open) => !open)}
+                  showMenu={false}
+                  user={user}
+                  links={linksForMenu}
+                  role={roleLabel(user.role, m)}
+                  profileLabel={m.nav.myProfile}
+                  signOutLabel={m.nav.signOut}
+                  onNavigate={() => setAccountOpen(false)}
+                  onSignOut={signOut}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Hamburger — mobile only */}
+          {showAppNav && (
+            <button
+              className="hn-hamburger"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label={menuOpen ? m.nav.closeMenu : m.nav.openMenu}
+              aria-expanded={menuOpen}
+              style={{
+                display: "none",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "2.25rem",
+                height: "2.25rem",
+                background: menuOpen ? "rgba(18,63,64,0.06)" : "none",
+                border: "none",
+                cursor: "pointer",
+                borderRadius: "0.375rem",
+                padding: "0.3rem",
+                color: "var(--qp-muted)",
+                flexShrink: 0,
+                transition: "background 0.15s",
+              }}
+            >
+              {menuOpen ? (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="3" y1="3" x2="15" y2="15" /><line x1="15" y1="3" x2="3" y2="15" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="3" y1="5" x2="15" y2="5" /><line x1="3" y1="9" x2="15" y2="9" /><line x1="3" y1="13" x2="15" y2="13" />
+                </svg>
+              )}
+            </button>
           )}
         </div>
-
-        {showAppNav && (
-        <div className="hn-nav-lang-mobile" style={{ display: "none", marginInlineStart: "auto", alignItems: "center", gap: "0.5rem" }}>
-          <LanguageToggle />
-          {user && (
-            <AccountButton
-              letter={letter}
-              open={accountOpen}
-              onToggle={() => setAccountOpen((open) => !open)}
-              showMenu={false}
-              user={user}
-              links={linksForMenu}
-              role={roleLabel(user.role, m)}
-              profileLabel={m.nav.myProfile}
-              signOutLabel={m.nav.signOut}
-              onNavigate={() => setAccountOpen(false)}
-              onSignOut={signOut}
-            />
-          )}
-        </div>
-        )}
-
-        {/* Hamburger — mobile only */}
-        {showAppNav && (
-        <button
-          className="hn-hamburger"
-          onClick={() => setMenuOpen(o => !o)}
-          aria-label={menuOpen ? m.nav.closeMenu : m.nav.openMenu}
-          aria-expanded={menuOpen}
-          style={{
-            display: "none",       /* shown via CSS media query */
-            marginInlineStart: showAppNav ? 0 : "auto",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "2.25rem",
-            height: "2.25rem",
-            background: menuOpen ? "rgba(18,63,64,0.06)" : "none",
-            border: "none",
-            cursor: "pointer",
-            borderRadius: "0.375rem",
-            padding: "0.3rem",
-            color: "var(--qp-muted)",
-            flexShrink: 0,
-            transition: "background 0.15s",
-          }}
-        >
-          {menuOpen ? (
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="3" y1="3" x2="15" y2="15" />
-              <line x1="15" y1="3" x2="3" y2="15" />
-            </svg>
-          ) : (
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="3" y1="5" x2="15" y2="5" />
-              <line x1="3" y1="9" x2="15" y2="9" />
-              <line x1="3" y1="13" x2="15" y2="13" />
-            </svg>
-          )}
-        </button>
-        )}
       </div>
 
       {/* ── Mobile menu ──────────────────────────────────────────────────────── */}
