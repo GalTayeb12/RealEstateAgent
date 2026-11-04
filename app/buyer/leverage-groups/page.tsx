@@ -40,19 +40,22 @@ interface MatchedUnit {
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
-const STATUS: Record<string, { label: string; bg: string; color: string }> = {
-  pending: {
-    label: "Pending developer response",
-    bg: "#FCF2D9",
-    color: "#756039",
-  },
-  countered: { label: "Developer countered", bg: "#FCF2D9", color: "#756039" },
-  accepted: { label: "Accepted", bg: "#E9EEEA", color: "#123F40" },
-  rejected: { label: "Rejected", bg: "#FBECEA", color: "#9E3434" },
+const STATUS_BG: Record<string, { bg: string; color: string }> = {
+  pending:   { bg: "#FCF2D9", color: "#756039" },
+  countered: { bg: "#FCF2D9", color: "#756039" },
+  accepted:  { bg: "#E9EEEA", color: "#123F40" },
+  rejected:  { bg: "#FBECEA", color: "#9E3434" },
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const s = STATUS[status] ?? STATUS.pending;
+  const { m } = useI18n();
+  const s = STATUS_BG[status] ?? STATUS_BG.pending;
+  const label: Record<string, string> = {
+    pending: m.groups.statusPending,
+    countered: m.groups.statusCountered,
+    accepted: m.groups.statusAccepted,
+    rejected: m.groups.statusRejected,
+  };
   return (
     <span
       style={{
@@ -64,12 +67,13 @@ function StatusBadge({ status }: { status: string }) {
         color: s.color,
       }}
     >
-      {s.label}
+      {label[status] ?? m.groups.statusPending}
     </span>
   );
 }
 
 function MemberPill({ count }: { count: number }) {
+  const { m } = useI18n();
   return (
     <div
       style={{
@@ -98,13 +102,14 @@ function MemberPill({ count }: { count: number }) {
       </svg>
       <span
         style={{
-          fontFamily: "var(--font-jetbrains, monospace)",
+          fontFamily: "var(--font-heebo, sans-serif)",
           fontSize: "0.8125rem",
           fontWeight: 600,
           color: "#123F40",
+          fontVariantNumeric: "tabular-nums",
         }}
       >
-        {count} {count === 1 ? "member" : "members"}
+        {count} {count === 1 ? m.groups.member : m.groups.members}
       </span>
     </div>
   );
@@ -113,7 +118,7 @@ function MemberPill({ count }: { count: number }) {
 // ── My group card ─────────────────────────────────────────────────────────────
 
 function GroupCard({ group }: { group: LeverageGroup }) {
-  const { formatPrice } = useI18n();
+  const { formatPrice, m, locale } = useI18n();
   const isCountered = group.status === "countered";
   return (
     <div
@@ -139,7 +144,7 @@ function GroupCard({ group }: { group: LeverageGroup }) {
           <div>
             <h3
               style={{
-                fontFamily: "var(--font-fraunces, serif)",
+                fontFamily: "var(--font-heebo, sans-serif)",
                 fontSize: "1.125rem",
                 fontWeight: 600,
                 color: "#123F40",
@@ -198,18 +203,19 @@ function GroupCard({ group }: { group: LeverageGroup }) {
                 marginBottom: "0.375rem",
               }}
             >
-              Developer&rsquo;s counter-offer
+              {m.groups.statusCountered}
             </div>
             <div
               style={{ display: "flex", gap: "1.5rem", fontSize: "0.875rem" }}
             >
               <div>
-                <span style={{ color: "#526563" }}>Counter discount </span>
+                <span style={{ color: "#526563" }}>{m.groups.counterDiscount} </span>
                 <span
                   style={{
-                    fontFamily: "var(--font-jetbrains, monospace)",
+                    fontFamily: "var(--font-heebo, sans-serif)",
                     fontWeight: 600,
                     color: "#756039",
+                    fontVariantNumeric: "tabular-nums",
                   }}
                 >
                   {group.counterDiscountPercent}%
@@ -231,8 +237,8 @@ function GroupCard({ group }: { group: LeverageGroup }) {
             marginTop: "0.75rem",
           }}
         >
-          Created{" "}
-          {new Date(group.createdAt).toLocaleDateString("en-GB", {
+          {m.groups.createdOn}{" "}
+          {new Date(group.createdAt).toLocaleDateString(locale === "he" ? "he-IL" : "en-GB", {
             day: "numeric",
             month: "short",
             year: "numeric",
@@ -254,7 +260,7 @@ function JoinableGroupCard({
   token: string;
   onJoined: () => void;
 }) {
-  const { formatPrice } = useI18n();
+  const { formatPrice, m } = useI18n();
   const [joining, setJoining] = useState(false);
   const [joined, setJoined] = useState(false);
   const [error, setError] = useState("");
@@ -302,7 +308,7 @@ function JoinableGroupCard({
           <div style={{ flex: 1, minWidth: 0 }}>
             <h3
               style={{
-                fontFamily: "var(--font-fraunces, serif)",
+                fontFamily: "var(--font-heebo, sans-serif)",
                 fontSize: "1.0625rem",
                 fontWeight: 600,
                 color: "#123F40",
@@ -363,7 +369,7 @@ function JoinableGroupCard({
                   color: "#123F40",
                 }}
               >
-                Joined!
+                {m.groups.joined}
               </span>
             ) : (
               <button
@@ -381,7 +387,7 @@ function JoinableGroupCard({
                   opacity: joining ? 0.7 : 1,
                 }}
               >
-                {joining ? "Joining…" : "Join group"}
+                {joining ? m.groups.joining : m.groups.joinGroup}
               </button>
             )}
             {error && (
@@ -407,6 +413,7 @@ function CreateGroupForm({
   token: string;
   onCreated: () => void;
 }) {
+  const { m } = useI18n();
   const [unitTypeId, setUnitTypeId] = useState(matchedUnits[0]?.aomId ?? "");
   const [discountPct, setDiscountPct] = useState("5");
   const [terms, setTerms] = useState("");
@@ -418,11 +425,11 @@ function CreateGroupForm({
     setError("");
     const dp = parseFloat(discountPct);
     if (!unitTypeId) {
-      setError("Select a unit type");
+      setError(m.groups.selectUnit);
       return;
     }
-    if (isNaN(dp) || dp <= 0 || dp > 50) {
-      setError("Discount must be between 0% and 50%");
+    if (isNaN(dp) || dp <= 0 || dp > 99) {
+      setError(m.groups.discountRange);
       return;
     }
 
@@ -482,7 +489,7 @@ function CreateGroupForm({
           <div
             style={{ fontWeight: 600, color: "#123F40", fontSize: "0.9375rem" }}
           >
-            Group request created
+            {m.results.groupRegisteredTitle}
           </div>
           <div
             style={{
@@ -491,7 +498,7 @@ function CreateGroupForm({
               marginTop: "0.125rem",
             }}
           >
-            You are the first member. Others can join below.
+            {m.results.requestBody}
           </div>
         </div>
       </div>
@@ -539,7 +546,7 @@ function CreateGroupForm({
             color: "#123F40",
           }}
         >
-          Create a new group request
+          {m.groups.createGroup}
         </span>
       </div>
       <div
@@ -552,7 +559,7 @@ function CreateGroupForm({
       >
         {/* Unit type selector */}
         <div>
-          <label style={labelStyle}>Property listing</label>
+          <label style={labelStyle}>{m.groups.selectUnit}</label>
           {matchedUnits.length > 0 ? (
             <select
               value={unitTypeId}
@@ -594,17 +601,17 @@ function CreateGroupForm({
 
         {/* Discount */}
         <div>
-          <label style={labelStyle}>Group discount requested (%)</label>
+          <label style={labelStyle}>{m.groups.discount} (%)</label>
           <input
             type='number'
             min={0.5}
-            max={50}
+            max={99}
             step={0.5}
             value={discountPct}
             onChange={(e) => setDiscountPct(e.target.value)}
             style={{
               ...inputStyle,
-              fontFamily: "var(--font-jetbrains, monospace)",
+              fontFamily: "var(--font-heebo, sans-serif)",
               maxWidth: "10rem",
             }}
           />
@@ -613,16 +620,16 @@ function CreateGroupForm({
         {/* Terms */}
         <div>
           <label style={labelStyle}>
-            Terms{" "}
+            {m.groups.terms}{" "}
             <span style={{ fontWeight: 400, color: "#526563" }}>
-              (optional)
+              {m.groups.termsOptional}
             </span>
           </label>
           <textarea
             rows={2}
             value={terms}
             onChange={(e) => setTerms(e.target.value)}
-            placeholder='e.g. All buyers plan cash purchases, 60-day settlement'
+            placeholder={m.results.termsPh}
             style={{ ...inputStyle, resize: "none", fontFamily: "inherit" }}
           />
         </div>
@@ -649,7 +656,7 @@ function CreateGroupForm({
             alignSelf: "flex-start",
           }}
         >
-          {submitting ? "Submitting…" : "Create group"}
+          {submitting ? m.groups.creating : m.groups.createGroup}
         </button>
       </div>
     </div>
@@ -659,6 +666,7 @@ function CreateGroupForm({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function BuyerLeverageGroupsPage() {
+  const { m } = useI18n();
   const [myGroups, setMyGroups] = useState<LeverageGroup[]>([]);
   const [openGroups, setOpenGroups] = useState<LeverageGroup[]>([]);
   const [matchedUnits, setMatchedUnits] = useState<MatchedUnit[]>([]);
@@ -730,7 +738,7 @@ export default function BuyerLeverageGroupsPage() {
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
           <div
             style={{
-              fontFamily: "var(--font-fraunces, serif)",
+              fontFamily: "var(--font-heebo, sans-serif)",
               fontSize: "0.75rem",
               fontWeight: 600,
               letterSpacing: "0.18em",
@@ -753,14 +761,14 @@ export default function BuyerLeverageGroupsPage() {
             <div>
               <h1
                 style={{
-                  fontFamily: "var(--font-fraunces, serif)",
+                  fontFamily: "var(--font-heebo, sans-serif)",
                   fontSize: "1.875rem",
                   fontWeight: 600,
                   color: "#123F40",
                   margin: 0,
                 }}
               >
-                Leverage groups
+                {m.groups.title}
               </h1>
               <p
                 style={{
@@ -769,8 +777,7 @@ export default function BuyerLeverageGroupsPage() {
                   fontSize: "0.9375rem",
                 }}
               >
-                Pool with other buyers to negotiate group discounts with
-                developers.
+                {m.groups.subtitle}
               </p>
             </div>
             <div
@@ -784,7 +791,7 @@ export default function BuyerLeverageGroupsPage() {
                   textDecoration: "none",
                 }}
               >
-                ← Back to results
+                {m.offers.backToResults}
               </Link>
               <button
                 onClick={() => setShowForm((f) => !f)}
@@ -799,7 +806,7 @@ export default function BuyerLeverageGroupsPage() {
                   cursor: "pointer",
                 }}
               >
-                {showForm ? "Cancel" : "New group"}
+                {showForm ? m.common.cancel : m.groups.createGroup}
               </button>
             </div>
           </div>
@@ -864,7 +871,7 @@ export default function BuyerLeverageGroupsPage() {
                 marginBottom: "0.25rem",
               }}
             >
-              How leverage groups work
+              {m.results.groupCtaTitle}
             </div>
             <p
               style={{
@@ -874,10 +881,7 @@ export default function BuyerLeverageGroupsPage() {
                 lineHeight: 1.6,
               }}
             >
-              Create a group request for any listing and specify the discount
-              you&rsquo;re after. Other buyers can join your group — each join
-              is tracked individually. The developer sees the live member count
-              and may accept, reject, or counter the entire group.
+              {m.results.groupCtaBody}
             </p>
           </div>
         </div>
@@ -891,7 +895,7 @@ export default function BuyerLeverageGroupsPage() {
           />
         )}
 
-        {loading && <p style={{ color: "#526563" }}>Loading…</p>}
+        {loading && <p style={{ color: "#526563" }}>{m.common.loading}</p>}
 
         {/* My groups */}
         {!loading && (
@@ -907,7 +911,7 @@ export default function BuyerLeverageGroupsPage() {
                   marginBottom: "0.75rem",
                 }}
               >
-                My groups ({myGroups.length})
+                {m.groups.myGroups} ({myGroups.length})
               </div>
               {myGroups.length === 0 && !showForm ? (
                 <div
@@ -921,7 +925,7 @@ export default function BuyerLeverageGroupsPage() {
                   }}
                 >
                   <p style={{ margin: "0 0 1rem", fontSize: "0.9375rem" }}>
-                    You have not joined any leverage groups yet.
+                    {m.groups.emptyMy}
                   </p>
                   <button
                     onClick={() => setShowForm(true)}
@@ -936,7 +940,7 @@ export default function BuyerLeverageGroupsPage() {
                       cursor: "pointer",
                     }}
                   >
-                    Create the first one
+                    {m.groups.createGroup}
                   </button>
                 </div>
               ) : (
@@ -967,7 +971,7 @@ export default function BuyerLeverageGroupsPage() {
                     marginBottom: "0.75rem",
                   }}
                 >
-                  Open groups you can join ({openGroups.length})
+                  {m.groups.openGroups} ({openGroups.length})
                 </div>
                 <div
                   style={{

@@ -32,3 +32,24 @@ export function formatAttributeValue(value: unknown): string {
   }
   return JSON.stringify(value);
 }
+
+/**
+ * Returns a translated label for an attribute key, falling back to the raw key
+ * when the key is not present in the translation map.
+ */
+export function translateAttrKey(
+  key: string,
+  attrs: Record<string, string | undefined>
+): string {
+  return attrs[key] ?? key;
+}
+
+/**
+ * Formats an area value with the given unit label (e.g. "sqm" or "מ״ר").
+ * Returns an empty string for non-positive or non-numeric values.
+ */
+export function formatArea(value: unknown, sqmLabel: string): string {
+  const n = Number(value);
+  if (Number.isNaN(n) || n <= 0) return "";
+  return `${Math.round(n)} ${sqmLabel}`;
+}

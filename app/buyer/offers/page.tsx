@@ -45,22 +45,29 @@ interface Offer {
   unitType: OfferUnit;
 }
 
-const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
-  pending:   { label: "Pending response",   bg: "#FCF2D9", color: "#756039" },
-  countered: { label: "Counter offer",      bg: "#FCF2D9", color: "#756039" },
-  accepted:  { label: "Accepted",           bg: "#E9EEEA", color: "#123F40" },
-  rejected:  { label: "Rejected",           bg: "#FBECEA", color: "#9E3434" },
+const STATUS_BG: Record<string, { bg: string; color: string }> = {
+  pending:   { bg: "#FCF2D9", color: "#756039" },
+  countered: { bg: "#FCF2D9", color: "#756039" },
+  accepted:  { bg: "#E9EEEA", color: "#123F40" },
+  rejected:  { bg: "#FBECEA", color: "#9E3434" },
 };
 
 function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_META[status] ?? STATUS_META.pending;
+  const { m } = useI18n();
+  const s = STATUS_BG[status] ?? STATUS_BG.pending;
+  const label: Record<string, string> = {
+    pending: m.offers.statusPending,
+    countered: m.offers.statusCountered,
+    accepted: m.offers.statusAccepted,
+    rejected: m.offers.statusRejected,
+  };
   return (
     <span style={{
       fontSize: "0.75rem", fontWeight: 600,
       padding: "0.2rem 0.7rem", borderRadius: 999,
       background: s.bg, color: s.color,
     }}>
-      {s.label}
+      {label[status] ?? m.offers.statusPending}
     </span>
   );
 }
@@ -93,6 +100,7 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
 }
 
 function NegotiationHistory({ offer }: { offer: Offer }) {
+  const { m, locale } = useI18n();
   const history: HistoryEntry[] = (() => {
     try { return JSON.parse(offer.negotiationHistory || "[]"); } catch { return []; }
   })();
@@ -102,7 +110,7 @@ function NegotiationHistory({ offer }: { offer: Offer }) {
   return (
     <div style={{ marginTop: "0.75rem" }}>
       <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "0.5rem" }}>
-        Negotiation history
+        {m.offers.negotiationHistory}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
         {history.map((entry, i) => (
@@ -114,13 +122,13 @@ function NegotiationHistory({ offer }: { offer: Offer }) {
           }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: "0.75rem", flexWrap: "wrap" }}>
               <span style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: entry.actor === "developer" ? "#756039" : "#123F40" }}>
-                {entry.actor === "developer" ? "Developer's counter" : "Your counter"}
+                {entry.actor === "developer" ? m.offers.devCounter : m.offers.yourCounter}
               </span>
-              <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, fontSize: "0.9375rem", color: "#123F40" }}>
+              <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 600, fontSize: "0.9375rem", color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
                 <Money amount={entry.price} />
               </span>
               <span style={{ fontSize: "0.75rem", color: "#526563" }}>
-                {new Date(entry.ts).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                {new Date(entry.ts).toLocaleDateString(locale === "he" ? "he-IL" : "en-GB", { day: "numeric", month: "short" })}
               </span>
             </div>
             {entry.explanation && (
@@ -146,7 +154,7 @@ function OfferCard({
   onUpdated: (id: string, patch: Partial<Offer>) => void;
   onToast: (msg: string) => void;
 }) {
-  const { m } = useI18n();
+  const { m, locale } = useI18n();
   const unit = offer.unitType;
   const router = useRouter();
   const isCountered = offer.status === "countered" && offer.counterPrice != null;
@@ -174,7 +182,7 @@ function OfferCard({
       });
       const data = await res.json();
       if (!res.ok) {
-        setActionError(data.error ?? "Something went wrong");
+        setActionError(data.error ?? m.offers.somethingWrong);
         return;
       }
       if (action === "accept") {
@@ -183,7 +191,7 @@ function OfferCard({
         return;
       } else if (action === "reject") {
         onUpdated(offer.id, { status: "rejected" });
-        onToast("Offer declined.");
+        onToast(m.offers.offerDeclined);
       } else {
         onUpdated(offer.id, {
           status: "pending",
@@ -195,12 +203,12 @@ function OfferCard({
           roundNumber: 2,
           updatedAt: new Date().toISOString(),
         });
-        onToast("Your counter-offer has been sent to the developer.");
+        onToast(m.offers.counterSent);
         setShowCounterForm(false);
       }
       setActing(null);
     } catch {
-      setActionError("Network error — please try again.");
+      setActionError(m.offers.networkError);
     } finally {
       setSubmitting(false);
     }
@@ -232,10 +240,10 @@ function OfferCard({
                 padding: "0.15rem 0.5rem", marginBottom: "0.4rem",
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#756039", display: "inline-block" }} />
-                New update
+                {m.offers.newUpdate}
               </div>
             )}
-            <h3 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40", margin: 0, marginBottom: "0.2rem" }}>
+            <h3 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40", margin: 0, marginBottom: "0.2rem" }}>
               {unit.project.name} — {unit.unitLabel}
             </h3>
             <div style={{ fontSize: "0.8125rem", color: "#526563" }}>
@@ -254,7 +262,7 @@ function OfferCard({
                 <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#123F40" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="1.5 6 4.5 9 10.5 3"/>
                 </svg>
-                Deal complete
+                {m.offers.dealComplete}
               </span>
             )}
             {!dealComplete && <StatusBadge status={offer.status} />}
@@ -264,14 +272,14 @@ function OfferCard({
         {/* Original offer */}
         <div style={{ display: "flex", gap: "2rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
           <div>
-            <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>Your offer</div>
-            <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, fontSize: "1rem", color: "#123F40" }}>
+            <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>{m.offers.yourOffer}</div>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 600, fontSize: "1rem", color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
               <Money amount={offer.offeredPrice} />
             </div>
           </div>
           {offer.terms && (
             <div>
-              <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>Terms</div>
+              <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.2rem" }}>{m.offers.terms}</div>
               <div style={{ fontSize: "0.875rem", color: "#526563" }}>&ldquo;{offer.terms}&rdquo;</div>
             </div>
           )}
@@ -284,12 +292,12 @@ function OfferCard({
         {isCountered && (
           <div style={{ background: "#FCF2D9", borderRadius: "0.5rem", padding: "0.875rem 1rem", border: "1px solid #EDD9A3", marginTop: "0.75rem" }}>
             <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#756039", marginBottom: "0.375rem" }}>
-              Developer&rsquo;s counter-offer
+              {m.offers.devCounter}
             </div>
             <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", alignItems: "baseline", marginBottom: offer.counterExplanation ? "0.375rem" : 0 }}>
               <div>
-                <span style={{ fontSize: "0.8125rem", color: "#526563" }}>Counter price </span>
-                <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, color: "#756039", fontSize: "1rem" }}><Money amount={offer.counterPrice!} /></span>
+                <span style={{ fontSize: "0.8125rem", color: "#526563" }}>{m.offers.counterPrice} </span>
+                <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 600, color: "#756039", fontSize: "1rem", fontVariantNumeric: "tabular-nums" }}><Money amount={offer.counterPrice!} /></span>
               </div>
               {offer.counterTerms && (
                 <div style={{ fontSize: "0.875rem", color: "#123F40" }}>&ldquo;{offer.counterTerms}&rdquo;</div>
@@ -310,7 +318,7 @@ function OfferCard({
                   className="hn-offer-action-btn"
                   style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "none", cursor: submitting ? "not-allowed" : "pointer", background: acting === "accept" && submitting ? "#a5c9c7" : "#123F40", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting && acting !== "accept" ? 0.5 : 1 }}
                 >
-                  {acting === "accept" && submitting ? "Accepting…" : "Accept"}
+                  {acting === "accept" && submitting ? m.offers.accepting : m.offers.accept}
                 </button>
                 <button
                   onClick={() => { setActing("reject"); respond("reject"); }}
@@ -318,7 +326,7 @@ function OfferCard({
                   className="hn-offer-action-btn"
                   style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid #D4DED8", cursor: submitting ? "not-allowed" : "pointer", background: "#fff", color: "#9E3434", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting && acting !== "reject" ? 0.5 : 1 }}
                 >
-                  {acting === "reject" && submitting ? "Declining…" : "Decline"}
+                  {acting === "reject" && submitting ? m.offers.declining : m.offers.decline}
                 </button>
                 {/* Counter only available in round 1 (buyer hasn't countered yet) */}
                 {offer.roundNumber < 2 && (
@@ -328,7 +336,7 @@ function OfferCard({
                     className="hn-offer-action-btn"
                     style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid #756039", cursor: submitting ? "not-allowed" : "pointer", background: "transparent", color: "#756039", fontSize: "0.8125rem", fontWeight: 600, opacity: submitting ? 0.5 : 1 }}
                   >
-                    Counter
+                    {m.offers.counter}
                   </button>
                 )}
               </div>
@@ -339,7 +347,7 @@ function OfferCard({
               <div style={{ marginTop: "0.625rem", display: "flex", flexDirection: "column", gap: "0.625rem" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, color: "#526563", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>
-                    מחיר נגד (₪) / Counter (ILS)
+                    {m.offers.counterPlaceholder}
                   </label>
                   <input
                     type="number"
@@ -348,7 +356,7 @@ function OfferCard({
                     onChange={e => setCounterPrice(e.target.value)}
                     placeholder={String(offer.counterPrice ?? offer.offeredPrice)}
                     className="hn-counter-input"
-                    style={{ width: "10rem", padding: "0.45rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #D4DED8", fontSize: "1rem", fontFamily: "var(--font-jetbrains, monospace)", outline: "none" }}
+                    style={{ width: "10rem", padding: "0.45rem 0.75rem", borderRadius: "0.375rem", border: "1px solid #D4DED8", fontSize: "1rem", fontFamily: "var(--font-heebo, sans-serif)", outline: "none" }}
                   />
                 </div>
                 {actionError && (
@@ -361,7 +369,7 @@ function OfferCard({
                     className="hn-offer-action-btn"
                     style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "none", background: "#756039", color: "#fff", fontSize: "0.8125rem", fontWeight: 600, cursor: submitting || !counterPrice ? "not-allowed" : "pointer", opacity: submitting || !counterPrice ? 0.6 : 1 }}
                   >
-                    {submitting ? "Sending…" : "Send counter"}
+                    {submitting ? m.offers.sendingCounter : m.offers.sendCounter}
                   </button>
                   <button
                     onClick={() => { setShowCounterForm(false); setCounterPrice(""); setActionError(""); }}
@@ -369,7 +377,7 @@ function OfferCard({
                     className="hn-offer-action-btn"
                     style={{ padding: "0.45rem 1rem", borderRadius: 999, border: "1px solid #D4DED8", background: "#fff", color: "#526563", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer" }}
                   >
-                    Cancel
+                    {m.offers.cancel}
                   </button>
                 </div>
               </div>
@@ -386,12 +394,12 @@ function OfferCard({
           <div style={{ marginTop: "0.75rem", padding: "0.75rem 1rem", background: "#E9EEEA", borderRadius: "0.5rem", border: "1px solid #D4DED8" }}>
             <div style={{ fontSize: "0.8125rem", color: "#526563", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#756039", display: "inline-block", flexShrink: 0, animation: "pulse 1.8s ease-in-out infinite" }} />
-              Awaiting developer&rsquo;s decision — they must accept or reject your counter.
+              {m.offers.awaitingDev}
             </div>
             {offer.meetingLink && (
               <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#E9EEEA", borderRadius: "0.4rem", border: "1px solid #C0DBD9" }}>
                 <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#123F40", marginBottom: "0.4rem" }}>
-                  Video call
+                  {m.offers.videoCall}
                 </div>
                 <a
                   href={offer.meetingLink}
@@ -402,7 +410,7 @@ function OfferCard({
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
-                  Join call
+                  {m.offers.joinCall}
                 </a>
               </div>
             )}
@@ -448,7 +456,7 @@ function OfferCard({
                 textDecoration: "none",
               }}
             >
-              {dealComplete ? "View signed contract →" : "View Deal Room →"}
+              {dealComplete ? m.offers.viewSigned : m.offers.viewDealRoom}
             </Link>
             {!dealComplete && (
               <button
@@ -485,12 +493,12 @@ function OfferCard({
         )}
 
         <div style={{ fontSize: "0.75rem", color: "#526563", marginTop: "0.75rem" }}>
-          Submitted {new Date(offer.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+          {m.offers.submittedOn} {new Date(offer.createdAt).toLocaleDateString(locale === "he" ? "he-IL" : "en-GB", { day: "numeric", month: "short", year: "numeric" })}
           {offer.updatedAt !== offer.createdAt && (
-            <> · Updated {new Date(offer.updatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</>
+            <> · {m.offers.updatedOn} {new Date(offer.updatedAt).toLocaleDateString(locale === "he" ? "he-IL" : "en-GB", { day: "numeric", month: "short", year: "numeric" })}</>
           )}
           {offer.roundNumber > 0 && (
-            <> · Round {offer.roundNumber + 1} of 3</>
+            <> · {m.offers.round} {offer.roundNumber + 1} {m.offers.of3}</>
           )}
         </div>
       </div>
@@ -499,6 +507,7 @@ function OfferCard({
 }
 
 function EmptyState() {
+  const { m } = useI18n();
   return (
     <div style={{ textAlign: "center", padding: "4rem 2rem", background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8" }}>
       <div style={{ width: "3rem", height: "3rem", borderRadius: "50%", background: "#E9EEEA", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
@@ -506,23 +515,24 @@ function EmptyState() {
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </div>
-      <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.125rem", fontWeight: 600, color: "#123F40", marginBottom: "0.5rem" }}>
-        No offers yet
+      <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.125rem", fontWeight: 600, color: "#123F40", marginBottom: "0.5rem" }}>
+        {m.offers.empty}
       </div>
       <p style={{ margin: "0 0 1.5rem", fontSize: "0.9375rem", color: "#526563", maxWidth: "22rem", marginLeft: "auto", marginRight: "auto", lineHeight: 1.6 }}>
-        Once you find matches and send an offer, it will appear here.
+        {m.offers.emptyBody}
       </p>
       <Link
         href="/results"
         style={{ display: "inline-block", padding: "0.625rem 1.5rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}
       >
-        View matches →
+        {m.offers.viewMatches}
       </Link>
     </div>
   );
 }
 
 export default function BuyerOffersPage() {
+  const { m } = useI18n();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -568,20 +578,20 @@ export default function BuyerOffersPage() {
       {/* Header */}
       <div style={{ borderBottom: "1px solid #D4DED8", background: "#fff" }}>
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
-          <div style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.5rem" }}>
+          <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.5rem" }}>
             Haveniq
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
             <div>
-              <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.875rem", fontWeight: 600, color: "#123F40", margin: 0 }}>
-                My offers
+              <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.875rem", fontWeight: 600, color: "#123F40", margin: 0 }}>
+                {m.offers.title}
               </h1>
               <p style={{ margin: "0.375rem 0 0", color: "#526563", fontSize: "0.9375rem" }}>
-                Track the status of all offers you&rsquo;ve submitted.
+                {m.offers.subtitle}
               </p>
             </div>
             <Link href="/results" style={{ fontSize: "0.875rem", color: "#123F40", fontWeight: 600, textDecoration: "none" }}>
-              ← Back to results
+              {m.offers.backToResults}
             </Link>
           </div>
         </div>
@@ -597,7 +607,7 @@ export default function BuyerOffersPage() {
 
         {!loading && error && (
           <div style={{ background: "#FBECEA", borderRadius: "0.875rem", padding: "1.25rem 1.5rem", color: "#9E3434", fontSize: "0.9375rem" }}>
-            Failed to load offers: {error}
+            {m.offers.failedLoad} {error}
           </div>
         )}
 
@@ -607,7 +617,7 @@ export default function BuyerOffersPage() {
           <div>
             <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#756039", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#756039", display: "inline-block" }} />
-              Recent updates ({recentlyUpdated.length})
+              {m.offers.recentUpdates} ({recentlyUpdated.length})
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {recentlyUpdated.map(o => (
@@ -621,7 +631,7 @@ export default function BuyerOffersPage() {
           <div>
             {recentlyUpdated.length > 0 && (
               <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#526563", marginBottom: "0.75rem" }}>
-                All offers ({rest.length})
+                {m.offers.allOffers} ({rest.length})
               </div>
             )}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
