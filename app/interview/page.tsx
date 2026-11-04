@@ -4,14 +4,15 @@
  *
  * Live path:
  *   0. Role gate, rate-limit, existing-profile check.
- *   1. POST /api/liveavatar/session → LiveKit credentials (HeyGen + ElevenLabs).
- *   2. Join the room, attach video and audio to unmuted elements, start playback.
- *   3. Enable the microphone. The conversation starts as soon as the avatar is ready.
- *   4. Buffer transcript lines in memory (not shown). End saves them → /processing.
+ *   1. User clicks "Start conversation" → audio element primed inside gesture.
+ *   2. POST /api/liveavatar/session → LiveKit credentials (HeyGen + ElevenLabs).
+ *   3. Join the room, attach video and audio to unmuted elements, start playback.
+ *   4. Enable the microphone. The conversation starts as soon as the avatar is ready.
+ *   5. Buffer transcript lines in memory (not shown). End saves them → /processing.
  *
- * Audio autoplay: entry is a client-side router.push from a click on the
- * previous page, so startAudio() usually succeeds. A refresh has no gesture;
- * then a small "turn on sound" button calls startAudio() inside the click.
+ * Audio autoplay: the connection is initiated inside the "Start conversation"
+ * click handler, so room.startAudio() runs while the user-activation flag is
+ * still live. A "🔊 Enable sound" button handles the NotAllowedError fallback.
  */
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,7 @@ import {
 import { useI18n } from "@/components/LocaleProvider";
 
 type InterviewState =
+  | { phase: "start" }
   | { phase: "checking" }
   | { phase: "connecting" }
   | { phase: "live"; room: Room }
@@ -73,8 +75,9 @@ export default function InterviewPage() {
   const transcriptRef = useRef<TranscriptLine[]>([]);
   const endingRef = useRef(false);
   const endConversationRef = useRef<() => Promise<void>>(async () => {});
-  const [state, setState] = useState<InterviewState>({ phase: "checking" });
+  const [state, setState] = useState<InterviewState>({ phase: "start" });
   const [needsSound, setNeedsSound] = useState(false);
+  const [avatarSpeaking, setAvatarSpeaking] = useState(false);
 
   const pushLine = useCallback((line: TranscriptLine) => {
     const last = transcriptRef.current[transcriptRef.current.length - 1];
@@ -101,8 +104,15 @@ export default function InterviewPage() {
       void playElement(videoRef.current);
     }
     if (track.kind === Track.Kind.Audio && audioRef.current) {
-      track.attach(audioRef.current);
-      void playElement(audioRef.current).then((ok) => {
+      const el = audioRef.current;
+      console.log("[LiveAvatar audio] Remote audio track received:", track.sid);
+      console.log("[LiveAvatar audio] Element muted before attach:", el.muted);
+      console.log("[LiveAvatar audio] srcObject before attach:", el.srcObject);
+      track.attach(el);
+      console.log("[LiveAvatar audio] srcObject after attach:", el.srcObject);
+      console.log("[LiveAvatar audio] Element muted after attach:", el.muted);
+      void playElement(el).then((ok) => {
+        console.log("[LiveAvatar audio] play() ok:", ok, "paused:", el.paused, "muted:", el.muted, "volume:", el.volume);
         if (!ok) setNeedsSound(true);
       });
     }
@@ -132,7 +142,13 @@ export default function InterviewPage() {
     await room.localParticipant.setMicrophoneEnabled(true);
   }, []);
 
+  // connect() is called from the "Start conversation" click handler so that
+  // room.startAudio() runs while the browser's user-activation flag is still set.
+  const connectRef = useRef<(() => void) | null>(null);
+
   useEffect(() => {
+    if (state.phase === "start") return;   // wait for user gesture
+
     let cancelled = false;
 
     async function connect() {
@@ -257,6 +273,10 @@ export default function InterviewPage() {
           setNeedsSound(!room.canPlaybackAudio);
         });
 
+        room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+          setAvatarSpeaking(speakers.some((s) => s instanceof RemoteParticipant));
+        });
+
         room.on(RoomEvent.DataReceived, (payload: Uint8Array, _participant, _kind, topic?: string) => {
           if (topic && topic !== "agent-response") return;
           try {
@@ -318,6 +338,7 @@ export default function InterviewPage() {
       }
     }
 
+    connectRef.current = () => { connect(); };
     connect();
 
     return () => {
@@ -336,7 +357,7 @@ export default function InterviewPage() {
       }
       roomRef.current?.disconnect();
     };
-  }, [attachExisting, attachTrack, enableMicrophone, playElement, pushLine, router]);
+  }, [attachExisting, attachTrack, enableMicrophone, playElement, pushLine, router, state.phase]);
 
   const retryMicrophone = useCallback(async () => {
     const room = roomRef.current;
@@ -471,6 +492,12 @@ export default function InterviewPage() {
         fontFamily: "var(--font-heebo, sans-serif)",
       }}
     >
+      <style>{`
+        @keyframes speakBar {
+          from { transform: scaleY(0.35); opacity: 0.6; }
+          to   { transform: scaleY(1.0);  opacity: 1.0; }
+        }
+      `}</style>
       <audio
         ref={audioRef}
         autoPlay
@@ -519,6 +546,86 @@ export default function InterviewPage() {
           >
             {copy.enableSound}
           </button>
+        )}
+
+        {/* Speaking indicator — 3 pulsing bars near bottom of avatar */}
+        {avatarSpeaking && showVideo && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: 72,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 4,
+              display: "flex",
+              alignItems: "flex-end",
+              gap: 4,
+              height: 22,
+              pointerEvents: "none",
+            }}
+          >
+            {([0, 1, 2] as const).map((i) => (
+              <div
+                key={i}
+                style={{
+                  width: 4,
+                  borderRadius: 2,
+                  background: "rgba(255,255,255,0.90)",
+                  transformOrigin: "bottom center",
+                  animationName: "speakBar",
+                  animationDuration: "0.65s",
+                  animationTimingFunction: "ease-in-out",
+                  animationIterationCount: "infinite",
+                  animationDirection: "alternate",
+                  animationDelay: `${i * 0.18}s`,
+                  height: [10, 20, 13][i],
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {state.phase === "start" && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "1rem",
+              textAlign: "center",
+              padding: "2rem",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                // Prime audio + video elements with a user gesture NOW,
+                // before the async connection flow starts. This satisfies
+                // Chrome's autoplay policy for the elements even after the
+                // user-activation window expires during network calls.
+                if (audioRef.current) {
+                  audioRef.current.muted = false;
+                  audioRef.current.play().catch(() => {});
+                }
+                if (videoRef.current) {
+                  videoRef.current.muted = false;
+                  videoRef.current.play().catch(() => {});
+                }
+                setState({ phase: "checking" });
+              }}
+              style={{
+                ...quietButton,
+                fontSize: "1rem",
+                padding: "0.75rem 2.25rem",
+                fontWeight: 600,
+              }}
+            >
+              {copy.start}
+            </button>
+            <div style={{ color: "var(--qp-muted)", fontSize: "0.8125rem" }}>
+              {copy.startHint}
+            </div>
+          </div>
         )}
 
         {state.phase === "checking" && (
