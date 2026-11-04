@@ -516,6 +516,11 @@ export const he = {
     started: "נפתחה",
     joinedCheck: "הצטרפתם ✓",
     joinGroup: "הצטרפות לקבוצה",
+    recs: {
+      moving:    { label: "הובלה ופינוי", blurb: "חברות הובלה מקצועיות מכסות אריזה, הובלה ופריקה — שימושי במיוחד לנכסים גדולים או לוחות זמנים צפופים." },
+      insurance: { label: "ביטוח דירה", blurb: "ביטוח מבנה ותכולה נדרש בדרך כלל עם חתימת החוזה. כדאי להשוות הצעות מחיר לפני הסגירה." },
+      furniture: { label: "ריהוט ועיצוב פנים", blurb: "רכישת ריהוט חדש או משומש, ייעוץ עיצובי ושירותי התאמה לדירה החדשה שלכם." },
+    },
   },
   attributes: {
     rooms: "חדרים",
@@ -1390,6 +1395,11 @@ export const en: Messages = {
     started: "Started",
     joinedCheck: "Joined ✓",
     joinGroup: "Join group",
+    recs: {
+      moving:    { label: "Moving & removals", blurb: "Professional movers cover packing, transport, and unpacking — especially useful for larger properties or tight timelines." },
+      insurance: { label: "Home insurance", blurb: "Buildings and contents insurance is typically required from exchange of contracts. Compare quotes before completion." },
+      furniture: { label: "Furniture & interiors", blurb: "New or second-hand furniture sourcing, interior design consultations, and fit-out services for your new home." },
+    },
   },
   attributes: {
     rooms: "Rooms",

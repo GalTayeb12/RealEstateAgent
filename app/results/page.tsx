@@ -990,15 +990,18 @@ export default function ResultsPage() {
               {m.results.nextSteps}
             </div>
             <div className="hn-results-recs" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(19rem, 1fr))", gap: "0.875rem" }}>
-              {recommendations.map(r => (
-                <div key={r.id} style={{ background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.07)", padding: "1.125rem 1.25rem", display: "flex", gap: "0.875rem", alignItems: "flex-start" }}>
-                  <span style={{ fontSize: "1.375rem", lineHeight: 1, flexShrink: 0, marginTop: "0.1rem" }}>{r.icon}</span>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#123F40", marginBottom: "0.3rem" }}>{r.label}</div>
-                    <p style={{ margin: 0, fontSize: "0.875rem", color: "#526563", lineHeight: 1.6 }}>{r.blurb}</p>
+              {recommendations.map(r => {
+                const recText = (m.results.recs as Record<string, { label: string; blurb: string }>)[r.id];
+                return (
+                  <div key={r.id} style={{ background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.07)", padding: "1.125rem 1.25rem", display: "flex", gap: "0.875rem", alignItems: "flex-start" }}>
+                    <span style={{ fontSize: "1.375rem", lineHeight: 1, flexShrink: 0, marginTop: "0.1rem" }}>{r.icon}</span>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#123F40", marginBottom: "0.3rem" }}>{recText?.label ?? r.label}</div>
+                      <p style={{ margin: 0, fontSize: "0.875rem", color: "#526563", lineHeight: 1.6 }}>{recText?.blurb ?? r.blurb}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

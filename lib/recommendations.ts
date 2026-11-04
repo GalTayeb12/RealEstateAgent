@@ -27,13 +27,6 @@ export interface Recommendation extends RecommendationCategory {
 
 export const CATEGORIES: RecommendationCategory[] = [
   {
-    id: "legal",
-    label: "Legal services",
-    icon: "⚖",
-    genericDescription:
-      "A conveyancer or property solicitor handles contracts, title searches, and the legal handoff between buyer and seller.",
-  },
-  {
     id: "moving",
     label: "Moving & removals",
     icon: "🚚",
@@ -81,11 +74,10 @@ ${JSON.stringify(preferences, null, 2)}
 
 For each of the following service categories, write ONE concise sentence (under 25 words) explaining specifically why this buyer should consider engaging that service, based on their situation. Be concrete, not generic.
 
-Categories: legal, moving, insurance, furniture
+Categories: moving, insurance, furniture
 
 Return ONLY valid JSON with this shape (no markdown, no explanation):
 {
-  "legal": "...",
   "moving": "...",
   "insurance": "...",
   "furniture": "..."
