@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Heebo } from "next/font/google";
 import "./globals.css";
+import "@/components/quiet/quiet.css";
 import TopNav from "@/components/TopNav";
 import SiteFooter from "@/components/SiteFooter";
 import { LocaleProvider } from "@/components/LocaleProvider";
