@@ -11,7 +11,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import * as fontkit from "@pdf-lib/fontkit";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const fontkit = require("@pdf-lib/fontkit") as { default?: unknown } & unknown;
+const fontkitDefault = (fontkit as { default?: unknown }).default ?? fontkit;
 import { readFile } from "fs/promises";
 import path from "path";
 import { formatMoneyPlain } from "@/lib/i18n/currency";
@@ -90,7 +92,7 @@ export async function GET(
     let bold: Awaited<ReturnType<typeof doc.embedFont>>;
 
     if (isHebrew) {
-      doc.registerFontkit(fontkit as Parameters<typeof doc.registerFontkit>[0]);
+      doc.registerFontkit(fontkitDefault as Parameters<typeof doc.registerFontkit>[0]);
       const fontsDir = path.join(process.cwd(), "public", "fonts");
       const [regBytes, boldBytes] = await Promise.all([
         readFile(path.join(fontsDir, "Heebo-Regular.ttf")),

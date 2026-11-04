@@ -16,6 +16,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 import { EstimatedPriceNote, Money } from "@/components/Money";
+import type { Messages } from "@/lib/i18n/messages";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -87,13 +88,14 @@ function ClockIcon({ color }: { color: string }) {
 type StepState = "done" | "active" | "upcoming";
 
 function Step({
-  num, title, description, state, action,
+  num, title, description, state, action, doneLabel,
 }: {
   num: number;
   title: string;
   description: string;
   state: StepState;
   action?: React.ReactNode;
+  doneLabel: string;
 }) {
   const isDone   = state === "done";
   const isActive = state === "active";
@@ -133,11 +135,39 @@ function Step({
       <div style={{ flexShrink: 0, display: "flex", alignItems: "flex-start", paddingTop: 6 }}>
         {isDone && (
           <span style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#123F40", background: "#D4EDEA", borderRadius: 999, padding: "0.15rem 0.5rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-            Done
+            {doneLabel}
           </span>
         )}
         {isActive && <ClockIcon color="#756039" />}
       </div>
+    </div>
+  );
+}
+
+// ── Ledger disclosure widget ──────────────────────────────────────────────────
+
+function LedgerDisclosure({ hash, m }: { hash: string; m: Messages }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div style={{ textAlign: "center", fontSize: "0.75rem", color: "#526563" }}>
+      <div style={{ color: "#123F40", fontWeight: 600, marginBottom: "0.25rem" }}>
+        ✓ {m.deal.ledgerRecorded}
+      </div>
+      <details style={{ display: "inline-block" }}>
+        <summary style={{ cursor: "pointer", color: "#526563", fontSize: "0.6875rem" }}>
+          {m.deal.ledgerDetails}
+        </summary>
+        <div style={{ marginTop: "0.375rem", fontFamily: "monospace", fontSize: "0.6875rem", color: "#7A7570", display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
+          <span>{hash}</span>
+          <button
+            type="button"
+            onClick={() => { navigator.clipboard.writeText(hash).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", padding: "0 0.25rem", fontSize: "0.6875rem" }}
+          >
+            {copied ? m.deal.ledgerCopied : "⧉"}
+          </button>
+        </div>
+      </details>
     </div>
   );
 }
@@ -159,7 +189,7 @@ function SignatureModal({
   onClose: () => void;
   onSigned: () => void;
 }) {
-  const { formatPrice, m } = useI18n();
+  const { formatPrice, m, locale } = useI18n();
   const canvasRef       = useRef<HTMLCanvasElement>(null);
   const isDrawingRef    = useRef(false);
   const [typedName,   setTypedName]   = useState("");
@@ -242,20 +272,21 @@ function SignatureModal({
   // ── Contract text ────────────────────────────────────────────────────────
 
   const contractText = [
-    "PROPERTY RESERVATION AGREEMENT — SIMULATION",
+    ...(locale === "he" ? [m.deal.contractDraftNote, ""] : []),
+    m.deal.contractHeader,
     "",
-    `Buyer:     ${offer.buyer.email}`,
-    `Developer: ${companyName} (${offer.developer.email})`,
+    `${m.deal.contractBuyerLabel}  ${offer.buyer.email}`,
+    `${m.deal.contractDevLabel}  ${companyName} (${offer.developer.email})`,
     "",
-    `Property:  ${offer.unitType.project.name}, ${offer.unitType.project.location}`,
-    `Unit:      ${offer.unitType.unitLabel}`,
-    `Agreed price: ${formatPrice(finalPrice)}`,
-    `Reservation deposit: Paid ✓`,
+    `${m.deal.contractPropertyLabel}  ${offer.unitType.project.name}, ${offer.unitType.project.location}`,
+    `${m.deal.contractUnitLabel}  ${offer.unitType.unitLabel}`,
+    `${m.deal.contractPriceLabel}  ${formatPrice(finalPrice)}`,
+    `${m.deal.contractDepositLabel}  ${m.deal.contractDepositPaid}`,
     "",
-    "Both parties confirm their intention to proceed to legal completion of this sale, to be carried out in person with instructed solicitors.",
+    m.deal.contractBody,
     "",
     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-    "DISCLAIMER: This document is a simulation for demonstration purposes only and does not constitute a legally binding contract or any form of legal commitment.",
+    m.deal.contractDisclaimer,
     "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
   ].join("\n");
 
@@ -588,7 +619,7 @@ export default function DealRoomPage() {
             {error}
           </p>
           <Link href={backHref} style={{ display: "inline-block", padding: "0.625rem 1.5rem", borderRadius: 999, background: "#123F40", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}>
-            ← Back to dashboard
+            {m.deal.backToDashboard}
           </Link>
         </div>
       </main>
@@ -720,15 +751,15 @@ export default function DealRoomPage() {
               <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                 {role === "developer" ? (
                   <Link href="/dev/dashboard" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
-                    ← Dashboard
+                    {m.deal.backToDashboard}
                   </Link>
                 ) : role === "seller" ? (
                   <Link href="/seller/dashboard" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
-                    ← Dashboard
+                    {m.deal.backToDashboard}
                   </Link>
                 ) : (
                   <Link href="/buyer/offers" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
-                    ← My offers
+                    {m.deal.myOffers}
                   </Link>
                 )}
               </div>
@@ -796,7 +827,7 @@ export default function DealRoomPage() {
           <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
             <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid #E9EEEA" }}>
               <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>
-                {(role === "developer" || role === "seller") ? "Deal status" : "What happens next"}
+                {(role === "developer" || role === "seller") ? m.deal.dealStatus : m.deal.whatNext}
               </div>
             </div>
             <div style={{ padding: "1rem 1.25rem", display: "flex", flexDirection: "column", gap: "0.625rem" }}>
@@ -806,6 +837,7 @@ export default function DealRoomPage() {
                 state={step1}
                 title={m.deal.step1}
                 description={m.deal.step2Desc}
+                doneLabel={m.deal.done}
               />
 
               <Step
@@ -814,6 +846,7 @@ export default function DealRoomPage() {
                 title={m.deal.step2}
                 description={m.deal.step2Desc}
                 action={depositAction}
+                doneLabel={m.deal.done}
               />
 
               <Step
@@ -822,6 +855,7 @@ export default function DealRoomPage() {
                 title={m.deal.step3}
                 description={m.deal.step3Desc}
                 action={signAction}
+                doneLabel={m.deal.done}
               />
 
             </div>
@@ -844,7 +878,7 @@ export default function DealRoomPage() {
                     });
                     if (!res.ok) {
                       const data = await res.json().catch(() => ({}));
-                      setCancelError(data.error ?? "Could not cancel the reservation");
+                      setCancelError(data.error ?? m.deal.cancelError);
                       return;
                     }
                     router.push("/buyer/offers");
@@ -917,12 +951,7 @@ export default function DealRoomPage() {
 
           {/* Ledger reference */}
           {offer.ledgerBlockHash && (
-            <div style={{ textAlign: "center", fontSize: "0.75rem", color: "#526563" }}>
-              Recorded on ledger:{" "}
-              <span style={{ fontFamily: "var(--font-heebo, sans-serif)" }}>
-                {offer.ledgerBlockHash.slice(0, 20)}…
-              </span>
-            </div>
+            <LedgerDisclosure hash={offer.ledgerBlockHash} m={m} />
           )}
 
         </div>
