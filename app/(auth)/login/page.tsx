@@ -122,6 +122,12 @@ export default function LoginPage() {
       <p style={{ textAlign: "center", fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>
         <Link href="/forgot-password" style={{ color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>{m.auth.forgot}</Link>
       </p>
+      <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "var(--qp-muted)", margin: 0, borderTop: "1px solid var(--qp-border)", paddingTop: "0.75rem" }}>
+        {m.auth.prosLine}{" "}
+        <Link href="/dev/register" style={{ color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>{m.auth.prosDevReg}</Link>
+        {" · "}
+        <Link href="/seller/register" style={{ color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>{m.auth.prosSellerReg}</Link>
+      </p>
     </AuthRoom>
   );
 }

@@ -26,8 +26,8 @@ import { Logo } from "@/components/Logo";
 // Marketing homepage has its own sticky nav (with the language toggle inside it).
 const HOME_PATH = "/";
 
-// Guest / pre-auth / interview pages get a slim bar: logo + language toggle.
-const GUEST_PATHS = new Set([
+// Auth pages: TopNav is fully hidden — each has its own logo + lang toggle.
+const AUTH_PATHS = new Set([
   "/login",
   "/register",
   "/dev/login",
@@ -38,6 +38,10 @@ const GUEST_PATHS = new Set([
   "/forgot-password",
   "/reset-password",
   "/verify-email",
+]);
+
+// Guest / pre-auth / interview pages get a slim bar: logo + language toggle.
+const GUEST_PATHS = new Set([
   "/terms",
   "/privacy",
   "/interview",
@@ -188,7 +192,7 @@ export default function TopNav() {
     } catch { /* ignore */ }
   }, [pathname]);
 
-  if (pathname === HOME_PATH || pathname === "/design-system" || pathname === "/login" || pathname === "/register") return null;
+  if (pathname === HOME_PATH || pathname === "/design-system" || AUTH_PATHS.has(pathname)) return null;
 
   const showAppNav = !!user && !GUEST_PATHS.has(pathname);
   const links    = user ? (NAV_HREFS[user.role] ?? []) : [];
@@ -299,16 +303,6 @@ export default function TopNav() {
         {/* Guest pages: keep the language toggle in the same bar */}
         {!showAppNav && (
           <div style={{ marginInlineStart: "auto", display: "flex", alignItems: "center", gap: "0.875rem", flexShrink: 0 }}>
-            {pathname === "/login" && (
-              <Link className="hn-guest-extra" href="/register" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "var(--qp-muted)", whiteSpace: "nowrap" }}>
-                {m.auth.noAccount} <span style={{ color: "var(--qp-ink)" }}>{m.auth.registerCta}</span>
-              </Link>
-            )}
-            {(pathname === "/register" || pathname === "/seller/register") && (
-              <Link className="hn-guest-extra" href="/login" style={{ textDecoration: "none", fontSize: "0.875rem", fontWeight: 600, color: "var(--qp-muted)", whiteSpace: "nowrap" }}>
-                {m.auth.haveAccount} <span style={{ color: "var(--qp-ink)" }}>{m.auth.signIn}</span>
-              </Link>
-            )}
             <LanguageToggle />
             {user && (
               <AccountButton

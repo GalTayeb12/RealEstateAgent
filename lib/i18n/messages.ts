@@ -197,6 +197,9 @@ export const he = {
     verifyInvalidBody: "הקישור אינו תקין. הכניסו את הדוא״ל לקבלת קישור חדש.",
     resendSentBody: "אם החשבון קיים ואינו מאומת, נשלח קישור אימות חדש.",
     sendNewVerification: "שליחת קישור אימות חדש",
+    prosLine: "יזם או מוכר?",
+    prosDevReg: "הרשמת יזם",
+    prosSellerReg: "הרשמת מוכר",
   },
   dev: {
     portal: "Haveniq — אזור יזמים",
@@ -332,6 +335,7 @@ export const he = {
     allRequired: "כל השדות נדרשים.",
     questionnaireRequired: "כל שדות השאלון נדרשים.",
     alreadyAccount: "יש לך כבר חשבון?",
+    backBtn: "חזרה",
   },
   seller: {
     registerTitle: "הצגת הנכס שלך",
@@ -937,6 +941,9 @@ export const en: Messages = {
     verifyInvalidBody: "This verification link is not valid. Enter your email below to receive a new one.",
     resendSentBody: "If that account exists and is unverified, a new verification link has been sent.",
     sendNewVerification: "Send new verification link",
+    prosLine: "Developer or seller?",
+    prosDevReg: "Developer sign-up",
+    prosSellerReg: "Seller sign-up",
   },
   dev: {
     portal: "Haveniq — Developer portal",
@@ -1072,6 +1079,7 @@ export const en: Messages = {
     allRequired: "All fields are required.",
     questionnaireRequired: "All questionnaire fields are required.",
     alreadyAccount: "Already have an account?",
+    backBtn: "Back",
   },
   seller: {
     registerTitle: "List your property",

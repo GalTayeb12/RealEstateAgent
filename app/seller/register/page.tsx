@@ -56,15 +56,19 @@ export default function SellerRegisterPage() {
     <AuthRoom aside={<AuthAside href="/login" prompt={m.seller.alreadyAccount} action={m.auth.signIn} />}>
       <h1 style={{ fontSize: "1.75rem", fontWeight: 500, margin: 0 }}>{m.seller.registerTitle}</h1>
       <p className="qp-body">{m.seller.registerBody}</p>
-      <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem" }}>
-        <TextField label={m.seller.fullNameLabel} type="text" required placeholder={m.seller.fullNamePh}
-          value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-        <TextField label={m.seller.phoneLabel} type="tel" required placeholder={m.seller.phonePh}
-          value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
-        <TextField label={m.auth.email} type="email" required autoComplete="email"
-          value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
-        <TextField label={m.auth.password} type="password" required autoComplete="new-password"
-          placeholder={m.auth.passwordPh} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+      <form onSubmit={handleSubmit} style={{ display: "grid", gap: "0.75rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <TextField label={m.seller.fullNameLabel} type="text" required placeholder={m.seller.fullNamePh}
+            value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+          <TextField label={m.seller.phoneLabel} type="tel" required placeholder={m.seller.phonePh}
+            value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+          <TextField label={m.auth.email} type="email" required autoComplete="email"
+            value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+          <TextField label={m.auth.password} type="password" required autoComplete="new-password"
+            placeholder={m.auth.passwordPh} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+        </div>
         {error && <div className="qp-notice qp-notice--danger" role="alert">{error}</div>}
         <Button type="submit" className="qp-btn--block" disabled={loading}>
           {loading ? m.seller.submitting : m.seller.submit}

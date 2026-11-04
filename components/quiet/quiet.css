@@ -856,9 +856,15 @@ body {
   min-height: 0;
 }
 
+/* Compact inputs in auth forms */
+.qp-auth .qp-field input,
+.qp-auth .qp-field select {
+  min-height: 44px;
+}
+
 @media (max-height: 780px) {
-  .qp-auth__form { padding-block: 20px; }
-  .qp-auth__card { gap: 12px; }
+  .qp-auth__form { padding-block: 16px; }
+  .qp-auth__card { gap: 10px; }
 }
 .qp-auth__side {
   position: relative; overflow: hidden;
@@ -872,11 +878,11 @@ body {
 .qp-auth__form {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  padding: 48px 24px;
+  padding: 36px 24px;
 }
 .qp-auth__card {
-  width: min(420px, 100%);
-  display: grid; gap: 20px;
+  width: min(460px, 100%);
+  display: grid; gap: 16px;
 }
 /* On mobile, the image side is hidden — show the logo in the form column */
 .qp-auth__mobile-logo { display: inline-flex; }

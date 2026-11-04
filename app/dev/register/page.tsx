@@ -91,27 +91,31 @@ export default function DevRegisterPage() {
       </div>
 
       <div>
-        <h1 style={{ fontSize: "1.6rem", fontWeight: 500, margin: "0 0 4px" }}>{stepTitles[step]}</h1>
-        <p className="qp-body" style={{ fontSize: 14, margin: 0 }}>{stepBodies[step]}</p>
+        <h1 style={{ fontSize: "1.4rem", fontWeight: 500, margin: "0 0 2px" }}>{stepTitles[step]}</h1>
+        <p className="qp-body" style={{ fontSize: 13, margin: 0 }}>{stepBodies[step]}</p>
       </div>
 
       {/* STEP 1 */}
       {step === 1 && (
-        <form onSubmit={handleStep1} style={{ display: "grid", gap: "0.875rem" }}>
-          <TextField label={m.dev.companyNameLabel} type="text" required placeholder={m.dev.companyNamePh}
-            value={form.companyName} onChange={setField("companyName")} />
-          <TextField label={m.dev.crnLabel} type="text" required placeholder={m.dev.crnPh}
-            value={form.crn} onChange={setField("crn")} />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.875rem" }}>
+        <form onSubmit={handleStep1} style={{ display: "grid", gap: "0.75rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <TextField label={m.dev.companyNameLabel} type="text" required placeholder={m.dev.companyNamePh}
+              value={form.companyName} onChange={setField("companyName")} />
+            <TextField label={m.dev.crnLabel} type="text" required placeholder={m.dev.crnPh}
+              value={form.crn} onChange={setField("crn")} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
             <TextField label={m.dev.contactNameLabel} type="text" required placeholder={m.dev.contactNamePh}
               value={form.contactName} onChange={setField("contactName")} />
             <TextField label={m.dev.phoneLabel} type="tel" required placeholder={m.dev.phonePh}
               value={form.phone} onChange={setField("phone")} />
           </div>
-          <TextField label={m.auth.email} type="email" required autoComplete="email"
-            value={form.email} onChange={setField("email")} />
-          <TextField label={m.auth.password} type="password" required autoComplete="new-password" placeholder={m.auth.passwordPh}
-            value={form.password} onChange={setField("password")} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <TextField label={m.auth.email} type="email" required autoComplete="email"
+              value={form.email} onChange={setField("email")} />
+            <TextField label={m.auth.password} type="password" required autoComplete="new-password" placeholder={m.auth.passwordPh}
+              value={form.password} onChange={setField("password")} />
+          </div>
           {error && <div className="qp-notice qp-notice--danger" role="alert">{error}</div>}
           <Button type="submit" className="qp-btn--block">{m.dev.continueBtn}</Button>
         </form>
@@ -141,7 +145,7 @@ export default function DevRegisterPage() {
           </div>
           {error && <div className="qp-notice qp-notice--danger" role="alert">{error}</div>}
           <div style={{ display: "flex", gap: 8 }}>
-            <Button variant="secondary" onClick={() => { setStep(1); setError(""); }}>{m.dev.continueBtn.includes("המשך") ? "← חזרה" : "← Back"}</Button>
+            <Button variant="secondary" onClick={() => { setStep(1); setError(""); }}>← {m.dev.backBtn}</Button>
             <Button type="submit" className="qp-btn--block" disabled={loading}>
               {loading ? m.dev.submittingBtn : m.dev.submitBtn}
             </Button>
