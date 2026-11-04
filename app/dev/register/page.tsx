@@ -2,74 +2,50 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const INPUT_STYLE: React.CSSProperties = {
-  background: "var(--qp-soft)", border: "1px solid var(--qp-border)", borderRadius: "0.5rem",
-  padding: "0.625rem 0.875rem", fontSize: "0.9375rem", color: "var(--qp-ink)",
-  outline: "none", width: "100%", boxSizing: "border-box",
-};
-
-function FieldWrap({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
-      <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--qp-muted)" }}>
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
+import { useI18n } from "@/components/LocaleProvider";
+import { TextField, Button } from "@/components/quiet";
+import { AuthAside, AuthRoom, translateAuthError } from "@/components/auth/Room";
 
 export default function DevRegisterPage() {
   const router = useRouter();
+  const { m } = useI18n();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [registeredUserId, setRegisteredUserId] = useState("");
 
-  // Step 1 fields
   const [form, setForm] = useState({
     companyName: "", crn: "", contactName: "", phone: "", email: "", password: "",
   });
-
-  // Step 2 questionnaire
   const [questionnaire, setQuestionnaire] = useState({
-    yearsExperience: "",
-    completedProjects: "",
-    companyDescription: "",
+    yearsExperience: "", completedProjects: "", companyDescription: "",
   });
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   function setField(field: string) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((f) => ({ ...f, [field]: e.target.value }));
+      setForm(f => ({ ...f, [field]: e.target.value }));
   }
-
   function setQ(field: string) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setQuestionnaire((q) => ({ ...q, [field]: e.target.value }));
+      setQuestionnaire(q => ({ ...q, [field]: e.target.value }));
   }
 
   function handleStep1(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
     const { companyName, crn, contactName, phone, email, password } = form;
     if (!companyName || !crn || !contactName || !phone || !email || !password) {
-      setError("All fields are required.");
-      return;
+      setError(m.dev.allRequired); return;
     }
-    setStep(2);
+    setError(""); setStep(2);
   }
 
   async function handleStep2(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
     const { yearsExperience, completedProjects, companyDescription } = questionnaire;
     if (!yearsExperience || !completedProjects || !companyDescription.trim()) {
-      setError("All questionnaire fields are required.");
-      return;
+      setError(m.dev.questionnaireRequired); return;
     }
-    setLoading(true);
+    setError(""); setLoading(true);
     try {
       const res = await fetch("/api/dev/register", {
         method: "POST",
@@ -87,238 +63,128 @@ export default function DevRegisterPage() {
       setRegisteredUserId(data.userId ?? "");
       setStep(3);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : m.auth.generic);
     } finally {
       setLoading(false);
     }
   }
 
-  const focusHandlers = {
-    onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      e.currentTarget.style.borderColor = "var(--qp-ink)";
-      e.currentTarget.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)";
-    },
-    onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      e.currentTarget.style.borderColor = "var(--qp-border)";
-      e.currentTarget.style.boxShadow = "none";
-    },
-  };
+  const stepTitles = ["", m.dev.step1Title, m.dev.step2Title, m.dev.step3Title];
+  const stepBodies = ["", m.dev.step1Body, m.dev.step2Body, m.dev.step3Body];
 
   return (
-    <main style={{ minHeight: "100vh", background: "var(--qp-bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem 1rem", fontFamily: "var(--font-heebo, sans-serif)" }}>
-      <div style={{ width: "100%", maxWidth: "480px" }}>
-        <div style={{ background: "var(--qp-surface)", borderRadius: "1rem", border: "1px solid var(--qp-border)", borderTop: "4px solid var(--qp-ink)", overflow: "hidden" }}>
-          <div style={{ padding: "2.5rem", display: "flex", flexDirection: "column", gap: "1.75rem" }}>
-
-            {/* Header */}
-            <div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--qp-ink)" }}>
-                  Haveniq — Developer Portal
-                </div>
-                {/* Step indicator */}
-                <div style={{ display: "flex", gap: "0.375rem", alignItems: "center" }}>
-                  {[1, 2, 3].map(n => (
-                    <div key={n} style={{
-                      width: n === step ? "1.5rem" : "0.5rem", height: "0.5rem", borderRadius: "999px",
-                      background: n < step ? "var(--qp-ink)" : n === step ? "var(--qp-accent-text)" : "var(--qp-border)",
-                      transition: "all 0.2s",
-                    }} />
-                  ))}
-                </div>
-              </div>
-              <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.875rem", fontWeight: 600, color: "var(--qp-ink)", margin: 0, lineHeight: 1.15 }}>
-                {step === 1 ? "Register your company" : step === 2 ? "Tell us about your work" : "Connect Google Calendar"}
-              </h1>
-              <p style={{ margin: "0.375rem 0 0", color: "var(--qp-muted)", fontSize: "0.9375rem" }}>
-                {step === 1
-                  ? "Accounts are verified against the companies registry and require solicitor sign-off before activation."
-                  : step === 2
-                  ? "A short questionnaire to establish your baseline quality score on the platform."
-                  : "Optional — connect your Google account to schedule Google Meet calls with buyers when negotiations reach their limit."}
-              </p>
-            </div>
-
-            {/* STEP 1 — company / account fields */}
-            {step === 1 && (
-              <form onSubmit={handleStep1} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <FieldWrap label="Company name">
-                  <input type="text" required value={form.companyName} onChange={setField("companyName")}
-                    placeholder="BuildCo Development Ltd" style={INPUT_STYLE} {...focusHandlers} />
-                </FieldWrap>
-                <FieldWrap label="Company registration number (CRN)">
-                  <input type="text" required value={form.crn} onChange={setField("crn")}
-                    placeholder="12345678" style={INPUT_STYLE} {...focusHandlers} />
-                </FieldWrap>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <FieldWrap label="Contact name">
-                    <input type="text" required value={form.contactName} onChange={setField("contactName")}
-                      placeholder="Jane Smith" style={INPUT_STYLE} {...focusHandlers} />
-                  </FieldWrap>
-                  <FieldWrap label="Phone">
-                    <input type="tel" required value={form.phone} onChange={setField("phone")}
-                      placeholder="+44 7700 900000" style={INPUT_STYLE} {...focusHandlers} />
-                  </FieldWrap>
-                </div>
-                <div style={{ borderTop: "1px solid var(--qp-soft)", paddingTop: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  <FieldWrap label="Email address">
-                    <input type="email" required value={form.email} onChange={setField("email")}
-                      placeholder="you@yourcompany.com" style={INPUT_STYLE} {...focusHandlers} />
-                  </FieldWrap>
-                  <FieldWrap label="Password">
-                    <input type="password" required value={form.password} onChange={setField("password")}
-                      placeholder="Choose a password" style={INPUT_STYLE} {...focusHandlers} />
-                  </FieldWrap>
-                </div>
-
-                {error && <ErrorBox message={error} />}
-
-                <button type="submit" style={btnStyle(false)}>
-                  Continue →
-                </button>
-              </form>
-            )}
-
-            {/* STEP 2 — questionnaire */}
-            {step === 2 && (
-              <form onSubmit={handleStep2} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                <div style={{ background: "var(--qp-bg)", borderRadius: "0.625rem", padding: "0.875rem 1rem", fontSize: "0.8125rem", color: "var(--qp-muted)", lineHeight: 1.5 }}>
-                  Your answers are used to generate an initial quality score that developers see on the platform. Be accurate — scores are recalibrated over time based on real behaviour.
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <FieldWrap label="Years of experience">
-                    <input type="number" required min="0" max="99" value={questionnaire.yearsExperience}
-                      onChange={setQ("yearsExperience")} placeholder="e.g. 8"
-                      style={INPUT_STYLE} {...focusHandlers} />
-                  </FieldWrap>
-                  <FieldWrap label="Completed projects">
-                    <input type="number" required min="0" value={questionnaire.completedProjects}
-                      onChange={setQ("completedProjects")} placeholder="e.g. 14"
-                      style={INPUT_STYLE} {...focusHandlers} />
-                  </FieldWrap>
-                </div>
-
-                <FieldWrap label="Tell us about your company and how you typically work with buyers">
-                  <textarea
-                    required
-                    rows={5}
-                    value={questionnaire.companyDescription}
-                    onChange={setQ("companyDescription")}
-                    placeholder="Describe your company's approach, what kinds of projects you develop, and how you engage with buyers through the sales process…"
-                    style={{
-                      ...INPUT_STYLE,
-                      resize: "vertical",
-                      fontFamily: "var(--font-heebo, sans-serif)",
-                      lineHeight: 1.55,
-                    }}
-                    {...focusHandlers}
-                  />
-                </FieldWrap>
-
-                {error && <ErrorBox message={error} />}
-
-                <div style={{ display: "flex", gap: "0.625rem" }}>
-                  <button type="button" onClick={() => { setStep(1); setError(""); }}
-                    style={{ ...btnStyle(false), background: "var(--qp-surface)", color: "var(--qp-ink)", border: "1px solid var(--qp-border)", flex: "0 0 auto" }}>
-                    ← Back
-                  </button>
-                  <button type="submit" disabled={loading} style={{ ...btnStyle(loading), flex: 1 }}>
-                    {loading ? "Scoring & submitting…" : "Submit for verification"}
-                  </button>
-                </div>
-
-                {loading && (
-                  <p style={{ textAlign: "center", fontSize: "0.8125rem", color: "var(--qp-muted)", margin: 0 }}>
-                    Evaluating your questionnaire with AI — this takes a few seconds…
-                  </p>
-                )}
-              </form>
-            )}
-
-            {/* STEP 3 — Google Calendar connect */}
-            {step === 3 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-                {/* Google icon + explanation */}
-                <div style={{ background: "var(--qp-bg)", borderRadius: "0.75rem", padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    {/* Calendar icon */}
-                    <div style={{ width: "2.5rem", height: "2.5rem", borderRadius: "0.5rem", background: "#4285F4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--qp-ink)" }}>Google Calendar + Meet</div>
-                      <div style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>When negotiations reach the limit, schedule a live meeting with one click</div>
-                    </div>
-                  </div>
-                  <ul style={{ margin: 0, paddingLeft: "1.25rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                    <li style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>Creates a Google Meet link automatically</li>
-                    <li style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>Invites both you and the buyer via calendar event</li>
-                    <li style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>You can connect or reconnect anytime from your dashboard</li>
-                  </ul>
-                </div>
-
-                <a
-                  href={registeredUserId ? `/api/auth/google?userId=${registeredUserId}` : "#"}
-                  style={{
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: "0.625rem",
-                    padding: "0.875rem", borderRadius: "0.5rem", border: "none",
-                    background: "#4285F4", color: "#fff",
-                    fontSize: "0.9375rem", fontWeight: 600,
-                    textDecoration: "none",
-                    opacity: registeredUserId ? 1 : 0.5,
-                    cursor: registeredUserId ? "pointer" : "not-allowed",
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                  </svg>
-                  Connect Google Calendar
-                </a>
-
-                <button
-                  type="button"
-                  onClick={() => router.push("/dev/pending")}
-                  style={{ padding: "0.875rem", borderRadius: "0.5rem", border: "1px solid var(--qp-border)", background: "var(--qp-surface)", color: "var(--qp-muted)", fontSize: "0.9375rem", fontWeight: 500, cursor: "pointer" }}
-                >
-                  Skip for now — I&apos;ll connect later
-                </button>
-              </div>
-            )}
-
-            {step !== 3 && (
-              <p style={{ textAlign: "center", fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>
-                Already have an account?{" "}
-                <Link href="/login" style={{ color: "var(--qp-ink)", fontWeight: 600 }}>Sign in</Link>
-              </p>
-            )}
-          </div>
+    <AuthRoom aside={<AuthAside href="/login" prompt={m.dev.alreadyAccount} action={m.auth.signIn} />}>
+      {/* Step indicator */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--qp-muted)", letterSpacing: "0.06em" }}>
+          {m.dev.portalLabel}
         </div>
-        <p style={{ textAlign: "center", fontSize: "0.75rem", color: "var(--qp-muted)", marginTop: "1.25rem" }}>
-          Haveniq — Developer Portal · prototype v0.1
-        </p>
+        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          {[1, 2, 3].map(n => (
+            <div key={n} style={{
+              width: n === step ? 20 : 7, height: 7, borderRadius: 999,
+              background: n < step ? "var(--qp-ink)" : n === step ? "var(--qp-accent)" : "var(--qp-border)",
+              transition: "all 0.2s",
+            }} />
+          ))}
+        </div>
       </div>
-    </main>
-  );
-}
 
-function ErrorBox({ message }: { message: string }) {
-  return (
-    <div style={{ background: "var(--qp-error-bg)", border: "1px solid rgba(176,64,64,0.2)", borderRadius: "0.5rem", padding: "0.75rem 1rem", display: "flex", gap: "0.5rem", alignItems: "flex-start" }}>
-      <span style={{ color: "var(--qp-error)", fontSize: "0.75rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>Error</span>
-      <span style={{ color: "var(--qp-error)", fontSize: "0.875rem" }}>{message}</span>
-    </div>
-  );
-}
+      <div>
+        <h1 style={{ fontSize: "1.6rem", fontWeight: 500, margin: "0 0 4px" }}>{stepTitles[step]}</h1>
+        <p className="qp-body" style={{ fontSize: 14, margin: 0 }}>{stepBodies[step]}</p>
+      </div>
 
-function btnStyle(disabled: boolean): React.CSSProperties {
-  return {
-    padding: "0.875rem", borderRadius: "0.5rem", border: "none",
-    background: "var(--qp-accent-text)", color: "var(--qp-on-primary)",
-    fontSize: "0.9375rem", fontWeight: 600,
-    cursor: disabled ? "not-allowed" : "pointer",
-    opacity: disabled ? 0.7 : 1,
-  };
+      {/* STEP 1 */}
+      {step === 1 && (
+        <form onSubmit={handleStep1} style={{ display: "grid", gap: "0.875rem" }}>
+          <TextField label={m.dev.companyNameLabel} type="text" required placeholder={m.dev.companyNamePh}
+            value={form.companyName} onChange={setField("companyName")} />
+          <TextField label={m.dev.crnLabel} type="text" required placeholder={m.dev.crnPh}
+            value={form.crn} onChange={setField("crn")} />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.875rem" }}>
+            <TextField label={m.dev.contactNameLabel} type="text" required placeholder={m.dev.contactNamePh}
+              value={form.contactName} onChange={setField("contactName")} />
+            <TextField label={m.dev.phoneLabel} type="tel" required placeholder={m.dev.phonePh}
+              value={form.phone} onChange={setField("phone")} />
+          </div>
+          <TextField label={m.auth.email} type="email" required autoComplete="email"
+            value={form.email} onChange={setField("email")} />
+          <TextField label={m.auth.password} type="password" required autoComplete="new-password" placeholder={m.auth.passwordPh}
+            value={form.password} onChange={setField("password")} />
+          {error && <div className="qp-notice qp-notice--danger" role="alert">{error}</div>}
+          <Button type="submit" className="qp-btn--block">{m.dev.continueBtn}</Button>
+        </form>
+      )}
+
+      {/* STEP 2 */}
+      {step === 2 && (
+        <form onSubmit={handleStep2} style={{ display: "grid", gap: "0.875rem" }}>
+          <div style={{ background: "var(--qp-soft)", borderRadius: 8, padding: "10px 14px", fontSize: 13, color: "var(--qp-muted)", lineHeight: 1.5 }}>
+            {m.dev.scoreNote}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.875rem" }}>
+            <TextField label={m.dev.yearsExpLabel} type="number" required min="0" max="99"
+              placeholder={m.dev.yearsExpPh} value={questionnaire.yearsExperience} onChange={setQ("yearsExperience")} />
+            <TextField label={m.dev.completedProjectsLabel} type="number" required min="0"
+              placeholder={m.dev.completedProjectsPh} value={questionnaire.completedProjects} onChange={setQ("completedProjects")} />
+          </div>
+          <div className="qp-field">
+            <label>{m.dev.companyDescLabel}</label>
+            <textarea
+              required rows={3}
+              placeholder={m.dev.companyDescPh}
+              value={questionnaire.companyDescription}
+              onChange={setQ("companyDescription")}
+              style={{ width: "100%", boxSizing: "border-box", minHeight: 80, padding: "0 14px", paddingBlock: 10, borderRadius: 8, border: "1px solid var(--qp-input)", background: "var(--qp-surface)", color: "var(--qp-ink)", font: "inherit", resize: "vertical" }}
+            />
+          </div>
+          {error && <div className="qp-notice qp-notice--danger" role="alert">{error}</div>}
+          <div style={{ display: "flex", gap: 8 }}>
+            <Button variant="secondary" onClick={() => { setStep(1); setError(""); }}>{m.dev.continueBtn.includes("המשך") ? "← חזרה" : "← Back"}</Button>
+            <Button type="submit" className="qp-btn--block" disabled={loading}>
+              {loading ? m.dev.submittingBtn : m.dev.submitBtn}
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {/* STEP 3 */}
+      {step === 3 && (
+        <div style={{ display: "grid", gap: "0.875rem" }}>
+          <div style={{ background: "var(--qp-soft)", borderRadius: 10, padding: "14px 16px", display: "grid", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: "#4285F4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--qp-ink)" }}>{m.dev.calendarTitle}</div>
+                <div style={{ fontSize: 13, color: "var(--qp-muted)" }}>{m.dev.calendarBody}</div>
+              </div>
+            </div>
+            <ul style={{ margin: 0, paddingInlineStart: "1.25rem", display: "grid", gap: 2 }}>
+              {[m.dev.calendarBullet1, m.dev.calendarBullet2, m.dev.calendarBullet3].map(b => (
+                <li key={b} style={{ fontSize: 13, color: "var(--qp-muted)" }}>{b}</li>
+              ))}
+            </ul>
+          </div>
+          <a
+            href={registeredUserId ? `/api/auth/google?userId=${registeredUserId}` : "#"}
+            className="qp-btn qp-btn--primary qp-btn--block"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "#4285F4", borderColor: "#4285F4", textDecoration: "none" }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            {m.dev.connectCalendar}
+          </a>
+          <Button variant="secondary" className="qp-btn--block" onClick={() => router.push("/dev/pending")}>
+            {m.dev.skipCalendar}
+          </Button>
+        </div>
+      )}
+    </AuthRoom>
+  );
 }

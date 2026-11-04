@@ -852,7 +852,13 @@ body {
 .qp-auth {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 100svh;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-height: 780px) {
+  .qp-auth__form { padding-block: 20px; }
+  .qp-auth__card { gap: 12px; }
 }
 .qp-auth__side {
   position: relative; overflow: hidden;

@@ -6,27 +6,7 @@ import Image from "next/image";
 import { useI18n } from "@/components/LocaleProvider";
 import { Logo } from "@/components/Logo";
 import LanguageToggle from "@/components/LanguageToggle";
-import SiteFooter from "@/components/SiteFooter";
 import "@/components/quiet/quiet.css";
-
-/* ─── Story data ────────────────────────────────────────────────────────────── */
-const STORY_IMAGES = [
-  { desktop: "/images/story-1-aerial.jpg",   mobile: "/images/story-1-mobile.jpg" },
-  { desktop: "/images/story-2-approach.jpg", mobile: "/images/story-2-mobile.jpg" },
-  { desktop: "/images/story-3-match.jpg",    mobile: "/images/story-3-mobile.jpg" },
-  { desktop: "/images/story-4-inside.jpg",   mobile: "/images/story-4-mobile.jpg" },
-];
-
-/* ─── Panel opacity helper ──────────────────────────────────────────────────── */
-function panelOpacity(i: number, prog: number): number {
-  const FADE = 0.07;
-  const start = i === 0 ? -1 : i / 4 - FADE;
-  const end   = i === 3 ?  2 : (i + 1) / 4 + FADE;
-  if (prog < start || prog > end) return 0;
-  const lo = Math.min(1, (prog - start) / (FADE * 2));
-  const hi = Math.min(1, (end - prog)   / (FADE * 2));
-  return Math.min(lo, hi);
-}
 
 /* ─── Gold checkmark icon ───────────────────────────────────────────────────── */
 function GoldCheck() {
@@ -51,11 +31,6 @@ export default function Home() {
   const prosButtonRef = useRef<HTMLButtonElement>(null);
   const prosMenuId    = useId();
 
-  /* Story scroll */
-  const storyRef      = useRef<HTMLDivElement>(null);
-  const [storyProg, setStoryProg] = useState(0);
-  const [storyPanel, setStoryPanel] = useState(0);
-
   /* Close pros menu on outside click */
   useEffect(() => {
     if (!prosOpen) return;
@@ -72,24 +47,6 @@ export default function Home() {
       document.removeEventListener("keydown", onKey);
     };
   }, [prosOpen]);
-
-  /* Story scroll tracking */
-  useEffect(() => {
-    function onScroll() {
-      const el = storyRef.current;
-      if (!el) return;
-      const rect  = el.getBoundingClientRect();
-      const total = el.offsetHeight - window.innerHeight;
-      const prog  = total > 0 ? Math.max(0, Math.min(1, -rect.top / total)) : 0;
-      setStoryProg(prog);
-      setStoryPanel(Math.min(3, Math.floor(prog * 4)));
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const storyTitles = [m.home.story1Title, m.home.story2Title, m.home.story3Title, m.home.story4Title];
-  const storyBodies = [m.home.story1Body,  m.home.story2Body,  m.home.story3Body,  m.home.story4Body];
 
   return (
     <main style={{ fontFamily: "var(--font-heebo), 'Heebo', sans-serif" }}>
@@ -124,7 +81,7 @@ export default function Home() {
             className={`qp-home-nav__links${menuOpen ? " is-open" : ""}`}
             aria-label={m.home.how}
           >
-            <a href="#story"      onClick={() => setMenuOpen(false)}>{isHe ? "הסיפור" : "Story"}</a>
+            <a href="#s01-title"  onClick={() => setMenuOpen(false)}>{isHe ? "פתרון" : "Solution"}</a>
             <a href="#match"      onClick={() => setMenuOpen(false)}>{isHe ? "התאמה" : "Matching"}</a>
             <a href="#developers" onClick={() => setMenuOpen(false)}>{isHe ? "יזמים" : "Developers"}</a>
           </nav>
@@ -185,58 +142,12 @@ export default function Home() {
         </div>
 
         {/* Scroll cue */}
-        <a className="qp-home-hero__cue" href="#story" style={{ zIndex: 2 }}>
+        <a className="qp-home-hero__cue" href="#s01-title" style={{ zIndex: 2 }}>
           <span>{m.home.scrollCue}</span>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden>
             <path d="M3 6l5 5 5-5" />
           </svg>
         </a>
-      </section>
-
-      {/* ── 4-moment story scroll ─────────────────────────────────────────────── */}
-      <section id="story" className="qp-story" ref={storyRef} aria-label={isHe ? "סיפור ארבעה רגעים" : "Four moment story"}>
-        <div className="qp-story__sticky">
-          {STORY_IMAGES.map((imgs, i) => (
-            <div
-              key={i}
-              className="qp-story__panel"
-              aria-hidden={storyPanel !== i}
-              style={{ opacity: panelOpacity(i, storyProg) }}
-            >
-              {/* Desktop image */}
-              <Image
-                src={imgs.desktop}
-                alt=""
-                fill
-                sizes="100vw"
-                className="qp-story__desktop"
-                priority={i === 0}
-              />
-              {/* Mobile image */}
-              <Image
-                src={imgs.mobile}
-                alt=""
-                fill
-                sizes="100vw"
-                className="qp-story__mobile"
-              />
-              <div className="qp-story__overlay" aria-hidden />
-              <div className="qp-story__label" aria-hidden>
-                <span className="qp-story__label-num">{`0${i + 1}`}</span>
-                <hr className="qp-story__label-line" />
-              </div>
-              <div className="qp-story__copy">
-                <h2 className="qp-h2" style={{ color: "#fff", fontWeight: 300 }}>{storyTitles[i]}</h2>
-                <p className="qp-body" style={{ color: "rgba(255,255,255,0.78)", marginTop: 12 }}>{storyBodies[i]}</p>
-              </div>
-            </div>
-          ))}
-          <div className="qp-story__dots" aria-hidden>
-            {[0, 1, 2, 3].map(i => (
-              <div key={i} className={`qp-story__dot${storyPanel === i ? " qp-story__dot--active" : ""}`} />
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* ── Section 01: City ─────────────────────────────────────────────────── */}
@@ -531,8 +442,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────────────────── */}
-      <SiteFooter />
     </main>
   );
 }
