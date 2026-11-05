@@ -186,6 +186,8 @@ export default function InterviewPage() {
   const rmsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Holds an audio track that arrived before the AudioContext was running
   const pendingAudioTrackRef = useRef<RemoteTrack | null>(null);
+  // Auto-end: timer started when buyer says a farewell phrase
+  const farewellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Interview state machine
   const [state, setState] = useState<InterviewState>({ phase: "checking" });
@@ -267,6 +269,22 @@ export default function InterviewPage() {
     const last = transcriptRef.current[transcriptRef.current.length - 1];
     if (last && last.role === line.role && last.text === line.text) return;
     transcriptRef.current.push(line);
+
+    // Auto-end: detect buyer farewell intent and trigger end after 2 s
+    if (line.role === "user" && farewellTimerRef.current === null) {
+      const text = line.text.toLowerCase().trim();
+      const isFarewell =
+        // Hebrew
+        /ביי|להתראות|שלום.*(סיים|גמר)|סיימנו|תודה.*(זהו|גמרנו|סיים)|זהו.*(תודה|טוב)|נגמר|אנחנו גמרנו|די.*(תודה|לא צריך)|חצינו/.test(text) ||
+        // English
+        /^bye|goodbye|that('?s| is) (all|it)|we('re| are) done|thanks.*that('?s| is) it|see you|all set|that'?ll do|no (more|further)/.test(text);
+      if (isFarewell) {
+        farewellTimerRef.current = setTimeout(() => {
+          farewellTimerRef.current = null;
+          void endConversationRef.current();
+        }, 2000);
+      }
+    }
   }, []);
 
   const playElement = useCallback(async (el: HTMLMediaElement | null): Promise<boolean> => {
@@ -662,6 +680,11 @@ export default function InterviewPage() {
 
     return () => {
       cancelled = true;
+      // Cancel any pending farewell-triggered auto-end timer
+      if (farewellTimerRef.current !== null) {
+        clearTimeout(farewellTimerRef.current);
+        farewellTimerRef.current = null;
+      }
       // Stop RMS monitoring
       if (rmsTimerRef.current !== null) {
         clearInterval(rmsTimerRef.current);
@@ -1217,14 +1240,21 @@ export default function InterviewPage() {
             onClick={() => { void endConversation(); }}
             style={{
               position: "absolute",
-              bottom: 20,
-              left: "50%",
-              transform: "translateX(-50%)",
+              bottom: 16,
+              right: 20,
               zIndex: 5,
-              ...quietButton,
+              background: "none",
+              border: "none",
+              color: "rgba(245,240,232,0.38)",
+              fontSize: "0.8125rem",
+              fontWeight: 400,
+              letterSpacing: "0.01em",
+              cursor: "pointer",
+              padding: "0.5rem 0.625rem",
+              lineHeight: 1,
             }}
           >
-            {copy.end}
+            {copy.endLink}
           </button>
         )}
       </div>
