@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { createUnitTypeSchema } from "@/lib/validation/properties";
 import { zodError } from "@/lib/validation";
+import { triggerAlerts } from "@/lib/alerts";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = await params;
@@ -35,6 +36,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       ail,
       attributes: JSON.stringify(attributes),
     },
+  });
+
+  // Fire-and-forget alert trigger — never delays the API response
+  void triggerAlerts({
+    type: "new_listing",
+    unitTypeId:      unitType.id,
+    unitLabel:       unitType.unitLabel,
+    projectName:     project.name,
+    projectLocation: project.location,
+    price:           unitType.price,
+    eil:             unitType.eil,
+    ail:             unitType.ail,
+    attributes:      attributes as Record<string, unknown>,
   });
 
   return NextResponse.json({ unitType }, { status: 201 });

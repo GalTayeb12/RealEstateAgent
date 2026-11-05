@@ -33,6 +33,8 @@ model User {
   verificationTokens        VerificationToken[]
   interviewAttempts         InterviewAttempt[]
   quotaResetAt              DateTime?           // set by admin reset; attempts before this timestamp are ignored
+  alertPreference           AlertPreference?
+  notifications             Notification[]
 }
 
 model VerificationToken {
@@ -350,6 +352,35 @@ model TourEvent {
 
   @@index([unitTypeId, createdAt])
   @@index([sessionId])
+}
+
+// Buyer opt-in alert preferences for new listings and price drops.
+model AlertPreference {
+  id          String   @id @default(cuid())
+  buyerId     String   @unique
+  buyer       User     @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  active      Boolean  @default(true)
+  frequency   String   @default("immediate") // "immediate" | "daily"
+  minScore    Float    @default(0)           // only notify if Zij >= this threshold
+  emailAlerts Boolean  @default(true)
+  siteAlerts  Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// In-app notification for a buyer.
+model Notification {
+  id         String   @id @default(cuid())
+  buyerId    String
+  buyer      User     @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  type       String   // "new_listing" | "price_drop"
+  title      String
+  body       String
+  unitTypeId String?  // the listing this notification is about
+  readAt     DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([buyerId, readAt, createdAt])
 }
 
 // One row per buyer who has joined a leverage group.

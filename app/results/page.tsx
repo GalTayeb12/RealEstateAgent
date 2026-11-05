@@ -20,6 +20,7 @@ import Link from "next/link";
 import { computeElasticity, ElasticityResult } from "@/lib/elasticity";
 import { formatAttributeValue, parseAttributes, translateAttrKey, formatArea } from "@/lib/attributes";
 import { MortgageCalculator } from "@/components/MortgageCalculator";
+import { AlertCard } from "@/components/AlertCard";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -1065,6 +1066,9 @@ export default function ResultsPage() {
             </div>
           </div>
         </div>
+
+        {/* Property alert opt-in card */}
+        {token && <AlertCard token={token} />}
 
         {/* Mortgage calculator card */}
         <MortgageCalculator

@@ -109,6 +109,9 @@ export default function TopNav() {
   const { m } = useI18n();
   const [user, setUser]               = useState<NavUser | null>(null);
   const [offersCount, setOffersCount] = useState(0);
+  const [notifCount, setNotifCount]   = useState(0);
+  const [notifOpen, setNotifOpen]     = useState(false);
+  const [notifications, setNotifications] = useState<{ id: string; type: string; title: string; body: string; unitTypeId?: string | null; readAt?: string | null; createdAt: string }[]>([]);
   const [menuOpen, setMenuOpen]       = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [narrow, setNarrow]           = useState(false);
@@ -178,6 +181,32 @@ export default function TopNav() {
     } catch { /* ignore */ }
   }, [pathname]);
 
+  // Fetch unread notification count for buyer on every route change.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("user");
+      const u: NavUser | null = raw ? JSON.parse(raw) : null;
+      if (!u || u.role !== "buyer") { setNotifCount(0); return; }
+      const token = localStorage.getItem("token") ?? "";
+      if (!token) return;
+      fetch("/api/notifications", { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d) { setNotifCount(d.unreadCount ?? 0); setNotifications(d.notifications ?? []); } })
+        .catch(() => {});
+    } catch { /* ignore */ }
+  }, [pathname]);
+
+  // Close notification panel on outside click.
+  useEffect(() => {
+    if (!notifOpen) return;
+    function onPointer(e: MouseEvent) {
+      if ((e.target as HTMLElement | null)?.closest("[data-notif]")) return;
+      setNotifOpen(false);
+    }
+    document.addEventListener("mousedown", onPointer);
+    return () => document.removeEventListener("mousedown", onPointer);
+  }, [notifOpen]);
+
   if (pathname === HOME_PATH || pathname === "/design-system" || AUTH_PATHS.has(pathname)) return null;
 
   const showAppNav = !!user && !GUEST_PATHS.has(pathname);
@@ -185,6 +214,14 @@ export default function TopNav() {
   const dashHref = user ? (DASHBOARD_HREF[user.role] ?? "/") : "/";
   const letter = user ? firstLetter(user) : "";
   const linksForMenu = user ? accountLinks(user.role, m) : [];
+
+  function markAllRead() {
+    const token = localStorage.getItem("token") ?? "";
+    if (!token) return;
+    fetch("/api/notifications/mark-read", { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({}) })
+      .then(() => { setNotifCount(0); setNotifications(prev => prev.map(n => ({ ...n, readAt: n.readAt ?? new Date().toISOString() }))); })
+      .catch(() => {});
+  }
 
   function signOut() {
     localStorage.removeItem("token");
@@ -286,9 +323,66 @@ export default function TopNav() {
         {/* Col 3: Right tools (justify-self end) */}
         <div style={{ justifySelf: "end", display: "flex", alignItems: "center", gap: "0.75rem" }}>
 
-          {/* Desktop: lang toggle + avatar */}
+          {/* Desktop: lang toggle + bell + avatar */}
           <div className="hn-nav-right" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <LanguageToggle />
+            {user && user.role === "buyer" && showAppNav && (
+              <div data-notif style={{ position: "relative" }}>
+                <button
+                  aria-label={m.alerts.bellLabel}
+                  onClick={() => setNotifOpen(o => !o)}
+                  style={{ position: "relative", width: "2rem", height: "2rem", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", cursor: "pointer", borderRadius: "0.375rem", color: "var(--qp-muted)", transition: "background 0.15s" }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(18,63,64,0.07)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--qp-ink)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "none"; (e.currentTarget as HTMLButtonElement).style.color = "var(--qp-muted)"; }}
+                >
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                  {notifCount > 0 && (
+                    <span style={{ position: "absolute", top: "0.125rem", insetInlineEnd: "0.125rem", minWidth: "1rem", height: "1rem", borderRadius: 999, background: "#9E3434", color: "#fff", fontSize: "0.5rem", fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 0.1875rem", lineHeight: 1 }}>
+                      {notifCount > 9 ? "9+" : notifCount}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <div data-notif style={{ position: "absolute", insetInlineEnd: 0, top: "calc(100% + 0.5rem)", zIndex: 300, width: "min(22rem, 92vw)", background: "var(--qp-surface)", borderRadius: 16, border: "1px solid var(--qp-border)", boxShadow: "0 8px 32px -8px rgba(18,63,64,0.18)", overflow: "hidden" }}>
+                    <div style={{ padding: "0.875rem 1rem", borderBottom: "1px solid var(--qp-soft)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)" }}>{m.alerts.bellLabel}</span>
+                      {notifCount > 0 && (
+                        <button onClick={markAllRead} style={{ background: "none", border: "none", fontSize: "0.75rem", color: "var(--qp-muted)", cursor: "pointer", fontWeight: 500 }}>
+                          {m.alerts.markAllRead}
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ maxHeight: "20rem", overflowY: "auto" }}>
+                      {notifications.length === 0 ? (
+                        <div style={{ padding: "1.25rem 1rem", fontSize: "0.875rem", color: "var(--qp-muted)", textAlign: "center" }}>
+                          {m.alerts.noNotifications}
+                        </div>
+                      ) : (
+                        notifications.slice(0, 20).map(n => (
+                          <div
+                            key={n.id}
+                            style={{ padding: "0.75rem 1rem", borderBottom: "1px solid var(--qp-soft)", background: n.readAt ? "transparent" : "rgba(18,63,64,0.03)", display: "flex", flexDirection: "column", gap: "0.1875rem" }}
+                          >
+                            <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", justifyContent: "space-between" }}>
+                              <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)", lineHeight: 1.4 }}>{n.title}</span>
+                              {!n.readAt && <span style={{ width: "0.4375rem", height: "0.4375rem", borderRadius: "50%", background: "#9E3434", flexShrink: 0, marginTop: "0.25rem" }} />}
+                            </div>
+                            <span style={{ fontSize: "0.75rem", color: "var(--qp-muted)" }}>{n.body}</span>
+                            {n.unitTypeId && (
+                              <a href={`/aom/${n.unitTypeId}`} onClick={() => setNotifOpen(false)} style={{ fontSize: "0.75rem", color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none", marginTop: "0.125rem" }}>
+                                {m.alerts.viewListing} →
+                              </a>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {user && (
               <AccountButton
                 letter={letter}
