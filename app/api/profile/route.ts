@@ -1,6 +1,7 @@
 /**
- * GET  /api/profile — returns current user's name, phone, email, role
- * PATCH /api/profile — updates name and/or phone
+ * GET    /api/profile — returns current user's name, phone, email, role
+ * PATCH  /api/profile — updates name and/or phone
+ * DELETE /api/profile — permanently deletes the account and all associated data
  *
  * Both buyer and developer roles are supported.
  * Email and role are read-only (cannot be changed via this route).
@@ -47,4 +48,14 @@ export async function PATCH(req: NextRequest) {
   });
 
   return NextResponse.json(user);
+}
+
+export async function DELETE(req: NextRequest) {
+  const auth = extractToken(req.headers.get("Authorization"));
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Cascading deletes on User handle all related records (Prisma onDelete: Cascade)
+  await prisma.user.delete({ where: { id: auth.userId } });
+
+  return NextResponse.json({ ok: true });
 }

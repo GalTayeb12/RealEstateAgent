@@ -1,11 +1,20 @@
 "use client";
 /**
- * /profile — personal details for every role, plus the buyer's interview summary.
+ * /profile — My Account page.
+ *
+ * Sections:
+ *   1. Personal details (name, phone, email, role)
+ *   2. Buyer interview summary + redo (buyer only)
+ *   3. Property alert settings (buyer only, via AlertCard)
+ *   4. Language
+ *   5. Privacy (download data, delete account)
  */
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
 import { useAudioUnlock } from "@/components/AudioUnlockProvider";
+import { AlertCard } from "@/components/AlertCard";
+import LanguageToggle from "@/components/LanguageToggle";
 
 interface Profile {
   email: string;
@@ -41,11 +50,24 @@ function textOf(value: unknown): string {
   return "";
 }
 
+// ── Section header ────────────────────────────────────────────────────────────
+
+function SectionLabel({ label }: { label: string }) {
+  return (
+    <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "0.75rem" }}>
+      {label}
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function ProfilePage() {
   const router = useRouter();
   const { m } = useI18n();
   const { unlock } = useAudioUnlock();
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [token, setToken] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [prefs, setPrefs] = useState<BuyerPrefs | null>(null);
@@ -55,11 +77,19 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [toast, setToast] = useState(false);
 
+  // Delete account flow
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Download data
+  const [downloading, setDownloading] = useState(false);
+
   const load = useCallback(async () => {
-    const token = localStorage.getItem("token") ?? "";
-    if (!token) { router.push("/login"); return; }
+    const t = localStorage.getItem("token") ?? "";
+    if (!t) { router.push("/login"); return; }
+    setToken(t);
     try {
-      const res = await fetch("/api/profile", { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch("/api/profile", { headers: { Authorization: `Bearer ${t}` } });
       if (res.status === 401) { router.push("/login"); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: Profile = await res.json();
@@ -69,14 +99,12 @@ export default function ProfilePage() {
 
       if (data.role === "buyer") {
         const [buyerRes, limitRes] = await Promise.all([
-          fetch("/api/buyer/profile", { headers: { Authorization: `Bearer ${token}` } }),
-          fetch("/api/interview/rate-limit", { headers: { Authorization: `Bearer ${token}` } }),
+          fetch("/api/buyer/profile", { headers: { Authorization: `Bearer ${t}` } }),
+          fetch("/api/interview/rate-limit", { headers: { Authorization: `Bearer ${t}` } }),
         ]);
         if (buyerRes.ok) {
           const buyer = await buyerRes.json();
           setPrefs(buyer.buyer_preferences ?? {});
-        } else {
-          setPrefs(null);
         }
         if (limitRes.ok) setRate(await limitRes.json());
       }
@@ -98,16 +126,16 @@ export default function ProfilePage() {
     if (!profile) return;
     setSaving(true);
     setError("");
-    const token = localStorage.getItem("token") ?? "";
+    const t = localStorage.getItem("token") ?? "";
     try {
       const res = await fetch("/api/profile", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
         body: JSON.stringify({ name: name.trim() || null, phone: phone.trim() || null }),
       });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
-        throw new Error(d.error ?? `HTTP ${res.status}`);
+        throw new Error((d as { error?: string }).error ?? `HTTP ${res.status}`);
       }
       const updated: Profile = await res.json();
       setProfile(updated);
@@ -128,17 +156,52 @@ export default function ProfilePage() {
     }
   }
 
+  async function downloadData() {
+    setDownloading(true);
+    try {
+      const t = localStorage.getItem("token") ?? "";
+      const res = await fetch("/api/profile/download", { headers: { Authorization: `Bearer ${t}` } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const cd = res.headers.get("Content-Disposition") ?? "";
+      const match = cd.match(/filename="([^"]+)"/);
+      a.download = match?.[1] ?? "haveniq-data.json";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch { /* ignore */ }
+    setDownloading(false);
+  }
+
+  async function deleteAccount() {
+    setDeleting(true);
+    const t = localStorage.getItem("token") ?? "";
+    try {
+      const res = await fetch("/api/profile", { method: "DELETE", headers: { Authorization: `Bearer ${t}` } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      router.push("/login");
+    } catch { /* ignore */ }
+    setDeleting(false);
+  }
+
   const roleLabel: Record<string, string> = {
     buyer: m.nav.roleBuyer,
     developer: m.nav.roleDeveloper,
     seller: m.nav.roleSeller,
     admin: m.nav.roleAdmin,
   };
+
   const budget = textOf(prefs?.budget) || textOf(prefs?.max_budget) || textOf(prefs?.budget_max);
   const area = textOf(prefs?.location);
   const rooms = textOf(prefs?.bedrooms);
   const matters = Array.isArray(prefs?.must_haves)
-    ? prefs.must_haves.map(textOf).filter(Boolean)
+    ? (prefs.must_haves as unknown[]).map(textOf).filter(Boolean)
     : [];
   const canRedo = !!rate && rate.remaining > 0;
 
@@ -173,6 +236,34 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* Delete confirmation modal */}
+      {deleteOpen && (
+        <>
+          <div onClick={() => setDeleteOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(4,10,16,0.55)", zIndex: 999, backdropFilter: "blur(3px)" }} />
+          <div style={{
+            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            zIndex: 1000, width: "min(92vw, 26rem)",
+            background: "var(--qp-surface)", borderRadius: 20, border: "1px solid var(--qp-border)",
+            boxShadow: "0 24px 64px -20px rgba(0,0,0,0.4)", padding: "1.75rem",
+          }}>
+            <div style={{ fontWeight: 600, fontSize: "1rem", color: "var(--qp-ink)", marginBottom: "0.5rem" }}>{m.profile.deleteConfirmTitle}</div>
+            <p style={{ margin: "0 0 1.25rem", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.6 }}>{m.profile.deleteConfirmBody}</p>
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+              <button onClick={() => setDeleteOpen(false)} style={{ padding: "0.5rem 1.25rem", borderRadius: 999, border: "1px solid var(--qp-border)", background: "none", color: "var(--qp-ink)", fontWeight: 600, cursor: "pointer", fontSize: "0.875rem" }}>
+                {m.profile.deleteCancel}
+              </button>
+              <button
+                onClick={() => { void deleteAccount(); }}
+                disabled={deleting}
+                style={{ padding: "0.5rem 1.25rem", borderRadius: 999, border: "none", background: "#9E3434", color: "#fff", fontWeight: 600, cursor: deleting ? "wait" : "pointer", fontSize: "0.875rem" }}
+              >
+                {deleting ? m.profile.deleting : m.profile.deleteConfirm}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
       <div style={{ maxWidth: "40rem", margin: "0 auto" }}>
         <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)", fontWeight: 500, marginBottom: "0.4rem" }}>
           {m.profile.kicker}
@@ -180,136 +271,213 @@ export default function ProfilePage() {
         <h1 style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "2.1rem", fontWeight: 600, margin: "0 0 0.4rem" }}>
           {m.profile.title}
         </h1>
-        <p style={{ margin: "0 0 1.5rem", color: "var(--qp-muted)", lineHeight: 1.7 }}>{m.profile.subtitle}</p>
+        <p style={{ margin: "0 0 2rem", color: "var(--qp-muted)", lineHeight: 1.7 }}>{m.profile.subtitle}</p>
 
         {loading && <div style={{ color: "var(--qp-muted)" }}>{m.common.loading}</div>}
         {error && <div role="alert" style={{ color: "var(--qp-error)", background: "var(--qp-error-bg)", borderRadius: 8, padding: "0.75rem 1rem", marginBottom: "1rem" }}>{error}</div>}
 
         {!loading && profile && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <section style={{ ...glass, padding: "1.25rem 1.35rem" }}>
-              <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.email}</label>
-              <input value={profile.email} readOnly style={{ ...field, background: "var(--qp-soft)", color: "var(--qp-muted)" }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginTop: "0.9rem" }} className="hn-profile-grid">
-                <div>
-                  <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.name}</label>
-                  <input value={name} onChange={(e) => setName(e.target.value)} style={field} />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.phone}</label>
-                  <input value={phone} onChange={(e) => setPhone(e.target.value)} style={field} />
-                </div>
-              </div>
+            {/* ── Personal details ── */}
+            <section>
+              <SectionLabel label={m.profile.sectionPersonal} />
+              <div style={{ ...glass, padding: "1.25rem 1.35rem" }}>
+                <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.email}</label>
+                <input value={profile.email} readOnly style={{ ...field, background: "var(--qp-soft)", color: "var(--qp-muted)" }} />
 
-              <div style={{ marginTop: "0.9rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
-                <div>
-                  <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.role}</div>
-                  <span style={{
-                    display: "inline-flex",
-                    padding: "0.2rem 0.7rem",
-                    borderRadius: 999,
-                    background: "var(--qp-warning-bg)",
-                    color: "var(--qp-warning)",
-                    fontSize: "0.8125rem",
-                    fontWeight: 500,
-                  }}>
-                    {roleLabel[profile.role] ?? profile.role}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => { void save(); }}
-                  disabled={saving}
-                  style={{
-                    border: "none",
-                    borderRadius: 999,
-                    padding: "0.6rem 1.1rem",
-                    background: saving ? "var(--qp-disabled-bg)" : "var(--qp-ink)",
-                    color: saving ? "var(--qp-disabled-text)" : "var(--qp-on-primary)",
-                    minHeight: 48,
-                    fontWeight: 600,
-                    cursor: saving ? "wait" : "pointer",
-                  }}
-                >
-                  {saving ? m.profile.saving : m.profile.save}
-                </button>
-              </div>
-            </section>
-
-            {profile.role === "buyer" && (
-              <section style={{ ...glass, padding: "1.25rem 1.35rem" }}>
-                <div style={{ fontSize: "1rem", color: "var(--qp-ink)", fontWeight: 500, marginBottom: "0.9rem" }}>
-                  {m.profile.interviewTitle}
-                </div>
-                {!prefs ? (
-                  <p style={{ margin: 0, color: "var(--qp-muted)", lineHeight: 1.7 }}>{m.profile.interviewEmpty}</p>
-                ) : (
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem 1.25rem" }}>
-                    {([
-                      [m.profile.budget, budget],
-                      [m.profile.area, area],
-                      [m.profile.rooms, rooms],
-                    ] as const).map(([label, value]) => (
-                      <div key={label}>
-                        <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.2rem" }}>{label}</div>
-                        <div style={{ fontWeight: 500 }}>{value || m.profile.none}</div>
-                      </div>
-                    ))}
-                    <div style={{ gridColumn: "1 / -1" }}>
-                      <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>{m.profile.matters}</div>
-                      {matters.length === 0 ? (
-                        <div>{m.profile.none}</div>
-                      ) : (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                          {matters.map((item) => (
-                            <span key={item} style={{
-                              padding: "0.25rem 0.65rem",
-                              borderRadius: 999,
-                              background: "var(--qp-soft)",
-                              border: "1px solid var(--qp-border)",
-                              color: "var(--qp-ink)",
-                              fontSize: "0.875rem",
-                            }}>{item}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginTop: "0.9rem" }} className="hn-profile-grid">
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.name}</label>
+                    <input value={name} onChange={(e) => setName(e.target.value)} style={field} />
                   </div>
-                )}
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.phone}</label>
+                    <input value={phone} onChange={(e) => setPhone(e.target.value)} style={field} />
+                  </div>
+                </div>
 
-                <div style={{ marginTop: "1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
-                  <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>
-                    {rate
-                      ? (rate.remaining === 0
-                        ? m.profile.quotaBlocked
-                        : `${rate.attempts}/2 ${m.profile.quotaUsed}`)
-                      : m.common.loading}
+                <div style={{ marginTop: "0.9rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.role}</div>
+                    <span style={{
+                      display: "inline-flex",
+                      padding: "0.2rem 0.7rem",
+                      borderRadius: 999,
+                      background: "var(--qp-warning-bg)",
+                      color: "var(--qp-warning)",
+                      fontSize: "0.8125rem",
+                      fontWeight: 500,
+                    }}>
+                      {roleLabel[profile.role] ?? profile.role}
+                    </span>
                   </div>
                   <button
                     type="button"
-                    disabled={!canRedo}
-                    onClick={() => {
-                      sessionStorage.setItem("requestedRetake", "true");
-                      void unlock();
-                      router.push("/interview");
-                    }}
+                    onClick={() => { void save(); }}
+                    disabled={saving}
                     style={{
+                      border: "none",
                       borderRadius: 999,
-                      border: "1px solid transparent",
-                      background: canRedo ? "var(--qp-ink)" : "var(--qp-disabled-bg)",
-                      color: canRedo ? "var(--qp-on-primary)" : "var(--qp-disabled-text)",
+                      padding: "0.6rem 1.1rem",
+                      background: saving ? "var(--qp-disabled-bg)" : "var(--qp-ink)",
+                      color: saving ? "var(--qp-disabled-text)" : "var(--qp-on-primary)",
                       minHeight: 48,
-                      padding: "0.55rem 1rem",
                       fontWeight: 600,
-                      cursor: canRedo ? "pointer" : "not-allowed",
+                      cursor: saving ? "wait" : "pointer",
                     }}
                   >
-                    {m.profile.redo}
+                    {saving ? m.profile.saving : m.profile.save}
                   </button>
+                </div>
+              </div>
+            </section>
+
+            {/* ── Buyer interview summary ── */}
+            {profile.role === "buyer" && (
+              <section>
+                <SectionLabel label={m.profile.interviewTitle} />
+                <div style={{ ...glass, padding: "1.25rem 1.35rem" }}>
+                  {!prefs ? (
+                    <p style={{ margin: 0, color: "var(--qp-muted)", lineHeight: 1.7 }}>{m.profile.interviewEmpty}</p>
+                  ) : (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem 1.25rem" }}>
+                      {([
+                        [m.profile.budget, budget],
+                        [m.profile.area, area],
+                        [m.profile.rooms, rooms],
+                      ] as const).map(([label, value]) => (
+                        <div key={label}>
+                          <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.2rem" }}>{label}</div>
+                          <div style={{ fontWeight: 500 }}>{value || m.profile.none}</div>
+                        </div>
+                      ))}
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>{m.profile.matters}</div>
+                        {matters.length === 0 ? (
+                          <div>{m.profile.none}</div>
+                        ) : (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                            {matters.map((item) => (
+                              <span key={item} style={{
+                                padding: "0.25rem 0.65rem",
+                                borderRadius: 999,
+                                background: "var(--qp-soft)",
+                                border: "1px solid var(--qp-border)",
+                                color: "var(--qp-ink)",
+                                fontSize: "0.875rem",
+                              }}>{item}</span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: "1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
+                    <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>
+                      {rate
+                        ? (rate.remaining === 0
+                          ? m.profile.quotaBlocked
+                          : `${rate.attempts}/2 ${m.profile.quotaUsed}`)
+                        : m.common.loading}
+                    </div>
+                    <button
+                      type="button"
+                      disabled={!canRedo}
+                      onClick={() => {
+                        sessionStorage.setItem("requestedRetake", "true");
+                        void unlock();
+                        router.push("/interview");
+                      }}
+                      style={{
+                        borderRadius: 999,
+                        border: "1px solid transparent",
+                        background: canRedo ? "var(--qp-ink)" : "var(--qp-disabled-bg)",
+                        color: canRedo ? "var(--qp-on-primary)" : "var(--qp-disabled-text)",
+                        minHeight: 48,
+                        padding: "0.55rem 1rem",
+                        fontWeight: 600,
+                        cursor: canRedo ? "pointer" : "not-allowed",
+                      }}
+                    >
+                      {m.profile.redo}
+                    </button>
+                  </div>
                 </div>
               </section>
             )}
+
+            {/* ── Alert settings (buyer only) ── */}
+            {profile.role === "buyer" && token && (
+              <section>
+                <SectionLabel label={m.profile.sectionAlerts} />
+                <AlertCard token={token} />
+              </section>
+            )}
+
+            {/* ── Language ── */}
+            <section>
+              <SectionLabel label={m.profile.sectionLang} />
+              <div style={{ ...glass, padding: "1.25rem 1.35rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: "0.9375rem", color: "var(--qp-ink)", marginBottom: "0.2rem" }}>{m.profile.langTitle}</div>
+                  <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>{m.profile.langBody}</div>
+                </div>
+                <LanguageToggle />
+              </div>
+            </section>
+
+            {/* ── Privacy ── */}
+            <section>
+              <SectionLabel label={m.profile.sectionPrivacy} />
+              <div style={{ ...glass, padding: "1.25rem 1.35rem", display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: "0.9375rem", color: "var(--qp-ink)", marginBottom: "0.2rem" }}>{m.profile.privacyTitle}</div>
+                  <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>{m.profile.privacyBody}</div>
+                </div>
+                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    onClick={() => { void downloadData(); }}
+                    disabled={downloading}
+                    style={{
+                      padding: "0.5rem 1.125rem",
+                      borderRadius: 999,
+                      border: "1px solid var(--qp-border)",
+                      background: "none",
+                      color: "var(--qp-ink)",
+                      fontWeight: 600,
+                      cursor: downloading ? "wait" : "pointer",
+                      fontSize: "0.875rem",
+                      display: "flex", alignItems: "center", gap: "0.4rem",
+                    }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    {downloading ? m.profile.downloading : m.profile.downloadData}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteOpen(true)}
+                    style={{
+                      padding: "0.5rem 1.125rem",
+                      borderRadius: 999,
+                      border: "1px solid #FBECEA",
+                      background: "#FBECEA",
+                      color: "#9E3434",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      fontSize: "0.875rem",
+                    }}
+                  >
+                    {m.profile.deleteAccount}
+                  </button>
+                </div>
+              </div>
+            </section>
+
           </div>
         )}
       </div>
