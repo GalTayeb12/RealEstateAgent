@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
-import { matchBuyerToAoms, BuyerProfile, AomCandidate } from "@/lib/matching";
+import { matchBuyerToAoms, BuyerProfile, AomCandidate, checkHardFilters, HardFilterCriteria } from "@/lib/matching";
 import { appendBlock, verifyAllChains } from "@/lib/ledger";
 import { matchSchema } from "@/lib/validation/matching";
 import { zodError } from "@/lib/validation";
@@ -36,13 +36,33 @@ export async function POST(req: NextRequest) {
 
     const idFilter = unitTypeIds ?? aomIds;
 
+    // Fetch buyer profile preferences for hard filter criteria
+    const buyerProfileRow = await prisma.buyerProfile.findUnique({
+      where: { userId: auth.userId },
+      select: { preferences: true },
+    });
+
+    let hardCriteria: HardFilterCriteria = {};
+    if (buyerProfileRow?.preferences) {
+      try {
+        const prefs = JSON.parse(buyerProfileRow.preferences) as Record<string, unknown>;
+        hardCriteria = {
+          minRooms:  typeof prefs.bedrooms   === "number" ? prefs.bedrooms   : null,
+          maxBudget: typeof prefs.budget_max === "number" ? prefs.budget_max : null,
+          location:  typeof prefs.location   === "string" ? prefs.location   : null,
+        };
+      } catch {
+        // Malformed preferences — no hard filters
+      }
+    }
+
     const listings = await prisma.unitType.findMany({
       where: {
         active: true,
         ...(idFilter?.length ? { id: { in: idFilter } } : {}),
       },
       include: {
-        project: { select: { name: true } },
+        project: { select: { name: true, location: true } },
       },
     });
 
@@ -58,10 +78,20 @@ export async function POST(req: NextRequest) {
       title: `${l.project.name} — ${l.unitLabel}`,
       eil: l.eil,
       ail: l.ail,
+      price: l.price,
+      location: l.project.location || undefined,
       attributes: parseAttributes(l.attributes),
     }));
 
-    const ranked = matchBuyerToAoms(buyerProfile, candidates);
+    const rawRanked = matchBuyerToAoms(buyerProfile, candidates);
+
+    // Apply hard requirement filters (rooms, budget, area) on top of Zij
+    const ranked = rawRanked.map((outcome) => {
+      const candidate = candidates.find((c) => c.id === outcome.aomId);
+      if (!candidate) return outcome;
+      const { passes, reasons } = checkHardFilters(candidate, hardCriteria);
+      return { ...outcome, passesHardFilters: passes, hardFilterFailReasons: reasons };
+    });
 
     await Promise.all([
       appendBlock("buyer", {

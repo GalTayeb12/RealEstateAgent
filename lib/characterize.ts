@@ -10,6 +10,7 @@ export interface BuyerPreferences {
   location: string;
   bedrooms: number | null;
   bathrooms: number | null;
+  budget_max: number | null;   // Maximum budget in ILS (null if not stated)
   must_haves: string[];
   dealbreakers: string[];
   timeline: string;
@@ -82,6 +83,8 @@ PSYCHOMETRIC SCORING RUBRIC (0–100 per dimension, based strictly on observable
 
   Calibration: 50 is average for a typical property buyer. Scores above 75 require clear evidence. Below 30 only if the buyer explicitly struggles on that dimension.
 
+LANGUAGE RULE: Extract all free-text string values (property_type, location, timeline, must_haves, dealbreakers, additional_notes) in the same language as the buyer's interview transcript. If the buyer spoke Hebrew, return those strings in Hebrew. If in English, return them in English.
+
 Return ONLY valid JSON — no markdown, no explanation, no code fences — matching this exact structure:
 {
   "buyer_preferences": {
@@ -89,6 +92,7 @@ Return ONLY valid JSON — no markdown, no explanation, no code fences — match
     "location": "string",
     "bedrooms": number_or_null,
     "bathrooms": number_or_null,
+    "budget_max": number_or_null,
     "must_haves": ["string"],
     "dealbreakers": ["string"],
     "timeline": "string",

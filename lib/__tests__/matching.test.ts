@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { computeZij, matchBuyerToAoms, BuyerProfile, AomCandidate } from "../matching";
+import { computeZij, matchBuyerToAoms, checkHardFilters, BuyerProfile, AomCandidate, HardFilterCriteria } from "../matching";
 
 describe("1 · Standard feasible match", () => {
   // eil=60, ail=80, ēj=90, āj=50
@@ -114,4 +114,152 @@ describe("7 · Floating-point scores", () => {
   it("valid", () => { expect(result.valid).toBe(true); });
   it("pfij ≈ 0.85", () => { expect(result.pfij).toBeCloseTo(0.85, 10); });
   it("zij ≈ 0.30",  () => { expect(result.zij).toBeCloseTo(0.30, 10); });
+});
+
+describe("8 · computeZij initialises hard filter fields", () => {
+  const buyer: BuyerProfile = { expectedScore: 80, minAcceptanceScore: 60 };
+  const aom: AomCandidate   = { id: "d1", title: "D1", eil: 55, ail: 75 };
+  const result = computeZij(buyer, aom);
+
+  it("passesHardFilters defaults to true", () => {
+    expect(result.passesHardFilters).toBe(true);
+  });
+  it("hardFilterFailReasons defaults to empty array", () => {
+    expect(result.hardFilterFailReasons).toEqual([]);
+  });
+});
+
+// ── checkHardFilters ──────────────────────────────────────────────────────────
+
+describe("9 · checkHardFilters — rooms", () => {
+  const makeCand = (rooms: number): AomCandidate => ({
+    id: "e1", title: "T", eil: 50, ail: 70, attributes: { rooms },
+  });
+
+  it("passes when property has exactly the required rooms", () => {
+    expect(checkHardFilters(makeCand(4), { minRooms: 4 }).passes).toBe(true);
+  });
+
+  it("passes when property has more rooms than required", () => {
+    expect(checkHardFilters(makeCand(5), { minRooms: 4 }).passes).toBe(true);
+  });
+
+  it("fails when property has fewer rooms than required", () => {
+    const { passes, reasons } = checkHardFilters(makeCand(3), { minRooms: 4 });
+    expect(passes).toBe(false);
+    expect(reasons).toHaveLength(1);
+    if (reasons[0].kind === "rooms") {
+      expect(reasons[0].actual).toBe(3);
+      expect(reasons[0].required).toBe(4);
+    }
+  });
+
+  it("skips rooms check when minRooms is null", () => {
+    expect(checkHardFilters(makeCand(2), { minRooms: null }).passes).toBe(true);
+  });
+
+  it("skips rooms check when attribute is missing (lenient on missing data)", () => {
+    const cand: AomCandidate = { id: "e", title: "T", eil: 50, ail: 70, attributes: {} };
+    expect(checkHardFilters(cand, { minRooms: 4 }).passes).toBe(true);
+  });
+
+  it("checks 'bedrooms' key as fallback when 'rooms' is absent", () => {
+    const cand: AomCandidate = {
+      id: "e", title: "T", eil: 50, ail: 70,
+      attributes: { bedrooms: 3 },
+    };
+    const { passes, reasons } = checkHardFilters(cand, { minRooms: 4 });
+    expect(passes).toBe(false);
+    expect(reasons[0].kind).toBe("rooms");
+  });
+});
+
+describe("10 · checkHardFilters — budget", () => {
+  const makeCand = (price: number): AomCandidate => ({
+    id: "f1", title: "T", eil: 50, ail: 70, price,
+  });
+
+  it("passes when price is within budget", () => {
+    expect(checkHardFilters(makeCand(2_000_000), { maxBudget: 2_500_000 }).passes).toBe(true);
+  });
+
+  it("passes when price equals budget exactly", () => {
+    expect(checkHardFilters(makeCand(2_500_000), { maxBudget: 2_500_000 }).passes).toBe(true);
+  });
+
+  it("fails when price exceeds budget", () => {
+    const { passes, reasons } = checkHardFilters(makeCand(3_000_000), { maxBudget: 2_500_000 });
+    expect(passes).toBe(false);
+    expect(reasons[0].kind).toBe("budget");
+  });
+
+  it("skips budget check when maxBudget is null", () => {
+    expect(checkHardFilters(makeCand(5_000_000), { maxBudget: null }).passes).toBe(true);
+  });
+
+  it("skips budget check when price is missing", () => {
+    const cand: AomCandidate = { id: "f", title: "T", eil: 50, ail: 70 };
+    expect(checkHardFilters(cand, { maxBudget: 1_000_000 }).passes).toBe(true);
+  });
+});
+
+describe("11 · checkHardFilters — location", () => {
+  const makeCand = (location: string): AomCandidate => ({
+    id: "g1", title: "T", eil: 50, ail: 70, location,
+  });
+
+  it("passes when locations match exactly", () => {
+    expect(checkHardFilters(makeCand("Tel Aviv"), { location: "Tel Aviv" }).passes).toBe(true);
+  });
+
+  it("passes for Tel Aviv vs Tel Aviv-Yafo (substring overlap)", () => {
+    expect(checkHardFilters(makeCand("Tel Aviv-Yafo"), { location: "Tel Aviv" }).passes).toBe(true);
+  });
+
+  it("fails when locations share no significant word", () => {
+    const { passes, reasons } = checkHardFilters(makeCand("Ramat Gan"), { location: "Tel Aviv" });
+    expect(passes).toBe(false);
+    expect(reasons[0].kind).toBe("location");
+  });
+
+  it("skips location check when buyer location is null", () => {
+    expect(checkHardFilters(makeCand("Haifa"), { location: null }).passes).toBe(true);
+  });
+
+  it("skips location check when property location is missing", () => {
+    const cand: AomCandidate = { id: "g", title: "T", eil: 50, ail: 70 };
+    expect(checkHardFilters(cand, { location: "Tel Aviv" }).passes).toBe(true);
+  });
+});
+
+describe("12 · checkHardFilters — multiple criteria", () => {
+  it("collects all fail reasons when multiple criteria fail", () => {
+    const cand: AomCandidate = {
+      id: "h1", title: "T", eil: 50, ail: 70,
+      price: 4_000_000,
+      location: "Haifa",
+      attributes: { rooms: 2 },
+    };
+    const criteria: HardFilterCriteria = {
+      minRooms: 4,
+      maxBudget: 3_000_000,
+      location: "Tel Aviv",
+    };
+    const { passes, reasons } = checkHardFilters(cand, criteria);
+    expect(passes).toBe(false);
+    expect(reasons).toHaveLength(3);
+    expect(reasons.map((r) => r.kind).sort()).toEqual(["budget", "location", "rooms"]);
+  });
+
+  it("passes when all criteria are met", () => {
+    const cand: AomCandidate = {
+      id: "h2", title: "T", eil: 50, ail: 70,
+      price: 2_000_000,
+      location: "Tel Aviv",
+      attributes: { rooms: 4 },
+    };
+    expect(
+      checkHardFilters(cand, { minRooms: 4, maxBudget: 3_000_000, location: "Tel Aviv" }).passes
+    ).toBe(true);
+  });
 });

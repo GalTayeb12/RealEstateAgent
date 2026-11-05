@@ -22,6 +22,11 @@ import { formatAttributeValue, parseAttributes, translateAttrKey, formatArea } f
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
+type HardFilterReason =
+  | { kind: "rooms"; actual: number; required: number }
+  | { kind: "budget"; actual: number; max: number }
+  | { kind: "location"; actual: string; required: string };
+
 interface MatchOutcome {
   aomId: string;
   title: string;
@@ -30,6 +35,10 @@ interface MatchOutcome {
   valid: boolean;
   lowerBound: number;
   upperBound: number;
+  /** Whether the property passes all hard requirement filters (rooms, budget, area) */
+  passesHardFilters?: boolean;
+  /** Specific reasons a hard filter failed */
+  hardFilterFailReasons?: HardFilterReason[];
 }
 
 interface AomDetail {
@@ -662,6 +671,84 @@ function SendOfferPanel({
   );
 }
 
+// ── Near-match card ───────────────────────────────────────────────────────────
+
+function renderFailReason(reason: HardFilterReason, m: { filterFailRooms: string; filterFailBudget: string; filterFailLocation: string }): string {
+  switch (reason.kind) {
+    case "rooms":
+      return m.filterFailRooms
+        .replace("{actual}", String(reason.actual))
+        .replace("{required}", String(reason.required));
+    case "budget":
+      return m.filterFailBudget;
+    case "location":
+      return m.filterFailLocation;
+  }
+}
+
+function NearMatchCard({
+  outcome,
+  detail,
+  ej,
+  aj,
+}: {
+  outcome: MatchOutcome;
+  detail: AomDetail | undefined;
+  ej: number;
+  aj: number;
+}) {
+  const { m } = useI18n();
+  const failReasons = outcome.hardFilterFailReasons ?? [];
+
+  return (
+    <div style={{ background: "#FAFAF8", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(117,96,57,0.2)", opacity: 0.85 }}>
+      <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, #756039)" }} />
+      <div style={{ padding: "1.5rem 1.75rem" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
+          <div>
+            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 600, color: "#123F40", margin: 0, lineHeight: 1.2 }}>
+              {outcome.title}
+            </h2>
+            {detail?.description && (
+              <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>
+                {detail.description.replace(/^DESCRIPTION:\s*/i, "")}
+              </p>
+            )}
+            {detail && detail.price > 0 && (
+              <p style={{ margin: "0.5rem 0 0", fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
+                <Money amount={detail.price} />
+              </p>
+            )}
+          </div>
+          <div style={{ flexShrink: 0, background: "#FEF3E2", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center" }}>
+            <div style={{ fontSize: "0.625rem", color: "#756039", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)" }}>
+              {m.results.nearMatchTitle}
+            </div>
+          </div>
+        </div>
+        {/* Fail reason chips */}
+        {failReasons.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "0.875rem" }}>
+            {failReasons.map((reason, i) => (
+              <span
+                key={i}
+                style={{ fontSize: "0.75rem", background: "#FEF3E2", color: "#756039", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid #E8D3A5", fontWeight: 500 }}
+              >
+                {renderFailReason(reason, m.results)}
+              </span>
+            ))}
+          </div>
+        )}
+        <div style={{ marginTop: "1rem" }}>
+          <Link href={`/aom/${outcome.aomId}`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#756039", textDecoration: "none" }}>
+            {m.results.viewDetails} →
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Match card ────────────────────────────────────────────────────────────────
 
 function MatchCard({
@@ -840,7 +927,16 @@ export default function ResultsPage() {
   const { ranked, characterization: char, aomDetails } = data;
   const { expected_score_ej: ej, min_acceptance_score_aj: aj } = char;
   const prefs = char.buyer_preferences;
-  const validMatches = ranked.filter((r) => r.valid);
+
+  // Full matches: Zij feasible AND passes all hard filters
+  // Near matches: Zij feasible BUT fails ≥1 hard filter
+  // Infeasible (!valid): not shown at all
+  const fullMatches = ranked.filter(
+    (r) => r.valid && (r.passesHardFilters ?? true)
+  );
+  const nearMatches = ranked.filter(
+    (r) => r.valid && r.passesHardFilters === false
+  );
   let validRank = 0;
 
   return (
@@ -868,7 +964,7 @@ export default function ResultsPage() {
           {m.results.title}
         </h1>
         <p style={{ margin: 0, color: "#526563", fontSize: "1rem", lineHeight: 1.5 }}>
-          {m.results.summary.replace("{valid}", String(validMatches.length)).replace("{total}", String(ranked.length))}
+          {m.results.summary.replace("{valid}", String(fullMatches.length)).replace("{total}", String(ranked.length))}
         </p>
       </div>
 
@@ -967,9 +1063,9 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* Match cards */}
-        {ranked.map((outcome) => {
-          if (outcome.valid) validRank++;
+        {/* Full match cards */}
+        {fullMatches.map((outcome) => {
+          validRank++;
           const detail = aomDetails[outcome.aomId];
           return (
             <MatchCard
@@ -986,8 +1082,43 @@ export default function ResultsPage() {
           );
         })}
 
+        {/* No full matches message */}
+        {fullMatches.length === 0 && (
+          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", padding: "1.75rem", boxShadow: "0 1px 3px rgba(18,63,64,0.04)" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 600, color: "#123F40", marginBottom: "0.4rem" }}>
+              {m.results.noFullMatchesTitle}
+            </div>
+            {nearMatches.length > 0 && (
+              <p style={{ margin: 0, fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>
+                {m.results.noFullMatchesBody}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Near match cards */}
+        {nearMatches.length > 0 && (
+          <>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#756039", paddingTop: "0.5rem" }}>
+              {m.results.nearMatchTitle}
+            </div>
+            {nearMatches.map((outcome) => {
+              const detail = aomDetails[outcome.aomId];
+              return (
+                <NearMatchCard
+                  key={outcome.aomId}
+                  outcome={outcome}
+                  detail={detail}
+                  ej={ej}
+                  aj={aj}
+                />
+              );
+            })}
+          </>
+        )}
+
         {/* Recommendations */}
-        {validMatches.length > 0 && recommendations.length > 0 && (
+        {fullMatches.length > 0 && recommendations.length > 0 && (
           <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", padding: "1.75rem" }}>
             <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "1.25rem" }}>
               {m.results.nextSteps}
@@ -1010,7 +1141,7 @@ export default function ResultsPage() {
         )}
 
         {/* Leverage groups CTA */}
-        {validMatches.length > 0 && (
+        {fullMatches.length > 0 && (
           <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", overflow: "hidden" }}>
             <div style={{ height: 4, background: "linear-gradient(90deg, #756039, #756039)" }} />
             <div style={{ padding: "1.5rem 1.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.25rem", flexWrap: "wrap" }}>

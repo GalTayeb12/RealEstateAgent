@@ -38,6 +38,12 @@ export interface AomCandidate {
   eil: number;
   /** ail — seller's acceptance / asking score */
   ail: number;
+  /** Listed price (ILS) — used for budget hard filter */
+  price?: number;
+  /** Project location string — used for area hard filter */
+  location?: string;
+  /** Parsed attributes JSON — used for rooms hard filter */
+  attributes?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -48,12 +54,89 @@ export interface MatchOutcome {
   pfij: number;
   /** Zij match quality score (higher is better) */
   zij: number;
-  /** Whether the constraints are satisfied (feasible match) */
+  /** Whether the Zij constraints are satisfied (feasible price range overlap) */
   valid: boolean;
   /** Lower bound of the feasible pfij range */
   lowerBound: number;
   /** Upper bound of the feasible pfij range */
   upperBound: number;
+  /** Whether the property passes all hard requirement filters (rooms, budget, area) */
+  passesHardFilters: boolean;
+  /** Specific reasons a hard filter failed — empty when passesHardFilters is true */
+  hardFilterFailReasons: HardFilterReason[];
+}
+
+// ── Hard filter types ──────────────────────────────────────────────────────────
+
+export type HardFilterReason =
+  | { kind: "rooms"; actual: number; required: number }
+  | { kind: "budget"; actual: number; max: number }
+  | { kind: "location"; actual: string; required: string };
+
+export interface HardFilterCriteria {
+  /** Minimum number of rooms the buyer requires (from buyer_preferences.bedrooms) */
+  minRooms?: number | null;
+  /** Maximum budget in ILS (from buyer_preferences.budget_max) */
+  maxBudget?: number | null;
+  /** Desired location/area (from buyer_preferences.location) */
+  location?: string | null;
+}
+
+/**
+ * Check whether an AOM candidate satisfies the buyer's hard requirement filters.
+ * Returns `passes: true` only when all specified criteria are met.
+ * Hard filters are intentionally lenient on missing data (skipped, not failed).
+ */
+export function checkHardFilters(
+  candidate: AomCandidate,
+  criteria: HardFilterCriteria
+): { passes: boolean; reasons: HardFilterReason[] } {
+  const reasons: HardFilterReason[] = [];
+  const attrs = candidate.attributes ?? {};
+
+  // ── Rooms check ──────────────────────────────────────────────────────────
+  if (criteria.minRooms != null && criteria.minRooms > 0) {
+    // Try both "rooms" and "bedrooms" attribute keys
+    const rawRooms = attrs.rooms ?? attrs.bedrooms;
+    const rooms = Number(rawRooms);
+    if (!Number.isNaN(rooms) && rooms > 0 && rooms < criteria.minRooms) {
+      reasons.push({ kind: "rooms", actual: rooms, required: criteria.minRooms });
+    }
+  }
+
+  // ── Budget check ─────────────────────────────────────────────────────────
+  if (
+    criteria.maxBudget != null &&
+    criteria.maxBudget > 0 &&
+    candidate.price != null &&
+    candidate.price > criteria.maxBudget
+  ) {
+    reasons.push({ kind: "budget", actual: candidate.price, max: criteria.maxBudget });
+  }
+
+  // ── Location check (word-overlap match) ──────────────────────────────────
+  if (criteria.location && candidate.location) {
+    const normalize = (s: string) =>
+      s.toLowerCase().replace(/[-–,'"]/g, " ").trim();
+    const buyerLoc = normalize(criteria.location);
+    const propLoc = normalize(candidate.location);
+    // A match exists when any significant word (3+ chars) from buyer location
+    // appears in the property location, or vice versa.
+    const buyerWords = buyerLoc.split(/\s+/).filter((w) => w.length >= 3);
+    const propWords = propLoc.split(/\s+/).filter((w) => w.length >= 3);
+    const hasOverlap = buyerWords.some((bw) =>
+      propWords.some((pw) => pw.includes(bw) || bw.includes(pw))
+    );
+    if (!hasOverlap) {
+      reasons.push({
+        kind: "location",
+        actual: candidate.location,
+        required: criteria.location,
+      });
+    }
+  }
+
+  return { passes: reasons.length === 0, reasons };
 }
 
 /**
@@ -84,6 +167,8 @@ export function computeZij(
       valid: false,
       lowerBound,
       upperBound,
+      passesHardFilters: true,  // hard filters applied separately in route
+      hardFilterFailReasons: [],
     };
   }
 
@@ -99,6 +184,8 @@ export function computeZij(
     valid: true,
     lowerBound,
     upperBound,
+    passesHardFilters: true,  // hard filters applied separately in route
+    hardFilterFailReasons: [],
   };
 }
 
