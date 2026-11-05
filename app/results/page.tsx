@@ -15,6 +15,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
+import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 import Link from "next/link";
 import { computeElasticity, ElasticityResult } from "@/lib/elasticity";
 import { formatAttributeValue, parseAttributes, translateAttrKey, formatArea } from "@/lib/attributes";
@@ -790,6 +791,7 @@ function formatWait(nextAvailableAt: string, soon: string): string {
 export default function ResultsPage() {
   const router = useRouter();
   const { m } = useI18n();
+  const { unlock } = useAudioUnlock();
   const [data, setData] = useState<StoredResults | null>(null);
   const [token, setToken] = useState("");
   const [missing, setMissing] = useState(false);
@@ -930,6 +932,7 @@ export default function ResultsPage() {
                     if (typeof window !== "undefined") {
                       sessionStorage.setItem("requestedRetake", "true");
                     }
+                    void unlock();
                     router.push("/interview");
                   }}
                   style={{

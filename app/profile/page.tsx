@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
+import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 
 interface Profile {
   email: string;
@@ -43,6 +44,7 @@ function textOf(value: unknown): string {
 export default function ProfilePage() {
   const router = useRouter();
   const { m } = useI18n();
+  const { unlock } = useAudioUnlock();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -289,6 +291,7 @@ export default function ProfilePage() {
                     disabled={!canRedo}
                     onClick={() => {
                       sessionStorage.setItem("requestedRetake", "true");
+                      void unlock();
                       router.push("/interview");
                     }}
                     style={{

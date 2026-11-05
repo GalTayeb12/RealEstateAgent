@@ -5,6 +5,7 @@ import "@/components/quiet/quiet.css";
 import TopNav from "@/components/TopNav";
 import SiteFooter from "@/components/SiteFooter";
 import { LocaleProvider } from "@/components/LocaleProvider";
+import { AudioUnlockProvider } from "@/components/AudioUnlockProvider";
 import { dirFor } from "@/lib/i18n/locale";
 import { getRequestLocale } from "@/lib/i18n/request";
 
@@ -74,10 +75,12 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
         <LocaleProvider initialLocale={locale}>
-          <TopNav />
-          <div className="flex-1 flex flex-col min-h-0">{children}</div>
-          <SiteFooter />
-          {modal}
+          <AudioUnlockProvider>
+            <TopNav />
+            <div className="flex-1 flex flex-col min-h-0">{children}</div>
+            <SiteFooter />
+            {modal}
+          </AudioUnlockProvider>
         </LocaleProvider>
       </body>
     </html>

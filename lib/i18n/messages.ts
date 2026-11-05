@@ -694,6 +694,16 @@ export const he = {
     muteLabel: "השתקת הצליל",
     unmuteLabel: "הפעלת הצליל",
   },
+  processing: {
+    labelCharacterizing: "מנתחים את תשובותיך…",
+    labelMatching:       "מחפשים את ההתאמות הטובות ביותר…",
+    labelDone:           "מכינים תוצאות…",
+    waitingTitle:        "לא נמצא ראיון",
+    waitingBody:         "שוחח עם האווטאר כדי לקבל דירות מותאמות.",
+    startInterview:      "התחל ראיון",
+    errorTitle:          "משהו השתבש",
+    backToInterview:     "חזרה לראיון",
+  },
   quiet: {
     back: "חזרה לאישורים",
     navLabel: "ניווט במערכת העיצוב",
@@ -1597,6 +1607,16 @@ export const en: Messages = {
     tapToEnter: "Tap to enter",
     muteLabel: "Mute sound",
     unmuteLabel: "Unmute sound",
+  },
+  processing: {
+    labelCharacterizing: "Reading your responses…",
+    labelMatching:       "Finding your best matches…",
+    labelDone:           "Preparing results…",
+    waitingTitle:        "No interview found",
+    waitingBody:         "Start a conversation with the avatar to get matched listings.",
+    startInterview:      "Start interview",
+    errorTitle:          "Something went wrong",
+    backToInterview:     "Back to interview",
   },
   quiet: {
     back: "Back to approvals",

@@ -13,6 +13,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { parseAttributes } from "@/lib/attributes";
+import { useAudioUnlock } from "@/components/AudioUnlockProvider";
+import { useI18n } from "@/components/LocaleProvider";
 
 type Phase =
   | "waiting"
@@ -20,14 +22,6 @@ type Phase =
   | "matching"
   | "done"
   | "error";
-
-const LABEL: Record<Phase, string> = {
-  waiting:        "",
-  characterizing: "Reading your responses…",
-  matching:       "Finding your best matches…",
-  done:           "Preparing results…",
-  error:          "",
-};
 
 type AomDetail = {
   title: string;
@@ -61,6 +55,9 @@ type CharacterizationResult = {
 
 export default function ProcessingPage() {
   const router = useRouter();
+  const { unlock } = useAudioUnlock();
+  const { m } = useI18n();
+  const copy = m.processing;
   const [phase, setPhase] = useState<Phase>("waiting");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -205,7 +202,9 @@ export default function ProcessingPage() {
               fontSize: "0.875rem",
             }}
           >
-            {LABEL[phase]}
+            {phase === "characterizing" ? copy.labelCharacterizing
+              : phase === "matching"    ? copy.labelMatching
+              : copy.labelDone}
           </p>
         </>
       )}
@@ -213,14 +212,14 @@ export default function ProcessingPage() {
       {phase === "waiting" && (
         <div style={{ textAlign: "center", maxWidth: "24rem", padding: "1rem" }}>
           <p style={{ color: "var(--qp-ink)", fontWeight: 500, marginBottom: "0.5rem" }}>
-            No interview found
+            {copy.waitingTitle}
           </p>
           <p style={{ color: "var(--qp-muted)", fontSize: "0.875rem", marginBottom: "1.5rem" }}>
-            Start a conversation with the avatar to get matched listings.
+            {copy.waitingBody}
           </p>
           <button
             type="button"
-            onClick={() => router.push("/interview")}
+            onClick={() => { void unlock(); router.push("/interview"); }}
             style={{
               display: "inline-block",
               padding: "0.625rem 1.5rem",
@@ -234,7 +233,7 @@ export default function ProcessingPage() {
               cursor: "pointer",
             }}
           >
-            Start interview
+            {copy.startInterview}
           </button>
         </div>
       )}
@@ -242,13 +241,14 @@ export default function ProcessingPage() {
       {phase === "error" && (
         <div style={{ textAlign: "center", maxWidth: "28rem", padding: "1rem" }}>
           <p style={{ color: "var(--qp-error)", fontWeight: 600, marginBottom: "0.5rem" }}>
-            Something went wrong
+            {copy.errorTitle}
           </p>
           <p style={{ color: "var(--qp-muted)", fontSize: "0.875rem" }}>{errorMsg}</p>
           <button
             type="button"
             onClick={() => {
               sessionStorage.setItem("requestedRetake", "true");
+              void unlock();
               router.push("/interview");
             }}
             style={{
@@ -263,7 +263,7 @@ export default function ProcessingPage() {
               cursor: "pointer",
             }}
           >
-            Back to interview
+            {copy.backToInterview}
           </button>
         </div>
       )}

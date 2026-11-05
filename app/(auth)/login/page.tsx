@@ -6,10 +6,12 @@ import { useI18n } from "@/components/LocaleProvider";
 import { parseLocale } from "@/lib/i18n/locale";
 import { TextField, Button } from "@/components/quiet";
 import { AuthAside, AuthRoom, translateAuthError } from "@/components/auth/Room";
+import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 
 export default function LoginPage() {
   const router = useRouter();
   const { setLocale, m } = useI18n();
+  const { unlock } = useAudioUnlock();
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,6 +20,9 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    // Unlock AudioContext while the user-gesture token is still active.
+    // The interview page will find the context already running.
+    void unlock();
     setError("");
     setUnverifiedEmail(null);
     setResendState("idle");

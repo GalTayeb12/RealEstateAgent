@@ -26,6 +26,7 @@ import {
   RemoteParticipant,
   RemoteTrackPublication,
   RemoteTrack,
+  RemoteAudioTrack,
   Track,
 } from "livekit-client";
 import {
@@ -33,12 +34,14 @@ import {
   type TranscriptLine,
 } from "@/lib/liveavatar";
 import { useI18n } from "@/components/LocaleProvider";
+import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 
 // ── Cinematic sound (Web Audio API, zero external files) ──────────────────────
+// Uses the shared AudioContext from AudioUnlockProvider — do NOT create a new
+// context here and do NOT close it (it's shared with the avatar audio stream).
 
-function playCinematicSound(): void {
+function playCinematicSoundVia(ctx: AudioContext): void {
   try {
-    const ctx = new AudioContext();
     const now = ctx.currentTime;
 
     // Synthetic reverb: white noise × exponential decay → ConvolverNode
@@ -88,8 +91,7 @@ function playCinematicSound(): void {
     tone(220,  "triangle", 0.25, 0.25, 0.30, 1.10, 0.06); // A3 warm
     tone(440,  "sine",     0.30, 0.15, 0.20, 0.90, 0.035);// A4 shimmer
     tone(880,  "sine",     0.40, 0.08, 0.10, 0.65, 0.020);// A5 sparkle
-
-    setTimeout(() => { ctx.close().catch(() => {}); }, 3600);
+    // Nodes auto-disconnect after they stop; don't close the shared context.
   } catch {
     // Web Audio blocked or unavailable — silent
   }
@@ -164,6 +166,8 @@ export default function InterviewPage() {
   const { m } = useI18n();
   const copy = m.interview;
 
+  const { getCtx, unlock } = useAudioUnlock();
+
   // Media refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -175,6 +179,13 @@ export default function InterviewPage() {
   const endingRef = useRef(false);
   const endConversationRef = useRef<() => Promise<void>>(async () => {});
   const cinematicSoundPlayedRef = useRef(false);
+  // Web Audio routing for avatar audio — avoids autoplay-policy blocks
+  const audioSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  // AnalyserNode on the source — used for RMS monitoring logs
+  const audioAnalyserRef = useRef<AnalyserNode | null>(null);
+  const rmsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Holds an audio track that arrived before the AudioContext was running
+  const pendingAudioTrackRef = useRef<RemoteTrack | null>(null);
 
   // Interview state machine
   const [state, setState] = useState<InterviewState>({ phase: "checking" });
@@ -208,16 +219,21 @@ export default function InterviewPage() {
       return; // timer starts on tap
     }
 
-    // Client-side navigation — play sound immediately
-    if (!muted && !reduced) {
-      cinematicSoundPlayedRef.current = true;
-      playCinematicSound();
-    }
+    // Client-side navigation: unlock the shared AudioContext (may already be
+    // running from the login/homepage handler; this call is idempotent).
+    void unlock().then(() => {
+      const ctx = getCtx();
+      console.log("[interview] cinematic mount, ctx.state:", ctx?.state ?? "none");
+      if (!muted && !reduced && ctx?.state === "running") {
+        cinematicSoundPlayedRef.current = true;
+        playCinematicSoundVia(ctx);
+      }
+    });
 
     const duration = reduced ? 700 : 2500;
     const timer = setTimeout(() => setCinematicVisible(false), duration);
     return () => clearTimeout(timer);
-  }, []); // intentionally empty — runs once
+  }, [unlock, getCtx]); // both are stable useCallback refs — effect still runs once
 
   // Dismiss cinematic when a terminal state is reached
   useEffect(() => {
@@ -230,6 +246,20 @@ export default function InterviewPage() {
       return () => clearTimeout(t);
     }
   }, [state.phase]);
+
+  // Show "enable sound" button only when avatar is speaking AND context is blocked.
+  // (In the happy login→interview path the context is already running, so this
+  //  never fires. It only appears on direct-URL entry / refresh if the user somehow
+  //  reached the live phase without the tap-to-enter gesture.)
+  useEffect(() => {
+    if (avatarSpeaking) {
+      const ctx = getCtx();
+      if (!ctx || ctx.state !== "running") {
+        console.log("[interview] avatar speaking, ctx not running → show enable button");
+        setNeedsSound(true);
+      }
+    }
+  }, [avatarSpeaking, getCtx]);
 
   // ── Audio helpers ─────────────────────────────────────────────────────────
 
@@ -257,19 +287,89 @@ export default function InterviewPage() {
         track.attach(videoRef.current);
         void playElement(videoRef.current);
       }
-      if (track.kind === Track.Kind.Audio && audioRef.current) {
-        const el = audioRef.current;
-        console.log("[LiveAvatar audio] track received:", track.sid);
-        console.log("[LiveAvatar audio] muted before attach:", el.muted, "srcObject:", el.srcObject);
-        track.attach(el);
-        console.log("[LiveAvatar audio] srcObject after attach:", el.srcObject, "muted:", el.muted);
-        void playElement(el).then((ok) => {
-          console.log("[LiveAvatar audio] play() ok:", ok, "paused:", el.paused, "muted:", el.muted, "volume:", el.volume);
-          if (!ok) setNeedsSound(true);
-        });
+      if (track.kind === Track.Kind.Audio) {
+        const ctx = getCtx();
+        const msTrack = track.mediaStreamTrack;
+        console.log("[LiveAvatar audio] track received:", track.sid, "| ctx.state:", ctx?.state ?? "none");
+
+        // Disconnect any previous source node for this track
+        if (audioSourceRef.current) {
+          try { audioSourceRef.current.disconnect(); } catch {}
+          audioSourceRef.current = null;
+        }
+
+        if (ctx?.state === "running" && msTrack) {
+          // Primary path: Web Audio API — context is already running (unlocked by
+          // the login/homepage button), so there is no autoplay-policy block.
+          try {
+            // Stop any previous RMS timer before replacing nodes
+            if (rmsTimerRef.current !== null) {
+              clearInterval(rmsTimerRef.current);
+              rmsTimerRef.current = null;
+            }
+            if (audioAnalyserRef.current) {
+              try { audioAnalyserRef.current.disconnect(); } catch {}
+              audioAnalyserRef.current = null;
+            }
+
+            const stream = new MediaStream([msTrack]);
+            const source = ctx.createMediaStreamSource(stream);
+
+            // Chrome bug: createMediaStreamSource on a remote WebRTC stream is
+            // silent unless the same stream also plays through a media element.
+            // Fix: pipe the stream into a muted <audio> element.  Muted elements
+            // are allowed to autoplay unconditionally, so this never hits the
+            // autoplay policy.  The audible output comes from the AudioContext.
+            const el = audioRef.current;
+            if (el) {
+              el.srcObject = stream;
+              el.muted = true;
+              void el.play().then(() => {
+                console.log("[LiveAvatar audio] anchor el: muted:", el.muted, "paused:", el.paused);
+              }).catch((err: unknown) => {
+                console.warn("[LiveAvatar audio] anchor el play failed:", err);
+              });
+            }
+
+            // source → analyser → destination
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+            analyser.connect(ctx.destination);
+            audioSourceRef.current = source;
+            audioAnalyserRef.current = analyser;
+
+            // Log RMS every second so we can verify audio is actually flowing.
+            const buf = new Float32Array(analyser.fftSize);
+            rmsTimerRef.current = setInterval(() => {
+              analyser.getFloatTimeDomainData(buf);
+              let sum = 0;
+              for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+              const rms = Math.sqrt(sum / buf.length);
+              console.log("[LiveAvatar audio] RMS:", rms.toFixed(5));
+            }, 1000);
+
+            console.log("[LiveAvatar audio] ✓ routed through AudioContext");
+            setNeedsSound(false);
+          } catch (err) {
+            console.warn("[LiveAvatar audio] MediaStreamSource error:", err);
+            pendingAudioTrackRef.current = track;
+          }
+        } else {
+          // Context not yet running (direct URL / refresh before tap).
+          // Park the track — it will be routed in unlockSound() / handleCinematicTap().
+          pendingAudioTrackRef.current = track;
+          console.log("[LiveAvatar audio] ctx not running, parked track. ctx.state:", ctx?.state ?? "none");
+        }
+
+        // Keep LiveKit's RemoteAudioTrack in a known attached state via the
+        // built-in Web Audio path so level monitoring still works.
+        if (ctx?.state === "running") {
+          (track as RemoteAudioTrack).setAudioContext(ctx);
+        }
       }
     },
-    [playElement]
+    [getCtx, playElement]
   );
 
   const attachExisting = useCallback(
@@ -284,16 +384,21 @@ export default function InterviewPage() {
   );
 
   const unlockSound = useCallback(async () => {
-    const room = roomRef.current;
-    try {
-      await room?.startAudio();
-    } catch {
-      // The click itself is the gesture; still try the elements.
+    // Resume the shared AudioContext — this is called from a button click so
+    // the user-gesture token is active.
+    await unlock();
+    const ctx = getCtx();
+    console.log("[LiveAvatar audio] unlockSound: ctx.state:", ctx?.state ?? "none");
+
+    // Route any audio track that arrived before the context was running.
+    const pending = pendingAudioTrackRef.current;
+    if (pending && ctx?.state === "running") {
+      pendingAudioTrackRef.current = null;
+      attachTrack(pending);
     }
-    await playElement(audioRef.current);
-    await playElement(videoRef.current);
-    setNeedsSound(room ? !room.canPlaybackAudio : false);
-  }, [playElement]);
+
+    setNeedsSound(ctx ? ctx.state !== "running" : false);
+  }, [unlock, getCtx, attachTrack]);
 
   const enableMicrophone = useCallback(async (room: Room) => {
     await room.localParticipant.setMicrophoneEnabled(true);
@@ -306,18 +411,30 @@ export default function InterviewPage() {
     if (tapHandledRef.current) return;
     tapHandledRef.current = true;
 
-    if (!cinematicSoundPlayedRef.current && !isMuted && !prefersReduced) {
-      cinematicSoundPlayedRef.current = true;
-      playCinematicSound();
-    }
+    void (async () => {
+      // Resume the AudioContext while the gesture token is active.
+      await unlock();
+      const ctx = getCtx();
+      console.log("[interview] tap: ctx.state after unlock:", ctx?.state ?? "none");
 
-    // Unlock LiveKit audio (room may already be connected)
-    void unlockSound();
+      // Play the cinematic chord through the now-running context.
+      if (!cinematicSoundPlayedRef.current && !isMuted && !prefersReduced) {
+        cinematicSoundPlayedRef.current = true;
+        if (ctx?.state === "running") playCinematicSoundVia(ctx);
+      }
+
+      // Route any audio track that arrived during the tap-to-enter wait.
+      const pending = pendingAudioTrackRef.current;
+      if (pending && ctx?.state === "running") {
+        pendingAudioTrackRef.current = null;
+        attachTrack(pending);
+      }
+    })();
 
     setTapNeeded(false);
     const duration = prefersReduced ? 700 : 2500;
     setTimeout(() => setCinematicVisible(false), duration);
-  }, [isMuted, prefersReduced, unlockSound]);
+  }, [isMuted, prefersReduced, unlock, getCtx, attachTrack]);
 
   // ── Mute toggle ───────────────────────────────────────────────────────────
 
@@ -462,6 +579,10 @@ export default function InterviewPage() {
         });
 
         room.on(RoomEvent.AudioPlaybackStatusChanged, () => {
+          // We use AudioContext for audio — ignore this element-based event when
+          // the context is already running.
+          const ctx = getCtx();
+          if (ctx?.state === "running") return;
           setNeedsSound(!room.canPlaybackAudio);
         });
 
@@ -496,20 +617,13 @@ export default function InterviewPage() {
           return;
         }
 
-        // Attempt to start audio playback. If the user arrived via client-side
-        // navigation this will succeed; if they refreshed, the cinematic's
-        // "tap to enter" button already called unlockSound() with a fresh gesture,
-        // or the "🔊 Enable sound" button will appear as a fallback.
-        let playbackBlocked = false;
-        try {
-          await room.startAudio();
-        } catch {
-          playbackBlocked = true;
-        }
-        const audioPlaying = await playElement(audioRef.current);
+        // Audio is routed through the shared AudioContext in attachTrack() —
+        // no room.startAudio() needed. Video still plays through the HTML element.
         await playElement(videoRef.current);
-        if (!cancelled)
-          setNeedsSound(playbackBlocked || !audioPlaying || !room.canPlaybackAudio);
+        const ctx = getCtx();
+        console.log("[interview] connected, ctx.state:", ctx?.state ?? "none");
+        // needsSound is managed by attachTrack (happy path) and the
+        // avatarSpeaking effect (fallback for direct-URL entry).
         if (cancelled) return;
         setState({ phase: "live", room });
 
@@ -548,6 +662,25 @@ export default function InterviewPage() {
 
     return () => {
       cancelled = true;
+      // Stop RMS monitoring
+      if (rmsTimerRef.current !== null) {
+        clearInterval(rmsTimerRef.current);
+        rmsTimerRef.current = null;
+      }
+      // Disconnect the Web Audio nodes so the MediaStream is released.
+      if (audioAnalyserRef.current) {
+        try { audioAnalyserRef.current.disconnect(); } catch {}
+        audioAnalyserRef.current = null;
+      }
+      if (audioSourceRef.current) {
+        try { audioSourceRef.current.disconnect(); } catch {}
+        audioSourceRef.current = null;
+      }
+      // Release anchor element
+      if (audioRef.current) {
+        audioRef.current.srcObject = null;
+      }
+      pendingAudioTrackRef.current = null;
       const sid = sessionIdRef.current;
       const token = localStorage.getItem("token") ?? "";
       if (sid && !endingRef.current) {
@@ -579,16 +712,16 @@ export default function InterviewPage() {
     }
     try {
       await enableMicrophone(room);
-      await room.startAudio();
-      await playElement(audioRef.current);
-      setNeedsSound(!room.canPlaybackAudio);
+      // Audio flows through AudioContext; just check if it's running.
+      const ctx = getCtx();
+      setNeedsSound(ctx ? ctx.state !== "running" : false);
       setState({ phase: "live", room });
     } catch (err) {
       if (!isMicBlocked(err)) {
         setState({ phase: "error", message: (err as Error).message });
       }
     }
-  }, [enableMicrophone, playElement]);
+  }, [enableMicrophone, getCtx]);
 
   const endConversation = useCallback(async () => {
     if (endingRef.current) return;
@@ -833,11 +966,13 @@ export default function InterviewPage() {
 
       {/* ── Avatar area ──────────────────────────────────────────────────── */}
 
+      {/* Anchor element: holds the same MediaStream as the AudioContext source node.
+          Chrome requires a playing media element backed by the stream, otherwise
+          createMediaStreamSource is silent.  The element is muted in JS so only
+          the AudioContext produces audible output. */}
       <audio
         ref={audioRef}
-        autoPlay
         playsInline
-        muted={false}
         style={{
           position: "fixed",
           width: 1,

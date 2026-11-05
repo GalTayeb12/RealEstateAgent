@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useI18n } from "@/components/LocaleProvider";
+import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 import { Logo } from "@/components/Logo";
 import LanguageToggle from "@/components/LanguageToggle";
 import "@/components/quiet/quiet.css";
@@ -24,6 +25,7 @@ function GoldCheck() {
 export default function Home() {
   const router = useRouter();
   const { m, locale } = useI18n();
+  const { unlock } = useAudioUnlock();
   const isHe = locale === "he";
 
   /* Hero menu */
@@ -222,7 +224,7 @@ export default function Home() {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     color: "#fff", marginInlineStart: 4,
                   }}
-                  onClick={() => router.push("/interview")}
+                  onClick={() => { void unlock(); router.push("/interview"); }}
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
                     <rect x="4.5" y="1" width="5" height="8" rx="2.5" fill="currentColor" />
@@ -242,7 +244,7 @@ export default function Home() {
               <h2 id="s02-title" className="qp-h2">{m.home.section02Title}</h2>
               <p className="qp-body">{m.home.section02Body}</p>
               <div>
-                <Link href="/interview" className="qp-btn qp-btn--primary" style={{ marginTop: 8 }}>
+                <Link href="/interview" onClick={() => void unlock()} className="qp-btn qp-btn--primary" style={{ marginTop: 8 }}>
                   {m.home.startInterview}
                 </Link>
               </div>
