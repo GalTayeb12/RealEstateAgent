@@ -3,14 +3,16 @@
  * MortgageCalculator — full card and mini variant.
  *
  * Usage:
- *   <MortgageCalculator />           ← full card (results page)
- *   <MortgageCalculator mini price={1800000} />  ← compact (AOM page)
+ *   <MortgageCalculator />                            ← full card (profile page)
+ *   <MortgageCalculator mini price={1800000} />       ← compact (AOM page)
  *
  * Props:
- *   mini    — compact layout, pre-filled price, no "show in range" button
- *   price   — pre-fill the property price field
- *   buyerBudgetMax — when provided, the "show only in-range" toggle is active
+ *   mini           — compact layout, pre-filled price, no filter or save buttons
+ *   price          — pre-fill the property price field
  *   onFilterChange — callback(inRangeOnly: boolean) for results page filter
+ *   savedData      — pre-fill inputs from saved DB settings
+ *   onSave         — called with { equity, desiredPayment, buyerType, income, maxPrice }
+ *                    when the user clicks "Save my data"
  */
 
 import { useState, useMemo } from "react";
@@ -23,6 +25,14 @@ import {
 } from "@/lib/mortgage/calculator";
 import type { BuyerType } from "@/lib/mortgage/config";
 import { MAX_TERM_YEARS, WARN_TERM_YEARS } from "@/lib/mortgage/config";
+
+export interface MortgageSavedData {
+  equity: number;
+  desiredPayment: number | null;
+  buyerType: BuyerType;
+  income: number | null;
+  maxPrice: number | null;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -132,6 +142,10 @@ interface MortgageCalculatorProps {
   onFilterChange?: (inRangeOnly: boolean, maxPrice: number) => void;
   /** Buyer's budget from characterization — used to initialize price in full mode */
   initialBudget?: number | null;
+  /** Pre-fill inputs from saved DB settings */
+  savedData?: MortgageSavedData | null;
+  /** Called when the user clicks "Save my data"; receives computed result */
+  onSave?: (data: { equity: number; desiredPayment: number | null; buyerType: BuyerType; income: number | null; maxPrice: number | null }) => Promise<void> | void;
 }
 
 export function MortgageCalculator({
@@ -139,22 +153,26 @@ export function MortgageCalculator({
   price: prefillPrice,
   onFilterChange,
   initialBudget,
+  savedData,
+  onSave,
 }: MortgageCalculatorProps) {
   const { m, locale } = useI18n();
   const mm = m.mortgage;
 
   // ── State ──
-  const [mode, setMode] = useState<"forward" | "reverse">("forward");
+  const [mode, setMode] = useState<"forward" | "reverse">(savedData?.desiredPayment ? "reverse" : "forward");
   const [price, setPrice] = useState<number>(prefillPrice ?? initialBudget ?? 2_000_000);
-  const [equity, setEquity] = useState<number>(500_000);
-  const [buyerType, setBuyerType] = useState<BuyerType>("first");
+  const [equity, setEquity] = useState<number>(savedData?.equity ?? 500_000);
+  const [buyerType, setBuyerType] = useState<BuyerType>(savedData?.buyerType ?? "first");
   const [termYears, setTermYears] = useState<number>(25);
   const [annualRate, setAnnualRate] = useState<string>("");
-  const [income, setIncome] = useState<string>("");
+  const [income, setIncome] = useState<string>(savedData?.income != null ? String(savedData.income) : "");
   const [filterActive, setFilterActive] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   // Reverse mode
-  const [desiredPayment, setDesiredPayment] = useState<string>("");
+  const [desiredPayment, setDesiredPayment] = useState<string>(savedData?.desiredPayment != null ? String(savedData.desiredPayment) : "");
 
   const rateNum = parseFloat(annualRate);
   const incomeNum = parseFloat(income) || null;
@@ -527,6 +545,46 @@ export function MortgageCalculator({
             )}
           </div>
         </div>
+
+        {/* Save button */}
+        {onSave && (
+          <div style={{ marginTop: "1.25rem", display: "flex", alignItems: "center", gap: "0.875rem", flexWrap: "wrap" }}>
+            <button
+              onClick={async () => {
+                setSaving(true);
+                setSaved(false);
+                const maxPrice = mode === "reverse" && reverse ? reverse.maxPrice : (mode === "forward" && forward ? price : null);
+                await onSave({
+                  equity,
+                  desiredPayment: mode === "reverse" ? (parseFloat(desiredPayment) || null) : null,
+                  buyerType,
+                  income: incomeNum,
+                  maxPrice,
+                });
+                setSaving(false);
+                setSaved(true);
+                setTimeout(() => setSaved(false), 3000);
+              }}
+              disabled={saving}
+              style={{
+                padding: "0.5625rem 1.25rem",
+                borderRadius: 999,
+                border: "none",
+                background: saved ? "#246046" : "#123F40",
+                color: "#fff",
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                cursor: saving ? "wait" : "pointer",
+                display: "flex", alignItems: "center", gap: "0.4rem",
+                transition: "background 0.2s",
+              }}
+            >
+              {saved ? (
+                <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>{mm.saveDataDone}</>
+              ) : saving ? mm.saveDataSaving : mm.saveData}
+            </button>
+          </div>
+        )}
 
         {/* Disclaimer */}
         <p style={{ margin: "1.25rem 0 0", fontSize: "0.6875rem", color: "#7A8B82", lineHeight: 1.5 }}>

@@ -20,7 +20,7 @@ import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding } from "@/components/building/types";
 import { formatAttributeValue, parseAttributes } from "@/lib/attributes";
-import { MortgageCalculator } from "@/components/MortgageCalculator";
+import { MortgageCalculator, MortgageSavedData } from "@/components/MortgageCalculator";
 
 const BuildingExplorer = dynamic(() => import("@/components/building/BuildingExplorer"), {
   ssr: false,
@@ -92,9 +92,20 @@ export default function VprPage() {
   const [unit, setUnit] = useState<UnitDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [mortgageSavedData, setMortgageSavedData] = useState<MortgageSavedData | null>(null);
 
   // Lazy-loaded teaser video
   const [videoData, setVideoData] = useState<string | null>(null);
+
+  // Fetch saved mortgage settings for mini calculator pre-fill
+  useEffect(() => {
+    const t = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    if (!t) return;
+    fetch("/api/buyer/mortgage-settings", { headers: { Authorization: `Bearer ${t}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: MortgageSavedData | null) => { if (d) setMortgageSavedData(d); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -316,7 +327,7 @@ export default function VprPage() {
 
         {/* ── Mini mortgage calculator ──────────────────────────────────────── */}
         {unit.price > 0 && (
-          <MortgageCalculator mini price={unit.price} />
+          <MortgageCalculator mini price={unit.price} savedData={mortgageSavedData} />
         )}
       </div>
     </div>

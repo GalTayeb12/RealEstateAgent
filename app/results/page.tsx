@@ -19,8 +19,8 @@ import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 import Link from "next/link";
 import { computeElasticity, ElasticityResult } from "@/lib/elasticity";
 import { formatAttributeValue, parseAttributes, translateAttrKey, formatArea } from "@/lib/attributes";
-import { MortgageCalculator } from "@/components/MortgageCalculator";
 import { AlertCard } from "@/components/AlertCard";
+import type { MortgageSavedData } from "@/components/MortgageCalculator";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -763,6 +763,7 @@ function MatchCard({
   token,
   onOfferSent,
   onOpenLeverage,
+  mortgageMaxPrice,
 }: {
   outcome: MatchOutcome;
   detail: AomDetail | undefined;
@@ -772,6 +773,7 @@ function MatchCard({
   token: string;
   onOfferSent: () => void;
   onOpenLeverage: (o: MatchOutcome) => void;
+  mortgageMaxPrice: number | null;
 }) {
   const { m } = useI18n();
   const attrs = parseAttributes(detail?.attributes);
@@ -797,10 +799,23 @@ function MatchCard({
             </h2>
             {detail?.description && <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>{detail.description.replace(/^DESCRIPTION:\s*/i, "")}</p>}
             {detail && detail.price > 0 && (
-              <p style={{ margin: "0.5rem 0 0", fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
-                {detail.priceFrom ? `${m.results.from} ` : ""}
-                <Money amount={detail.price} />
-              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
+                <p style={{ margin: 0, fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
+                  {detail.priceFrom ? `${m.results.from} ` : ""}
+                  <Money amount={detail.price} />
+                </p>
+                {mortgageMaxPrice != null && (
+                  detail.price <= mortgageMaxPrice ? (
+                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: 999, background: "#E9EEEA", color: "#246046", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.04em" }}>
+                      {m.profile.mortgageInRange}
+                    </span>
+                  ) : (
+                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: 999, background: "#FFF8E6", color: "#756039", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.04em" }}>
+                      {m.profile.mortgageAboveRange}
+                    </span>
+                  )
+                )}
+              </div>
             )}
           </div>
 
@@ -890,6 +905,8 @@ export default function ResultsPage() {
   const [leverageTarget, setLeverageTarget] = useState<MatchOutcome | null>(null);
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
   const [mortgageMaxPrice, setMortgageMaxPrice] = useState<number | null>(null);
+  const [mortgageFilterActive, setMortgageFilterActive] = useState(false);
+  const [mortgageSavedData, setMortgageSavedData] = useState<MortgageSavedData | null>(null);
 
   const dismissToast = useCallback(() => setToast(false), []);
 
@@ -905,6 +922,17 @@ export default function ResultsPage() {
       fetch("/api/recommendations", { headers: { Authorization: `Bearer ${t}` } })
         .then(r => r.json())
         .then(d => { if (d.recommendations) setRecommendations(d.recommendations); })
+        .catch(() => {});
+
+      // Fetch saved mortgage settings
+      fetch("/api/buyer/mortgage-settings", { headers: { Authorization: `Bearer ${t}` } })
+        .then(r => r.ok ? r.json() : null)
+        .then((d: MortgageSavedData | null) => {
+          if (d) {
+            setMortgageSavedData(d);
+            if (d.maxPrice) setMortgageMaxPrice(d.maxPrice);
+          }
+        })
         .catch(() => {});
 
       // Fetch interview rate-limit status for retake button
@@ -939,7 +967,7 @@ export default function ResultsPage() {
     (r) => r.valid && (r.passesHardFilters ?? true)
   );
   // Mortgage in-range filter (only when active)
-  const fullMatches = mortgageMaxPrice != null
+  const fullMatches = mortgageFilterActive && mortgageMaxPrice != null
     ? allFullMatches.filter((r) => {
         const detail = aomDetails[r.aomId];
         return !detail || detail.price <= 0 || detail.price <= mortgageMaxPrice;
@@ -1070,11 +1098,44 @@ export default function ResultsPage() {
         {/* Property alert opt-in card */}
         {token && <AlertCard token={token} />}
 
-        {/* Mortgage calculator card */}
-        <MortgageCalculator
-          initialBudget={prefs.budget_max ?? undefined}
-          onFilterChange={(active, maxPrice) => setMortgageMaxPrice(active ? maxPrice : null)}
-        />
+        {/* Mortgage budget row */}
+        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(18,63,64,0.08)", padding: "0.875rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+          {mortgageSavedData?.maxPrice ? (
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "0.875rem", color: "#526563" }}>{m.profile.mortgageBudgetRow}</span>
+                <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 700, color: "#123F40", fontSize: "1rem", fontVariantNumeric: "tabular-nums" }}>
+                  ₪{new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(mortgageSavedData.maxPrice)}
+                </span>
+                <Link href="/profile#mortgage" style={{ fontSize: "0.8125rem", color: "#756039", fontWeight: 600, textDecoration: "none" }}>· {m.profile.mortgageUpdate}</Link>
+              </div>
+              <button
+                onClick={() => {
+                  const next = !mortgageFilterActive;
+                  setMortgageFilterActive(next);
+                }}
+                style={{
+                  padding: "0.4rem 1rem",
+                  borderRadius: 999,
+                  border: "1.5px solid",
+                  borderColor: mortgageFilterActive ? "#756039" : "#E0DDD7",
+                  background: mortgageFilterActive ? "#FFF8E6" : "transparent",
+                  color: mortgageFilterActive ? "#756039" : "#526563",
+                  fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "all 0.15s",
+                }}
+              >
+                {mortgageFilterActive ? m.profile.mortgageFilterOff : m.profile.mortgageFilterToggle}
+              </button>
+            </>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.875rem", color: "#526563" }}>{m.profile.mortgageNoCta}</span>
+              <Link href="/profile#mortgage" style={{ fontSize: "0.875rem", color: "#756039", fontWeight: 600, textDecoration: "none" }}>{m.profile.mortgageNoCtaLink} →</Link>
+            </div>
+          )}
+        </div>
 
         {/* Full match cards */}
         {fullMatches.map((outcome) => {
@@ -1091,6 +1152,7 @@ export default function ResultsPage() {
               token={token}
               onOfferSent={() => { setToast(true); }}
               onOpenLeverage={setLeverageTarget}
+              mortgageMaxPrice={mortgageSavedData?.maxPrice ?? null}
             />
           );
         })}

@@ -70,6 +70,13 @@ model BuyerProfile {
 
   // Cached Claude-generated recommendation blurbs (JSON: { legal, moving, insurance, furniture })
   recommendationBlurbs String?
+
+  // Saved mortgage calculator settings
+  mortgageEquity         Float?   // Buyer's equity / down payment
+  mortgageDesiredPayment Float?   // Desired monthly payment (reverse mode)
+  mortgageBuyerType      String?  // "first" | "moveUp" | "investor"
+  mortgageIncome         Float?   // Monthly household income (optional, for DTI)
+  mortgageMaxPrice       Float?   // Computed max affordable price (cached)
 }
 
 // Developer / contractor profile

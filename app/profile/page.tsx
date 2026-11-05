@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
 import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 import { AlertCard } from "@/components/AlertCard";
+import { MortgageCalculator, MortgageSavedData } from "@/components/MortgageCalculator";
 import LanguageToggle from "@/components/LanguageToggle";
 
 interface Profile {
@@ -76,6 +77,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState(false);
+  const [mortgageSavedData, setMortgageSavedData] = useState<MortgageSavedData | null>(null);
 
   // Download data
   const [downloading, setDownloading] = useState(false);
@@ -94,15 +96,20 @@ export default function ProfilePage() {
       setPhone(data.phone ?? "");
 
       if (data.role === "buyer") {
-        const [buyerRes, limitRes] = await Promise.all([
+        const [buyerRes, limitRes, mortgageRes] = await Promise.all([
           fetch("/api/buyer/profile", { headers: { Authorization: `Bearer ${t}` } }),
           fetch("/api/interview/rate-limit", { headers: { Authorization: `Bearer ${t}` } }),
+          fetch("/api/buyer/mortgage-settings", { headers: { Authorization: `Bearer ${t}` } }),
         ]);
         if (buyerRes.ok) {
           const buyer = await buyerRes.json();
           setPrefs(buyer.buyer_preferences ?? {});
         }
         if (limitRes.ok) setRate(await limitRes.json());
+        if (mortgageRes.ok) {
+          const md: MortgageSavedData | null = await mortgageRes.json();
+          if (md) setMortgageSavedData(md);
+        }
       }
     } catch (err) {
       setError((err as Error).message);
@@ -171,6 +178,21 @@ export default function ProfilePage() {
       URL.revokeObjectURL(url);
     } catch { /* ignore */ }
     setDownloading(false);
+  }
+
+  async function saveMortgage(data: { equity: number; desiredPayment: number | null; buyerType: string; income: number | null; maxPrice: number | null }) {
+    const t = localStorage.getItem("token") ?? "";
+    try {
+      const res = await fetch("/api/buyer/mortgage-settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        const updated: MortgageSavedData = await res.json();
+        setMortgageSavedData(updated);
+      }
+    } catch { /* ignore */ }
   }
 
   const roleLabel: Record<string, string> = {
@@ -288,6 +310,17 @@ export default function ProfilePage() {
                 </div>
               </div>
             </section>
+
+            {/* ── Mortgage calculator ── */}
+            {profile.role === "buyer" && (
+              <section id="mortgage">
+                <SectionLabel label={m.profile.sectionMortgage} />
+                <MortgageCalculator
+                  savedData={mortgageSavedData}
+                  onSave={saveMortgage}
+                />
+              </section>
+            )}
 
             {/* ── Buyer interview summary ── */}
             {profile.role === "buyer" && (
