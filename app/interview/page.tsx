@@ -270,14 +270,38 @@ export default function InterviewPage() {
     if (last && last.role === line.role && last.text === line.text) return;
     transcriptRef.current.push(line);
 
-    // Auto-end: detect buyer farewell intent and trigger end after 2 s
-    if (line.role === "user" && farewellTimerRef.current === null) {
+    // Auto-end on buyer farewell intent
+    if (line.role === "user") {
+      // If a farewell timer is already running, cancel it — the buyer kept talking.
+      if (farewellTimerRef.current !== null) {
+        clearTimeout(farewellTimerRef.current);
+        farewellTimerRef.current = null;
+      }
+
       const text = line.text.toLowerCase().trim();
+
+      // Only explicit goodbye phrases trigger auto-end.
+      // "תודה" / "תודה רבה" alone must NOT match — they appear mid-conversation.
+      // A farewell requires either a standalone goodbye word or a combined
+      // "thanks + closure" phrase where the closure is unambiguous.
       const isFarewell =
-        // Hebrew
-        /ביי|להתראות|שלום.*(סיים|גמר)|סיימנו|תודה.*(זהו|גמרנו|סיים)|זהו.*(תודה|טוב)|נגמר|אנחנו גמרנו|די.*(תודה|לא צריך)|חצינו/.test(text) ||
-        // English
-        /^bye|goodbye|that('?s| is) (all|it)|we('re| are) done|thanks.*that('?s| is) it|see you|all set|that'?ll do|no (more|further)/.test(text);
+        // ── Hebrew explicit farewells ──────────────────────────────────────
+        /^ביי/.test(text) ||
+        /להתראות/.test(text) ||
+        /^שלום$/.test(text) ||                            // standalone "שלום" as goodbye
+        /סיימנו/.test(text) ||
+        /זה הכל/.test(text) ||
+        /זהו[,. ]*סיימנו/.test(text) ||
+        /תודה[,. ]+(זה הכל|זהו|סיימנו|נגמר|ביי|להתראות)/.test(text) ||
+        /^(זהו|נגמר|גמרנו)[,. ]*$/.test(text) ||         // standalone closure
+        // ── English explicit farewells ──────────────────────────────────────
+        /^bye\b/.test(text) ||
+        /\bgoodbye\b/.test(text) ||
+        /\bthat'?s (all|it)\b/.test(text) ||
+        /\bwe'?re done\b/.test(text) ||
+        /\bthat'?s everything\b/.test(text) ||
+        /thanks[,. ]+(that'?s (all|it)|goodbye|bye|we'?re done)/.test(text);
+
       if (isFarewell) {
         farewellTimerRef.current = setTimeout(() => {
           farewellTimerRef.current = null;
