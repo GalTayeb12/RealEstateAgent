@@ -20,6 +20,7 @@ import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding } from "@/components/building/types";
 import { formatAttributeValue, parseAttributes } from "@/lib/attributes";
+import { MortgageCalculator } from "@/components/MortgageCalculator";
 
 const BuildingExplorer = dynamic(() => import("@/components/building/BuildingExplorer"), {
   ssr: false,
@@ -311,6 +312,11 @@ export default function VprPage() {
               })}
             </div>
           </div>
+        )}
+
+        {/* ── Mini mortgage calculator ──────────────────────────────────────── */}
+        {unit.price > 0 && (
+          <MortgageCalculator mini price={unit.price} />
         )}
       </div>
     </div>

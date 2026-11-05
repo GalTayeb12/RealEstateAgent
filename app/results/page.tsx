@@ -19,6 +19,7 @@ import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 import Link from "next/link";
 import { computeElasticity, ElasticityResult } from "@/lib/elasticity";
 import { formatAttributeValue, parseAttributes, translateAttrKey, formatArea } from "@/lib/attributes";
+import { MortgageCalculator } from "@/components/MortgageCalculator";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -70,6 +71,7 @@ interface Characterization {
     location: string;
     bedrooms: number | null;
     bathrooms: number | null;
+    budget_max: number | null;
     must_haves: string[];
     dealbreakers: string[];
     timeline: string;
@@ -886,6 +888,7 @@ export default function ResultsPage() {
   const [toast, setToast] = useState(false);
   const [leverageTarget, setLeverageTarget] = useState<MatchOutcome | null>(null);
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
+  const [mortgageMaxPrice, setMortgageMaxPrice] = useState<number | null>(null);
 
   const dismissToast = useCallback(() => setToast(false), []);
 
@@ -931,9 +934,16 @@ export default function ResultsPage() {
   // Full matches: Zij feasible AND passes all hard filters
   // Near matches: Zij feasible BUT fails ≥1 hard filter
   // Infeasible (!valid): not shown at all
-  const fullMatches = ranked.filter(
+  const allFullMatches = ranked.filter(
     (r) => r.valid && (r.passesHardFilters ?? true)
   );
+  // Mortgage in-range filter (only when active)
+  const fullMatches = mortgageMaxPrice != null
+    ? allFullMatches.filter((r) => {
+        const detail = aomDetails[r.aomId];
+        return !detail || detail.price <= 0 || detail.price <= mortgageMaxPrice;
+      })
+    : allFullMatches;
   const nearMatches = ranked.filter(
     (r) => r.valid && r.passesHardFilters === false
   );
@@ -1055,6 +1065,12 @@ export default function ResultsPage() {
             </div>
           </div>
         </div>
+
+        {/* Mortgage calculator card */}
+        <MortgageCalculator
+          initialBudget={prefs.budget_max ?? undefined}
+          onFilterChange={(active, maxPrice) => setMortgageMaxPrice(active ? maxPrice : null)}
+        />
 
         {/* Full match cards */}
         {fullMatches.map((outcome) => {
