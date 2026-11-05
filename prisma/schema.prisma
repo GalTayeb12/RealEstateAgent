@@ -297,6 +297,7 @@ model Offer {
   buyerSignature      String?               // JSON: { signatureDataUrl, typedName, signedAt }
   developerSignature  String?               // JSON: { signatureDataUrl, typedName, signedAt }
   contractEmailSentAt DateTime?             // set once the "both signed" email has been dispatched (idempotency guard)
+  consentToShareProfile Boolean @default(false) // buyer consent to share profile/insights with developer — given via checkbox at offer submission
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 

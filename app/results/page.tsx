@@ -988,13 +988,6 @@ export default function ResultsPage() {
               <div><span style={{ color: "#526563" }}>{m.results.yourIdeal} </span><span style={{ color: "#123F40", fontWeight: 600 }}>{ej}</span></div>
               <div><span style={{ color: "#526563" }}>{m.results.yourFloor} </span><span style={{ color: "#756039", fontWeight: 600 }}>{aj}</span></div>
             </div>
-            {char.behavioral_insights && (
-              <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(18,63,64,0.06)" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#526563", marginBottom: "0.4rem" }}>{m.results.insights}</div>
-                <p style={{ fontSize: "0.9375rem", color: "#123F40", margin: 0, lineHeight: 1.65 }}>{char.behavioral_insights}</p>
-              </div>
-            )}
-
             {/* Retake interview section */}
             <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(18,63,64,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.875rem" }}>
               <div>
