@@ -50,12 +50,3 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json(user);
 }
 
-export async function DELETE(req: NextRequest) {
-  const auth = extractToken(req.headers.get("Authorization"));
-  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  // Cascading deletes on User handle all related records (Prisma onDelete: Cascade)
-  await prisma.user.delete({ where: { id: auth.userId } });
-
-  return NextResponse.json({ ok: true });
-}

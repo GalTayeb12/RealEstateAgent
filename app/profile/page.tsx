@@ -77,10 +77,6 @@ export default function ProfilePage() {
   const [error, setError] = useState("");
   const [toast, setToast] = useState(false);
 
-  // Delete account flow
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-
   // Download data
   const [downloading, setDownloading] = useState(false);
 
@@ -177,19 +173,6 @@ export default function ProfilePage() {
     setDownloading(false);
   }
 
-  async function deleteAccount() {
-    setDeleting(true);
-    const t = localStorage.getItem("token") ?? "";
-    try {
-      const res = await fetch("/api/profile", { method: "DELETE", headers: { Authorization: `Bearer ${t}` } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      router.push("/login");
-    } catch { /* ignore */ }
-    setDeleting(false);
-  }
-
   const roleLabel: Record<string, string> = {
     buyer: m.nav.roleBuyer,
     developer: m.nav.roleDeveloper,
@@ -236,33 +219,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Delete confirmation modal */}
-      {deleteOpen && (
-        <>
-          <div onClick={() => setDeleteOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(4,10,16,0.55)", zIndex: 999, backdropFilter: "blur(3px)" }} />
-          <div style={{
-            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
-            zIndex: 1000, width: "min(92vw, 26rem)",
-            background: "var(--qp-surface)", borderRadius: 20, border: "1px solid var(--qp-border)",
-            boxShadow: "0 24px 64px -20px rgba(0,0,0,0.4)", padding: "1.75rem",
-          }}>
-            <div style={{ fontWeight: 600, fontSize: "1rem", color: "var(--qp-ink)", marginBottom: "0.5rem" }}>{m.profile.deleteConfirmTitle}</div>
-            <p style={{ margin: "0 0 1.25rem", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.6 }}>{m.profile.deleteConfirmBody}</p>
-            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-              <button onClick={() => setDeleteOpen(false)} style={{ padding: "0.5rem 1.25rem", borderRadius: 999, border: "1px solid var(--qp-border)", background: "none", color: "var(--qp-ink)", fontWeight: 600, cursor: "pointer", fontSize: "0.875rem" }}>
-                {m.profile.deleteCancel}
-              </button>
-              <button
-                onClick={() => { void deleteAccount(); }}
-                disabled={deleting}
-                style={{ padding: "0.5rem 1.25rem", borderRadius: 999, border: "none", background: "#9E3434", color: "#fff", fontWeight: 600, cursor: deleting ? "wait" : "pointer", fontSize: "0.875rem" }}
-              >
-                {deleting ? m.profile.deleting : m.profile.deleteConfirm}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
 
       <div style={{ maxWidth: "40rem", margin: "0 auto" }}>
         <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)", fontWeight: 500, marginBottom: "0.4rem" }}>
@@ -436,12 +392,13 @@ export default function ProfilePage() {
                   <div style={{ fontWeight: 500, fontSize: "0.9375rem", color: "var(--qp-ink)", marginBottom: "0.2rem" }}>{m.profile.privacyTitle}</div>
                   <div style={{ fontSize: "0.875rem", color: "var(--qp-muted)" }}>{m.profile.privacyBody}</div>
                 </div>
-                <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
                   <button
                     type="button"
                     onClick={() => { void downloadData(); }}
                     disabled={downloading}
                     style={{
+                      alignSelf: "flex-start",
                       padding: "0.5rem 1.125rem",
                       borderRadius: 999,
                       border: "1px solid var(--qp-border)",
@@ -458,22 +415,10 @@ export default function ProfilePage() {
                     </svg>
                     {downloading ? m.profile.downloading : m.profile.downloadData}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteOpen(true)}
-                    style={{
-                      padding: "0.5rem 1.125rem",
-                      borderRadius: 999,
-                      border: "1px solid #FBECEA",
-                      background: "#FBECEA",
-                      color: "#9E3434",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      fontSize: "0.875rem",
-                    }}
-                  >
-                    {m.profile.deleteAccount}
-                  </button>
+                  <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--qp-muted)", lineHeight: 1.6 }}>
+                    {m.profile.deleteContact}
+                    <a href={`mailto:${m.profile.deleteEmail}`} style={{ color: "var(--qp-ink)", fontWeight: 500 }}>{m.profile.deleteEmail}</a>
+                  </p>
                 </div>
               </div>
             </section>

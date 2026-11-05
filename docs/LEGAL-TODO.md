@@ -76,6 +76,34 @@ comply with Israeli consumer-protection disclosure requirements.
 
 ---
 
+## 6. Self-service account deletion
+
+**Status:** Removed from product (2026-11-05). Requires legal sign-off before reinstating.
+
+A self-service DELETE /api/profile endpoint was implemented (Prisma cascade delete) and
+exposed as a button in the /profile privacy section. It was removed pending legal review
+because:
+
+- **GDPR / Israeli Privacy Law erasure requests** — a right-to-erasure flow must log the
+  request, confirm identity, run within a defined SLA window, and issue a deletion receipt.
+  Silent immediate deletion does not satisfy audit requirements.
+- **Offer / deal records** — accepted offers and signed deal-room documents may need to be
+  retained for a minimum period under consumer-protection and financial-record-keeping
+  regulations even after a user requests deletion.
+- **Blockchain ledger entries** — deal proofs written to the AOM ledger cannot be deleted;
+  the user record may need to be anonymised rather than fully deleted.
+
+**Recommended next steps:**
+- [ ] Legal review: determine retention periods for offer/deal/ledger records.
+- [ ] Design a right-to-erasure flow: anonymise PII fields, retain legal records, log the
+      request and timestamp, send a deletion receipt by email.
+- [ ] Re-expose the flow as a verified contact request rather than an instant button.
+- [ ] Add a data-retention policy to the Privacy Policy page.
+
+**Current workaround:** users who want their account deleted email **privacy@haveniq.co.il**.
+
+---
+
 ## Checklist before go-live
 
 - [ ] Lawyer review of contract text (§1)
