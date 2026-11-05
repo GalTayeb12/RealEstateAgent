@@ -186,8 +186,16 @@ export default function InterviewPage() {
   const rmsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Holds an audio track that arrived before the AudioContext was running
   const pendingAudioTrackRef = useRef<RemoteTrack | null>(null);
-  // Auto-end: timer started when buyer says a farewell phrase
+  // Auto-end: timer started when buyer says a farewell phrase (backup path)
   const farewellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Agent-end path: set when agent sends session_stopped or disconnects
+  const agentEndingRef = useRef(false);
+  // Ref mirror of avatarSpeaking state — readable in stable callbacks without stale closure
+  const avatarSpeakingRef = useRef(false);
+  // Timer that fires endConversation once avatar goes silent after agent signals end
+  const waitForSilenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Ref to triggerAgentEnd — updated each render so connection-effect listeners stay current
+  const triggerAgentEndRef = useRef<() => void>(() => {});
 
   // Interview state machine
   const [state, setState] = useState<InterviewState>({ phase: "checking" });
@@ -303,8 +311,10 @@ export default function InterviewPage() {
         /thanks[,. ]+(that'?s (all|it)|goodbye|bye|we'?re done)/.test(text);
 
       if (isFarewell) {
+        console.log("[interview:end] user_phrase detected:", text.slice(0, 60), "— starting 2 s timer");
         farewellTimerRef.current = setTimeout(() => {
           farewellTimerRef.current = null;
+          console.log("[interview:end] ending (source=user_phrase)");
           void endConversationRef.current();
         }, 2000);
       }
@@ -629,7 +639,27 @@ export default function InterviewPage() {
         });
 
         room.on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
-          setAvatarSpeaking(speakers.some((s) => s instanceof RemoteParticipant));
+          const speaking = speakers.some((s) => s instanceof RemoteParticipant);
+          setAvatarSpeaking(speaking);
+          avatarSpeakingRef.current = speaking;
+
+          // If the agent already signaled end and the avatar just went silent,
+          // fire endConversation immediately (beats the 15 s timeout).
+          if (agentEndingRef.current && !speaking && waitForSilenceTimerRef.current !== null) {
+            clearTimeout(waitForSilenceTimerRef.current);
+            waitForSilenceTimerRef.current = null;
+            console.log("[interview:end] avatar finished speaking, ending (source=agent)");
+            void endConversationRef.current();
+          }
+        });
+
+        room.on(RoomEvent.ParticipantDisconnected, () => {
+          // Agent participant left — treat as agent-initiated end if we haven't
+          // already started ending through another path.
+          if (!endingRef.current) {
+            console.log("[interview:end] agent participant disconnected");
+            triggerAgentEndRef.current();
+          }
         });
 
         room.on(
@@ -641,7 +671,8 @@ export default function InterviewPage() {
                 new TextDecoder().decode(payload)
               );
               if (parsed === "session_stopped") {
-                void endConversationRef.current();
+                console.log("[interview:end] received session_stopped from agent");
+                triggerAgentEndRef.current();
                 return;
               }
               if (parsed) pushLine(parsed);
@@ -704,6 +735,11 @@ export default function InterviewPage() {
 
     return () => {
       cancelled = true;
+      // Cancel any pending agent silence-wait timer
+      if (waitForSilenceTimerRef.current !== null) {
+        clearTimeout(waitForSilenceTimerRef.current);
+        waitForSilenceTimerRef.current = null;
+      }
       // Cancel any pending farewell-triggered auto-end timer
       if (farewellTimerRef.current !== null) {
         clearTimeout(farewellTimerRef.current);
@@ -770,9 +806,45 @@ export default function InterviewPage() {
     }
   }, [enableMicrophone, getCtx]);
 
+  // ── Agent-end path: wait for the avatar to finish its closing sentence ───────
+  //
+  // Called when the agent fires end_call (session_stopped data message) or the
+  // agent participant disconnects.  We hold off on endConversation until the
+  // avatar goes silent so the buyer hears the full closing line.
+  const triggerAgentEnd = useCallback(() => {
+    if (endingRef.current || agentEndingRef.current) return;
+    agentEndingRef.current = true;
+
+    console.log(
+      "[interview:end] agent signaled session end —",
+      avatarSpeakingRef.current ? "waiting for avatar to finish speaking" : "avatar already silent"
+    );
+
+    if (!avatarSpeakingRef.current) {
+      // Not speaking right now — tiny buffer (500 ms) then proceed
+      waitForSilenceTimerRef.current = setTimeout(() => {
+        waitForSilenceTimerRef.current = null;
+        console.log("[interview:end] ending (source=agent)");
+        void endConversationRef.current();
+      }, 500);
+    } else {
+      // Speaking — wait up to 15 s for silence; ActiveSpeakersChanged will fire first
+      waitForSilenceTimerRef.current = setTimeout(() => {
+        waitForSilenceTimerRef.current = null;
+        console.log("[interview:end] silence timeout, ending anyway (source=agent)");
+        void endConversationRef.current();
+      }, 15_000);
+    }
+  }, []);
+
   const endConversation = useCallback(async () => {
     if (endingRef.current) return;
     endingRef.current = true;
+    // Cancel any pending agent-triggered silence-wait timer
+    if (waitForSilenceTimerRef.current !== null) {
+      clearTimeout(waitForSilenceTimerRef.current);
+      waitForSilenceTimerRef.current = null;
+    }
     setState({ phase: "ending" });
 
     const token = localStorage.getItem("token") ?? "";
@@ -846,6 +918,7 @@ export default function InterviewPage() {
   }, [copy.emptyTranscript, router]);
 
   endConversationRef.current = endConversation;
+  triggerAgentEndRef.current = triggerAgentEnd;
 
   // ── Derived display state ─────────────────────────────────────────────────
 
@@ -1261,7 +1334,7 @@ export default function InterviewPage() {
         {state.phase === "live" && (
           <button
             type="button"
-            onClick={() => { void endConversation(); }}
+            onClick={() => { console.log("[interview:end] ending (source=button)"); void endConversation(); }}
             style={{
               position: "absolute",
               bottom: 16,
