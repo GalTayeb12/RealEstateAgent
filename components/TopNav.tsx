@@ -339,7 +339,7 @@ export default function TopNav() {
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
                   </svg>
                   {notifCount > 0 && (
-                    <span style={{ position: "absolute", top: "0.125rem", insetInlineEnd: "0.125rem", minWidth: "1rem", height: "1rem", borderRadius: 999, background: "#9E3434", color: "#fff", fontSize: "0.5rem", fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 0.1875rem", lineHeight: 1 }}>
+                    <span style={{ position: "absolute", top: "0.125rem", insetInlineEnd: "0.125rem", minWidth: "1rem", height: "1rem", borderRadius: 999, background: "var(--qp-accent-text)", color: "#fff", fontSize: "0.5rem", fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 0.1875rem", lineHeight: 1 }}>
                       {notifCount > 9 ? "9+" : notifCount}
                     </span>
                   )}
@@ -367,7 +367,7 @@ export default function TopNav() {
                           >
                             <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", justifyContent: "space-between" }}>
                               <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)", lineHeight: 1.4 }}>{n.title}</span>
-                              {!n.readAt && <span style={{ width: "0.4375rem", height: "0.4375rem", borderRadius: "50%", background: "#9E3434", flexShrink: 0, marginTop: "0.25rem" }} />}
+                              {!n.readAt && <span style={{ width: "0.4375rem", height: "0.4375rem", borderRadius: "50%", background: "var(--qp-accent-text)", flexShrink: 0, marginTop: "0.25rem" }} />}
                             </div>
                             <span style={{ fontSize: "0.75rem", color: "var(--qp-muted)" }}>{n.body}</span>
                             {n.unitTypeId && (
