@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { updateUnitTypeSchema } from "@/lib/validation/properties";
 import { zodError } from "@/lib/validation";
+import { triggerAlerts } from "@/lib/alerts";
 
 async function getOwnedUnitType(unitTypeId: string, userId: string) {
   return prisma.unitType.findFirst({ where: { id: unitTypeId, sellerId: userId } });
@@ -63,7 +64,24 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         ...(!quantitiesFollowApartments && { active: aomStatus !== "sold" }),
       }),
     },
+    include: { project: { select: { name: true, location: true } } },
   });
+
+  // Fire price-drop alert when the listing price was explicitly lowered
+  if (price != null && Number(price) < existing.price && updated.active) {
+    void triggerAlerts({
+      type:            "price_drop",
+      unitTypeId:      updated.id,
+      unitLabel:       updated.unitLabel,
+      projectName:     updated.project.name,
+      projectLocation: updated.project.location,
+      price:           updated.price,
+      eil:             updated.eil,
+      ail:             updated.ail,
+      attributes:      updated.attributes ? (JSON.parse(updated.attributes as string) as Record<string, unknown>) : {},
+      previousPrice:   existing.price,
+    });
+  }
 
   return NextResponse.json({ unitType: updated });
 }

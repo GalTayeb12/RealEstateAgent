@@ -10,6 +10,7 @@ import { extractToken } from "@/lib/auth";
 import { z } from "zod";
 import { zodError } from "@/lib/validation";
 import { syncUnitTypeInventory } from "@/lib/inventory";
+import { triggerAlerts } from "@/lib/alerts";
 
 const schema = z.object({
   floor: z.number().int().optional(),
@@ -31,6 +32,11 @@ export async function PATCH(
 
   const existing = await prisma.unit.findFirst({
     where: { id, project: { developerId: auth.userId } },
+    include: {
+      unitType: {
+        select: { id: true, unitLabel: true, price: true, eil: true, ail: true, attributes: true, active: true, project: { select: { name: true, location: true } } },
+      },
+    },
   });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -65,6 +71,26 @@ export async function PATCH(
       await syncUnitTypeInventory(tx, unit.unitTypeId);
       return unit;
     });
+    // Fire price-drop alert when unit-level price is explicitly set lower than the previous effective price
+    if (price != null && existing.unitType?.active) {
+      const prevEffectivePrice = existing.price ?? existing.unitType.price;
+      if (price < prevEffectivePrice) {
+        const ut = existing.unitType;
+        void triggerAlerts({
+          type:            "price_drop",
+          unitTypeId:      ut.id,
+          unitLabel:       ut.unitLabel,
+          projectName:     ut.project.name,
+          projectLocation: ut.project.location,
+          price,
+          eil:             ut.eil,
+          ail:             ut.ail,
+          attributes:      ut.attributes ? (JSON.parse(ut.attributes as string) as Record<string, unknown>) : {},
+          previousPrice:   prevEffectivePrice,
+        });
+      }
+    }
+
     return NextResponse.json({ unit: updated });
   } catch (err) {
     if (err instanceof Error && err.message === "DEAL_ALREADY_SIGNED") {

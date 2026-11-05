@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { syncUnitTypeInventory } from "@/lib/inventory";
+import { triggerAlerts } from "@/lib/alerts";
 import * as XLSX from "xlsx";
 
 function requireApprovedDev(req: NextRequest) {
@@ -75,7 +76,7 @@ export async function POST(
   const { id: projectId } = await params;
   const project = await prisma.project.findUnique({
     where: { id: projectId },
-    select: { id: true, developerId: true },
+    select: { id: true, developerId: true, name: true, location: true },
   });
   if (!project) return NextResponse.json({ error: "Project not found" }, { status: 404 });
   if (project.developerId !== auth.userId) {
@@ -136,9 +137,10 @@ export async function POST(
   // Fetch existing unit types for this project
   const existing = await prisma.unitType.findMany({
     where: { projectId },
-    select: { id: true, unitLabel: true },
+    select: { id: true, unitLabel: true, eil: true, ail: true },
   });
-  const existingMap = new Map(existing.map(ut => [ut.unitLabel, ut.id]));
+  const existingMap = new Map(existing.map(ut => [ut.unitLabel, ut]));
+  type ExistingUnitType = { id: string; unitLabel: string; eil: number; ail: number };
 
   let created = 0;
   let updated = 0;
@@ -181,9 +183,14 @@ export async function POST(
     if (floorStr)    attrs.floor    = floorStr;
     if (buildingStr) attrs.building = buildingStr;
 
-    let unitTypeId = existingMap.get(groupKey);
+    const existingEntry = existingMap.get(groupKey);
+    let unitTypeId: string;
+    // Track whether this unitType already existed before this import batch
+    // (used to fire "new unit added" alerts)
+    let preExistingEntry: ExistingUnitType | null = existingEntry ?? null;
 
-    if (unitTypeId) {
+    if (existingEntry) {
+      unitTypeId = existingEntry.id;
       await prisma.unitType.update({
         where: { id: unitTypeId },
         data: {
@@ -208,7 +215,8 @@ export async function POST(
         },
       });
       unitTypeId = createdType.id;
-      existingMap.set(groupKey, unitTypeId);
+      existingMap.set(groupKey, { id: unitTypeId, unitLabel: groupKey, eil: 0.0, ail: 0.0 });
+      preExistingEntry = null; // newly created — no "unit added" alert needed (new_listing fires elsewhere)
       created++;
     }
 
@@ -297,6 +305,21 @@ export async function POST(
     }
 
     await prisma.$transaction((tx) => syncUnitTypeInventory(tx, unitTypeId));
+
+    // Fire "new_listing" alert when apartments were added to an EXISTING unit type
+    if (preExistingEntry && apartmentRows.length > 0) {
+      void triggerAlerts({
+        type:            "new_listing",
+        unitTypeId,
+        unitLabel:       groupKey,
+        projectName:     project.name,
+        projectLocation: project.location,
+        price:           avgPrice,
+        eil:             preExistingEntry.eil,
+        ail:             preExistingEntry.ail,
+        attributes:      attrs,
+      });
+    }
   }
 
   return NextResponse.json({ created, updated, skipped });

@@ -108,17 +108,23 @@ async function _triggerAlerts(ctx: AlertContext): Promise<void> {
     const locale = (pref.buyer.locale as "he" | "en") ?? "he";
     const { title, body } = buildNotificationText(ctx, outcome.zij, locale);
 
-    // Create in-app notification (always, regardless of frequency)
+    // Create in-app notification (skip if an unread one already exists for same buyer+listing+type)
     if (pref.siteAlerts) {
-      await prisma.notification.create({
-        data: {
-          buyerId:    pref.buyerId,
-          type:       ctx.type,
-          title,
-          body,
-          unitTypeId: ctx.unitTypeId,
-        },
+      const existing = await prisma.notification.findFirst({
+        where: { buyerId: pref.buyerId, unitTypeId: ctx.unitTypeId, type: ctx.type, readAt: null },
+        select: { id: true },
       });
+      if (!existing) {
+        await prisma.notification.create({
+          data: {
+            buyerId:    pref.buyerId,
+            type:       ctx.type,
+            title,
+            body,
+            unitTypeId: ctx.unitTypeId,
+          },
+        });
+      }
     }
 
     // Send email immediately only for "immediate" frequency buyers
