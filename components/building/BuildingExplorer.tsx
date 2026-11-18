@@ -13,6 +13,9 @@ import type { StatusLabels } from "./BuildingGLBScene";
 
 const BuildingCanvas   = dynamic(() => import("./BuildingCanvas"),   { ssr: false });
 const BuildingGLBScene = dynamic(() => import("./BuildingGLBScene"), { ssr: false });
+const BuildingPhotoStage = dynamic(() => import("./BuildingPhotoStage"), { ssr: false });
+
+const PHOTO_RE = /.(jpe?g|png|webp|avif|svg)$/i;
 
 function hasWebGL(): boolean {
   try {
@@ -864,6 +867,15 @@ export default function BuildingExplorer({
     setHoveredUnitId(unitId);
   }, []);
 
+  // ── Photo stage: an image modelUrl on a building, or ?photo=/path for previews ──
+  const [photoOverride, setPhotoOverride] = useState<string | null>(null);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search).get("photo");
+    setPhotoOverride(p && p.startsWith("/") && !p.startsWith("//") && PHOTO_RE.test(p) ? p : null);
+  }, []);
+  const photoUrl =
+    photoOverride ?? buildings.find((b) => b.modelUrl && PHOTO_RE.test(b.modelUrl))?.modelUrl ?? null;
+
   // ── GLB detection ──
   const glbBuilding = buildings.find((b) => b.modelUrl?.endsWith(".glb"));
   const glbUrl  = glbBuilding?.modelUrl ?? null;
@@ -974,10 +986,11 @@ export default function BuildingExplorer({
 
   return (
     <section style={{
-      marginBottom: "2.5rem",
+      marginBottom: photoUrl ? "0" : "2.5rem",
       position: "relative",
     }}>
       {/* ── Project title above canvas ── */}
+      {!photoUrl && (
       <div style={{
         textAlign: "center",
         padding: "1.5rem 1rem 0.5rem",
@@ -999,11 +1012,25 @@ export default function BuildingExplorer({
           </p>
         )}
       </div>
+      )}
 
       {/* ── Immersive full-width stage ── */}
       <div style={{ position: "relative" }}>
         <style>{`
           .hn-building-stage { height: clamp(480px, 70vh, 700px); position: relative; }
+          /* Photo mode: full-bleed, almost the whole screen */
+          html { overflow-x: clip; }
+          .hn-building-stage--photo {
+            height: 100svh; min-height: 600px;
+            width: 100%;
+          }
+          /* Nav floats over the photo as frosted glass */
+          body > nav {
+            position: fixed !important; inset-inline: 0; top: 0; width: 100%;
+            background: rgba(245,242,236,.42) !important;
+            backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+            border-bottom-color: rgba(255,255,255,.28) !important;
+          }
 
           @keyframes hn-panel-in {
             from { transform: translateX(calc(var(--dir,1) * 100%)); opacity: 0; }
@@ -1021,6 +1048,7 @@ export default function BuildingExplorer({
 
           @media (max-width: 640px) {
             .hn-building-stage { height: 480px !important; }
+            .hn-building-stage--photo { height: 100svh !important; min-height: 520px; }
             .hn-floor-panel {
               top: auto !important;
               right: 0 !important; left: 0 !important; bottom: 0 !important;
@@ -1035,9 +1063,18 @@ export default function BuildingExplorer({
           }
         `}</style>
 
-        <div className="hn-building-stage">
+        <div className={photoUrl ? "hn-building-stage hn-building-stage--photo" : "hn-building-stage"}>
           {/* 3D canvas */}
-          {webgl === null ? null : webgl ? (
+          {photoUrl ? (
+            <BuildingPhotoStage
+              photoUrl={photoUrl}
+              buildings={buildings}
+              selectedFloor={selectedFloor}
+              onHover={onHover}
+              onFloorClick={handleFloorClick}
+              onBack={handleBackToBuilding}
+            />
+          ) : webgl === null ? null : webgl ? (
             <CanvasGuard
               fallback={
                 <BuildingFallback
@@ -1083,6 +1120,7 @@ export default function BuildingExplorer({
           )}
 
           {/* ── Gradient edge fades ── */}
+          {!photoUrl && (
           <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 2 }}>
             {/* top */}
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 70,
@@ -1097,6 +1135,7 @@ export default function BuildingExplorer({
             <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 80,
               background: "linear-gradient(to left, var(--qp-bg) 0%, transparent 100%)" }} />
           </div>
+          )}
 
           {/* ── Breadcrumb HUD (clickable) ── */}
           {breadcrumbParts && breadcrumbParts.length > 1 && (

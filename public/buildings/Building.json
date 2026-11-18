@@ -1,0 +1,23 @@
+{
+  "aspect": 1.7769,
+  "offImage": "/buildings/off-bulding.png",
+  "enter": {
+    "window": "/buildings/first-frame.png",
+    "room": "/buildings/second-frame.png",
+    "video": "/buildings/enter.mp4",
+    "stations": [
+      {
+        "id": "living",
+        "title": { "he": "הסלון", "en": "The living room" },
+        "text": {
+          "he": "סלון פתוח למטבח, עם דלתות זכוכית מהרצפה ועד התקרה ויציאה למרפסת מול השקיעה.",
+          "en": "An open living space flowing into the kitchen, with floor-to-ceiling glass doors and a balcony facing the sunset."
+        }
+      }
+    ]
+  },
+  "buildings": [
+    { "x": 0.160, "y": 0.2104, "w": 0.2733, "h": 0.5462 },
+    { "x": 0.555, "y": 0.2104, "w": 0.2853, "h": 0.5462 }
+  ]
+}

@@ -170,6 +170,11 @@ export default function VprPage() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)" }}>
 
+      {/* ── Building hero: full-bleed, nav floats over it ───────────────── */}
+      {unit.ownerType === "developer" && (unit.buildings?.length ?? 0) > 0 && (
+        <BuildingExplorer buildings={unit.buildings ?? []} activeUnitTypeId={unit.id} />
+      )}
+
       <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
         <p style={{ margin: "0 0 1.25rem" }}>
           <Link href="/results" style={{ color: "var(--qp-ink)", fontWeight: 500, textDecoration: "none" }}>Back to results</Link>
@@ -210,10 +215,6 @@ export default function VprPage() {
               </Link>
             ))}
           </div>
-        )}
-
-        {unit.ownerType === "developer" && (unit.buildings?.length ?? 0) > 0 && (
-          <BuildingExplorer buildings={unit.buildings ?? []} activeUnitTypeId={unit.id} />
         )}
 
         {/* ── Project teaser video (developer only) ────────────────────────── */}
