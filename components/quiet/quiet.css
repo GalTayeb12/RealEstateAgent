@@ -68,8 +68,10 @@
   --qp-nav-h: 64px;
 
   /* ── Animation ── */
-  --qp-dur:  240ms;
-  --qp-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --qp-dur:       180ms;                           /* was 240ms — snappier feedback */
+  --qp-dur-fast:  120ms;
+  --qp-ease:      cubic-bezier(0.2, 0.7, 0.2, 1);
+  --qp-ease-out:  cubic-bezier(0.16, 1, 0.3, 1);  /* strong ease-out for enters/presses */
 }
 
 /* ── Base: global background + font ─────────────────────────────────────── */
@@ -244,8 +246,11 @@ body {
   font-size: 15px;
   font-weight: 500;
   text-decoration: none;
+  transition: background var(--qp-dur) var(--qp-ease), transform 150ms var(--qp-ease-out);
 }
-.qp-home-login:hover { background: rgba(245,242,236,0.92); }
+.qp-home-login:hover  { background: rgba(245,242,236,0.92); }
+.qp-home-login:active { background: rgba(230,227,220,0.95); transform: scale(0.97); }
+.qp-home-login:focus-visible { outline: 2px solid var(--qp-focus); outline-offset: 3px; }
 .qp-home-menu-btn { display: none; }
 
 /* hero section */
@@ -308,8 +313,11 @@ body {
   font-weight: 500;
   line-height: 1;
   text-decoration: none;
+  transition: background var(--qp-dur) var(--qp-ease), transform 150ms var(--qp-ease-out);
 }
-.qp-home-hero__cta:hover { background: var(--qp-primary-hover); }
+.qp-home-hero__cta:hover  { background: var(--qp-primary-hover); }
+.qp-home-hero__cta:active { background: var(--qp-primary-active); transform: scale(0.97); }
+.qp-home-hero__cta:focus-visible { outline: 2px solid var(--qp-focus); outline-offset: 3px; }
 .qp-home-hero__pros { position: relative; margin-top: 14px; }
 .qp-home-hero__pros-btn {
   padding: 0;
@@ -321,7 +329,10 @@ body {
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
+  transition: color var(--qp-dur-fast) var(--qp-ease), opacity 120ms ease;
 }
+.qp-home-hero__pros-btn:hover  { color: var(--qp-accent-text); }
+.qp-home-hero__pros-btn:active { opacity: 0.7; }
 .qp-home-hero__menu {
   position: absolute;
   z-index: 4;
@@ -334,6 +345,8 @@ body {
   border: 1px solid var(--qp-border);
   border-radius: 12px;
   box-shadow: var(--qp-shadow-lg);
+  transform-origin: top start;
+  animation: qp-popup 180ms var(--qp-ease-out) both;
 }
 .qp-home-hero__menu a {
   display: block;
@@ -343,8 +356,10 @@ body {
   font-size: 15px;
   font-weight: 500;
   text-decoration: none;
+  transition: background var(--qp-dur-fast) var(--qp-ease), transform 120ms var(--qp-ease-out);
 }
-.qp-home-hero__menu a:hover { background: var(--qp-soft); }
+.qp-home-hero__menu a:hover  { background: var(--qp-soft); }
+.qp-home-hero__menu a:active { background: var(--qp-border); transform: scale(0.98); }
 .qp-home-hero__cue {
   position: absolute;
   z-index: 2;
@@ -403,7 +418,9 @@ body {
     background: var(--qp-surface);
     color: var(--qp-ink);
     cursor: pointer;
+    transition: background var(--qp-dur-fast) var(--qp-ease), transform 120ms var(--qp-ease-out);
   }
+  .qp-home-menu-btn:active { transform: scale(0.94); }
   .qp-home-hero__copy {
     position: relative;
     order: 2;
@@ -529,8 +546,12 @@ body {
   font: inherit; font-weight: 500; font-size: 16px; line-height: 1.2;
   text-decoration: none; cursor: pointer;
   background: transparent; color: var(--qp-ink);
-  transition: background var(--qp-dur) var(--qp-ease), border-color var(--qp-dur) var(--qp-ease);
+  transition: background var(--qp-dur) var(--qp-ease),
+              border-color var(--qp-dur) var(--qp-ease),
+              transform 150ms var(--qp-ease-out);
 }
+/* Press feedback: every pressable surface must feel like it responds to the user */
+.qp-btn:active:not(:disabled) { transform: scale(0.97); }
 .qp-btn:focus-visible, .qp-btn[data-state="focus"] { outline: 2px solid var(--qp-focus); outline-offset: 3px; }
 .qp-btn:disabled, .qp-btn[aria-disabled="true"] {
   background: var(--qp-disabled-bg); color: var(--qp-disabled-text);
@@ -551,6 +572,12 @@ body {
 .qp-btn--light:hover:not(:disabled) { background: rgba(255,255,255,0.22); }
 .qp-btn--block { width: 100%; }
 .qp-lang[aria-pressed="true"] { background: var(--qp-primary); color: var(--qp-on-primary); }
+
+/* Press utility — for pressable elements that aren't .qp-btn */
+.qp-press {
+  transition: transform 150ms var(--qp-ease-out);
+}
+.qp-press:active { transform: scale(0.95); }
 
 /* Arrow button (primary CTA with ← or →) */
 .qp-btn .qp-btn__arrow { font-size: 1.1em; line-height: 1; }
@@ -708,6 +735,12 @@ body {
 .qp-notice--success { background: var(--qp-success-bg); color: var(--qp-success); border: 1px solid #B8DBCA; }
 .qp-notice--info    { background: var(--qp-info-bg);    color: var(--qp-info);    border: 1px solid #B0CDD9; }
 
+/* ── Popup entrance (menus, dropdowns) ───────────────────────────────────── */
+@keyframes qp-popup {
+  from { opacity: 0; transform: scale(0.96) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
 /* ── User menu ───────────────────────────────────────────────────────────── */
 .qp-menu-wrap { position: relative; }
 .qp-menu {
@@ -718,14 +751,18 @@ body {
   border: 1px solid var(--qp-border);
   border-radius: var(--qp-radius-card);
   box-shadow: var(--qp-shadow-lg);
+  transform-origin: top end;
+  animation: qp-popup 200ms var(--qp-ease-out) both;
 }
 .qp-menu button {
   display: block; width: 100%; text-align: start;
   background: transparent; border: 0;
   color: var(--qp-ink); font: inherit; font-size: 15px;
   padding: 10px 12px; border-radius: 8px; cursor: pointer;
+  transition: background var(--qp-dur-fast) var(--qp-ease);
 }
 .qp-menu button:hover, .qp-menu button:focus-visible { background: var(--qp-soft); outline: none; }
+.qp-menu button:active { transform: scale(0.98); }
 .qp-menu header { padding: 10px 12px 12px; border-bottom: 1px solid var(--qp-border); margin-bottom: 4px; }
 
 /* ── Dialog / overlay ────────────────────────────────────────────────────── */
@@ -946,7 +983,20 @@ body {
   .qp-scroll__line--a { opacity: 1; }
   .qp-scroll__line--b { position: relative; inset: auto; opacity: 1; font-size: 24px; margin-top: 8px; }
   .qp-scroll__caption { opacity: 1; }
-  .qp-btn { transition: none; }
+  /* Keep color/background transitions for state feedback; remove transform-based movement */
+  .qp-btn {
+    transition: background 100ms ease, border-color 100ms ease;
+  }
+  .qp-btn:active:not(:disabled) { transform: none; }
+  .qp-home-hero__cta  { transition: background 100ms ease; }
+  .qp-home-hero__cta:active { transform: none; }
+  .qp-home-login      { transition: background 100ms ease; }
+  .qp-home-login:active { transform: none; }
+  .qp-press:active    { transform: none; }
+  .qp-home-menu-btn:active { transform: none; }
+  /* Remove popup animation entirely */
+  .qp-home-hero__menu,
+  .qp-menu { animation: none; }
   .qp-skel { animation: none; background: var(--qp-soft); }
   .qp-story { height: auto; }
   .qp-story__sticky { position: relative; height: auto; }

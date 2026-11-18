@@ -218,6 +218,7 @@ export default function Home() {
                 <button
                   type="button"
                   aria-label={isHe ? "התחלת ראיון קולי" : "Start voice interview"}
+                  className="qp-press"
                   style={{
                     width: 36, height: 36, borderRadius: "50%",
                     background: "var(--qp-ink)", border: "none", cursor: "pointer",

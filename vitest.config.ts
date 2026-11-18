@@ -8,6 +8,6 @@ export default defineConfig({
     },
   },
   test: {
-    exclude: ["**/ledger.test.ts", "**/node_modules/**"],
+    exclude: ["**/ledger.test.ts", "**/node_modules/**", "**/e2e/**"],
   },
 });

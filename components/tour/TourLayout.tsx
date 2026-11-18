@@ -56,7 +56,10 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
   const [currentWalkRoom, setCurrentWalkRoom] = useState<string | null>(null);
   const [dwell, setDwell] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [loadProgress, setLoadProgress] = useState(0);
   const sessionRef = useRef(generateSessionId());
+  // Dwell accumulator ref — avoids 60 setState/s from useFrame
+  const dwellAccRef = useRef<Record<string, number>>({});
 
   // Fix 2: back URL state
   const [backUrl, setBackUrl] = useState<string | null>(null);
@@ -69,24 +72,35 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
   // Fix 4b+c: shared label elements ref
   const labelElemsRef = useRef<Record<string, HTMLElement | null>>({});
 
-  // Load data
+  // Load data with fake-but-smooth progress for perceived performance
   useEffect(() => {
     let cancelled = false;
+    setLoadProgress(10);
 
     async function load() {
+      setLoadProgress(25);
       try {
-        // Try to fetch the unit's unitTypeId first
         const unitRes = await fetch(`/api/buildings/unit/${unitId}`);
+        setLoadProgress(50);
         if (unitRes.ok) {
           const unitData = await unitRes.json();
           const utId = unitData.unit?.unitTypeId;
-          // Fix 2: store backUrl
           if (utId) {
-            if (!cancelled) setBackUrl(`/aom/${utId}?unit=${unitId}`);
+            if (!cancelled) {
+              const buildingId = unitData.unit?.buildingId;
+              const floor = unitData.unit?.floor;
+              const params = new URLSearchParams();
+              if (buildingId) params.set("building", buildingId);
+              if (floor != null) params.set("floor", String(floor));
+              params.set("unit", unitId);
+              setBackUrl(`/aom/${utId}?${params.toString()}`);
+            }
             const modelRes = await fetch(`/api/tour/model/${utId}`);
+            setLoadProgress(75);
             if (modelRes.ok) {
               const { model: dbModel } = await modelRes.json();
               if (dbModel && !cancelled) {
+                setLoadProgress(90);
                 setModel(dbModel as ApartmentModelData);
                 setIsSample(false);
                 setLoading(false);
@@ -100,8 +114,11 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
       }
 
       if (!cancelled) {
+        setLoadProgress(90);
         setModel(sampleData as unknown as ApartmentModelData);
         setIsSample(true);
+        // Small delay so progress bar reaches 100 visually before unmounting
+        setTimeout(() => { if (!cancelled) setLoadProgress(100); }, 100);
         setLoading(false);
       }
     }
@@ -109,6 +126,23 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
     load();
     return () => { cancelled = true; };
   }, [unitId]);
+
+  // Sync dwell accumulator to state every 2 s to avoid 60fps setState
+  useEffect(() => {
+    const id = setInterval(() => {
+      const acc = dwellAccRef.current;
+      if (Object.keys(acc).length === 0) return;
+      dwellAccRef.current = {};
+      setDwell((prev) => {
+        const next = { ...prev };
+        for (const [k, v] of Object.entries(acc)) {
+          next[k] = (next[k] ?? 0) + v;
+        }
+        return next;
+      });
+    }, 2000);
+    return () => clearInterval(id);
+  }, []);
 
   // Fix 1: body scroll lock
   useEffect(() => {
@@ -153,12 +187,9 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
     [profileId],
   );
 
-  // Dwell update callback
+  // Dwell update callback — writes to ref; interval above syncs to state
   const handleDwellUpdate = useCallback((roomId: string, dtSeconds: number) => {
-    setDwell((prev) => ({
-      ...prev,
-      [roomId]: (prev[roomId] ?? 0) + dtSeconds,
-    }));
+    dwellAccRef.current[roomId] = (dwellAccRef.current[roomId] ?? 0) + dtSeconds;
   }, []);
 
   // Reset analytics
@@ -205,6 +236,9 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
       <div
         className="tour-skel-wrap"
         style={containerStyle}
+        role="status"
+        aria-live="polite"
+        aria-label="טוען סיור תלת ממדי"
       >
         <style>{`
           @keyframes tourSkelPulse {
@@ -224,30 +258,41 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           className="tour-skel-panel"
           style={{ padding: "20px 22px", borderLeft: "1px solid var(--qp-soft)", display: "flex", flexDirection: "column", gap: 12, height: "100%" }}
         >
-          {/* Title bar */}
           <div className="tour-skel-pulse" style={{ height: 22, width: "60%", background: "var(--qp-soft)", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
-          {/* Facts grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 4 }}>
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="tour-skel-pulse" style={{ height: 52, background: "var(--qp-soft)", borderRadius: 6, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: `${i * 0.08}s` }} />
             ))}
           </div>
-          {/* Profile cards */}
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="tour-skel-pulse" style={{ height: 54, background: "var(--qp-soft)", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: `${0.5 + i * 0.1}s` }} />
           ))}
-          {/* Dana bot area */}
           <div className="tour-skel-pulse" style={{ height: 90, background: "var(--qp-soft)", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: "0.8s" }} />
-          {/* Analytics area */}
           <div className="tour-skel-pulse" style={{ height: 70, background: "var(--qp-soft)", borderRadius: 10, animation: "tourSkelPulse 1.4s ease-in-out infinite", animationDelay: "0.9s" }} />
         </div>
-        {/* Canvas skeleton */}
+        {/* Canvas skeleton with real progress bar */}
         <div
           className="tour-skel-stage"
-          style={{ background: "var(--qp-soft)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 10, height: "100%" }}
+          style={{ background: "var(--qp-soft)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 14, height: "100%" }}
         >
           <div className="tour-skel-pulse" style={{ width: 48, height: 48, borderRadius: "50%", background: "var(--qp-border)", animation: "tourSkelPulse 1.4s ease-in-out infinite" }} />
           <div style={{ color: "var(--qp-muted)", fontFamily: "var(--font-heebo), sans-serif", fontSize: 14, direction: "rtl" }}>{m.loading}</div>
+          {/* Progress bar */}
+          <div
+            role="progressbar"
+            aria-valuenow={loadProgress}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            style={{ width: 160, height: 4, borderRadius: 2, background: "var(--qp-border)", overflow: "hidden" }}
+          >
+            <div style={{
+              height: "100%",
+              width: `${loadProgress}%`,
+              background: "var(--qp-accent, #c47a1a)",
+              borderRadius: 2,
+              transition: "width 0.4s ease",
+            }} />
+          </div>
         </div>
       </div>
     );
@@ -270,6 +315,19 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           .tour-grid { grid-template-columns: 1fr !important; grid-template-rows: 55dvh 45dvh !important; }
           .tour-panel { order: 2 !important; height: 100% !important; }
           .tour-stage { order: 1 !important; height: 100% !important; }
+        }
+        /* Visible focus ring for keyboard users */
+        .tour-room-chip:focus-visible {
+          outline: 3px solid var(--qp-accent, #c47a1a);
+          outline-offset: 2px;
+        }
+        .tour-room-chip:active {
+          transform: scale(0.96);
+          transition: transform 120ms ease-out;
+        }
+        /* Chip transitions */
+        .tour-room-chip {
+          transition: background 150ms ease, color 150ms ease, border-color 150ms ease, transform 120ms ease-out;
         }
       `}</style>
 
@@ -497,27 +555,26 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
                     top: 0, left: 0,
                     opacity: 0,
                     pointerEvents: "none",
-                    background: isFocused ? "rgba(210,122,18,0.92)" : "rgba(255,255,255,0.92)",
+                    background: isFocused ? "rgba(179,139,77,0.93)" : "rgba(255,255,255,0.82)",
                     color: isFocused ? "#fff" : "var(--qp-ink)",
-                    borderRadius: 8,
-                    padding: "6px 12px",
-                    fontSize: 13,
+                    borderRadius: isFocused ? 8 : 6,
+                    padding: isFocused ? "5px 11px" : "3px 8px",
+                    fontSize: isFocused ? 12 : 10,
                     fontFamily: "var(--font-heebo), sans-serif",
                     direction: "rtl",
                     textAlign: "center",
                     cursor: "pointer",
                     whiteSpace: "nowrap",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                    boxShadow: isFocused ? "0 2px 10px rgba(0,0,0,0.18)" : "0 1px 4px rgba(0,0,0,0.10)",
                     userSelect: "none",
-                    lineHeight: 1.4,
+                    lineHeight: 1.35,
                     transition: "background 0.15s",
                   }}
                 >
-                  <div style={{ fontWeight: 600 }}>{label}</div>
-                  <div style={{ fontSize: 11, opacity: 0.8 }}>{room.area.toFixed(1)} {m.sqm}</div>
-                  {rent != null && (
-                    <div style={{ fontSize: 11, opacity: 0.8, color: isFocused ? "var(--qp-warning-bg)" : "var(--qp-accent)" }}>
-                      {rent.toLocaleString()} ₪
+                  <div style={{ fontWeight: isFocused ? 700 : 500 }}>{label}</div>
+                  {isFocused && (
+                    <div style={{ fontSize: 10, opacity: 0.88, marginTop: 1 }}>
+                      {room.area.toFixed(1)} {m.sqm}
                     </div>
                   )}
                 </div>
@@ -605,8 +662,11 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
           </div>
         )}
 
-        {/* Room chips (bottom) */}
+        {/* Room chips (bottom) — keyboard navigable with Arrow keys */}
         <div
+          role="toolbar"
+          aria-label="חדרים"
+          dir="rtl"
           style={{
             position: "absolute",
             bottom: 14,
@@ -619,14 +679,36 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
             paddingBottom: 4,
           }}
         >
-          {model.rooms.map((room) => {
+          {model.rooms.map((room, idx) => {
             const label =
               model.profiles.find((p) => p.id === profileId)?.labels[room.id] ?? room.name;
             const active = focusRoomId === room.id;
             return (
               <button
                 key={room.id}
+                className="tour-room-chip"
+                data-room-id={room.id}
+                aria-pressed={active}
+                aria-label={label}
                 onClick={() => handleRoomChange(room.id)}
+                onKeyDown={(e) => {
+                  // Arrow key navigation between chips (RTL: right = previous)
+                  if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+                    e.preventDefault();
+                    const rooms = model.rooms;
+                    const nextIdx =
+                      e.key === "ArrowLeft"
+                        ? (idx + 1) % rooms.length
+                        : (idx - 1 + rooms.length) % rooms.length;
+                    const nextId = rooms[nextIdx].id;
+                    handleRoomChange(nextId);
+                    // Move DOM focus to the next chip
+                    const nextBtn = document.querySelector<HTMLButtonElement>(
+                      `[data-room-id="${nextId}"]`,
+                    );
+                    nextBtn?.focus();
+                  }
+                }}
                 style={{
                   flexShrink: 0,
                   padding: "6px 14px",
@@ -639,6 +721,7 @@ export default function TourLayout({ unitId, isModal, strings: m }: TourLayoutPr
                   cursor: "pointer",
                   whiteSpace: "nowrap",
                   boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+                  direction: "rtl",
                 }}
               >
                 {label}

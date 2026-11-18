@@ -120,6 +120,11 @@ function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave, on
 
   const divisions = Math.max(2, floor.units.length);
 
+  const isLit = useMemo(
+    () => Array.from({ length: divisions }, (_, i) => ((floor.floor * 7 + i * 13 + 3) % 17) < 8),
+    [floor.floor, divisions],
+  );
+
   return (
     <group>
       {/* ── Concrete back ── */}
@@ -212,6 +217,8 @@ function LuxuryFloor({ floor, floors, cx, hovered, quality, onEnter, onLeave, on
                     transparent opacity={0.84}
                     metalness={0.14} roughness={0.02}
                     envMapIntensity={2.6} reflectivity={0.95}
+                    emissive="#FFEEDD"
+                    emissiveIntensity={isLit[i] ? 0.09 : 0}
                     side={THREE.FrontSide}
                   />
                 </mesh>
@@ -412,7 +419,7 @@ function Scene({
   const orbitRef = useRef<any>(null);
   const { towers, maxHeight } = useMemo(() => layoutTowers(buildings), [buildings]);
   const dist   = Math.max(10, maxHeight * 1.55, towers.length * 6.5);
-  const target = useMemo<[number, number, number]>(() => [0, maxHeight * 0.45, 0], [maxHeight]);
+  const target = useMemo<[number, number, number]>(() => [0, maxHeight * 0.38, 0], [maxHeight]);
   const targetVec = useMemo(() => new THREE.Vector3(...target),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [target[0], target[1], target[2]]);
@@ -422,7 +429,7 @@ function Scene({
     [dist, maxHeight],
   );
   const endPos = useMemo(
-    () => new THREE.Vector3(dist * 0.32, maxHeight * 0.30, dist * 0.82),
+    () => new THREE.Vector3(dist * 0.22, maxHeight * 0.44, dist * 0.70),
     [dist, maxHeight],
   );
 
@@ -500,21 +507,21 @@ function Scene({
       <Environment files="/hdri/venice_sunset_1k.hdr" background={false} />
 
       {/* ── Horizon fog: softens the ground edge ── */}
-      <fog attach="fog" args={["#C8D8F0", dist * 2.2, dist * 5.5]} />
+      <fog attach="fog" args={["#EDE6D4", dist * 2.4, dist * 5.5]} />
 
       {/* ── Procedural sky (high quality desktop) ── */}
       {quality === "high" && !isMobile && (
         <Sky
-          sunPosition={[-0.55, 0.055, -1]}
-          turbidity={7}
-          rayleigh={3.8}
-          mieCoefficient={0.005}
-          mieDirectionalG={0.85}
+          sunPosition={[0.3, 0.22, -1]}
+          turbidity={4}
+          rayleigh={1.5}
+          mieCoefficient={0.004}
+          mieDirectionalG={0.88}
           distance={450}
         />
       )}
       {(quality === "low" || isMobile) && (
-        <color attach="background" args={["#C08050"]} />
+        <color attach="background" args={["#E8DEC8"]} />
       )}
 
       {/* ── Shared environment: lights, ground, trees, shadows, N8AO ── */}

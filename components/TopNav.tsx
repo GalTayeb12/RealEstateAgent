@@ -345,7 +345,7 @@ export default function TopNav() {
                   )}
                 </button>
                 {notifOpen && (
-                  <div data-notif style={{ position: "absolute", insetInlineEnd: 0, top: "calc(100% + 0.5rem)", zIndex: 300, width: "min(22rem, 92vw)", background: "var(--qp-surface)", borderRadius: 16, border: "1px solid var(--qp-border)", boxShadow: "0 8px 32px -8px rgba(18,63,64,0.18)", overflow: "hidden" }}>
+                  <div data-notif style={{ position: "absolute", insetInlineEnd: 0, top: "calc(100% + 0.5rem)", zIndex: 300, width: "min(22rem, 92vw)", background: "var(--qp-surface)", borderRadius: 16, border: "1px solid var(--qp-border)", boxShadow: "0 8px 32px -8px rgba(18,63,64,0.18)", overflow: "hidden", transformOrigin: "top end", animation: "qp-popup 200ms cubic-bezier(0.16,1,0.3,1) both" }}>
                     <div style={{ padding: "0.875rem 1rem", borderBottom: "1px solid var(--qp-soft)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)" }}>{m.alerts.bellLabel}</span>
                       {notifCount > 0 && (
@@ -469,6 +469,7 @@ export default function TopNav() {
             padding: "0.375rem 0.75rem 0.875rem",
             background: "var(--qp-surface)",
             borderTop: "1px solid var(--qp-soft)",
+            animation: "qp-popup 200ms cubic-bezier(0.16,1,0.3,1) both",
           }}
         >
           {/* Nav links */}
@@ -653,7 +654,7 @@ function AccountButton({
         {letter}
       </button>
       {showMenu && (
-        <div style={{ position: "absolute", top: "calc(100% + 0.55rem)", insetInlineEnd: 0, width: "17.5rem", zIndex: 30 }}>
+        <div style={{ position: "absolute", top: "calc(100% + 0.55rem)", insetInlineEnd: 0, width: "17.5rem", zIndex: 30, transformOrigin: "top end", animation: "qp-popup 200ms cubic-bezier(0.16,1,0.3,1) both" }}>
           <AccountPanel
             user={user}
             role={role}

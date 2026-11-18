@@ -86,3 +86,19 @@ __pycache__/
 # Local QA captures
 /screenshots/
 /public/screenshots/
+
+# Root-level screenshot captures (Playwright / manual QA)
+/screenshot-*.png
+/compare.html
+
+# Meshy AI — API responses and unapproved previews
+/meshy_resp.json
+/*_preview.png
+/meshy_*.json
+
+# Playwright test artifacts
+/test-results/
+
+# Claude Code — scheduled task lock and locally-installed skills
+.claude/scheduled_tasks.lock
+.claude/skills/

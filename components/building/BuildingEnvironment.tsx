@@ -15,14 +15,14 @@
  *   <BuildingEnvironment maxHeight={h} dist={d} quality={q} isMobile={m} />
  */
 
-import { ContactShadows } from "@react-three/drei";
+import { ContactShadows, Environment } from "@react-three/drei";
 import { EffectComposer, N8AO } from "@react-three/postprocessing";
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
-const C_GRASS    = "#A8BA98";
-const C_SIDEWALK = "#C4C0B8";
-const C_ROAD     = "#484840";
-const C_PARKING  = "#3A3A36";
+const C_GRASS    = "#C4D4B0"; // lighter, warmer green (was #A8BA98)
+const C_SIDEWALK = "#DED9D0"; // brighter (was #C4C0B8)
+const C_ROAD     = "#9A9890"; // lighter gray (was #484840)
+const C_PARKING  = "#8A8880"; // lighter (was #3A3A36)
 
 // ─── Enhanced ground ─────────────────────────────────────────────────────────
 function EnhancedGround({ r }: { r: number }) {
@@ -91,15 +91,15 @@ function Tree({ x, z, s = 1 }: { x: number; z: number; s?: number }) {
     <group position={[x, 0, z]} scale={s}>
       <mesh position={[0, 0.44, 0]} castShadow>
         <cylinderGeometry args={[0.044, 0.062, 0.88, 8]} />
-        <meshStandardMaterial color="#483018" roughness={0.94} />
+        <meshStandardMaterial color="#5A4028" roughness={0.94} />
       </mesh>
       <mesh position={[0, 1.32, 0]} castShadow>
         <coneGeometry args={[0.60, 1.22, 9]} />
-        <meshStandardMaterial color="#2C5434" roughness={0.88} />
+        <meshStandardMaterial color="#3A6440" roughness={0.88} />
       </mesh>
       <mesh position={[0, 1.76, 0]} castShadow>
         <coneGeometry args={[0.38, 0.84, 9]} />
-        <meshStandardMaterial color="#386040" roughness={0.88} />
+        <meshStandardMaterial color="#4A7050" roughness={0.88} />
       </mesh>
     </group>
   );
@@ -154,32 +154,38 @@ export function BuildingEnvironment({
 
   return (
     <>
+      {/* ── IBL environment — local HDR, no CDN dependency ── */}
+      {quality === "high" && (
+        <Environment files="/hdr/potsdamer_platz_1k.hdr" background={false} environmentIntensity={0.35 * li} />
+      )}
+
       {/* ── Lights ── */}
       {li > 0 && (
         <>
-          <ambientLight intensity={0.28 * li} color="#FFD0A0" />
-          <hemisphereLight color="#FFBC78" groundColor="#78A0C0" intensity={0.58 * li} />
+          <ambientLight intensity={0.22 * li} color="#FFD0A0" />
+          <hemisphereLight color="#FFCC88" groundColor="#6090A8" intensity={0.52 * li} />
 
-          {/* Key light: low sun from building's left-back */}
+          {/* Key light: low-angle golden sun */}
           <directionalLight
             position={[-dist * 0.55, maxHeight * 1.85, dist * 0.38]}
-            intensity={2.6 * li}
+            intensity={2.4 * li}
             color="#FFCC88"
             castShadow
-            shadow-mapSize={[isMobile ? 512 : 1024, isMobile ? 512 : 1024]}
+            shadow-mapSize={[isMobile ? 512 : 2048, isMobile ? 512 : 2048]}
             shadow-camera-near={0.5}
             shadow-camera-far={dist * 3.5}
             shadow-camera-left={-dist * 0.8}
             shadow-camera-right={dist * 0.8}
             shadow-camera-top={maxHeight * 2}
             shadow-camera-bottom={-4}
-            shadow-bias={-0.0006}
+            shadow-bias={-0.0005}
+            shadow-normalBias={0.03}
           />
 
-          {/* Fill light: cool from opposite side */}
+          {/* Cool fill from opposite side */}
           <directionalLight
             position={[dist * 0.85, maxHeight * 0.55, -dist * 0.55]}
-            intensity={0.38 * li}
+            intensity={0.32 * li}
             color="#A0C0DA"
           />
         </>

@@ -972,8 +972,8 @@ export default function InterviewPage() {
           to   { opacity: 1; transform: scale(1)    translateY(0);   }
         }
         @keyframes tapPulse {
-          0%, 100% { opacity: 0.65; }
-          50%       { opacity: 1;    }
+          0%, 100% { opacity: 0.5; }
+          50%       { opacity: 1;   }
         }
         @media (prefers-reduced-motion: reduce) {
           .cine-logo { animation-duration: 0.4s !important; }
@@ -992,7 +992,7 @@ export default function InterviewPage() {
           alignItems: "center",
           justifyContent: "center",
           opacity: cinematicVisible ? 1 : 0,
-          transition: "opacity 1.2s ease-in-out",
+          transition: prefersReduced ? "opacity 0.25s ease" : "opacity 1.2s ease-in-out",
           pointerEvents: cinematicVisible ? "all" : "none",
         }}
       >
@@ -1074,7 +1074,7 @@ export default function InterviewPage() {
               cursor: "pointer",
               fontFamily: "var(--font-heebo, sans-serif)",
               animationName: "tapPulse",
-              animationDuration: "2.4s",
+              animationDuration: "1.8s",
               animationIterationCount: "infinite",
               animationTimingFunction: "ease-in-out",
             }}
