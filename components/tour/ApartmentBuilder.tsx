@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, Suspense } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Environment, ContactShadows } from "@react-three/drei";
 import { EffectComposer, N8AO } from "@react-three/postprocessing";
@@ -594,8 +594,10 @@ export default function ApartmentBuilder({ model, profileId, wallGroupRef, mode 
       {/* Fixed kitchen/bath */}
       <FixedFurniture />
 
-      {/* Profile furniture */}
-      <ProfileFurniture items={layoutItems} profileId={profileId} />
+      {/* Profile furniture — Suspense needed for GLB-based items */}
+      <Suspense fallback={null}>
+        <ProfileFurniture items={layoutItems} profileId={profileId} />
+      </Suspense>
 
       {/* Lighting */}
       <SceneLighting isMobile={isMobile} />

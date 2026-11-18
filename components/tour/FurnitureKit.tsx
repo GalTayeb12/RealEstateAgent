@@ -2,6 +2,25 @@
 
 import { useMemo } from "react";
 import * as THREE from "three";
+import { RoundedBox, useGLTF } from "@react-three/drei";
+
+// ─── Route Draco decoder to local copy — no CDN requests ─────────────────────
+// Called at module init; affects all useGLTF calls in this bundle.
+useGLTF.setDecoderPath("/draco/");
+
+// ─── Module-level PBR texture cache (lazy loads from /public/textures/) ─────
+// Keys: "<path>@<repeatX>x<repeatY>"
+const _tex = new Map<string, THREE.Texture>();
+function lt(path: string, rx = 1, ry = 1): THREE.Texture {
+  const key = `${path}@${rx}x${ry}`;
+  if (!_tex.has(key)) {
+    const t = new THREE.TextureLoader().load(path);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(rx, ry);
+    _tex.set(key, t);
+  }
+  return _tex.get(key)!;
+}
 
 // ─── Color constants (from demo) ────────────────────────────────────────────
 const WOOD   = 0xb98b5c;
@@ -79,49 +98,93 @@ export function Armchair({ color = "#a3ad97" }: { color?: string }) {
 }
 
 // ─── Coffee Table ────────────────────────────────────────────────────────────
+// Oak RoundedBox top + 4× black hairpin legs (two rods each)
 export function CoffeeTable() {
   return (
     <group>
-      <mesh position={[0, 0.32, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.9, 0.04, 0.5]} />
-        <meshStandardMaterial color={c(WOOD)} roughness={0.6} />
-      </mesh>
-      {([-0.38, 0.38] as const).map((x) =>
-        ([-0.18, 0.18] as const).map((z) => (
-          <mesh key={`${x}-${z}`} position={[x, 0.15, z]} castShadow>
-            <cylinderGeometry args={[0.015, 0.015, 0.30, 8]} />
-            <meshStandardMaterial color={c(DARK)} roughness={0.5} metalness={0.3} />
-          </mesh>
+      {/* Oak top */}
+      <RoundedBox args={[0.9, 0.04, 0.5]} radius={0.015} smoothness={4}
+        position={[0, 0.36, 0]} castShadow receiveShadow>
+        <meshStandardMaterial
+          map={lt("/textures/oak_diff.jpg", 2, 1)}
+          roughnessMap={lt("/textures/oak_rough.jpg", 2, 1)}
+          normalMap={lt("/textures/oak_nor_gl.jpg", 2, 1)}
+          roughness={0.6}
+        />
+      </RoundedBox>
+      {/* Hairpin legs — 4 corners × 2 rods */}
+      {([-0.37, 0.37] as const).map((x) =>
+        ([-0.17, 0.17] as const).map((z) => (
+          <group key={`${x}-${z}`} position={[x, 0, z]}>
+            <mesh position={[ 0.018, 0.18, 0]} rotation={[0, 0,  0.12]} castShadow>
+              <cylinderGeometry args={[0.007, 0.007, 0.36, 6]} />
+              <meshStandardMaterial color={c(DARK)} roughness={0.25} metalness={0.75} />
+            </mesh>
+            <mesh position={[-0.018, 0.18, 0]} rotation={[0, 0, -0.12]} castShadow>
+              <cylinderGeometry args={[0.007, 0.007, 0.36, 6]} />
+              <meshStandardMaterial color={c(DARK)} roughness={0.25} metalness={0.75} />
+            </mesh>
+          </group>
         )),
       )}
     </group>
   );
 }
 
-// ─── TV ──────────────────────────────────────────────────────────────────────
+// ─── TV unit (מזנון) + 65" screen ────────────────────────────────────────────
+// Unit: 1.4m wide, white matte lacquer body, oak round legs
+// Screen: 65" = 143.5×80.7cm, charcoal bezel, near-black glossy panel
 export function TV() {
   return (
     <group>
-      {/* stand */}
-      <mesh position={[0, 0.4, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.6, 0.8, 0.3]} />
-        <meshStandardMaterial color={c(WHITE)} roughness={0.7} />
+      {/* Unit body — white matte lacquer */}
+      <RoundedBox args={[1.4, 0.38, 0.4]} radius={0.015} smoothness={4}
+        position={[0, 0.31, 0]} castShadow receiveShadow>
+        <meshStandardMaterial color="#f0ede6" roughness={0.65} metalness={0} />
+      </RoundedBox>
+      {/* Door gap lines (subtle front panel seam) */}
+      <mesh position={[0, 0.31, 0.202]} receiveShadow>
+        <planeGeometry args={[0.69, 0.32]} />
+        <meshStandardMaterial color="#e0ddd5" roughness={0.68} />
       </mesh>
-      {/* screen */}
-      <mesh position={[0, 1.0, 0.02]} castShadow receiveShadow>
-        <boxGeometry args={[1.1, 0.62, 0.04]} />
-        <meshStandardMaterial color={c(DARK)} roughness={0.3} />
-      </mesh>
+      {/* Oak legs — 4× short cylinders */}
+      {([-0.58, 0.58] as const).map((lx) =>
+        ([-0.14, 0.14] as const).map((lz) => (
+          <mesh key={`${lx}-${lz}`} position={[lx, 0.065, lz]} castShadow>
+            <cylinderGeometry args={[0.025, 0.025, 0.13, 8]} />
+            <meshStandardMaterial color="#c09060" roughness={0.6} metalness={0} />
+          </mesh>
+        )),
+      )}
+      {/* Screen bezel — charcoal, narrow */}
+      <RoundedBox args={[1.46, 0.838, 0.028]} radius={0.01} smoothness={4}
+        position={[0, 1.0, 0.0]} castShadow>
+        <meshStandardMaterial color="#1c1c1c" roughness={0.35} metalness={0.5} />
+      </RoundedBox>
+      {/* Screen panel — near-black, high gloss */}
+      <RoundedBox args={[1.40, 0.788, 0.009]} radius={0.006} smoothness={4}
+        position={[0, 1.0, 0.016]}>
+        <meshStandardMaterial color="#050505" roughness={0.04} metalness={0.08} />
+      </RoundedBox>
     </group>
   );
 }
 
-// ─── Rug ─────────────────────────────────────────────────────────────────────
-export function Rug({ w = 2.0, d = 1.5, color = "#d8ccb6" }: { w?: number; d?: number; color?: string }) {
+// ─── Rug (Poly Haven poly_wool_herringbone PBR) ───────────────────────────────
+export function Rug({ w = 2.0, d = 1.5 }: { w?: number; d?: number; color?: string }) {
+  // Repeat: ~1 tile per 50cm → scale with rug size
+  const rx = Math.round(w * 2);
+  const ry = Math.round(d * 2);
   return (
     <mesh position={[0, 0.005, 0]} receiveShadow rotation={[-Math.PI / 2, 0, 0]}>
       <planeGeometry args={[w, d]} />
-      <meshStandardMaterial color={color} roughness={0.95} />
+      <meshStandardMaterial
+        map={lt("/textures/rug_diff.jpg", rx, ry)}
+        roughnessMap={lt("/textures/rug_rough.jpg", rx, ry)}
+        normalMap={lt("/textures/rug_nor_gl.jpg", rx, ry)}
+        roughness={0.92}
+        normalScale={new THREE.Vector2(0.6, 0.6)}
+      />
     </mesh>
   );
 }
@@ -312,21 +375,33 @@ export function Desk() {
   );
 }
 
-// ─── Shelf ───────────────────────────────────────────────────────────────────
+// ─── Shelf (floating oak, RoundedBox + PBR) ───────────────────────────────────
 export function Shelf({ w = 1.0 }: { w?: number }) {
   return (
     <group>
-      {[0.6, 1.0, 1.4].map((y) => (
-        <mesh key={y} position={[0, y, 0]} castShadow receiveShadow>
-          <boxGeometry args={[w, 0.03, 0.25]} />
-          <meshStandardMaterial color={c(WOOD)} roughness={0.6} />
-        </mesh>
+      {/* 3 horizontal shelves */}
+      {[0.55, 0.95, 1.35].map((y) => (
+        <RoundedBox key={y} args={[w, 0.028, 0.24]} radius={0.008} smoothness={4}
+          position={[0, y, 0]} castShadow receiveShadow>
+          <meshStandardMaterial
+            map={lt("/textures/oak_diff.jpg", w * 2, 0.6)}
+            roughnessMap={lt("/textures/oak_rough.jpg", w * 2, 0.6)}
+            normalMap={lt("/textures/oak_nor_gl.jpg", w * 2, 0.6)}
+            roughness={0.55}
+          />
+        </RoundedBox>
       ))}
+      {/* Side panels */}
       {([-w / 2, w / 2] as const).map((x) => (
-        <mesh key={x} position={[x, 1.0, 0]} castShadow>
-          <boxGeometry args={[0.03, 0.84, 0.25]} />
-          <meshStandardMaterial color={c(WOOD)} roughness={0.6} />
-        </mesh>
+        <RoundedBox key={x} args={[0.028, 0.82, 0.24]} radius={0.008} smoothness={4}
+          position={[x, 0.95, 0]} castShadow>
+          <meshStandardMaterial
+            map={lt("/textures/oak_diff.jpg", 0.6, 1.8)}
+            roughnessMap={lt("/textures/oak_rough.jpg", 0.6, 1.8)}
+            normalMap={lt("/textures/oak_nor_gl.jpg", 0.6, 1.8)}
+            roughness={0.55}
+          />
+        </RoundedBox>
       ))}
     </group>
   );
@@ -504,15 +579,85 @@ export function Lounger({ color = "#d9cfbf" }: { color?: string }) {
   );
 }
 
+// ─── GLB Sofa (Meshy Refine) with bounding-box normalization ─────────────────
+// Target: 2.0m wide × 0.88m deep × 0.82m tall — pivot at bottom center.
+// The clone trick lets multiple instances coexist without corrupting the cache.
+function GlbSofa({ w = 2.0, d = 0.88, h = 0.82 }: { w?: number; d?: number; h?: number }) {
+  const { scene } = useGLTF("/models/furniture/sofa.glb");
+  const normalized = useMemo(() => {
+    const clone = scene.clone(true);
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = box.getSize(new THREE.Vector3());
+    // Uniform scale: fit all three target dimensions
+    const scale = Math.min(w / size.x, h / size.y, d / size.z);
+    clone.scale.set(scale, scale, scale);
+    // Re-pivot: bottom center at origin
+    const b2 = new THREE.Box3().setFromObject(clone);
+    const c  = b2.getCenter(new THREE.Vector3());
+    clone.position.set(-c.x, -b2.min.y, -c.z);
+    clone.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        (child as THREE.Mesh).castShadow    = true;
+        (child as THREE.Mesh).receiveShadow = true;
+      }
+    });
+    return clone;
+  }, [scene, w, d, h]);
+  return <primitive object={normalized} />;
+}
+// Preload so it's ready before first visit
+useGLTF.preload("/models/furniture/sofa.glb");
+
+// ─── GLB factory helper — shared clone+normalize+shadow logic ────────────────
+function makeGlbComponent(
+  path: string,
+  targetW: number,
+  targetH: number,
+  targetD: number,
+) {
+  function GlbComponent() {
+    const { scene } = useGLTF(path);
+    const normalized = useMemo(() => {
+      const clone = scene.clone(true);
+      const box   = new THREE.Box3().setFromObject(clone);
+      const size  = box.getSize(new THREE.Vector3());
+      const scale = Math.min(targetW / size.x, targetH / size.y, targetD / size.z);
+      clone.scale.set(scale, scale, scale);
+      const b2 = new THREE.Box3().setFromObject(clone);
+      const c  = b2.getCenter(new THREE.Vector3());
+      clone.position.set(-c.x, -b2.min.y, -c.z);
+      clone.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          (child as THREE.Mesh).castShadow    = true;
+          (child as THREE.Mesh).receiveShadow = true;
+        }
+      });
+      return clone;
+    }, [scene]);
+    return <primitive object={normalized} />;
+  }
+  GlbComponent.displayName = path.split("/").pop()?.replace(".glb", "") ?? "GlbItem";
+  useGLTF.preload(path);
+  return GlbComponent;
+}
+
+// Pre-build component types (runs once at module load)
+const GlbArmchair = makeGlbComponent("/models/furniture/armchair.glb", 0.78, 0.84, 0.76);
+const GlbPlant    = makeGlbComponent("/models/furniture/plant.glb",    0.50, 0.72, 0.50);
+const GlbLamp     = makeGlbComponent("/models/furniture/lamp.glb",     0.38, 1.50, 0.38);
+
 // ─── Furniture factory — maps type string to component ──────────────────────
 export function FurnitureItem({ type, params }: { type: string; params: (number | string)[] }) {
   switch (type) {
     case "sofa":
-      return <Sofa w={params[0] as number | undefined} color={params[1] as string | undefined} />;
+      // Use GLB for 3-seater; fall back to Sofa procedural if needed
+      return <GlbSofa w={typeof params[0] === "number" ? params[0] : 2.0} />;
     case "lsofa":
-      return <LSofa color={params[0] as string | undefined} />;
+      // GLB sofa re-used for L-sofa slot until a dedicated L-shaped model arrives
+      return <GlbSofa w={2.2} />;
+
     case "armchair":
-      return <Armchair color={params[0] as string | undefined} />;
+      return <GlbArmchair />;
     case "coffee":
       return <CoffeeTable />;
     case "tv":
@@ -534,9 +679,9 @@ export function FurnitureItem({ type, params }: { type: string; params: (number 
     case "shelf":
       return <Shelf w={params[0] as number | undefined} />;
     case "plant":
-      return <Plant s={params[0] as number | undefined} />;
+      return <GlbPlant />;
     case "lamp":
-      return <Lamp />;
+      return <GlbLamp />;
     case "crib":
       return <Crib />;
     case "toybox":
