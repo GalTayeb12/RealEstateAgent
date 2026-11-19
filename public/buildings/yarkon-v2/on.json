@@ -1,0 +1,109 @@
+{
+  "aspect": 1.7708,
+  "offImage": "/buildings/yarkon-v2/off.webp",
+  "enter": {
+    "window": "/buildings/yarkon-v2/fly-last.jpg",
+    "room": "/buildings/yarkon-v2/room-living.webp",
+    "video": "/buildings/yarkon-v2/fly-b.mp4",
+    "wide": true,
+    "stations": [
+      {
+        "id": "living",
+        "title": {
+          "he": "הסלון",
+          "en": "The living room"
+        },
+        "text": {
+          "he": "סלון פתוח למטבח, דלתות זכוכית מהרצפה עד התקרה ויציאה למרפסת הפונה לפארק הירקון.",
+          "en": "An open living space flowing into the kitchen, floor-to-ceiling glass and a balcony facing the Yarkon park."
+        }
+      },
+      {
+        "id": "kitchen",
+        "image": "/buildings/yarkon-v2/room-kitchen.webp",
+        "title": {
+          "he": "המטבח",
+          "en": "The kitchen"
+        },
+        "text": {
+          "he": "אי ארוך מאלון וטרוורטין, מכשירים אינטגרליים ותאורה חמה מעל משטח העבודה.",
+          "en": "A long oak and travertine island, integrated appliances and warm light over the counter."
+        }
+      },
+      {
+        "id": "bedroom",
+        "image": "/buildings/yarkon-v2/room-bedroom.webp",
+        "title": {
+          "he": "חדר השינה הראשי",
+          "en": "The master bedroom"
+        },
+        "text": {
+          "he": "קיר עץ אלון, וילונות פשתן וחלון בגובה מלא אל הנהר.",
+          "en": "Oak panelling, linen curtains and a full-height window onto the river."
+        }
+      },
+      {
+        "id": "bath",
+        "image": "/buildings/yarkon-v2/room-bath.webp",
+        "title": {
+          "he": "חדר הרחצה",
+          "en": "The bathroom"
+        },
+        "text": {
+          "he": "אמבטיה עומדת מאבן מול החלון, קירות טרוורטין וכיור כפול.",
+          "en": "A freestanding stone tub by the window, travertine walls and a double vanity."
+        }
+      },
+      {
+        "id": "balcony",
+        "image": "/buildings/yarkon-v2/room-balcony.webp",
+        "title": {
+          "he": "המרפסת",
+          "en": "The balcony"
+        },
+        "text": {
+          "he": "מרפסת רחבה עם מעקה זכוכית ונוף פתוח מעל פארק הירקון.",
+          "en": "A wide terrace with a glass railing and an open view over the Yarkon park."
+        }
+      }
+    ]
+  },
+  "buildings": [
+    {
+      "x": 0.134,
+      "y": 0.168,
+      "w": 0.299,
+      "h": 0.667,
+      "bands": [
+        0.168,
+        0.234,
+        0.299,
+        0.364,
+        0.43,
+        0.495,
+        0.56,
+        0.629,
+        0.835
+      ],
+      "video": "/buildings/yarkon-v2/fly-a.mp4"
+    },
+    {
+      "x": 0.57,
+      "y": 0.168,
+      "w": 0.303,
+      "h": 0.667,
+      "bands": [
+        0.168,
+        0.234,
+        0.299,
+        0.364,
+        0.43,
+        0.495,
+        0.56,
+        0.629,
+        0.835
+      ],
+      "video": "/buildings/yarkon-v2/fly-b.mp4"
+    }
+  ]
+}

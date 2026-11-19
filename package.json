@@ -25,6 +25,7 @@
     "@types/nodemailer": "^8.0.1",
     "bcryptjs": "^3.0.3",
     "googleapis": "^176.0.0",
+    "gsap": "^3.15.1",
     "jsonwebtoken": "^9.0.3",
     "livekit-client": "^2.20.2",
     "next": "16.2.11",

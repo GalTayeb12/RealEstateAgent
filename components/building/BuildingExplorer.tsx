@@ -14,6 +14,7 @@ import type { StatusLabels } from "./BuildingGLBScene";
 const BuildingCanvas   = dynamic(() => import("./BuildingCanvas"),   { ssr: false });
 const BuildingGLBScene = dynamic(() => import("./BuildingGLBScene"), { ssr: false });
 const BuildingPhotoStage = dynamic(() => import("./BuildingPhotoStage"), { ssr: false });
+const BuildingImmersiveStage = dynamic(() => import("./BuildingImmersiveStage"), { ssr: false });
 
 const PHOTO_RE = /.(jpe?g|png|webp|avif|svg)$/i;
 
@@ -873,8 +874,12 @@ export default function BuildingExplorer({
     const p = new URLSearchParams(window.location.search).get("photo");
     setPhotoOverride(p && p.startsWith("/") && !p.startsWith("//") && PHOTO_RE.test(p) ? p : null);
   }, []);
-  const photoUrl =
-    photoOverride ?? buildings.find((b) => b.modelUrl && PHOTO_RE.test(b.modelUrl))?.modelUrl ?? null;
+  // ?mode=3d switches to the real-time immersive (drone) stage.
+  // Client-only component (dynamic, ssr: false), so window is available here.
+  const [immersive] = useState(() => new URLSearchParams(window.location.search).get("mode") === "3d");
+  const photoUrl = immersive
+    ? "immersive"
+    : photoOverride ?? buildings.find((b) => b.modelUrl && PHOTO_RE.test(b.modelUrl))?.modelUrl ?? null;
 
   // ── GLB detection ──
   const glbBuilding = buildings.find((b) => b.modelUrl?.endsWith(".glb"));
@@ -1061,11 +1066,27 @@ export default function BuildingExplorer({
             }
             .hn-sheet-handle { display: flex !important; }
           }
+          /* Phones: the photo stage's floor picker is a bottom sheet; the legend would cover its CTA */
+          @media (max-width: 760px) {
+            .hn-building-stage--photo .hn-legend { display: none !important; }
+          }
         `}</style>
 
         <div className={photoUrl ? "hn-building-stage hn-building-stage--photo" : "hn-building-stage"}>
           {/* 3D canvas */}
-          {photoUrl ? (
+          {immersive ? (
+            <BuildingImmersiveStage
+              buildings={buildings}
+              selectedFloor={selectedFloor}
+              selectedUnitId={selectedUnitId}
+              hoveredUnitId={hoveredUnitId}
+              onHover={onHover}
+              onFloorClick={handleFloorClick}
+              onUnitClick={handleUnitClick}
+              onUnitHover={handleUnitHover}
+              onBack={handleBackToBuilding}
+            />
+          ) : photoUrl ? (
             <BuildingPhotoStage
               photoUrl={photoUrl}
               buildings={buildings}
@@ -1191,7 +1212,7 @@ export default function BuildingExplorer({
           )}
 
           {/* ── Legend pill HUD ── */}
-          <div style={{
+          <div className="hn-legend" style={{
             position: "absolute",
             bottom: 20,
             [isRtl ? "right" : "left"]: 20,

@@ -23,7 +23,26 @@ import { Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding, FloorSelection, HoverInfo } from "./types";
 
-export interface PhotoBox { x: number; y: number; w: number; h: number }
+/**
+ * bands (optional): floor boundaries as image-height fractions, from the roof
+ * down to the ground, length floorCount + 1. Lets floors have real, uneven
+ * heights (tall lobby, setback penthouse) instead of an even split of h.
+ */
+export interface PhotoBox {
+  x: number; y: number; w: number; h: number; bands?: number[];
+  /** Fly-in clip for this building; falls back to enter.video. */
+  video?: string;
+}
+
+/** Top and height (image fractions) of one floor inside a building box. */
+function floorSpan(box: PhotoBox, n: number, floor: number): { top: number; h: number } {
+  if (box.bands && box.bands.length === n + 1) {
+    const top = box.bands[n - floor];
+    return { top, h: box.bands[n - floor + 1] - top };
+  }
+  const h = box.h / n;
+  return { top: box.y + (n - floor) * h, h };
+}
 export interface StationMeta {
   id: string;
   /** Still shown for this room. Omit on the first station: it is the arrival frame of the clip. */
@@ -31,7 +50,11 @@ export interface StationMeta {
   title: { he: string; en: string };
   text?: { he: string; en: string };
 }
-export interface EnterMeta { window: string; room: string; video?: string; stations?: StationMeta[] }
+/**
+ * wide: the clip's first frame is the full building shot itself (a drone flight
+ * from the hero view), so the camera does not zoom into the photo first.
+ */
+export interface EnterMeta { window: string; room: string; video?: string; wide?: boolean; stations?: StationMeta[] }
 export interface PhotoMeta { aspect: number; buildings: PhotoBox[]; offImage?: string; enter?: EnterMeta }
 
 interface Cam { dx: number; dy: number; s: number; ox: number; oy: number }
@@ -127,6 +150,8 @@ export default function BuildingPhotoStage({
   const videoRef = useRef<HTMLVideoElement>(null);
   const timers = useRef<number[]>([]);
   const pending = useRef<Active | null>(null);
+  const lastPointer = useRef<string>("mouse");
+  const touchArmed = useRef(false);
   const prevSelected = useRef<FloorSelection | null>(null);
 
   const clearTimers = useCallback(() => {
@@ -167,6 +192,7 @@ export default function BuildingPhotoStage({
             && j.enter.window.startsWith("/") && j.enter.room.startsWith("/")
             ? { window: j.enter.window, room: j.enter.room,
                 video: typeof j.enter.video === "string" && j.enter.video.startsWith("/") ? j.enter.video : undefined,
+                wide: j.enter.wide === true,
                 stations: Array.isArray(j.enter.stations)
                   ? j.enter.stations.filter((x: StationMeta) =>
                       x && typeof x.id === "string" && x.title && (!x.image || x.image.startsWith("/")))
@@ -209,11 +235,8 @@ export default function BuildingPhotoStage({
   const lightRect = (() => {
     if (!lit || !litBuilding || !litBox || !litInfo || litInfo.lobby) return null;
     const n = Math.max(litBuilding.floorCount, 1);
-    const h = litBox.h / n;
-    return {
-      left: litBox.x, width: litBox.w,
-      top: litBox.y + (n - lit.floor) * h, height: h,
-    };
+    const sp = floorSpan(litBox, n, lit.floor);
+    return { left: litBox.x, width: litBox.w, top: sp.top, height: sp.h };
   })();
 
   const select = (buildingId: string, floor: number) => setActive({ buildingId, floor });
@@ -227,9 +250,9 @@ export default function BuildingPhotoStage({
     const st = rootRef.current?.getBoundingClientRect();
     if (!b || !box || !fr || !st) return null;
     const n = Math.max(b.floorCount, 1);
-    const fh = box.h / n;
+    const sp = floorSpan(box, n, floor);
     const cx = box.x + box.w / 2;
-    const cy = box.y + (n - floor) * fh + fh / 2;
+    const cy = sp.top + sp.h / 2;
     const px = fr.left + cx * fr.width;
     const py = fr.top + cy * fr.height;
     const s = Math.min(Math.max((ratio * st.width) / (box.w * fr.width), minS), maxS);
@@ -269,6 +292,24 @@ export default function BuildingPhotoStage({
       onFloorClick(buildingId, floor);
       return;
     }
+    const at = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)); };
+    if (meta.enter.wide && meta.enter.video) {
+      // Drone clip starts on the hero frame: crossfade straight into it, no zoom.
+      pending.current = { buildingId, floor };
+      select(buildingId, floor);
+      clearTimers();
+      setCam(null);
+      setStep(2);
+      const v = videoRef.current;
+      // Per-building clip. Set imperatively so play() runs on the right source
+      // in this same click (keeps the user-gesture for autoplay policies).
+      const clip = box.video && box.video.startsWith("/") ? box.video : meta.enter.video;
+      if (v && clip && v.getAttribute("src") !== clip) v.setAttribute("src", clip);
+      if (v) v.currentTime = 0;
+      v?.play().catch(() => finishEnter());
+      at(15000, finishEnter);
+      return;
+    }
     const c = camFor(buildingId, floor, 0.82, 1.6, 6);
     if (!c) { onFloorClick(buildingId, floor); return; }
     pending.current = { buildingId, floor };
@@ -276,7 +317,6 @@ export default function BuildingPhotoStage({
     setCam(c);
     setStep(1);
     clearTimers();
-    const at = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)); };
     at(950, () => {
       setStep(2);
       if (meta.enter?.video) {
@@ -300,6 +340,44 @@ export default function BuildingPhotoStage({
 
   const dim = Boolean(lightRect);
 
+  // Keyboard: up/down moves the lit floor, Enter steps inside.
+  useEffect(() => {
+    if (step !== 0 || selectedFloor || !panelBuilding || panelFloors.length === 0) return;
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+        e.preventDefault();
+        const idx = lit && panelFloors.includes(lit.floor) ? panelFloors.indexOf(lit.floor) : Math.floor(panelFloors.length / 2);
+        const next = Math.min(Math.max(idx + (e.key === "ArrowUp" ? 1 : -1), 0), panelFloors.length - 1);
+        setFollow(true);
+        select(panelBuilding.id, panelFloors[next]);
+      } else if (e.key === "Enter" && lit && litInfo && !litInfo.lobby && !(e.target as HTMLElement | null)?.closest("button")) {
+        startEnter(lit.buildingId, lit.floor);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, selectedFloor, panelBuilding?.id, panelFloors.join(","), lit?.buildingId, lit?.floor, litInfo?.lobby, meta]);
+
+  // Keyboard: left/right between room stations once inside.
+  const stationCount = meta.enter?.stations?.length ?? 0;
+  useEffect(() => {
+    if (step < 5 || stationCount < 2) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      const dir = (e.key === "ArrowRight" ? 1 : -1) * (isRtl ? -1 : 1);
+      setStation((s) => Math.min(Math.max(s + dir, 0), stationCount - 1));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [step, stationCount, isRtl]);
+
+  const tagScale = step === 0 && followCam ? followCam.s : 1;
+  // Not enough room right of the tower: put the tag on its left side.
+  const flipTag = Boolean(litBox && litBox.x + litBox.w > 0.7);
+
   return (
     <div ref={rootRef} className="hn-ps" style={{ position: "absolute", inset: 0, overflow: "clip", background: "#0b1020", containerType: "size" }}>
       <style>{`
@@ -308,6 +386,10 @@ export default function BuildingPhotoStage({
           width: max(100cqw, calc(100cqh * var(--aspect) * .9));
           aspect-ratio: var(--aspect);
           transform: translate(-50%, -50%);
+        }
+        /* Portrait phones: fit both towers instead of cropping them in half */
+        @container (orientation: portrait) {
+          .hn-ps-frame { width: calc(100cqw / 0.82); top: 42%; }
         }
         .hn-ps-cam { position: absolute; inset: 0; will-change: transform; }
         .hn-ps-fly { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; pointer-events: none; }
@@ -348,6 +430,20 @@ export default function BuildingPhotoStage({
           animation: hn-ps-drift 28s ease-in-out infinite alternate;
         }
         @keyframes hn-ps-drift { from { transform: scale(1.0); } to { transform: scale(1.035); } }
+        .hn-ps-tag { position: absolute; z-index: 3; display: flex; align-items: center; pointer-events: none; animation: hn-ps-tag-in .35s cubic-bezier(.22,1,.36,1) both; transition: top .45s cubic-bezier(.22,1,.36,1), left .45s cubic-bezier(.22,1,.36,1); }
+        .hn-ps-tag--flip { flex-direction: row-reverse; }
+        .hn-ps-tag--flip .hn-ps-tag__line { transform: scaleX(-1); }
+        .hn-ps-tag__line { width: clamp(14px, 2.2cqw, 40px); height: 1px; background: linear-gradient(to right, rgba(255,230,176,.95), rgba(255,230,176,.25)); }
+        .hn-ps-tag__box {
+          display: flex; flex-direction: column; gap: .1rem; padding: .45rem .75rem; white-space: nowrap; color: #fff;
+          font-size: clamp(.62rem, .95cqw, .82rem); line-height: 1.35;
+          background: rgba(10,14,24,.55); border: 1px solid rgba(255,230,176,.4); border-radius: 10px;
+          backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
+        .hn-ps-tag__box b { font-family: var(--font-fraunces, serif); font-weight: 500; font-size: 1.25em; color: #ffe6b0; }
+        .hn-ps-tag__box .ok { color: #ffe096; }
+        @keyframes hn-ps-tag-in { from { opacity: 0; margin-left: -8px; } to { opacity: 1; margin-left: 0; } }
+        @media (max-width: 760px) { .hn-ps-tag { display: none; } }
         .hn-ps-floor { position: absolute; padding: 0; border: 0; background: transparent; cursor: pointer; outline: none; }
         .hn-ps-floor:disabled { cursor: default; }
         .hn-ps-floor:focus-visible { box-shadow: inset 0 0 0 2px rgba(255,255,255,.9); }
@@ -450,7 +546,7 @@ export default function BuildingPhotoStage({
           .hn-ps-level b { font-size: 3rem; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .hn-ps-img, .hn-ps-light__bloom, .hn-ps-head, .hn-ps-panel, .hn-ps-on, .hn-ps-station-img, .hn-ps-back, .hn-ps-caption, .hn-ps-stations { animation: none; }
+          .hn-ps-img, .hn-ps-light__bloom, .hn-ps-head, .hn-ps-panel, .hn-ps-on, .hn-ps-station-img, .hn-ps-back, .hn-ps-caption, .hn-ps-stations, .hn-ps-tag { animation: none; }
           .hn-ps-light { z-index: 1; transition: none; }
         }
       `}</style>
@@ -527,15 +623,41 @@ export default function BuildingPhotoStage({
           </div>
         )}
 
+        {/* Floating tag anchored to the lit floor */}
+        {lightRect && litInfo && lit && step === 0 && !selectedFloor && (
+          <div
+            key={`tag-${lit.buildingId}-${lit.floor}`}
+            aria-hidden
+            className={`hn-ps-tag${flipTag ? " hn-ps-tag--flip" : ""}`}
+            style={{
+              ...(flipTag
+                ? { right: `${(1 - lightRect.left) * 100}%` }
+                : { left: `${(lightRect.left + lightRect.width) * 100}%` }),
+              top: `${(lightRect.top + lightRect.height / 2) * 100}%`,
+              transform: `translateY(-50%) scale(${1 / tagScale})`,
+              transformOrigin: flipTag ? "right center" : "left center",
+            }}
+          >
+            <span className="hn-ps-tag__line" />
+            <div className="hn-ps-tag__box">
+              <b>{litInfo.isPenthouse ? t.penthouse : `${t.level} ${lit.floor}`}</b>
+              <span className={litInfo.available > 0 ? "ok" : ""}>
+                {litInfo.available > 0 ? `${litInfo.available} ${t.available}` : t.none}
+              </span>
+              {litInfo.minPrice !== null && <span>{t.from}<Money amount={litInfo.minPrice} /></span>}
+            </div>
+          </div>
+        )}
+
         {/* Hit areas, one per floor */}
         {sorted.map((b, bi) => {
           const box = meta.buildings[bi];
           if (!box) return null;
           const n = Math.max(b.floorCount, 1);
-          const floorH = box.h / n;
           return Array.from({ length: n }, (_, i) => {
             const floor = n - i;
             const info = floorInfo(b, floor);
+            const sp = floorSpan(box, n, floor);
             return (
               <button
                 key={`${b.id}-${floor}`}
@@ -557,12 +679,24 @@ export default function BuildingPhotoStage({
                 }}
                 onMouseLeave={() => onHover(null, null)}
                 onFocus={() => { if (!info.lobby) select(b.id, floor); }}
-                onClick={() => startEnter(b.id, floor)}
+                onPointerDown={(e) => { lastPointer.current = e.pointerType; }}
+                onClick={() => {
+                  // Touch: the first tap lights the floor, a second tap on it flies in.
+                  const isLit = lit?.buildingId === b.id && lit.floor === floor && touchArmed.current;
+                  if (lastPointer.current === "touch" && !isLit) {
+                    touchArmed.current = true;
+                    setFollow(false);
+                    select(b.id, floor);
+                    return;
+                  }
+                  touchArmed.current = false;
+                  startEnter(b.id, floor);
+                }}
                 style={{
                   left: `${box.x * 100}%`,
-                  top: `${(box.y + i * floorH) * 100}%`,
+                  top: `${sp.top * 100}%`,
                   width: `${box.w * 100}%`,
-                  height: `${floorH * 100}%`,
+                  height: `${sp.h * 100}%`,
                   boxShadow: debug ? "inset 0 0 0 1px rgba(255,0,100,.8)" : undefined,
                 }}
               />
