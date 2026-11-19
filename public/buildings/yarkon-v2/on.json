@@ -19,6 +19,32 @@
         }
       },
       {
+        "id": "plan-axo",
+        "image": "/buildings/yarkon-v2/apt-axo.webp",
+        "fit": "contain",
+        "title": {
+          "he": "הדירה במבט על",
+          "en": "The apartment from above"
+        },
+        "text": {
+          "he": "דירת 4 חדרים, כ-127 מ\"ר ומרפסת שמש לאורך כל החזית. סלון, פינת אוכל ומטבח פתוחים, שלושה חדרי שינה וחדר רחצה הורים.",
+          "en": "A 4-room home of about 127 m² with a balcony along the whole facade: open living, dining and kitchen, three bedrooms and an en-suite bathroom."
+        }
+      },
+      {
+        "id": "plan-top",
+        "image": "/buildings/yarkon-v2/apt-top.webp",
+        "fit": "contain",
+        "title": {
+          "he": "תוכנית הדירה",
+          "en": "Floor plan"
+        },
+        "text": {
+          "he": "החזית הזכוכית והמרפסת בתחתית, חדרי השינה והמטבח לאורך הקיר האחורי.",
+          "en": "Glass facade and balcony at the bottom; bedrooms and kitchen along the back wall."
+        }
+      },
+      {
         "id": "kitchen",
         "image": "/buildings/yarkon-v2/room-kitchen.webp",
         "title": {

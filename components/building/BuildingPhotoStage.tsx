@@ -49,6 +49,8 @@ export interface StationMeta {
   image?: string;
   title: { he: string; en: string };
   text?: { he: string; en: string };
+  /** "contain" shows the whole image on a dark backdrop (plans, axonometric cutaways). */
+  fit?: "cover" | "contain";
 }
 /**
  * wide: the clip's first frame is the full building shot itself (a drone flight
@@ -394,6 +396,15 @@ export default function BuildingPhotoStage({
         .hn-ps-cam { position: absolute; inset: 0; will-change: transform; }
         .hn-ps-fly { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; user-select: none; pointer-events: none; }
         .hn-ps-station-img { transition: opacity 1s ease, transform 8s ease-out; animation: hn-ps-kb 14s ease-out both; }
+        /* Plans / cutaways: whole image on a dark backdrop, clear of the unit panel and caption */
+        .hn-ps-station-img[data-fit="contain"] {
+          object-fit: contain; box-sizing: border-box;
+          padding: calc(var(--qp-nav-h, 64px) + 1rem) calc(272px + 2vw) 10.5rem 3vw;
+          background: radial-gradient(ellipse at 40% 45%, #2a3550 0%, #0b1020 75%);
+        }
+        @media (max-width: 640px) {
+          .hn-ps-station-img[data-fit="contain"] { padding: calc(var(--qp-nav-h, 64px) + .5rem) 3vw 58vh; }
+        }
         @keyframes hn-ps-kb { from { scale: 1.08; } to { scale: 1; } }
         .hn-ps-back {
           position: absolute; z-index: 6; top: calc(var(--qp-nav-h, 64px) + 1rem); left: clamp(1rem, 4vw, 3.5rem);
@@ -782,7 +793,10 @@ export default function BuildingPhotoStage({
                 alt=""
                 aria-hidden
                 draggable={false}
-                style={{ opacity: i === station ? 1 : 0, zIndex: 4 }}
+                style={{
+                  opacity: i === station ? 1 : 0, zIndex: 4,
+                }}
+                data-fit={st.fit === "contain" ? "contain" : undefined}
               />
             ) : null)}
 
