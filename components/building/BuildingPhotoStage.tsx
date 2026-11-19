@@ -56,7 +56,8 @@ export interface StationMeta {
  * wide: the clip's first frame is the full building shot itself (a drone flight
  * from the hero view), so the camera does not zoom into the photo first.
  */
-export interface EnterMeta { window: string; room: string; video?: string; wide?: boolean; stations?: StationMeta[] }
+/** walk: route of a first-person 3D walkthrough of this apartment, linked from the room tour. */
+export interface EnterMeta { window: string; room: string; video?: string; wide?: boolean; stations?: StationMeta[]; walk?: string }
 export interface PhotoMeta { aspect: number; buildings: PhotoBox[]; offImage?: string; enter?: EnterMeta }
 
 interface Cam { dx: number; dy: number; s: number; ox: number; oy: number }
@@ -89,6 +90,7 @@ const STR = {
     tower: "מגדל",
     back: "חזרה לבניין",
     rooms: "חדרי הדירה",
+    walk: "הליכה בדירה בתלת־ממד",
   },
   en: {
     choose: "Choose your floor",
@@ -103,6 +105,7 @@ const STR = {
     tower: "Tower",
     back: "Back to the tower",
     rooms: "Apartment rooms",
+    walk: "Walk through in 3D",
   },
 } as const;
 
@@ -195,6 +198,7 @@ export default function BuildingPhotoStage({
             ? { window: j.enter.window, room: j.enter.room,
                 video: typeof j.enter.video === "string" && j.enter.video.startsWith("/") ? j.enter.video : undefined,
                 wide: j.enter.wide === true,
+                walk: typeof j.enter.walk === "string" && j.enter.walk.startsWith("/") ? j.enter.walk : undefined,
                 stations: Array.isArray(j.enter.stations)
                   ? j.enter.stations.filter((x: StationMeta) =>
                       x && typeof x.id === "string" && x.title && (!x.image || x.image.startsWith("/")))
@@ -433,6 +437,8 @@ export default function BuildingPhotoStage({
           background: transparent; border: 0; border-radius: 999px; transition: background .2s;
         }
         .hn-ps-station[aria-selected="true"] { background: rgba(255,230,176,.3); }
+        .hn-ps-walk { background: rgba(232,182,94,.92); color: #1d1a14; font-weight: 600; text-decoration: none; }
+        .hn-ps-walk:hover { background: rgba(240,196,116,1); }
         @media (max-width: 760px) { .hn-ps-caption { max-width: 86vw; bottom: 5.2rem; } }
         .hn-ps-skip { position: absolute; inset: 0; z-index: 6; border: 0; background: transparent; cursor: pointer; }
         .hn-ps-img {
@@ -830,6 +836,9 @@ export default function BuildingPhotoStage({
                     {st.title[lang]}
                   </button>
                 ))}
+                {meta.enter?.walk && (
+                  <a className="hn-ps-station hn-ps-walk" href={meta.enter.walk}>{t.walk}</a>
+                )}
               </div>
             )}
           </>
