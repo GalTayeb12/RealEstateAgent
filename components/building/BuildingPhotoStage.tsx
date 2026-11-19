@@ -410,14 +410,21 @@ export default function BuildingPhotoStage({
           .hn-ps-station-img[data-fit="contain"] { padding: calc(var(--qp-nav-h, 64px) + .5rem) 3vw 58vh; }
         }
         @keyframes hn-ps-kb { from { scale: 1.08; } to { scale: 1; } }
-        .hn-ps-back {
+        .hn-ps-topbar {
           position: absolute; z-index: 6; top: calc(var(--qp-nav-h, 64px) + 1rem); left: clamp(1rem, 4vw, 3.5rem);
+          display: flex; flex-wrap: wrap; gap: .5rem; max-width: calc(100% - 2rem);
+          animation: hn-ps-rise .7s .2s cubic-bezier(.22,1,.36,1) backwards;
+        }
+        .hn-ps-topbar > button, .hn-ps-topbar > a {
           padding: .5rem 1rem; font: inherit; font-size: .82rem; color: #fff; cursor: pointer;
           background: rgba(10,14,24,.45); border: 1px solid rgba(255,255,255,.28); border-radius: 999px;
           backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-          animation: hn-ps-rise .7s .2s cubic-bezier(.22,1,.36,1) backwards;
+          text-decoration: none; white-space: nowrap;
         }
-        .hn-ps-back:hover { background: rgba(10,14,24,.65); }
+        .hn-ps-topbar > button:hover, .hn-ps-topbar > a:hover { background: rgba(10,14,24,.65); }
+        .hn-ps-topbar > [aria-pressed="true"] { background: rgba(255,230,176,.3); }
+        .hn-ps-topbar > .hn-ps-walk { background: rgba(232,182,94,.92); color: #1d1a14; font-weight: 600; border-color: transparent; }
+        .hn-ps-topbar > .hn-ps-walk:hover { background: rgba(240,196,116,1); }
         .hn-ps-caption {
           position: absolute; z-index: 6; bottom: clamp(5rem, 12vh, 7rem); max-width: min(30rem, 42vw); color: #fff;
           text-shadow: 0 2px 22px rgba(0,0,0,.65);
@@ -437,8 +444,6 @@ export default function BuildingPhotoStage({
           background: transparent; border: 0; border-radius: 999px; transition: background .2s;
         }
         .hn-ps-station[aria-selected="true"] { background: rgba(255,230,176,.3); }
-        .hn-ps-walk { background: rgba(232,182,94,.92); color: #1d1a14; font-weight: 600; text-decoration: none; }
-        .hn-ps-walk:hover { background: rgba(240,196,116,1); }
         @media (max-width: 760px) { .hn-ps-caption { max-width: 86vw; bottom: 5.2rem; } }
         .hn-ps-skip { position: absolute; inset: 0; z-index: 6; border: 0; background: transparent; cursor: pointer; }
         .hn-ps-img {
@@ -563,7 +568,7 @@ export default function BuildingPhotoStage({
           .hn-ps-level b { font-size: 3rem; }
         }
         @media (prefers-reduced-motion: reduce) {
-          .hn-ps-img, .hn-ps-light__bloom, .hn-ps-head, .hn-ps-panel, .hn-ps-on, .hn-ps-station-img, .hn-ps-back, .hn-ps-caption, .hn-ps-stations, .hn-ps-tag { animation: none; }
+          .hn-ps-img, .hn-ps-light__bloom, .hn-ps-head, .hn-ps-panel, .hn-ps-on, .hn-ps-station-img, .hn-ps-topbar, .hn-ps-caption, .hn-ps-stations, .hn-ps-tag { animation: none; }
           .hn-ps-light { z-index: 1; transition: none; }
         }
       `}</style>
@@ -806,11 +811,21 @@ export default function BuildingPhotoStage({
               />
             ) : null)}
 
-            {onBack && (
-              <button type="button" className="hn-ps-back" onClick={onBack}>
-                {isRtl ? "→ " : "← "}{t.back}
-              </button>
-            )}
+            <div className="hn-ps-topbar">
+              {onBack && (
+                <button type="button" onClick={onBack}>
+                  {isRtl ? "→ " : "← "}{t.back}
+                </button>
+              )}
+              {stations.map((st, i) => st.fit === "contain" && (
+                <button key={st.id} type="button" aria-pressed={i === station} onClick={() => setStation(i)}>
+                  {st.title[lang]}
+                </button>
+              ))}
+              {meta.enter?.walk && (
+                <a className="hn-ps-walk" href={meta.enter.walk}>{t.walk}</a>
+              )}
+            </div>
 
             <div className="hn-ps-caption" key={cur.id} style={{ left: "clamp(1rem, 4vw, 3.5rem)", direction: isRtl ? "rtl" : "ltr", textAlign: isRtl ? "right" : "left" }}>
               {lit && litBuilding && (
@@ -822,9 +837,9 @@ export default function BuildingPhotoStage({
               {cur.text && <p>{cur.text[lang]}</p>}
             </div>
 
-            {stations.length > 1 && (
+            {stations.some((st) => st.fit !== "contain") && (
               <div className="hn-ps-stations" role="tablist" aria-label={t.rooms}>
-                {stations.map((st, i) => (
+                {stations.map((st, i) => st.fit !== "contain" && (
                   <button
                     key={st.id}
                     type="button"
@@ -836,9 +851,6 @@ export default function BuildingPhotoStage({
                     {st.title[lang]}
                   </button>
                 ))}
-                {meta.enter?.walk && (
-                  <a className="hn-ps-station hn-ps-walk" href={meta.enter.walk}>{t.walk}</a>
-                )}
               </div>
             )}
           </>
