@@ -21,8 +21,11 @@ import { ToneMappingMode } from "postprocessing";
 import * as THREE from "three";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "@/components/LocaleProvider";
+import TourSidePanel from "@/components/tour/TourSidePanel";
+import yarkonData from "@/lib/tour/yarkonApartment.json";
+import type { ApartmentModelData } from "@/lib/tour/types";
 
-const BASE = "/walk/yarkon-v2";
+export const BASE = "/walk/yarkon-v2";
 const EYE = 1.6;
 const RADIUS = 0.2;
 const WALK_SPEED = 1.35;   // m/s
@@ -34,7 +37,7 @@ const WHITE_BALANCE = "vec3(0.93, 0.98, 1.10)";
 const LOOK_SENS = 0.0022;
 
 type Rect = [number, number, number, number];
-interface WalkData {
+export interface WalkData {
   lightmaps: { A: number; B: number };
   probes: Record<string, number>;
   sky: number;
@@ -45,7 +48,7 @@ interface WalkData {
   spawn: [number, number, number];
 }
 
-const ROOM_NAMES: Record<string, { he: string; en: string }> = {
+export const ROOM_NAMES: Record<string, { he: string; en: string }> = {
   living: { he: "סלון ופינת אוכל", en: "Living & dining" },
   kitchen: { he: "מטבח", en: "Kitchen" },
   corridor: { he: "מבואה ומסדרון", en: "Entry & hallway" },
@@ -138,7 +141,8 @@ function useTex(url: string, cs: THREE.ColorSpace, flipY: boolean) {
 }
 
 // ─── the apartment ──────────────────────────────────────────────────────────
-function Apartment({ data, mobile }: { data: WalkData; mobile: boolean }) {
+/** overview: dollhouse view from above — ceiling-level meshes hidden, plain backdrop instead of the sky. */
+export function Apartment({ data, mobile, overview = false }: { data: WalkData; mobile: boolean; overview?: boolean }) {
   const { scene } = useGLTF(`${BASE}/apartment.glb`, false, true);
   const gl = useThree((s) => s.gl);
   const threeScene = useThree((s) => s.scene);
@@ -166,6 +170,7 @@ function Apartment({ data, mobile }: { data: WalkData; mobile: boolean }) {
 
   // sky backdrop through the glass (+ env for the balcony)
   useEffect(() => {
+    if (overview) return;
     const pm = new THREE.PMREMGenerator(gl);
     let skyEnv: THREE.Texture | null = null;
     const sky = new THREE.TextureLoader().load(`${BASE}/sky.webp`, (t) => {
@@ -178,7 +183,21 @@ function Apartment({ data, mobile }: { data: WalkData; mobile: boolean }) {
     threeScene.backgroundIntensity = data.sky * EXPOSURE;
     threeScene.backgroundRotation.set(0, data.skyRot ?? 0, 0);
     return () => { threeScene.background = null; sky.dispose(); skyEnv?.dispose(); pm.dispose(); };
-  }, [threeScene, gl, data.sky, data.skyRot]);
+  }, [threeScene, gl, data.sky, data.skyRot, overview]);
+
+  // overview: open the dollhouse — hide everything that starts at ceiling height
+  useEffect(() => {
+    if (!overview) return;
+    scene.updateMatrixWorld(true);
+    const box = new THREE.Box3();
+    const hidden: THREE.Object3D[] = [];
+    scene.traverse((o) => {
+      if (!(o as THREE.Mesh).isMesh) return;
+      box.setFromObject(o);
+      if (box.min.y > 2.2 || /ceiling|soffit/i.test(o.name + (o.parent?.name ?? ""))) { o.visible = false; hidden.push(o); }
+    });
+    return () => { for (const o of hidden) o.visible = true; };
+  }, [scene, overview]);
 
   useMemo(() => {
     const cache = new Map<string, THREE.Material>();
@@ -331,9 +350,63 @@ function Loader({ he }: { he: boolean }) {
 // apt-top.webp: ortho camera, scale 16.6 m across 1600×1120 px, centred (7.5, 3.15)
 const MAP = { x0: 7.5 - 8.3, w: 16.6, yTop: 3.15 + (16.6 * 1120) / 1600 / 2, h: (16.6 * 1120) / 1600 };
 
+/** Only same-site paths are accepted as the exit target. */
+function safeBack(v: string | null): string | null {
+  return v && v.startsWith("/") && !v.startsWith("//") ? v : null;
+}
+
+/**
+ * Side-panel data: the unit's stored tour model when there is one, else the
+ * Yarkon content (lib/tour/yarkonApartment.json, room ids = walk room ids);
+ * facts are overridden with the real unit, and "{price}" in answers is filled in.
+ */
+function useTourPanel(unitId: string | null) {
+  const [state, setState] = useState<{ model: ApartmentModelData; isSample: boolean } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      let model = yarkonData as unknown as ApartmentModelData;
+      let isSample = false;
+      try {
+        if (unitId) {
+          const u = (await (await fetch(`/api/buildings/unit/${encodeURIComponent(unitId)}`)).json())?.unit;
+          if (u?.unitTypeId) {
+            const r = await fetch(`/api/tour/model/${encodeURIComponent(u.unitTypeId)}`);
+            const dbModel = r.ok ? (await r.json())?.model : null;
+            if (dbModel) { model = dbModel as ApartmentModelData; isSample = false; }
+            const area = Number(u.unitType?.attributes?.area);
+            const price = Number(u.price ?? u.listPrice);
+            model = {
+              ...model,
+              facts: {
+                ...model.facts,
+                ...(area > 0 ? { areaSqm: area } : {}),
+                floor: u.building?.floorCount ? `${u.floor}/${u.building.floorCount}` : String(u.floor),
+                ...(price > 0 ? { priceIls: `${(price / 1e6).toFixed(2)} מ׳ ₪` } : {}),
+              },
+            };
+          }
+        }
+      } catch { /* keep the built-in content */ }
+      const price = model.facts.priceIls;
+      model = { ...model, questions: model.questions.map((q) => (q.a ? { ...q, a: q.a.replace("{price}", price) } : q)) };
+      if (!cancelled) setState({ model, isSample });
+    })();
+    return () => { cancelled = true; };
+  }, [unitId]);
+  return state;
+}
+
 export default function ApartmentWalk() {
-  const { locale } = useI18n();
+  const { locale, m } = useI18n();
   const he = locale === "he";
+  const [{ unitId, backUrl }] = useState(() => {
+    const p = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    return { unitId: p.get("unit"), backUrl: safeBack(p.get("back")) };
+  });
+  const panel = useTourPanel(unitId);
+  const [profileId, setProfileId] = useState("neutral");
+  const [dwell, setDwell] = useState<Record<string, number>>({});
   const [data, setData] = useState<WalkData | null>(null);
   const [room, setRoom] = useState("corridor");
   const [pose, setPose] = useState({ x: 7.6, y: 7.9, yaw: Math.PI });
@@ -350,6 +423,17 @@ export default function ApartmentWalk() {
   useEffect(() => {
     fetch(`${BASE}/walk.json`).then((r) => r.json()).then(setData).catch(() => setData(null));
   }, []);
+
+  // dwell per room (model ids) for the analytics card
+  const modelRoom = room;
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setDwell((d) => ({ ...d, [modelRoom]: (d[modelRoom] ?? 0) + 1 }));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [modelRoom]);
+
+  const changeProfile = useCallback((id: string) => { setProfileId(id); setDwell({}); }, []);
 
   // keyboard
   useEffect(() => {
@@ -453,7 +537,9 @@ export default function ApartmentWalk() {
 
   const exit = () => {
     if (document.pointerLockElement) document.exitPointerLock();
-    if (window.history.length > 1) window.history.back(); else window.location.href = "/";
+    if (backUrl) window.location.href = backUrl;
+    else if (window.history.length > 1) window.history.back();
+    else window.location.href = "/";
   };
 
   const T = he
@@ -471,6 +557,21 @@ export default function ApartmentWalk() {
       onTouchCancel={onTouchEnd}
     >
       <style>{CSS}</style>
+      {panel && (
+        <TourSidePanel
+          className="aw-ui aw-panel"
+          model={panel.model}
+          isSample={panel.isSample}
+          strings={m.tour}
+          profileId={profileId}
+          onProfileChange={changeProfile}
+          activeRoomId={modelRoom}
+          dwell={dwell}
+          onResetDwell={() => setDwell({})}
+          onClose={exit}
+        />
+      )}
+      <div className="aw-stage">
       {data && (
         <Canvas
           dpr={mobile ? [1, 1.5] : dpr}
@@ -515,15 +616,8 @@ export default function ApartmentWalk() {
         />
       </div>
 
-      <nav className="aw-ui aw-rooms" aria-label={T.rooms}>
-        {["living", "kitchen", "master", "bed2", "bed3", "bath", "balcony", "corridor"].map((r) => (
-          <button key={r} type="button" aria-current={room === r} onClick={() => goRoom(r)}>
-            {ROOM_NAMES[r][he ? "he" : "en"]}
-          </button>
-        ))}
-      </nav>
-
       {!locked && <p className="aw-hint">{mobile ? T.hintTouch : T.hintDesk}</p>}
+      </div>
 
       {mobile && stickUi && (
         <div className="aw-stick" style={{ left: stickUi.ox, top: stickUi.oy }} aria-hidden>
@@ -552,9 +646,8 @@ const CSS = `
 .aw-dot { position: absolute; width: 18px; height: 18px; pointer-events: none; }
 .aw-dot::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #e8b65e; box-shadow: 0 0 0 2px #fff, 0 0 10px rgba(232,182,94,.9); }
 .aw-dot::after { content: ""; position: absolute; left: 50%; top: -9px; transform: translateX(-50%); border: 6px solid transparent; border-bottom: 10px solid rgba(232,182,94,.95); }
-.aw-rooms { position: absolute; bottom: 16px; inset-inline-start: 16px; display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - min(300px, 38vw) - 48px); }
-.aw-rooms button { background: rgba(20,20,22,.55); color: inherit; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; backdrop-filter: blur(8px); }
-.aw-rooms button[aria-current="true"] { background: rgba(232,182,94,.28); border-color: rgba(232,182,94,.7); }
+.aw-stage { position: absolute; top: 0; bottom: 0; left: 0; right: 360px; overflow: hidden; }
+.aw-panel { position: absolute; top: 0; bottom: 0; right: 0; width: 360px; box-sizing: border-box; z-index: 3; background: var(--qp-surface); color: var(--qp-ink); touch-action: pan-y; user-select: text; -webkit-user-select: text; }
 .aw-hint { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); margin: 0; padding: 6px 14px; border-radius: 999px; background: rgba(20,20,22,.5); font-size: 13px; white-space: nowrap; pointer-events: none; backdrop-filter: blur(6px); max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
 .aw-loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; text-align: center; background: #0b0b0c; z-index: 2; }
 .aw-loading__bar { width: min(320px, 70vw); height: 3px; background: rgba(255,255,255,.12); border-radius: 3px; overflow: hidden; }
@@ -564,8 +657,11 @@ const CSS = `
 .aw-stick span { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px; border-radius: 50%; background: rgba(255,255,255,.55); }
 @media (max-width: 760px) {
   .aw-map { width: 42vw; bottom: 12px; }
-  .aw-rooms { display: none; }
   .aw-hint { top: 64px; font-size: 12px; }
+}
+@media (max-width: 860px) {
+  .aw-stage { right: 0; bottom: 42dvh; }
+  .aw-panel { top: 58dvh; width: auto; left: 0; border-left: none !important; border-top: 1px solid var(--qp-soft); }
 }
 @media (prefers-reduced-motion: reduce) {
   .aw-loading__bar span { transition: none; }

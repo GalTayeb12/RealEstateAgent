@@ -23,7 +23,7 @@ export async function GET(
               location: true,
               unitTypes: {
                 where: { active: true },
-                select: { id: true, unitLabel: true, ownerType: true },
+                select: { id: true, unitLabel: true, ownerType: true, price: true, attributes: true },
                 orderBy: { createdAt: "asc" },
               },
               buildings: {

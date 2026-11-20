@@ -19,7 +19,8 @@ import type { TourScene } from "./VirtualTour";
 import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding } from "@/components/building/types";
-import { formatAttributeValue, parseAttributes } from "@/lib/attributes";
+import { buyerMinRooms, formatArea, formatAttributeValue, parseAttributes, roomsOf, translateAttrKey } from "@/lib/attributes";
+import { unitFactsSummary } from "@/components/listing/UnitFactsFields";
 import { MortgageCalculator, MortgageSavedData } from "@/components/MortgageCalculator";
 
 const BuildingExplorer = dynamic(() => import("@/components/building/BuildingExplorer"), {
@@ -55,6 +56,8 @@ interface SiblingUnitType {
   id: string;
   unitLabel: string;
   ownerType: string;
+  price: number;
+  attributes: string;
 }
 
 interface UnitDetail {
@@ -93,6 +96,8 @@ export default function VprPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [mortgageSavedData, setMortgageSavedData] = useState<MortgageSavedData | null>(null);
+  // Buyer's minimum rooms: apartment-type tabs below it are dimmed, not hidden
+  const [minRooms, setMinRooms] = useState<number | null>(null);
 
   // Lazy-loaded teaser video
   const [videoData, setVideoData] = useState<string | null>(null);
@@ -104,6 +109,10 @@ export default function VprPage() {
     fetch("/api/buyer/mortgage-settings", { headers: { Authorization: `Bearer ${t}` } })
       .then(r => r.ok ? r.json() : null)
       .then((d: MortgageSavedData | null) => { if (d) setMortgageSavedData(d); })
+      .catch(() => {});
+    fetch("/api/buyer/profile", { headers: { Authorization: `Bearer ${t}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { buyer_preferences?: Record<string, unknown> } | null) => setMinRooms(buyerMinRooms(d?.buyer_preferences)))
       .catch(() => {});
   }, []);
 
@@ -136,7 +145,7 @@ export default function VprPage() {
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "var(--qp-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ color: "var(--qp-muted)", fontFamily: "var(--font-heebo, monospace)", fontSize: "0.8125rem" }}>Loading…</span>
+        <span style={{ color: "var(--qp-muted)", fontFamily: "var(--font-heebo, monospace)", fontSize: "0.8125rem" }}>{m.unitView.loading}</span>
       </div>
     );
   }
@@ -145,8 +154,8 @@ export default function VprPage() {
   if (notFound || !unit) {
     return (
       <div style={{ minHeight: "100vh", background: "var(--qp-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "1rem" }}>
-        <p style={{ color: "var(--qp-muted)", fontSize: "0.9375rem" }}>Property not found.</p>
-        <Link href="/results" style={{ color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>← Back to results</Link>
+        <p style={{ color: "var(--qp-muted)", fontSize: "0.9375rem" }}>{m.unitView.notFound}</p>
+        <Link href="/results" style={{ color: "var(--qp-ink)", fontWeight: 600, textDecoration: "none" }}>{m.unitView.backToResults}</Link>
       </div>
     );
   }
@@ -164,8 +173,13 @@ export default function VprPage() {
 
   // Sibling unit types (developer only, other active units in same project)
   const siblingTypes = unit.ownerType === "developer"
-    ? (unit.project.unitTypes ?? []).filter(ut => ut.ownerType === "developer")
+    ? (unit.project.unitTypes ?? [])
+        .filter(ut => ut.ownerType === "developer")
+        .map(ut => ({ ...ut, rooms: roomsOf(parseAttributes(ut.attributes), ut.unitLabel) }))
+        .sort((a, b) => (a.rooms ?? 99) - (b.rooms ?? 99))
     : [];
+  // A project page: project name on top, one tab per apartment type
+  const asProject = unit.ownerType === "developer" && siblingTypes.length > 1;
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)" }}>
@@ -177,7 +191,7 @@ export default function VprPage() {
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
         <p style={{ margin: "0 0 1.25rem" }}>
-          <Link href="/results" style={{ color: "var(--qp-ink)", fontWeight: 500, textDecoration: "none" }}>Back to results</Link>
+          <Link href="/results" style={{ color: "var(--qp-ink)", fontWeight: 500, textDecoration: "none" }}>{m.unitView.backToResults}</Link>
         </p>
 
         {/* ── Property header ─────────────────────────────────────────────── */}
@@ -186,42 +200,61 @@ export default function VprPage() {
             {unit.project.name} · {unit.project.location}
           </div>
           <h1 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "2.25rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "0" }}>
-            {unit.unitLabel}
+            {asProject ? unit.project.name : unit.unitLabel}
           </h1>
-          {unit.description && (
+          {!asProject && unit.description && (
             <p style={{ margin: 0, fontSize: "1rem", color: "var(--qp-muted)", lineHeight: 1.6, maxWidth: "40rem" }}>{unit.description}</p>
           )}
         </div>
 
-        {/* ── Sibling unit type picker (developer only, > 1 type) ──────────── */}
-        {unit.ownerType === "developer" && siblingTypes.length > 1 && (
-          <div style={{ marginBottom: "1.5rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            {siblingTypes.map(sibling => (
-              <Link
-                key={sibling.id}
-                href={`/aom/${sibling.id}`}
-                style={{
-                  padding: "0.4rem 1rem",
-                  borderRadius: 999,
-                  fontSize: "0.875rem",
-                  fontWeight: 600,
-                  textDecoration: "none",
-                  background: sibling.id === id ? "var(--qp-ink)" : "var(--qp-soft)",
-                  color: sibling.id === id ? "var(--qp-on-primary)" : "var(--qp-muted)",
-                  border: sibling.id === id ? "none" : "1px solid rgba(18,63,64,0.12)",
-                }}
-              >
-                {sibling.unitLabel}
-              </Link>
-            ))}
-          </div>
+        {/* ── Apartment-type tabs (developer project with > 1 type) ────────── */}
+        {asProject && (
+          <>
+            <style>{`
+              .hn-type-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; border-bottom: 1px solid rgba(18,63,64,0.12); margin-bottom: 1.5rem; }
+              .hn-type-tab { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.625rem 1rem 0.75rem; border-radius: 12px 12px 0 0; text-decoration: none; color: var(--qp-ink); border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; transition: background .15s, opacity .15s; min-width: 8.5rem; }
+              .hn-type-tab:hover { background: var(--qp-soft); }
+              .hn-type-tab[aria-selected="true"] { background: var(--qp-surface, #fff); border-color: rgba(18,63,64,0.12); box-shadow: inset 0 3px 0 var(--qp-ink); }
+              .hn-type-tab[data-dim] { opacity: 0.5; }
+              .hn-type-tab[data-dim]:hover, .hn-type-tab[data-dim][aria-selected="true"] { opacity: 0.8; }
+              .hn-type-tab b { font-size: 0.9375rem; }
+              .hn-type-tab small { font-size: 0.75rem; color: var(--qp-muted); font-variant-numeric: tabular-nums; }
+              .hn-type-tab em { font-style: normal; font-size: 0.6875rem; font-weight: 700; color: #756039; }
+              .hn-type-tab:focus-visible { outline: 3px solid var(--qp-accent, #b38b4d); outline-offset: 2px; }
+            `}</style>
+            <nav className="hn-type-tabs" role="tablist" aria-label={m.unitView.typesInProject}>
+              {siblingTypes.map(sibling => {
+                const fewer = minRooms != null && sibling.rooms != null && sibling.rooms < minRooms;
+                const facts = unitFactsSummary(parseAttributes(sibling.attributes), sibling.unitLabel, m.dev);
+                return (
+                  <Link
+                    key={sibling.id}
+                    href={`/aom/${sibling.id}`}
+                    role="tab"
+                    aria-selected={sibling.id === id}
+                    className="hn-type-tab"
+                    data-dim={fewer || undefined}
+                    scroll={false}
+                  >
+                    <b>{sibling.unitLabel}</b>
+                    {facts && <small>{facts}</small>}
+                    {sibling.price > 0 && <small><Money amount={sibling.price} /></small>}
+                    {fewer && <em>{m.unitView.fewerRooms}</em>}
+                  </Link>
+                );
+              })}
+            </nav>
+            {unit.description && (
+              <p style={{ margin: "0 0 2rem", fontSize: "1rem", color: "var(--qp-muted)", lineHeight: 1.6, maxWidth: "40rem" }}>{unit.description}</p>
+            )}
+          </>
         )}
 
         {/* ── Project teaser video (developer only) ────────────────────────── */}
         {unit.ownerType === "developer" && videoData && (
           <section style={{ marginBottom: "2rem" }}>
             <h2 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.25rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 0.875rem", letterSpacing: "0" }}>
-              Project Video
+              {m.unitView.projectVideo}
             </h2>
             <video
               controls
@@ -266,11 +299,11 @@ export default function VprPage() {
         {floorplanImage && (
           <section style={{ marginBottom: "2rem" }}>
             <h2 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.25rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 0.875rem", letterSpacing: "0" }}>
-              Floor Plan
+              {m.unitView.floorPlan}
             </h2>
             <img
               src={floorplanImage.imageData}
-              alt="Floor plan"
+              alt={m.unitView.floorPlan}
               style={{ width: "100%", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)" }}
             />
           </section>
@@ -281,26 +314,26 @@ export default function VprPage() {
           <div style={{ height: 4, background: "var(--qp-accent)" }} />
           <div style={{ padding: "1.75rem" }}>
             <h3 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 1.25rem", letterSpacing: "0" }}>
-              Match parameters
+              {m.unitView.matchParams}
             </h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1rem" }}>
               {unit.price > 0 && (
                 <div>
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>Listed price</div>
+                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>{m.unitView.listedPrice}</div>
                   <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", fontFamily: "var(--font-heebo, monospace)" }}>{unit.priceFrom ? `${m.results.from} ` : ""}<Money amount={unit.price} /><EstimatedPriceNote /></div>
                 </div>
               )}
               <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>Seller min (eil)</div>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>{m.unitView.sellerMin}</div>
                 <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", fontFamily: "var(--font-heebo, monospace)" }}>{unit.eil}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>Seller target (ail)</div>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>{m.unitView.sellerTarget}</div>
                 <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", fontFamily: "var(--font-heebo, monospace)" }}>{unit.ail}</div>
               </div>
               <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>Availability</div>
-                <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--qp-ink)" }}>{unit.quantityAvailable} / {unit.quantityTotal} units</div>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>{m.unitView.availability}</div>
+                <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--qp-ink)" }}>{m.unitView.unitsOf.replace("{a}", String(unit.quantityAvailable)).replace("{t}", String(unit.quantityTotal))}</div>
               </div>
             </div>
           </div>
@@ -310,15 +343,16 @@ export default function VprPage() {
         {Object.keys(attrs).length > 0 && (
           <div style={{ background: "var(--qp-surface)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.04)", padding: "1.75rem" }}>
             <h3 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 1rem", letterSpacing: "0" }}>
-              Features
+              {m.unitView.features}
             </h3>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
               {Object.entries(attrs).map(([k, v]) => {
-                const text = formatAttributeValue(v);
+                const text = k === "area" ? formatArea(v, m.attributes.sqmUnit) : formatAttributeValue(v);
                 if (!text) return null;
+                const label = translateAttrKey(k, m.attributes as unknown as Record<string, string | undefined>);
                 return (
                   <span key={k} style={{ fontSize: "0.8125rem", background: "var(--qp-soft)", color: "var(--qp-ink)", borderRadius: 8, padding: "0.3125rem 0.75rem", border: "1px solid var(--qp-border)", fontWeight: 500 }}>
-                    {k}: {text}
+                    {label}: {text}
                   </span>
                 );
               })}

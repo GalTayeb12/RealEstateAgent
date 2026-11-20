@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { roomsOf } from "@/lib/attributes";
 
 // ── Projects ─────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,10 @@ export const createUnitTypeSchema = z
   .superRefine((data, ctx) => {
     if (data.ail < data.eil) {
       ctx.addIssue({ code: "custom", message: "ail must be ≥ eil", path: ["ail"] });
+    }
+    // Matching filters on rooms, so every listing needs a room count.
+    if (roomsOf(data.attributes, data.unitLabel) === null) {
+      ctx.addIssue({ code: "custom", message: "rooms is required (attributes.rooms, Israeli count)", path: ["attributes", "rooms"] });
     }
   });
 

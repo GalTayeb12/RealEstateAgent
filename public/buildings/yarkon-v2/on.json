@@ -21,6 +21,7 @@
       },
       {
         "id": "plan-axo",
+        "view3d": true,
         "image": "/buildings/yarkon-v2/apt-axo.webp",
         "fit": "contain",
         "title": {

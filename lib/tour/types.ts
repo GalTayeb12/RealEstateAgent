@@ -32,6 +32,8 @@ export interface TourLayoutItem {
 export interface QuickQuestion {
   k: string;
   q: string;
+  /** Apartment-specific answer; without it the built-in sample answer (tourAnswers.ts) is used. */
+  a?: string;
 }
 
 /** Profile-specific labels for rooms. */
@@ -66,6 +68,8 @@ export interface Profile {
   storage: string;
   mamad: string;
   rent?: RentData;
+  /** Profile-specific sentence appended to a quick-question answer, keyed by question k. */
+  extras?: Partial<Record<string, string>>;
 }
 
 /** Apartment facts shown in the side panel. */

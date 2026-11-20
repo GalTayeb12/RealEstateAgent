@@ -16,7 +16,7 @@ import { matchBuyerToAoms, BuyerProfile, AomCandidate, checkHardFilters, HardFil
 import { appendBlock, verifyAllChains } from "@/lib/ledger";
 import { matchSchema } from "@/lib/validation/matching";
 import { zodError } from "@/lib/validation";
-import { parseAttributes } from "@/lib/attributes";
+import { buyerMinRooms, parseAttributes } from "@/lib/attributes";
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       try {
         const prefs = JSON.parse(buyerProfileRow.preferences) as Record<string, unknown>;
         hardCriteria = {
-          minRooms:  typeof prefs.bedrooms   === "number" ? prefs.bedrooms   : null,
+          minRooms:  buyerMinRooms(prefs),
           maxBudget: typeof prefs.budget_max === "number" ? prefs.budget_max : null,
           location:  typeof prefs.location   === "string" ? prefs.location   : null,
         };
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         ...(idFilter?.length ? { id: { in: idFilter } } : {}),
       },
       include: {
-        project: { select: { name: true, location: true } },
+        project: { select: { id: true, name: true, location: true } },
       },
     });
 
@@ -81,16 +81,24 @@ export async function POST(req: NextRequest) {
       price: l.price,
       location: l.project.location || undefined,
       attributes: parseAttributes(l.attributes),
+      unitLabel: l.unitLabel,
     }));
 
     const rawRanked = matchBuyerToAoms(buyerProfile, candidates);
 
     // Apply hard requirement filters (rooms, budget, area) on top of Zij
+    // Apartment types are ranked one by one; the project fields let the
+    // results page show one card per project.
+    const listingById = new Map(listings.map((l) => [l.id, l]));
     const ranked = rawRanked.map((outcome) => {
       const candidate = candidates.find((c) => c.id === outcome.aomId);
-      if (!candidate) return outcome;
+      const listing = listingById.get(outcome.aomId);
+      const project = listing
+        ? { projectId: listing.projectId, projectName: listing.project.name, unitLabel: listing.unitLabel }
+        : {};
+      if (!candidate) return { ...outcome, ...project };
       const { passes, reasons } = checkHardFilters(candidate, hardCriteria);
-      return { ...outcome, passesHardFilters: passes, hardFilterFailReasons: reasons };
+      return { ...outcome, ...project, passesHardFilters: passes, hardFilterFailReasons: reasons };
     });
 
     await Promise.all([

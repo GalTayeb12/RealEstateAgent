@@ -2,7 +2,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useI18n } from "@/components/LocaleProvider";
 import { EstimatedPriceNote, Money } from "@/components/Money";
+import UnitFactsFields, { blankUnitFacts, factsToAttributes, unitFactsError, type UnitFacts } from "@/components/listing/UnitFactsFields";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -125,7 +127,7 @@ const inputStyle: React.CSSProperties = {
 
 type UnitTypeFormState = {
   unitLabel: string; price: string; quantityTotal: string; quantityAvailable: string;
-  description: string; eil: string; ail: string; aomStatus: string; attributes: string;
+  description: string; eil: string; ail: string; aomStatus: string; facts: UnitFacts;
 };
 
 function UnitTypeForm({
@@ -137,57 +139,58 @@ function UnitTypeForm({
   onCancel: () => void;
   onSubmit: () => void;
 }) {
+  const { m } = useI18n();
   const f = (key: keyof UnitTypeFormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [key]: e.target.value }));
 
   return (
     <div style={{ padding: "1.25rem 1.375rem", background: "var(--qp-surface)" }}>
       <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-accent-text)", marginBottom: "1rem" }}>
-        {isEdit ? "Edit unit type" : "Add unit type"}
+        {isEdit ? m.dev.editUnitType : m.dev.newUnitType}
       </div>
       <div className="hn-dev-unit-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.875rem" }}>
         <div style={{ gridColumn: "1 / -1" }}>
-          <FormField label="Unit label (e.g. 3-room, Penthouse)">
-            <input style={inputStyle} value={form.unitLabel} onChange={f("unitLabel")} placeholder="3-room" />
+          <FormField label={m.dev.unitTypeName}>
+            <input style={inputStyle} value={form.unitLabel} onChange={f("unitLabel")} placeholder={m.dev.unitTypeNamePh} />
           </FormField>
         </div>
-        <FormField label="מחיר (₪) / Price (ILS)">
+        <FormField label={m.dev.price}>
           <input type="number" style={inputStyle} value={form.price} onChange={f("price")} placeholder="450000" />
         </FormField>
-        <FormField label="Total quantity">
+        <FormField label={m.dev.qtyTotal}>
           <input type="number" style={inputStyle} value={form.quantityTotal} onChange={f("quantityTotal")} placeholder="1" />
         </FormField>
-        <FormField label="Available quantity">
+        <FormField label={m.dev.qtyAvail}>
           <input type="number" style={inputStyle} value={form.quantityAvailable} onChange={f("quantityAvailable")} placeholder="1" />
         </FormField>
-        <FormField label="Min. match required">
+        <FormField label={m.dev.minMatch}>
           <input type="number" style={inputStyle} value={form.eil} onChange={f("eil")} placeholder="55" />
         </FormField>
-        <FormField label="Target match">
+        <FormField label={m.dev.targetMatch}>
           <input type="number" style={inputStyle} value={form.ail} onChange={f("ail")} placeholder="80" />
         </FormField>
-        <FormField label="Status">
+        <FormField label={m.dev.aptStatus}>
           <select style={inputStyle} value={form.aomStatus} onChange={f("aomStatus")}>
-            <option value="available">Available</option>
-            <option value="in_negotiation">In negotiation</option>
-            <option value="sold">Sold</option>
+            <option value="available">{m.dev.statusAvailable}</option>
+            <option value="in_negotiation">{m.dev.statusInNegotiation}</option>
+            <option value="sold">{m.dev.statusSold}</option>
           </select>
         </FormField>
         <div style={{ gridColumn: "1 / -1" }}>
-          <FormField label="Description">
-            <input style={inputStyle} value={form.description} onChange={f("description")} placeholder="Short description" />
+          <FormField label={m.dev.description}>
+            <input style={inputStyle} value={form.description} onChange={f("description")} placeholder={m.dev.shortDescPh} />
           </FormField>
         </div>
-        <div style={{ gridColumn: "1 / -1" }}>
-          <FormField label="Attributes (JSON)">
-            <input style={{ ...inputStyle, fontFamily: "var(--font-heebo, monospace)", fontSize: "0.875rem" }}
-              value={form.attributes} onChange={f("attributes")} placeholder='{"bedrooms":3,"sqft":1050}' />
-          </FormField>
-        </div>
+        <UnitFactsFields
+          facts={form.facts}
+          setFacts={(facts) => setForm(prev => ({ ...prev, facts }))}
+          inputStyle={inputStyle}
+          Field={FormField}
+        />
       </div>
       <div style={{ display: "flex", gap: "0.625rem", justifyContent: "flex-end", marginTop: "1rem" }}>
         <ActionButton onClick={onCancel} variant="ghost">Cancel</ActionButton>
-        <ActionButton onClick={onSubmit} variant="primary">{isEdit ? "Save changes" : "Add listing"}</ActionButton>
+        <ActionButton onClick={onSubmit} variant="primary">{isEdit ? m.dev.saveChanges : m.dev.createUnitType}</ActionButton>
       </div>
     </div>
   );
@@ -198,13 +201,14 @@ function UnitTypeForm({
 const blankProjectForm = { name: "", location: "", description: "" };
 const blankUnitTypeForm: UnitTypeFormState = {
   unitLabel: "", price: "", quantityTotal: "1", quantityAvailable: "1",
-  description: "", eil: "", ail: "", aomStatus: "available", attributes: "",
+  description: "", eil: "", ail: "", aomStatus: "available", facts: blankUnitFacts,
 };
 
 // ── Main dashboard ────────────────────────────────────────────────────────────
 
 export default function SellerDashboardPage() {
   const router = useRouter();
+  const { locale } = useI18n();
   const [profile, setProfile] = useState<SellerProfile | null>(null);
   const [tab, setTab] = useState<Tab>("projects");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -298,8 +302,9 @@ export default function SellerDashboardPage() {
   }
 
   async function submitUnitTypeForm(projectId: string) {
-    let attrs = {};
-    try { if (unitTypeForm.attributes.trim()) attrs = JSON.parse(unitTypeForm.attributes); } catch { alert("Attributes must be valid JSON"); return; }
+    const facts = factsToAttributes(unitTypeForm.facts);
+    if (!facts.ok) { alert(unitFactsError(facts.error, locale)); return; }
+    const attrs = facts.attributes;
 
     const body = {
       unitLabel: unitTypeForm.unitLabel,

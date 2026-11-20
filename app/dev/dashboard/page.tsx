@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 import { EstimatedPriceNote, Money } from "@/components/Money";
 import DevInventory, { type InventoryBuilding } from "@/components/DevInventory";
+import UnitFactsFields, { blankUnitFacts, factsToAttributes, unitFactsError, unitFactsSummary, type UnitFacts } from "@/components/listing/UnitFactsFields";
+import { parseAttributes } from "@/lib/attributes";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -92,8 +94,9 @@ const OFFER_STATUS: Record<string, { label: string; bg: string; color: string }>
 
 // ── Reusable sub-components ───────────────────────────────────────────────────
 
-function StatusBadge({ status, map }: { status: string; map: Record<string, { label: string; bg: string; color: string }> }) {
-  const s = map[status] ?? { label: status, bg: "#E9EEEA", color: "#526563" };
+function StatusBadge({ status, map, label }: { status: string; map: Record<string, { label: string; bg: string; color: string }>; label?: string }) {
+  const base = map[status] ?? { label: status, bg: "#E9EEEA", color: "#526563" };
+  const s = { ...base, label: label ?? base.label };
   return (
     <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: s.bg, color: s.color }}>
       {s.label}
@@ -145,12 +148,12 @@ const inputStyle: React.CSSProperties = {
 const blankProjectForm = { name: "", location: "", description: "" };
 const blankUnitTypeForm = {
   unitLabel: "", price: "", quantityTotal: "", quantityAvailable: "",
-  description: "", eil: "", ail: "", aomStatus: "available", attributes: "",
+  description: "", eil: "", ail: "", aomStatus: "available", facts: blankUnitFacts,
 };
 
 export default function DevDashboardPage() {
   const router = useRouter();
-  const { m } = useI18n();
+  const { m, locale } = useI18n();
   const [profile, setProfile] = useState<DevProfile | null>(null);
   const [tab, setTab] = useState<Tab>("projects");
 
@@ -271,8 +274,9 @@ export default function DevDashboardPage() {
   }
 
   async function submitUnitTypeForm(projectId: string) {
-    let attrs = {};
-    try { if (unitTypeForm.attributes.trim()) attrs = JSON.parse(unitTypeForm.attributes); } catch { alert("Attributes must be valid JSON"); return; }
+    const facts = factsToAttributes(unitTypeForm.facts);
+    if (!facts.ok) { alert(unitFactsError(facts.error, locale)); return; }
+    const attrs = facts.attributes;
 
     const body = {
       unitLabel: unitTypeForm.unitLabel,
@@ -449,7 +453,7 @@ export default function DevDashboardPage() {
             {profile.googleConnected ? (
               <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#123F40" }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#123F40", display: "inline-block" }} />
-                Google Calendar connected
+                {m.dev.calendarConnected}
               </div>
             ) : (
               <a
@@ -457,10 +461,10 @@ export default function DevDashboardPage() {
                 style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "0.75rem", color: "#526563", textDecoration: "none", border: "1px solid #D4DED8", borderRadius: "999px", padding: "0.2rem 0.625rem" }}
               >
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#D4DED8", display: "inline-block" }} />
-                Connect Google Calendar
+                {m.dev.connectCalendar}
               </a>
             )}
-            <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>Quality score</span>
+            <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>{m.dev.qualityScore}</span>
             <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1rem", fontWeight: 600, color: "#756039", background: "#FCF2D9", padding: "0.2rem 0.625rem", borderRadius: "0.375rem", border: "1px solid #F5E9C4" }}>
               {profile.qualityScore}
             </span>
@@ -574,8 +578,8 @@ export default function DevDashboardPage() {
                         )}
                         <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>
                           {project.unitTypes.length === 0
-                            ? "No unit types yet"
-                            : `${project.unitTypes.length} unit type${project.unitTypes.length !== 1 ? "s" : ""}${availableCount > 0 ? ` · ${availableCount} available` : ""}`
+                            ? m.dev.noUnitTypes
+                            : `${m.dev.unitTypesCount.replace("{n}", String(project.unitTypes.length))}${availableCount > 0 ? ` · ${m.dev.availableCount.replace("{n}", String(availableCount))}` : ""}`
                           }
                         </p>
                       </div>
@@ -591,12 +595,11 @@ export default function DevDashboardPage() {
                       <div style={{ borderTop: "1px solid #E9EEEA" }}>
                         {/* Unit type rows */}
                         {project.unitTypes.length === 0 ? (
-                          <p style={{ padding: "1rem 1.375rem", fontSize: "0.875rem", color: "#526563", margin: 0 }}>No unit types yet — add one below.</p>
+                          <p style={{ padding: "1rem 1.375rem", fontSize: "0.875rem", color: "#526563", margin: 0 }}>{m.dev.noUnitTypesAddBelow}</p>
                         ) : (
                           <div>
                             {project.unitTypes.map((ut, idx) => {
-                              let attrs: Record<string, unknown> = {};
-                              try { attrs = JSON.parse(ut.attributes); } catch { /* ok */ }
+                              const attrs = parseAttributes(ut.attributes);
 
                               return (
                                 <div key={ut.id} style={{
@@ -617,20 +620,20 @@ export default function DevDashboardPage() {
                                       )}
                                       {ut.quantityTotal > 0 && (
                                         <span style={{ fontSize: "0.8125rem", color: "#526563" }}>
-                                          {ut.quantityAvailable}/{ut.quantityTotal} avail.
+                                          {m.dev.availOf.replace("{a}", String(ut.quantityAvailable)).replace("{t}", String(ut.quantityTotal))}
                                         </span>
                                       )}
-                                      <StatusBadge status={ut.aomStatus} map={AOM_STATUS} />
+                                      <StatusBadge status={ut.aomStatus} map={AOM_STATUS} label={({ available: m.dev.statusAvailable, in_negotiation: m.dev.statusInNegotiation, sold: m.dev.statusSold } as Record<string, string>)[ut.aomStatus]} />
                                     </div>
                                     {ut.description && (
                                       <p style={{ margin: "0.25rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>{ut.description}</p>
                                     )}
                                     <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.75rem", color: "#526563" }}>
-                                      <span>Min. match required <strong style={{ color: "#123F40" }}>{ut.eil}</strong></span>
-                                      <span>Target match <strong style={{ color: "#123F40" }}>{ut.ail}</strong></span>
-                                      {Object.entries(attrs).slice(0, 3).map(([k, v]) => (
-                                        <span key={k}>{k} <strong style={{ color: "#123F40" }}>{String(v)}</strong></span>
-                                      ))}
+                                      {unitFactsSummary(attrs, ut.unitLabel, m.dev) && (
+                                        <strong style={{ color: "#123F40" }}>{unitFactsSummary(attrs, ut.unitLabel, m.dev)}</strong>
+                                      )}
+                                      <span>{m.dev.minMatch} <strong style={{ color: "#123F40" }}>{ut.eil}</strong></span>
+                                      <span>{m.dev.targetMatch} <strong style={{ color: "#123F40" }}>{ut.ail}</strong></span>
                                     </div>
                                   </div>
                                   <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
@@ -773,7 +776,7 @@ export default function DevDashboardPage() {
                               onClick={() => startAddUnitType(project.id)}
                               style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", background: "none", border: "1px dashed #B8D4D3", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
                             >
-                              + Add unit type
+                              {m.dev.addUnitTypeBtn}
                             </button>
                           )}
                           {importingProjectId !== project.id && (
@@ -781,7 +784,7 @@ export default function DevDashboardPage() {
                               onClick={() => startImport(project.id)}
                               style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#526563", background: "none", border: "1px dashed #D4DED8", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
                             >
-                              Import from Excel / CSV
+                              {m.dev.importExcel}
                             </button>
                           )}
                         </div>
@@ -798,11 +801,11 @@ export default function DevDashboardPage() {
         {tab === "reservations" && (
           <div>
             <SectionHeading>{m.dev.reservations}</SectionHeading>
-            {reservations.length === 0 && <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>No reservations yet — buyers will appear here when they reserve your units at the listed price.</p>}
+            {reservations.length === 0 && <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>{m.dev.noReservations}</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {reservations.map(reservation => {
                 const isComplete = reservation.depositPaid && !!reservation.buyerSignature && !!reservation.developerSignature;
-                const statusLabel = isComplete ? "Complete" : reservation.depositPaid ? "Awaiting signatures" : "Deposit pending";
+                const statusLabel = isComplete ? m.dev.resComplete : reservation.depositPaid ? m.dev.resAwaitingSignatures : m.dev.resDepositPending;
                 const statusBg = isComplete ? "#E9EEEA" : reservation.depositPaid ? "#FCF2D9" : "#FBECEA";
                 const statusColor = isComplete ? "#123F40" : reservation.depositPaid ? "#756039" : "#9E3434";
                 return (
@@ -819,11 +822,11 @@ export default function DevDashboardPage() {
                             </span>
                           </div>
                           <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem", color: "#526563" }}>
-                            Buyer: <strong style={{ color: "#123F40" }}>{reservation.buyer.email}</strong>
+                            {m.dev.buyerLabel} <strong style={{ color: "#123F40" }}>{reservation.buyer.email}</strong>
                           </p>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: "0.6875rem", color: "#526563", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Reserved price</div>
+                          <div style={{ fontSize: "0.6875rem", color: "#526563", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>{m.dev.reservedPrice}</div>
                           <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "#123F40" }}><Money amount={reservation.offeredPrice} /></div>
                           <EstimatedPriceNote />
                         </div>
@@ -858,7 +861,7 @@ export default function DevDashboardPage() {
         {tab === "groups" && (
           <div>
             <SectionHeading>{m.dev.groups}</SectionHeading>
-            {groups.length === 0 && <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>No group offers received yet.</p>}
+            {groups.length === 0 && <p style={{ color: "#526563", textAlign: "center", padding: "3rem 0" }}>{m.dev.noGroups}</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {groups.map(group => {
                 const canAct = group.status === "pending" || group.status === "countered";
@@ -874,14 +877,14 @@ export default function DevDashboardPage() {
                                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                               </svg>
-                              <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem", fontWeight: 600, color: "#123F40" }}>{group.memberCount} buyers</span>
+                              <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.8125rem", fontWeight: 600, color: "#123F40" }}>{m.dev.buyersCount.replace("{n}", String(group.memberCount))}</span>
                             </div>
                             <span style={{ fontFamily: "var(--font-fraunces, serif)", fontSize: "1.0625rem", fontWeight: 600, color: "#123F40" }}>{listingLabel}</span>
-                            <StatusBadge status={group.status} map={OFFER_STATUS} />
+                            <StatusBadge status={group.status} map={OFFER_STATUS} label={({ pending: m.dev.offerPending, countered: m.dev.offerCountered, accepted: m.dev.offerAccepted, rejected: m.dev.offerRejected } as Record<string, string>)[group.status]} />
                           </div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: "0.6875rem", color: "#526563", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Requested discount</div>
+                          <div style={{ fontSize: "0.6875rem", color: "#526563", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>{m.dev.requestedDiscount}</div>
                           <div style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "#756039" }}>{group.requestedDiscountPercent}%</div>
                         </div>
                       </div>
@@ -893,7 +896,7 @@ export default function DevDashboardPage() {
                       {group.counterDiscountPercent != null && (
                         <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#FCF2D9", borderRadius: "0.5rem", borderLeft: "3px solid #756039" }}>
                           <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#756039", letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: "0.25rem" }}>
-                            Your counter — {group.counterDiscountPercent}% discount
+                            {m.dev.yourCounter.replace("{n}", String(group.counterDiscountPercent))}
                           </div>
                           <p style={{ margin: 0, fontSize: "0.875rem", color: "#123F40" }}>{group.counterTerms}</p>
                         </div>
@@ -901,13 +904,13 @@ export default function DevDashboardPage() {
 
                       {canAct && (
                         <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", flexWrap: "wrap" }}>
-                          <ActionButton onClick={() => respondGroup(group.id, "accept")} variant="primary">Accept</ActionButton>
-                          <ActionButton onClick={() => respondGroup(group.id, "reject")} variant="danger">Reject</ActionButton>
+                          <ActionButton onClick={() => respondGroup(group.id, "accept")} variant="primary">{m.dev.accept}</ActionButton>
+                          <ActionButton onClick={() => respondGroup(group.id, "reject")} variant="danger">{m.dev.reject}</ActionButton>
                           <ActionButton
                             onClick={() => { setCounteringGroupId(counteringGroupId === group.id ? null : group.id); setGroupCounter({ counterDiscountPercent: "", counterTerms: "" }); }}
                             variant="ghost"
                           >
-                            {counteringGroupId === group.id ? "Cancel counter" : "Counter"}
+                            {counteringGroupId === group.id ? m.dev.cancelCounter : m.dev.counter}
                           </ActionButton>
                         </div>
                       )}
@@ -915,19 +918,19 @@ export default function DevDashboardPage() {
 
                     {counteringGroupId === group.id && (
                       <div style={{ borderTop: "1px solid #E9EEEA", padding: "1.125rem 1.375rem", background: "#FDFCFB", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#756039" }}>Counter offer</div>
+                        <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#756039" }}>{m.dev.counter}</div>
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "10rem 1fr", gap: "0.75rem" }}>
-                          <FormField label="Counter discount %">
+                          <FormField label={m.dev.counterDiscount}>
                             <input type="number" step="0.5" value={groupCounter.counterDiscountPercent} onChange={e => setGroupCounter(f => ({ ...f, counterDiscountPercent: e.target.value }))}
                               style={{ ...inputStyle, fontFamily: "var(--font-jetbrains, monospace)" }} />
                           </FormField>
-                          <FormField label="Counter terms">
+                          <FormField label={m.dev.counterTerms}>
                             <input value={groupCounter.counterTerms} onChange={e => setGroupCounter(f => ({ ...f, counterTerms: e.target.value }))}
-                              placeholder="State your counter terms…" style={inputStyle} />
+                              placeholder={m.dev.counterTermsPh} style={inputStyle} />
                           </FormField>
                         </div>
                         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                          <ActionButton onClick={() => respondGroup(group.id, "counter")} variant="primary">Send counter</ActionButton>
+                          <ActionButton onClick={() => respondGroup(group.id, "counter")} variant="primary">{m.dev.sendCounter}</ActionButton>
                         </div>
                       </div>
                     )}
@@ -947,7 +950,7 @@ export default function DevDashboardPage() {
 
 type UnitTypeFormState = {
   unitLabel: string; price: string; quantityTotal: string; quantityAvailable: string;
-  description: string; eil: string; ail: string; aomStatus: string; attributes: string;
+  description: string; eil: string; ail: string; aomStatus: string; facts: UnitFacts;
 };
 
 function UnitTypeForm({
@@ -966,51 +969,51 @@ function UnitTypeForm({
   return (
     <div style={{ padding: "1.25rem 1.375rem", background: "#FDFCFB" }}>
       <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#756039", marginBottom: "1rem" }}>
-        {isEdit ? "Edit unit type" : "Add unit type"}
+        {isEdit ? m.dev.editUnitType : m.dev.newUnitType}
       </div>
       <div className="hn-dev-unit-form-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.875rem" }}>
         <div style={{ gridColumn: "1 / -1" }}>
-          <FormField label="Unit label (e.g. 3-room, Penthouse)">
-            <input style={inputStyle} value={form.unitLabel} onChange={f("unitLabel")} placeholder="3-room" />
+          <FormField label={m.dev.unitTypeName}>
+            <input style={inputStyle} value={form.unitLabel} onChange={f("unitLabel")} placeholder={m.dev.unitTypeNamePh} />
           </FormField>
         </div>
         <FormField label={m.dev.price}>
           <input type="number" style={inputStyle} value={form.price} onChange={f("price")} placeholder="450000" />
         </FormField>
-        <FormField label="Total quantity">
+        <FormField label={m.dev.qtyTotal}>
           <input type="number" style={inputStyle} value={form.quantityTotal} onChange={f("quantityTotal")} placeholder="12" />
         </FormField>
-        <FormField label="Available quantity">
+        <FormField label={m.dev.qtyAvail}>
           <input type="number" style={inputStyle} value={form.quantityAvailable} onChange={f("quantityAvailable")} placeholder="12" />
         </FormField>
-        <FormField label="Min. match required">
+        <FormField label={m.dev.minMatch}>
           <input type="number" style={inputStyle} value={form.eil} onChange={f("eil")} placeholder="55" />
         </FormField>
-        <FormField label="Target match">
+        <FormField label={m.dev.targetMatch}>
           <input type="number" style={inputStyle} value={form.ail} onChange={f("ail")} placeholder="80" />
         </FormField>
-        <FormField label="Status">
+        <FormField label={m.dev.aptStatus}>
           <select style={inputStyle} value={form.aomStatus} onChange={f("aomStatus")}>
-            <option value="available">Available</option>
-            <option value="in_negotiation">In negotiation</option>
-            <option value="sold">Sold</option>
+            <option value="available">{m.dev.statusAvailable}</option>
+            <option value="in_negotiation">{m.dev.statusInNegotiation}</option>
+            <option value="sold">{m.dev.statusSold}</option>
           </select>
         </FormField>
         <div style={{ gridColumn: "1 / -1" }}>
-          <FormField label="Description">
-            <input style={inputStyle} value={form.description} onChange={f("description")} placeholder="Short description" />
+          <FormField label={m.dev.description}>
+            <input style={inputStyle} value={form.description} onChange={f("description")} placeholder={m.dev.shortDescPh} />
           </FormField>
         </div>
-        <div style={{ gridColumn: "1 / -1" }}>
-          <FormField label="Attributes (JSON)">
-            <input style={{ ...inputStyle, fontFamily: "var(--font-jetbrains, monospace)", fontSize: "0.875rem" }}
-              value={form.attributes} onChange={f("attributes")} placeholder='{"bedrooms":3,"sqft":1050}' />
-          </FormField>
-        </div>
+        <UnitFactsFields
+          facts={form.facts}
+          setFacts={(facts) => setForm(prev => ({ ...prev, facts }))}
+          inputStyle={inputStyle}
+          Field={FormField}
+        />
       </div>
       <div style={{ display: "flex", gap: "0.625rem", justifyContent: "flex-end", marginTop: "1rem" }}>
         <ActionButton onClick={onCancel} variant="ghost">{m.dev.cancel}</ActionButton>
-        <ActionButton onClick={onSubmit} variant="primary">{isEdit ? "Save changes" : "Add unit type"}</ActionButton>
+        <ActionButton onClick={onSubmit} variant="primary">{isEdit ? m.dev.saveChanges : m.dev.createUnitType}</ActionButton>
       </div>
     </div>
   );

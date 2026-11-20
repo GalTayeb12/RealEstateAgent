@@ -88,6 +88,8 @@ PSYCHOMETRIC SCORING RUBRIC (0–100 per dimension, based strictly on observable
 
   Calibration: 50 is average for a typical property buyer. Scores above 75 require clear evidence. Below 30 only if the buyer explicitly struggles on that dimension.
 
+ROOMS RULE: buyer_preferences.bedrooms is the minimum TOTAL room count in the Israeli convention, where the living room counts as a room: "4 חדרים" → 4, "4+ rooms" → 4, "3 bedrooms" → 4. Use null if the buyer gave no room count.
+
 LANGUAGE RULE: Extract all free-text string values (property_type, location, timeline, must_haves, dealbreakers, additional_notes) in the same language as the buyer's interview transcript. If the buyer spoke Hebrew, return those strings in Hebrew. If in English, return them in English.
 
 Return ONLY valid JSON — no markdown, no explanation, no code fences — matching this exact structure:

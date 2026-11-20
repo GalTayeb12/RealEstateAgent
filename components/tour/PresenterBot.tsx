@@ -79,7 +79,10 @@ export default function PresenterBot({
     (q: QuickQuestion) => {
       setMessages((prev) => [...prev, { text: q.q, isUser: true }]);
       setTimeout(() => {
-        const answer = getAnswer(q.k, profileId, profiles);
+        const profile = profiles.find((p) => p.id === profileId);
+        const answer = q.a
+          ? q.a + (profile?.extras?.[q.k] ?? "")
+          : getAnswer(q.k, profileId, profiles);
         if (answer) {
           setMessages((prev) => [...prev, { text: answer, isUser: false }]);
         }

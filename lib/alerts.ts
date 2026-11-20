@@ -14,6 +14,7 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { computeZij } from "@/lib/matching";
+import { buyerMinRooms } from "@/lib/attributes";
 import type { AomCandidate } from "@/lib/matching";
 import { checkHardFilters } from "@/lib/matching";
 
@@ -79,6 +80,7 @@ async function _triggerAlerts(ctx: AlertContext): Promise<void> {
     price: ctx.price,
     location: ctx.projectLocation,
     attributes: ctx.attributes,
+    unitLabel: ctx.unitLabel,
   };
 
   for (const pref of prefs) {
@@ -97,7 +99,7 @@ async function _triggerAlerts(ctx: AlertContext): Promise<void> {
     let prefs_obj: Record<string, unknown> = {};
     try { prefs_obj = JSON.parse(bp.preferences); } catch { /* skip */ }
     const criteria = {
-      minRooms:  typeof prefs_obj.bedrooms === "number" ? prefs_obj.bedrooms : null,
+      minRooms:  buyerMinRooms(prefs_obj),
       maxBudget: typeof prefs_obj.budget_max === "number" ? prefs_obj.budget_max : null,
       location:  typeof prefs_obj.location === "string" ? prefs_obj.location : null,
     };

@@ -12,6 +12,7 @@
 
 import { describe, it, expect } from "vitest";
 import { computeZij, matchBuyerToAoms, checkHardFilters, BuyerProfile, AomCandidate, HardFilterCriteria } from "../matching";
+import { buyerMinRooms, roomsOf } from "../attributes";
 
 describe("1 · Standard feasible match", () => {
   // eil=60, ail=80, ēj=90, āj=50
@@ -158,19 +159,51 @@ describe("9 · checkHardFilters — rooms", () => {
     expect(checkHardFilters(makeCand(2), { minRooms: null }).passes).toBe(true);
   });
 
-  it("skips rooms check when attribute is missing (lenient on missing data)", () => {
+  it("fails when the room count is unknown (strict on missing rooms)", () => {
     const cand: AomCandidate = { id: "e", title: "T", eil: 50, ail: 70, attributes: {} };
-    expect(checkHardFilters(cand, { minRooms: 4 }).passes).toBe(true);
-  });
-
-  it("checks 'bedrooms' key as fallback when 'rooms' is absent", () => {
-    const cand: AomCandidate = {
-      id: "e", title: "T", eil: 50, ail: 70,
-      attributes: { bedrooms: 3 },
-    };
     const { passes, reasons } = checkHardFilters(cand, { minRooms: 4 });
     expect(passes).toBe(false);
-    expect(reasons[0].kind).toBe("rooms");
+    expect(reasons[0]).toEqual({ kind: "rooms", actual: null, required: 4 });
+  });
+
+  it("reads rooms from the unit label when attributes lack them (Florentin case)", () => {
+    const cand: AomCandidate = { id: "e", title: "T", eil: 50, ail: 78, attributes: {}, unitLabel: "3 חדרים" };
+    const { passes, reasons } = checkHardFilters(cand, { minRooms: 4 });
+    expect(passes).toBe(false);
+    expect(reasons[0]).toEqual({ kind: "rooms", actual: 3, required: 4 });
+  });
+
+  it("legacy bedrooms count as bedrooms + living room (Rainbow 4-room case)", () => {
+    const cand: AomCandidate = { id: "e", title: "T", eil: 50, ail: 70, attributes: { bedrooms: 3 } };
+    expect(checkHardFilters(cand, { minRooms: 4 }).passes).toBe(true);
+    const two: AomCandidate = { id: "e", title: "T", eil: 50, ail: 70, attributes: { bedrooms: 2 } };
+    expect(checkHardFilters(two, { minRooms: 4 }).passes).toBe(false);
+  });
+
+  it("explicit rooms win over label and bedrooms", () => {
+    const cand: AomCandidate = { id: "e", title: "T", eil: 50, ail: 70, attributes: { rooms: 4.5, bedrooms: 2 }, unitLabel: "3-room" };
+    expect(checkHardFilters(cand, { minRooms: 4 }).passes).toBe(true);
+  });
+});
+
+describe("9b · roomsOf / buyerMinRooms", () => {
+  it.each([
+    [{}, "3 חדרים", 3],
+    [{}, "4-room", 4],
+    [{}, "5.5 rooms", 5.5],
+    [{}, "פנטהאוז 5 חדרים", 5],
+    [{ rooms: "4" }, "", 4],
+    [{ bedrooms: 2 }, "Penthouse", 3],
+    [{}, "Penthouse", null],
+  ])("roomsOf(%j, %s) = %s", (attrs, label, expected) => {
+    expect(roomsOf(attrs as Record<string, unknown>, label)).toBe(expected);
+  });
+
+  it("buyer rooms come from rooms or the interview's bedrooms field", () => {
+    expect(buyerMinRooms({ bedrooms: 4 })).toBe(4);
+    expect(buyerMinRooms({ rooms: 3, bedrooms: 4 })).toBe(3);
+    expect(buyerMinRooms({ bedrooms: null })).toBe(null);
+    expect(buyerMinRooms(null)).toBe(null);
   });
 });
 

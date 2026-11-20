@@ -11,6 +11,9 @@ const ROOM_FEATURES: Record<string, string> = {
   bath: "חדר רחצה מושקע",
   balcony: "מרפסת גדולה",
   hall: "כניסה מרווחת",
+  corridor: "כניסה מרווחת",
+  bed2: "חדר נוסף עם פינת עבודה",
+  bed3: "חדר נוסף עם ארון קיר",
 };
 
 interface TourAnalyticsProps {

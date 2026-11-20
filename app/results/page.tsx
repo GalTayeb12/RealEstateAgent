@@ -21,11 +21,12 @@ import { computeElasticity, ElasticityResult } from "@/lib/elasticity";
 import { formatAttributeValue, parseAttributes, translateAttrKey, formatArea } from "@/lib/attributes";
 import { AlertCard } from "@/components/AlertCard";
 import type { MortgageSavedData } from "@/components/MortgageCalculator";
+import { groupByProject } from "@/lib/projectGroups";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 type HardFilterReason =
-  | { kind: "rooms"; actual: number; required: number }
+  | { kind: "rooms"; actual: number | null; required: number }
   | { kind: "budget"; actual: number; max: number }
   | { kind: "location"; actual: string; required: string };
 
@@ -41,6 +42,10 @@ interface MatchOutcome {
   passesHardFilters?: boolean;
   /** Specific reasons a hard filter failed */
   hardFilterFailReasons?: HardFilterReason[];
+  /** Project this apartment type belongs to (results group by it) */
+  projectId?: string;
+  projectName?: string;
+  unitLabel?: string;
 }
 
 interface AomDetail {
@@ -676,9 +681,10 @@ function SendOfferPanel({
 
 // ── Near-match card ───────────────────────────────────────────────────────────
 
-function renderFailReason(reason: HardFilterReason, m: { filterFailRooms: string; filterFailBudget: string; filterFailLocation: string }): string {
+function renderFailReason(reason: HardFilterReason, m: { filterFailRooms: string; filterFailRoomsUnknown: string; filterFailBudget: string; filterFailLocation: string }): string {
   switch (reason.kind) {
     case "rooms":
+      if (reason.actual === null) return m.filterFailRoomsUnknown;
       return m.filterFailRooms
         .replace("{actual}", String(reason.actual))
         .replace("{required}", String(reason.required));
@@ -764,9 +770,17 @@ function MatchCard({
   onOfferSent,
   onOpenLeverage,
   mortgageMaxPrice,
+  others = [],
+  hidden = [],
+  aomDetails = {},
 }: {
   outcome: MatchOutcome;
   detail: AomDetail | undefined;
+  /** Other apartment types in the same project that fit the buyer */
+  others?: MatchOutcome[];
+  /** Types in the same project that fail the buyer's requirements */
+  hidden?: MatchOutcome[];
+  aomDetails?: Record<string, AomDetail>;
   rank: number;
   ej: number;
   aj: number;
@@ -795,8 +809,13 @@ function MatchCard({
               {outcome.valid ? `${m.results.matchN} #${rank}` : m.results.notFeasible}
             </div>
             <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.375rem", fontWeight: 600, color: "#123F40", margin: 0, lineHeight: 1.2, letterSpacing: "0" }}>
-              {outcome.title}
+              {outcome.projectName ?? outcome.title}
             </h2>
+            {outcome.projectName && outcome.unitLabel && (
+              <span style={{ display: "inline-block", marginTop: "0.5rem", fontSize: "0.8125rem", fontWeight: 700, color: "#fff", background: "#123F40", borderRadius: 999, padding: "0.2rem 0.75rem" }}>
+                {outcome.unitLabel}
+              </span>
+            )}
             {detail?.description && <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>{detail.description.replace(/^DESCRIPTION:\s*/i, "")}</p>}
             {detail && detail.price > 0 && (
               <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
@@ -848,6 +867,34 @@ function MatchCard({
               );
             })}
           </div>
+        )}
+
+        {others.length > 0 && (
+          <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#526563" }}>{m.results.otherTypesTitle}</div>
+            {others.map((o) => {
+              const d = aomDetails[o.aomId];
+              return (
+                <Link
+                  key={o.aomId}
+                  href={`/aom/${o.aomId}`}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem", padding: "0.5rem 0.75rem", borderRadius: 10, border: "1px solid #D4DED8", background: "#F7F8F5", textDecoration: "none", color: "#123F40", fontSize: "0.875rem" }}
+                >
+                  <span style={{ fontWeight: 600 }}>{o.unitLabel ?? o.title}</span>
+                  <span style={{ display: "flex", gap: "0.75rem", alignItems: "center", color: "#526563", fontVariantNumeric: "tabular-nums" }}>
+                    {d && d.price > 0 && <span>{d.priceFrom ? `${m.results.from} ` : ""}<Money amount={d.price} /></span>}
+                    <span>{m.results.typeScore.replace("{n}", String(Math.round(o.zij)))}</span>
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+        {hidden.length > 0 && (
+          <p style={{ margin: "0.625rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>
+            {m.results.hiddenTypesLabel}{" "}
+            {hidden.map((h) => `${h.unitLabel ?? h.title} (${(h.hardFilterFailReasons ?? []).map((r) => renderFailReason(r, m.results)).join(", ")})`).join(" · ")}
+          </p>
         )}
 
         <AlignmentBar outcome={outcome} ej={ej} aj={aj} aom={{ eil, ail }} elasticity={elasticity} />
@@ -973,9 +1020,13 @@ export default function ResultsPage() {
         return !detail || detail.price <= 0 || detail.price <= mortgageMaxPrice;
       })
     : allFullMatches;
-  const nearMatches = ranked.filter(
+  const allNearMatches = ranked.filter(
     (r) => r.valid && r.passesHardFilters === false
   );
+  // One card per project: best fitting type leads, other fitting types under it,
+  // non-fitting types of that project hidden; projects with no fit stay "near".
+  const { groups: projectCards, near: nearMatches } = groupByProject(fullMatches, allNearMatches);
+  const projectCount = new Set(ranked.map((r) => r.projectId ?? r.aomId)).size;
   let validRank = 0;
 
   return (
@@ -1003,7 +1054,7 @@ export default function ResultsPage() {
           {m.results.title}
         </h1>
         <p style={{ margin: 0, color: "#526563", fontSize: "1rem", lineHeight: 1.5 }}>
-          {m.results.summary.replace("{valid}", String(fullMatches.length)).replace("{total}", String(ranked.length))}
+          {m.results.summary.replace("{valid}", String(projectCards.length)).replace("{total}", String(projectCount))}
         </p>
       </div>
 
@@ -1138,14 +1189,17 @@ export default function ResultsPage() {
         </div>
 
         {/* Full match cards */}
-        {fullMatches.map((outcome) => {
+        {projectCards.map(({ key, best: outcome, others, hidden }) => {
           validRank++;
           const detail = aomDetails[outcome.aomId];
           return (
             <MatchCard
-              key={outcome.aomId}
+              key={key}
               outcome={outcome}
               detail={detail}
+              others={others}
+              hidden={hidden}
+              aomDetails={aomDetails}
               rank={validRank}
               ej={ej}
               aj={aj}
@@ -1158,7 +1212,7 @@ export default function ResultsPage() {
         })}
 
         {/* No full matches message */}
-        {fullMatches.length === 0 && (
+        {projectCards.length === 0 && (
           <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", padding: "1.75rem", boxShadow: "0 1px 3px rgba(18,63,64,0.04)" }}>
             <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 600, color: "#123F40", marginBottom: "0.4rem" }}>
               {m.results.noFullMatchesTitle}

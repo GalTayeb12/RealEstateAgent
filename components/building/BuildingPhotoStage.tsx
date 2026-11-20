@@ -19,6 +19,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding, FloorSelection, HoverInfo } from "./types";
@@ -51,6 +52,8 @@ export interface StationMeta {
   text?: { he: string; en: string };
   /** "contain" shows the whole image on a dark backdrop (plans, axonometric cutaways). */
   fit?: "cover" | "contain";
+  /** Replace the still with the interactive dollhouse view of the walk apartment (image stays as fallback). */
+  view3d?: boolean;
 }
 /**
  * wide: the clip's first frame is the full building shot itself (a drone flight
@@ -110,6 +113,11 @@ const STR = {
 } as const;
 
 interface Active { buildingId: string; floor: number }
+
+const ApartmentOverview = dynamic(() => import("@/components/walk/ApartmentOverview"), { ssr: false });
+
+/** URL flag set on the walk's exit target so the stage reopens inside the apartment. */
+const INSIDE_PARAM = "inside";
 
 export default function BuildingPhotoStage({
   photoUrl,
@@ -181,6 +189,35 @@ export default function BuildingPhotoStage({
     }
     prevSelected.current = selectedFloor;
   }, [selectedFloor, step, clearTimers]);
+
+  // Back from the 3D walk (?inside=<station>): reopen the room tour directly, no fly-in.
+  const resumeStation = useRef<number | null>(null);
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get(INSIDE_PARAM);
+    if (v !== null) resumeStation.current = Math.max(0, parseInt(v, 10) || 0);
+  }, []);
+  useEffect(() => {
+    if (resumeStation.current === null || !selectedFloor || !meta.enter) return;
+    const idx = Math.min(resumeStation.current, Math.max((meta.enter.stations?.length ?? 1) - 1, 0));
+    resumeStation.current = null;
+    setActive({ buildingId: selectedFloor.buildingId, floor: selectedFloor.floor });
+    setStep(5);
+    setStation(idx);
+    // The first station is the fly-in clip's last frame: park this building's clip there.
+    const v = videoRef.current;
+    const bi = sorted.findIndex((x) => x.id === selectedFloor.buildingId);
+    const box = bi >= 0 ? meta.buildings[bi] : undefined;
+    const clip = box?.video && box.video.startsWith("/") ? box.video : meta.enter.video;
+    if (v && clip) {
+      if (v.getAttribute("src") !== clip) v.setAttribute("src", clip);
+      const toEnd = () => { if (Number.isFinite(v.duration)) v.currentTime = Math.max(0, v.duration - 0.04); };
+      if (v.readyState >= 1) toEnd(); else v.addEventListener("loadedmetadata", toEnd, { once: true });
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.delete(INSIDE_PARAM);
+    window.history.replaceState(window.history.state, "", url.toString());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot resume; sorted/meta.buildings are read at that moment
+  }, [selectedFloor, meta.enter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -338,6 +375,22 @@ export default function BuildingPhotoStage({
     }
   };
 
+  /** Walk link: which unit to describe in its side panel, and where its exit button returns (this room tour). */
+  const walkHref = (walk: string) => {
+    const p = new URLSearchParams();
+    if (lit && litBuilding) {
+      const pageType = window.location.pathname.split("/").filter(Boolean).pop();
+      const onFloor = litBuilding.units.filter((u) => u.floor === lit.floor);
+      const unit = onFloor.find((u) => u.unitTypeId === pageType && u.status === "available")
+        ?? onFloor.find((u) => u.unitTypeId === pageType) ?? onFloor[0];
+      if (unit) p.set("unit", unit.id);
+      const back = new URLSearchParams({ building: lit.buildingId, floor: String(lit.floor), [INSIDE_PARAM]: String(station) });
+      p.set("back", `${window.location.pathname}?${back.toString()}`);
+    }
+    const q = p.toString();
+    return q ? `${walk}${walk.includes("?") ? "&" : "?"}${q}` : walk;
+  };
+
   // Slider drives the active building's floors that have units.
   const panelBuilding = litBuilding ?? sorted[0] ?? null;
   const panelFloors = panelBuilding ? floorsWithUnits(panelBuilding) : [];
@@ -410,6 +463,17 @@ export default function BuildingPhotoStage({
           .hn-ps-station-img[data-fit="contain"] { padding: calc(var(--qp-nav-h, 64px) + .5rem) 3vw 58vh; }
         }
         @keyframes hn-ps-kb { from { scale: 1.08; } to { scale: 1; } }
+        /* Interactive dollhouse: same frame as the contain stills */
+        .hn-ps-3d {
+          position: absolute; inset: 0; z-index: 5; box-sizing: border-box;
+          padding: calc(var(--qp-nav-h, 64px) + 4rem) calc(272px + 2vw) 10.5rem 3vw;
+          background: radial-gradient(ellipse at 40% 45%, #2a3550 0%, #0b1020 75%);
+          animation: hn-ps-rise .6s cubic-bezier(.22,1,.36,1) backwards;
+        }
+        .hn-ps-3d > div { position: relative; width: 100%; height: 100%; }
+        @media (max-width: 640px) {
+          .hn-ps-3d { padding: calc(var(--qp-nav-h, 64px) + 3.5rem) 3vw 58vh; }
+        }
         .hn-ps-topbar {
           position: absolute; z-index: 6; top: calc(var(--qp-nav-h, 64px) + 1rem); left: clamp(1rem, 4vw, 3.5rem);
           display: flex; flex-wrap: wrap; gap: .5rem; max-width: calc(100% - 2rem);
@@ -444,6 +508,10 @@ export default function BuildingPhotoStage({
           background: transparent; border: 0; border-radius: 999px; transition: background .2s;
         }
         .hn-ps-station[aria-selected="true"] { background: rgba(255,230,176,.3); }
+        /* Rooms bar steps aside on the dollhouse station (not needed there) */
+        .hn-ps-stations { transition: translate .55s cubic-bezier(.22,1,.36,1), opacity .45s ease, visibility 0s; }
+        .hn-ps-stations[data-away] { translate: 0 calc(100% + 2.5rem); opacity: 0; visibility: hidden; pointer-events: none; transition: translate .45s cubic-bezier(.55,0,.8,.4), opacity .35s ease .05s, visibility 0s .45s; }
+        @media (prefers-reduced-motion: reduce) { .hn-ps-stations, .hn-ps-stations[data-away] { transition: opacity .2s ease, visibility 0s .2s; translate: none; } }
         @media (max-width: 760px) { .hn-ps-caption { max-width: 86vw; bottom: 5.2rem; } }
         .hn-ps-skip { position: absolute; inset: 0; z-index: 6; border: 0; background: transparent; cursor: pointer; }
         .hn-ps-img {
@@ -795,6 +863,11 @@ export default function BuildingPhotoStage({
         const lang = isRtl ? "he" : "en";
         return (
           <>
+            {cur.view3d && (
+              <div className="hn-ps-3d" key={`3d-${cur.id}`}>
+                <div><ApartmentOverview /></div>
+              </div>
+            )}
             {stations.map((st, i) => st.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -823,7 +896,7 @@ export default function BuildingPhotoStage({
                 </button>
               ))}
               {meta.enter?.walk && (
-                <a className="hn-ps-walk" href={meta.enter.walk}>{t.walk}</a>
+                <a className="hn-ps-walk" href={walkHref(meta.enter.walk)}>{t.walk}</a>
               )}
             </div>
 
@@ -838,7 +911,7 @@ export default function BuildingPhotoStage({
             </div>
 
             {stations.some((st) => st.fit !== "contain") && (
-              <div className="hn-ps-stations" role="tablist" aria-label={t.rooms}>
+              <div className="hn-ps-stations" role="tablist" aria-label={t.rooms} data-away={cur.view3d || undefined} aria-hidden={cur.view3d || undefined}>
                 {stations.map((st, i) => st.fit !== "contain" && (
                   <button
                     key={st.id}

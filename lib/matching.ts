@@ -1,3 +1,6 @@
+import { roomsOf } from "./attributes";
+import { locationMatches } from "./location";
+
 /**
  * Zij Matching Engine
  *
@@ -44,6 +47,8 @@ export interface AomCandidate {
   location?: string;
   /** Parsed attributes JSON — used for rooms hard filter */
   attributes?: Record<string, unknown>;
+  /** Unit label ("4 חדרים") — rooms fallback when attributes lack them */
+  unitLabel?: string;
   [key: string]: unknown;
 }
 
@@ -69,12 +74,13 @@ export interface MatchOutcome {
 // ── Hard filter types ──────────────────────────────────────────────────────────
 
 export type HardFilterReason =
-  | { kind: "rooms"; actual: number; required: number }
+  /** actual null = the listing has no room count, so it cannot be shown as a match */
+  | { kind: "rooms"; actual: number | null; required: number }
   | { kind: "budget"; actual: number; max: number }
   | { kind: "location"; actual: string; required: string };
 
 export interface HardFilterCriteria {
-  /** Minimum number of rooms the buyer requires (from buyer_preferences.bedrooms) */
+  /** Minimum rooms (Israeli count) the buyer requires — see buyerMinRooms() */
   minRooms?: number | null;
   /** Maximum budget in ILS (from buyer_preferences.budget_max) */
   maxBudget?: number | null;
@@ -85,7 +91,8 @@ export interface HardFilterCriteria {
 /**
  * Check whether an AOM candidate satisfies the buyer's hard requirement filters.
  * Returns `passes: true` only when all specified criteria are met.
- * Hard filters are intentionally lenient on missing data (skipped, not failed).
+ * Budget and location are lenient on missing data (skipped, not failed);
+ * rooms are strict, since a listing with no room count cannot match a rooms requirement.
  */
 export function checkHardFilters(
   candidate: AomCandidate,
@@ -95,11 +102,10 @@ export function checkHardFilters(
   const attrs = candidate.attributes ?? {};
 
   // ── Rooms check ──────────────────────────────────────────────────────────
+  // Strict: a listing whose room count is unknown does not pass a rooms requirement.
   if (criteria.minRooms != null && criteria.minRooms > 0) {
-    // Try both "rooms" and "bedrooms" attribute keys
-    const rawRooms = attrs.rooms ?? attrs.bedrooms;
-    const rooms = Number(rawRooms);
-    if (!Number.isNaN(rooms) && rooms > 0 && rooms < criteria.minRooms) {
+    const rooms = roomsOf(attrs, candidate.unitLabel);
+    if (rooms === null || rooms < criteria.minRooms) {
       reasons.push({ kind: "rooms", actual: rooms, required: criteria.minRooms });
     }
   }
@@ -114,20 +120,9 @@ export function checkHardFilters(
     reasons.push({ kind: "budget", actual: candidate.price, max: criteria.maxBudget });
   }
 
-  // ── Location check (word-overlap match) ──────────────────────────────────
+  // ── Location check (city names in Hebrew or English, then word overlap) ──
   if (criteria.location && candidate.location) {
-    const normalize = (s: string) =>
-      s.toLowerCase().replace(/[-–,'"]/g, " ").trim();
-    const buyerLoc = normalize(criteria.location);
-    const propLoc = normalize(candidate.location);
-    // A match exists when any significant word (3+ chars) from buyer location
-    // appears in the property location, or vice versa.
-    const buyerWords = buyerLoc.split(/\s+/).filter((w) => w.length >= 3);
-    const propWords = propLoc.split(/\s+/).filter((w) => w.length >= 3);
-    const hasOverlap = buyerWords.some((bw) =>
-      propWords.some((pw) => pw.includes(bw) || bw.includes(pw))
-    );
-    if (!hasOverlap) {
+    if (!locationMatches(criteria.location, candidate.location)) {
       reasons.push({
         kind: "location",
         actual: candidate.location,
