@@ -112,3 +112,6 @@ assets-src/
 # Local file storage (lib/storage.ts) and generated plan fixtures
 /.storage/
 /tmp/
+# Local test project for the experience config (junction to walk/yarkon-v2, see lib/experience)
+/public/walk/yarkon-alt
+/public/projects/yarkon-alt/

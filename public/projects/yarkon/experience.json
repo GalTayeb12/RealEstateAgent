@@ -1,0 +1,216 @@
+{
+  "version": 1,
+  "slug": "yarkon",
+  "aliases": [
+    "seed-yarkon-towers",
+    "/buildings/yarkon-v2/on.webp"
+  ],
+  "title": {
+    "he": "סיור בדירה — סיד ירקון, 4 חדרים",
+    "en": "Walkthrough — Seed Yarkon, 4 rooms"
+  },
+  "walk": {
+    "base": "/walk/yarkon-v2",
+    "rooms": {
+      "living": {
+        "name": {
+          "he": "סלון ופינת אוכל",
+          "en": "Living & dining"
+        },
+        "stand": [5, 3.9, 2.36]
+      },
+      "kitchen": {
+        "name": {
+          "he": "מטבח",
+          "en": "Kitchen"
+        },
+        "stand": [5.2, 4.25, 0]
+      },
+      "corridor": {
+        "name": {
+          "he": "מבואה ומסדרון",
+          "en": "Entry & hallway"
+        },
+        "stand": [7.6, 7.9, 3.141592653589793]
+      },
+      "bed3": {
+        "name": {
+          "he": "חדר שינה 3",
+          "en": "Bedroom 3"
+        },
+        "stand": [2.6, 5.6, 1.03]
+      },
+      "master": {
+        "name": {
+          "he": "יחידת הורים",
+          "en": "Master bedroom"
+        },
+        "stand": [9.9, 1.3, -1]
+      },
+      "bed2": {
+        "name": {
+          "he": "חדר שינה 2",
+          "en": "Bedroom 2"
+        },
+        "stand": [8.65, 7.65, -2.36]
+      },
+      "bath": {
+        "name": {
+          "he": "חדר רחצה הורים",
+          "en": "Master bath"
+        },
+        "stand": [12.3, 5.1, -0.54]
+      },
+      "balcony": {
+        "name": {
+          "he": "מרפסת",
+          "en": "Balcony"
+        },
+        "stand": [8.5, -1, 1.57]
+      }
+    },
+    "zones": [
+      {
+        "room": "corridor",
+        "rect": [7, 3.4, 8.2, 1000]
+      }
+    ],
+    "fallbackRoom": "living",
+    "plan": {
+      "image": "/buildings/yarkon-v2/apt-top.webp",
+      "x0": -0.8000000000000007,
+      "yTop": 8.959999999999999,
+      "w": 16.6,
+      "h": 11.62
+    },
+    "doorHoles": [
+      {
+        "mesh": "bt_s",
+        "x": [11.9, 12.75],
+        "top": 2.2
+      }
+    ]
+  },
+  "dollhouse": {
+    "center": [7.5, 3.15],
+    "bounds": [0, -2.2, 15, 8.5]
+  },
+  "photoStage": {
+    "aspect": 1.7708,
+    "offImage": "/buildings/yarkon-v2/off.webp",
+    "enter": {
+      "window": "/buildings/yarkon-v2/fly-last.jpg",
+      "room": "/buildings/yarkon-v2/room-living.webp",
+      "video": "/buildings/yarkon-v2/fly-b.mp4",
+      "wide": true,
+      "walk": "/walk/yarkon",
+      "stations": [
+        {
+          "id": "living",
+          "image": "/buildings/yarkon-v2/room-living.webp",
+          "title": {
+            "he": "הסלון",
+            "en": "The living room"
+          },
+          "text": {
+            "he": "סלון פתוח למטבח, דלתות זכוכית מהרצפה עד התקרה ויציאה למרפסת הפונה לפארק הירקון.",
+            "en": "An open living space flowing into the kitchen, floor-to-ceiling glass and a balcony facing the Yarkon park."
+          }
+        },
+        {
+          "id": "plan-axo",
+          "view3d": true,
+          "image": "/buildings/yarkon-v2/apt-axo.webp",
+          "fit": "contain",
+          "title": {
+            "he": "הדירה במבט על",
+            "en": "The apartment from above"
+          },
+          "text": {
+            "he": "דירת 4 חדרים, כ-127 מ\"ר ומרפסת שמש לאורך כל החזית. סלון, פינת אוכל ומטבח פתוחים, שלושה חדרי שינה וחדר רחצה הורים.",
+            "en": "A 4-room home of about 127 m² with a balcony along the whole facade: open living, dining and kitchen, three bedrooms and an en-suite bathroom."
+          }
+        },
+        {
+          "id": "plan-top",
+          "image": "/buildings/yarkon-v2/apt-top.webp",
+          "fit": "contain",
+          "title": {
+            "he": "תוכנית הדירה",
+            "en": "Floor plan"
+          },
+          "text": {
+            "he": "החזית הזכוכית והמרפסת בתחתית, חדרי השינה והמטבח לאורך הקיר האחורי.",
+            "en": "Glass facade and balcony at the bottom; bedrooms and kitchen along the back wall."
+          }
+        },
+        {
+          "id": "kitchen",
+          "image": "/buildings/yarkon-v2/room-kitchen.webp",
+          "title": {
+            "he": "המטבח",
+            "en": "The kitchen"
+          },
+          "text": {
+            "he": "אי ארוך מאלון וטרוורטין, מכשירים אינטגרליים ותאורה חמה מעל משטח העבודה.",
+            "en": "A long oak and travertine island, integrated appliances and warm light over the counter."
+          }
+        },
+        {
+          "id": "bedroom",
+          "image": "/buildings/yarkon-v2/room-bedroom.webp",
+          "title": {
+            "he": "חדר השינה הראשי",
+            "en": "The master bedroom"
+          },
+          "text": {
+            "he": "קיר עץ אלון, וילונות פשתן וחלון בגובה מלא אל הנהר.",
+            "en": "Oak panelling, linen curtains and a full-height window onto the river."
+          }
+        },
+        {
+          "id": "bath",
+          "image": "/buildings/yarkon-v2/room-bath.webp",
+          "title": {
+            "he": "חדר הרחצה",
+            "en": "The bathroom"
+          },
+          "text": {
+            "he": "אמבטיה עומדת מאבן מול החלון, קירות טרוורטין וכיור כפול.",
+            "en": "A freestanding stone tub by the window, travertine walls and a double vanity."
+          }
+        },
+        {
+          "id": "balcony",
+          "image": "/buildings/yarkon-v2/room-balcony.webp",
+          "title": {
+            "he": "המרפסת",
+            "en": "The balcony"
+          },
+          "text": {
+            "he": "מרפסת רחבה עם מעקה זכוכית ונוף פתוח מעל פארק הירקון.",
+            "en": "A wide terrace with a glass railing and an open view over the Yarkon park."
+          }
+        }
+      ]
+    },
+    "buildings": [
+      {
+        "x": 0.134,
+        "y": 0.168,
+        "w": 0.299,
+        "h": 0.667,
+        "bands": [0.168, 0.234, 0.299, 0.364, 0.43, 0.495, 0.56, 0.629, 0.835],
+        "video": "/buildings/yarkon-v2/fly-a.mp4"
+      },
+      {
+        "x": 0.57,
+        "y": 0.168,
+        "w": 0.303,
+        "h": 0.667,
+        "bands": [0.168, 0.234, 0.299, 0.364, 0.43, 0.495, 0.56, 0.629, 0.835],
+        "video": "/buildings/yarkon-v2/fly-b.mp4"
+      }
+    ]
+  }
+}
