@@ -23,8 +23,12 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   const { id } = await params;
   const a = await authorizePlanOwner(req, id);
   if ("response" in a) return a.response;
-  const rec = await prisma.planTwinRecord.findUnique({ where: { unitTypeId: id } });
-  return NextResponse.json({ plan: rec ? toPlanView(rec) : null });
+  try {
+    const rec = await prisma.planTwinRecord.findUnique({ where: { unitTypeId: id } });
+    return NextResponse.json({ plan: rec ? toPlanView(rec) : null });
+  } catch (err) {
+    return planErrorResponse(err, "get");
+  }
 }
 
 export async function POST(req: NextRequest, { params }: Ctx) {
