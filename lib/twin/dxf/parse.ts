@@ -178,7 +178,8 @@ const ROOM_KEYWORDS: [RegExp, RoomType][] = [
 const AREA_RE = /(\d+(?:[.,]\d+)?)\s*(?:מ["״']?ר|מטר|m²|m2|sq\.?\s*m|sqm)/i;
 const ROOMS_RE = /(\d+(?:[.,]\d+)?)\s*(?:חדרים|חד['׳]|rooms)/i;
 
-function roomType(label: string): RoomType {
+/** Room type from a plan label (Hebrew or English); shared with the image parser. */
+export function roomType(label: string): RoomType {
   for (const [re, t] of ROOM_KEYWORDS) if (re.test(label)) return t;
   return "other";
 }
