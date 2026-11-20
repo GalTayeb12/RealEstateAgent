@@ -1028,6 +1028,7 @@ export const he = {
     saveDataDone: "נשמר!",
   },
   tour: {
+    factsTitle: "פרטי הדירה",
     sampleTag: "דירה לדוגמה",
     orbit: "מבט על",
     walk: "סיור בגובה העיניים",
@@ -2089,6 +2090,7 @@ export const en: Messages = {
     saveDataDone: "Saved!",
   },
   tour: {
+    factsTitle: "Apartment details",
     sampleTag: "Sample apartment",
     orbit: "Overview",
     walk: "Eye-level tour",

@@ -78,21 +78,21 @@ export default function TourAnalytics({
       </div>
 
       {entries.length === 0 ? (
-        <p style={{ fontSize: 12, color: "#888", lineHeight: 1.5 }}>{emptyLabel}</p>
+        <p style={{ fontSize: 12, color: "var(--qp-muted)", lineHeight: 1.5 }}>{emptyLabel}</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
           {entries.map(([id, sec]) => {
             const pct = (sec / maxDwell) * 100;
             return (
               <div key={id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}>
-                <span style={{ width: 80, textAlign: "start", flexShrink: 0, color: "#333" }}>
+                <span style={{ width: 80, textAlign: "start", flexShrink: 0, color: "var(--qp-ink)" }}>
                   {getRoomName(id)}
                 </span>
                 <div
                   style={{
                     flex: 1,
                     height: 8,
-                    background: "#eee",
+                    background: "var(--qp-soft)",
                     borderRadius: 4,
                     overflow: "hidden",
                   }}
@@ -107,7 +107,7 @@ export default function TourAnalytics({
                     }}
                   />
                 </div>
-                <span style={{ width: 32, textAlign: "end", color: "#888" }}>
+                <span style={{ width: 32, textAlign: "end", color: "var(--qp-muted)" }}>
                   {Math.round(sec)}s
                 </span>
               </div>
@@ -118,7 +118,7 @@ export default function TourAnalytics({
 
       {/* Insight */}
       {topRoom && (
-        <p style={{ fontSize: 12, color: "#555", lineHeight: 1.5, marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: "var(--qp-muted)", lineHeight: 1.5, marginBottom: 8 }}>
           {insightTemplate
             .replace("{room}", getRoomName(topRoom) ?? "")
             .replace("{feature}", ROOM_FEATURES[topRoom] ?? "")}
@@ -126,7 +126,7 @@ export default function TourAnalytics({
       )}
 
       {/* Footer */}
-      <p style={{ fontSize: 11, color: "#aaa", lineHeight: 1.4 }}>{footerLabel}</p>
+      <p style={{ fontSize: 11, color: "var(--qp-muted)", lineHeight: 1.4 }}>{footerLabel}</p>
     </div>
   );
 }

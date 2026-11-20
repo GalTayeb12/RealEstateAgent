@@ -19,7 +19,8 @@ import type { TourScene } from "./VirtualTour";
 import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding } from "@/components/building/types";
-import { buyerMinRooms, formatArea, formatAttributeValue, parseAttributes, roomsOf, translateAttrKey } from "@/lib/attributes";
+import { useBuyerMinRooms } from "@/components/useBuyerMinRooms";
+import { formatArea, formatAttributeValue, parseAttributes, roomsOf, translateAttrKey } from "@/lib/attributes";
 import { unitFactsSummary } from "@/components/listing/UnitFactsFields";
 import { MortgageCalculator, MortgageSavedData } from "@/components/MortgageCalculator";
 
@@ -97,7 +98,7 @@ export default function VprPage() {
   const [notFound, setNotFound] = useState(false);
   const [mortgageSavedData, setMortgageSavedData] = useState<MortgageSavedData | null>(null);
   // Buyer's minimum rooms: apartment-type tabs below it are dimmed, not hidden
-  const [minRooms, setMinRooms] = useState<number | null>(null);
+  const minRooms = useBuyerMinRooms();
 
   // Lazy-loaded teaser video
   const [videoData, setVideoData] = useState<string | null>(null);
@@ -109,10 +110,6 @@ export default function VprPage() {
     fetch("/api/buyer/mortgage-settings", { headers: { Authorization: `Bearer ${t}` } })
       .then(r => r.ok ? r.json() : null)
       .then((d: MortgageSavedData | null) => { if (d) setMortgageSavedData(d); })
-      .catch(() => {});
-    fetch("/api/buyer/profile", { headers: { Authorization: `Bearer ${t}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then((d: { buyer_preferences?: Record<string, unknown> } | null) => setMinRooms(buyerMinRooms(d?.buyer_preferences)))
       .catch(() => {});
   }, []);
 

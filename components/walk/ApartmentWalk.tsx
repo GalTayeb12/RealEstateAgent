@@ -559,7 +559,8 @@ export default function ApartmentWalk() {
       <style>{CSS}</style>
       {panel && (
         <TourSidePanel
-          className="aw-ui aw-panel"
+          className="aw-ui aw-panel qp-glass"
+          style={{ position: "absolute", height: "auto" }}
           model={panel.model}
           isSample={panel.isSample}
           strings={m.tour}
@@ -646,8 +647,14 @@ const CSS = `
 .aw-dot { position: absolute; width: 18px; height: 18px; pointer-events: none; }
 .aw-dot::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #e8b65e; box-shadow: 0 0 0 2px #fff, 0 0 10px rgba(232,182,94,.9); }
 .aw-dot::after { content: ""; position: absolute; left: 50%; top: -9px; transform: translateX(-50%); border: 6px solid transparent; border-bottom: 10px solid rgba(232,182,94,.95); }
-.aw-stage { position: absolute; top: 0; bottom: 0; left: 0; right: 360px; overflow: hidden; }
-.aw-panel { position: absolute; top: 0; bottom: 0; right: 0; width: 360px; box-sizing: border-box; z-index: 3; background: var(--qp-surface); color: var(--qp-ink); touch-action: pan-y; user-select: text; -webkit-user-select: text; }
+/* The scene runs under the panel; the panel floats as glass (qp-glass), like the building's floor picker */
+.aw-root { --aw-panel-w: 340px; }
+.aw-stage { position: absolute; inset: 0; overflow: hidden; }
+.aw-panel { position: absolute; top: 16px; bottom: 16px; right: 16px; width: var(--aw-panel-w); box-sizing: border-box; z-index: 3; touch-action: pan-y; user-select: text; -webkit-user-select: text; }
+/* keep the HUD clear of the panel (it sits on the physical right in both languages) */
+.aw-top { left: 16px; right: calc(var(--aw-panel-w) + 32px); }
+.aw-map { inset-inline-end: auto; left: 16px; }
+.aw-hint { left: calc((100% - var(--aw-panel-w) - 32px) / 2); }
 .aw-hint { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); margin: 0; padding: 6px 14px; border-radius: 999px; background: rgba(20,20,22,.5); font-size: 13px; white-space: nowrap; pointer-events: none; backdrop-filter: blur(6px); max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; }
 .aw-loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; text-align: center; background: #0b0b0c; z-index: 2; }
 .aw-loading__bar { width: min(320px, 70vw); height: 3px; background: rgba(255,255,255,.12); border-radius: 3px; overflow: hidden; }
@@ -660,8 +667,10 @@ const CSS = `
   .aw-hint { top: 64px; font-size: 12px; }
 }
 @media (max-width: 860px) {
-  .aw-stage { right: 0; bottom: 42dvh; }
-  .aw-panel { top: 58dvh; width: auto; left: 0; border-left: none !important; border-top: 1px solid var(--qp-soft); }
+  .aw-stage { bottom: 42dvh; }
+  .aw-panel { top: 58dvh; bottom: 0; left: 0; right: 0; width: auto; border-radius: 18px 18px 0 0; }
+  .aw-top { right: 16px; }
+  .aw-hint { left: 50%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .aw-loading__bar span { transition: none; }

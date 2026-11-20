@@ -1003,3 +1003,38 @@ body {
   .qp-story__panel { opacity: 1; position: relative; height: 60svh; }
   .qp-story__panel ~ .qp-story__panel { display: none; }
 }
+
+/* ── Glass panel ───────────────────────────────────────────────────────────────
+ * Frosted panel that floats over imagery and 3-D scenes (the building's
+ * "בחרו קומה" panel, the apartment card, the 3-D walk's side panel).
+ * It redefines the palette tokens for everything inside, so components
+ * styled with var(--qp-*) turn light-on-glass without their own changes.
+ * A slight dark tint keeps white text readable over bright interiors.
+ * ─────────────────────────────────────────────────────────────────────────── */
+.qp-glass {
+  --qp-bg:          rgba(255, 255, 255, 0.06);
+  --qp-surface:     rgba(255, 255, 255, 0.08);
+  --qp-soft:        rgba(255, 255, 255, 0.12);
+  --qp-border:      rgba(255, 255, 255, 0.20);
+  --qp-ink:         #FFFFFF;
+  --qp-muted:       rgba(255, 255, 255, 0.74);
+  --qp-primary:     #FFFFFF;
+  --qp-on-primary:  #123F40;
+  --qp-accent-text: #E8C98F;
+  --qp-warning-bg:  rgba(232, 182, 94, 0.45);
+  --qp-error:       #FFB4A8;
+  --qp-status-available: #7FC6CE;
+  --qp-status-sold:      #C3C8D0;
+
+  color: var(--qp-ink);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.06)),
+    rgba(12, 18, 28, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.26) !important;
+  border-radius: 18px;
+  backdrop-filter: blur(22px) saturate(1.4);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+.qp-glass ::placeholder { color: rgba(255, 255, 255, 0.55); }
+.qp-glass a { color: inherit; }

@@ -22,7 +22,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
-import type { ExplorerBuilding, FloorSelection, HoverInfo } from "./types";
+import { useBuyerMinRooms } from "@/components/useBuyerMinRooms";
+import { roomsOf } from "@/lib/attributes";
+import type { ExplorerBuilding, ExplorerUnit, FloorSelection, HoverInfo } from "./types";
 
 /**
  * bands (optional): floor boundaries as image-height fractions, from the roof
@@ -33,6 +35,18 @@ export interface PhotoBox {
   x: number; y: number; w: number; h: number; bands?: number[];
   /** Fly-in clip for this building; falls back to enter.video. */
   video?: string;
+  /**
+   * Optional: horizontal centre of each apartment on the facade, as fractions
+   * of the box width, indexed by the unit's position on its floor
+   * (positionIndex order). Without it a floor is split evenly, left to right.
+   */
+  slots?: number[];
+}
+
+/** Horizontal centre (fraction of box width) of the i-th of n apartments on a floor. */
+function slotX(box: PhotoBox, i: number, n: number): number {
+  const s = box.slots?.[i];
+  return typeof s === "number" && s >= 0 && s <= 1 ? s : (i + 0.5) / n;
 }
 
 /** Top and height (image fractions) of one floor inside a building box. */
@@ -94,6 +108,15 @@ const STR = {
     back: "חזרה לבניין",
     rooms: "חדרי הדירה",
     walk: "הליכה בדירה בתלת־ממד",
+    pickTitle: "בחרו דירה",
+    pickHint: "לחצו על דירה כדי להיכנס אליה",
+    apt: "דירה",
+    roomsN: "{n} חדרים",
+    sold: "נמכרה",
+    reserved: "שמורה",
+    fewerRooms: "פחות חדרים ממה שביקשת",
+    yourType: "הסוג שבחרת",
+    sides: { 2: ["שמאל", "ימין"], 3: ["שמאל", "אמצע", "ימין"], 4: ["שמאל", "שמאל־מרכז", "ימין־מרכז", "ימין"] } as Record<number, string[]>,
   },
   en: {
     choose: "Choose your floor",
@@ -109,6 +132,15 @@ const STR = {
     back: "Back to the tower",
     rooms: "Apartment rooms",
     walk: "Walk through in 3D",
+    pickTitle: "Choose an apartment",
+    pickHint: "Click an apartment to step inside",
+    apt: "Apt",
+    roomsN: "{n} rooms",
+    sold: "Sold",
+    reserved: "Reserved",
+    fewerRooms: "Fewer rooms than you asked for",
+    yourType: "The type you picked",
+    sides: { 2: ["Left", "Right"], 3: ["Left", "Middle", "Right"], 4: ["Left", "Left-centre", "Right-centre", "Right"] } as Record<number, string[]>,
   },
 } as const;
 
@@ -126,6 +158,7 @@ export default function BuildingPhotoStage({
   onHover,
   onFloorClick,
   onBack,
+  onUnitClick,
 }: {
   photoUrl: string;
   buildings: ExplorerBuilding[];
@@ -133,6 +166,8 @@ export default function BuildingPhotoStage({
   onHover: (info: HoverInfo | null, id?: string | null) => void;
   onFloorClick: (buildingId: string, floor: number) => void;
   onBack?: () => void;
+  /** Apartment chosen in the floor picker; called right after onFloorClick when the fly-in lands. */
+  onUnitClick?: (unitId: string) => void;
 }) {
   const { m, locale } = useI18n();
   const copy = m.explorer;
@@ -158,6 +193,15 @@ export default function BuildingPhotoStage({
   const [follow, setFollow] = useState(false);
   const [followCam, setFollowCam] = useState<Cam | null>(null);
   const [station, setStation] = useState(0);
+  // Floor picker: the zoomed floor, and the apartment chosen on it
+  const [picking, setPicking] = useState<Active | null>(null);
+  // Back from the walk (?inside&unit=…) the chosen apartment is restored from the URL
+  const [picked, setPicked] = useState<string | null>(() => {
+    const p = new URLSearchParams(window.location.search);
+    return p.get(INSIDE_PARAM) !== null ? p.get("unit") : null;
+  });
+  const pickedRef = useRef<string | null>(null);
+  useEffect(() => { pickedRef.current = picked; }, [picked]);
   const rootRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -322,7 +366,8 @@ export default function BuildingPhotoStage({
     const t = pending.current;
     pending.current = null;
     if (t) onFloorClick(t.buildingId, t.floor);
-  }, [clearTimers, onFloorClick]);
+    if (t && pickedRef.current) onUnitClick?.(pickedRef.current);
+  }, [clearTimers, onFloorClick, onUnitClick]);
 
   const startEnter = (buildingId: string, floor: number) => {
     const b = sorted.find((x) => x.id === buildingId);
@@ -381,21 +426,65 @@ export default function BuildingPhotoStage({
     if (lit && litBuilding) {
       const pageType = window.location.pathname.split("/").filter(Boolean).pop();
       const onFloor = litBuilding.units.filter((u) => u.floor === lit.floor);
-      const unit = onFloor.find((u) => u.unitTypeId === pageType && u.status === "available")
+      const unit = onFloor.find((u) => u.id === picked)
+        ?? onFloor.find((u) => u.unitTypeId === pageType && u.status === "available")
         ?? onFloor.find((u) => u.unitTypeId === pageType) ?? onFloor[0];
       if (unit) p.set("unit", unit.id);
       const back = new URLSearchParams({ building: lit.buildingId, floor: String(lit.floor), [INSIDE_PARAM]: String(station) });
+      if (unit && unit.id === picked) back.set("unit", unit.id);
       p.set("back", `${window.location.pathname}?${back.toString()}`);
     }
     const q = p.toString();
     return q ? `${walk}${walk.includes("?") ? "&" : "?"}${q}` : walk;
   };
 
+  // ── Floor picker: zoom to the floor, then choose the apartment (side) ──
+  const pickingCam = picking ? cam : null;
+  const minRooms = useBuyerMinRooms();
+  const pickUnits: ExplorerUnit[] = picking
+    ? [...(sorted.find((b) => b.id === picking.buildingId)?.units ?? [])]
+        .filter((u) => u.floor === picking.floor)
+        .sort((a, c) => a.positionIndex - c.positionIndex)
+    : [];
+
+  /** Floor click: zoom in and show its apartments. Without a room tour, keep the old floor panel. */
+  const startPick = (buildingId: string, floor: number) => {
+    const b = sorted.find((x) => x.id === buildingId);
+    const units = (b?.units ?? []).filter((u) => u.floor === floor);
+    if (!meta.enter || step > 0 || units.length === 0) { startEnter(buildingId, floor); return; }
+    if (units.length === 1) { pickApartment(units[0], buildingId); return; }
+    const c = camFor(buildingId, floor, 0.8, 1.5, 4.5);
+    clearTimers();
+    setFollow(false);
+    select(buildingId, floor);
+    setCam(c);
+    setPicked(null);
+    setPicking({ buildingId, floor });
+    onHover(null, null);
+  };
+  const cancelPick = () => { setPicking(null); setCam(null); };
+  function pickApartment(u: ExplorerUnit, buildingId: string) {
+    setPicked(u.id);
+    pickedRef.current = u.id;
+    setPicking(null);
+    // startEnter bails out when a step is running; picking keeps step at 0.
+    startEnter(buildingId, u.floor);
+  }
+  useEffect(() => {
+    if (!picking) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); cancelPick(); } };
+    const onResize = () => setCam(camFor(picking.buildingId, picking.floor, 0.8, 1.5, 4.5));
+    window.addEventListener("keydown", onKey, true);
+    window.addEventListener("resize", onResize);
+    return () => { window.removeEventListener("keydown", onKey, true); window.removeEventListener("resize", onResize); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [picking]);
+
   // Slider drives the active building's floors that have units.
   const panelBuilding = litBuilding ?? sorted[0] ?? null;
   const panelFloors = panelBuilding ? floorsWithUnits(panelBuilding) : [];
   const sliderIndex = lit && panelFloors.includes(lit.floor) ? panelFloors.indexOf(lit.floor) : -1;
-  const showPanel = !selectedFloor && panelBuilding;
+  const showPanel = !selectedFloor && !picking && panelBuilding;
 
   const dim = Boolean(lightRect);
 
@@ -412,7 +501,7 @@ export default function BuildingPhotoStage({
         setFollow(true);
         select(panelBuilding.id, panelFloors[next]);
       } else if (e.key === "Enter" && lit && litInfo && !litInfo.lobby && !(e.target as HTMLElement | null)?.closest("button")) {
-        startEnter(lit.buildingId, lit.floor);
+        startPick(lit.buildingId, lit.floor);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -463,6 +552,41 @@ export default function BuildingPhotoStage({
           .hn-ps-station-img[data-fit="contain"] { padding: calc(var(--qp-nav-h, 64px) + .5rem) 3vw 58vh; }
         }
         @keyframes hn-ps-kb { from { scale: 1.08; } to { scale: 1; } }
+        /* Floor picker: one label per apartment, above its spot on the facade */
+        .hn-ps-apt {
+          position: absolute; z-index: 4; pointer-events: auto; cursor: pointer;
+          display: flex; flex-direction: column; align-items: center; gap: 1px;
+          padding: 6px 11px 7px; border-radius: 10px; border: 1px solid rgba(255,255,255,.55);
+          background: rgba(255,252,246,.94); color: #123F40; font: inherit; line-height: 1.25; white-space: nowrap;
+          box-shadow: 0 8px 22px rgba(0,0,0,.35);
+          animation: hn-ps-apt-in .45s cubic-bezier(.22,1,.36,1) backwards;
+          transition: background .15s, box-shadow .15s;
+        }
+        .hn-ps-apt::after {
+          content: ""; position: absolute; left: 50%; bottom: -7px; translate: -50% 0;
+          border: 7px solid transparent; border-bottom: 0; border-top-color: rgba(255,252,246,.94);
+        }
+        .hn-ps-apt b { font-size: 13px; }
+        .hn-ps-apt span { font-size: 11.5px; opacity: .85; font-variant-numeric: tabular-nums; }
+        .hn-ps-apt small { font-size: 10.5px; font-weight: 700; color: #756039; }
+        .hn-ps-apt:hover, .hn-ps-apt:focus-visible { background: #fff; box-shadow: 0 10px 26px rgba(0,0,0,.45), 0 0 0 3px rgba(232,182,94,.85); outline: none; }
+        .hn-ps-apt[data-mine] { border-color: #e8b65e; box-shadow: 0 8px 22px rgba(0,0,0,.35), 0 0 0 2px #e8b65e; }
+        .hn-ps-apt[data-dim] { opacity: .62; }
+        .hn-ps-apt[disabled] { cursor: default; opacity: .5; text-decoration: line-through; }
+        @keyframes hn-ps-apt-in { from { opacity: 0; translate: 0 8px; } }
+        .hn-ps-pickbar {
+          position: absolute; z-index: 6; left: 50%; bottom: clamp(1rem, 4vh, 2rem); translate: -50% 0;
+          display: flex; align-items: center; gap: .9rem; padding: .55rem .6rem .55rem 1.1rem; border-radius: 999px;
+          background: rgba(10,14,24,.62); color: #fff; border: 1px solid rgba(255,255,255,.22);
+          backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); white-space: nowrap; max-width: 94vw;
+          animation: hn-ps-rise .5s cubic-bezier(.22,1,.36,1) backwards;
+        }
+        .hn-ps-pickbar b { font-size: .95rem; }
+        .hn-ps-pickbar span { font-size: .82rem; opacity: .8; }
+        .hn-ps-pickbar button { font: inherit; font-size: .82rem; color: #fff; cursor: pointer; padding: .4rem .9rem; border-radius: 999px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.3); }
+        .hn-ps-pickbar button:hover { background: rgba(255,255,255,.22); }
+        @media (max-width: 640px) { .hn-ps-pickbar span { display: none; } }
+        @media (prefers-reduced-motion: reduce) { .hn-ps-apt, .hn-ps-pickbar { animation: none; } }
         /* Interactive dollhouse: same frame as the contain stills */
         .hn-ps-3d {
           position: absolute; inset: 0; z-index: 5; box-sizing: border-box;
@@ -650,13 +774,13 @@ export default function BuildingPhotoStage({
         <div
           className="hn-ps-cam"
           style={{
-            transformOrigin: (() => { const c = step >= 1 ? cam : followCam; return c ? `${c.ox}% ${c.oy}%` : "50% 50%"; })(),
+            transformOrigin: (() => { const c = step >= 1 || picking ? cam : followCam; return c ? `${c.ox}% ${c.oy}%` : "50% 50%"; })(),
             transform: (() => {
-              const c = step >= 1 ? cam : followCam;
+              const c = step >= 1 || picking ? cam : followCam;
               return c ? `translate(${c.dx}px, ${c.dy}px) scale(${c.s})` : "none";
             })(),
-            transition: step >= 1 ? "transform 1.5s cubic-bezier(.65,0,.3,1)" : "transform 1.1s cubic-bezier(.4,0,.2,1)",
-            pointerEvents: step > 0 ? "none" : undefined,
+            transition: step >= 1 || picking ? "transform 1.1s cubic-bezier(.65,0,.3,1)" : "transform 1.1s cubic-bezier(.4,0,.2,1)",
+            pointerEvents: step > 0 || picking ? "none" : undefined,
           }}
         >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -714,7 +838,7 @@ export default function BuildingPhotoStage({
         )}
 
         {/* Floating tag anchored to the lit floor */}
-        {lightRect && litInfo && lit && step === 0 && !selectedFloor && (
+        {lightRect && litInfo && lit && step === 0 && !selectedFloor && !picking && (
           <div
             key={`tag-${lit.buildingId}-${lit.floor}`}
             aria-hidden
@@ -780,7 +904,7 @@ export default function BuildingPhotoStage({
                     return;
                   }
                   touchArmed.current = false;
-                  startEnter(b.id, floor);
+                  startPick(b.id, floor);
                 }}
                 style={{
                   left: `${box.x * 100}%`,
@@ -793,8 +917,60 @@ export default function BuildingPhotoStage({
             );
           });
         })}
+
+        {/* Floor picker: apartments of the zoomed floor, each above its place on the facade */}
+        {picking && pickingCam && (() => {
+          const bi = sorted.findIndex((x) => x.id === picking.buildingId);
+          const b = sorted[bi];
+          const box = meta.buildings[bi];
+          if (!b || !box) return null;
+          const sp = floorSpan(box, Math.max(b.floorCount, 1), picking.floor);
+          const pageType = window.location.pathname.split("/").filter(Boolean).pop();
+          const sides = t.sides[pickUnits.length];
+          return pickUnits.map((u, i) => {
+            const rooms = roomsOf(null, u.unitLabel);
+            const fewer = minRooms != null && rooms != null && rooms < minRooms;
+            const sold = u.status === "sold";
+            const price = u.price ?? u.listPrice;
+            return (
+              <button
+                key={u.id}
+                type="button"
+                className="hn-ps-apt"
+                disabled={sold}
+                data-dim={fewer || undefined}
+                data-mine={u.unitTypeId === pageType || undefined}
+                aria-label={`${t.apt} ${u.unitNumber} · ${u.unitLabel}${sides ? ` · ${sides[i]}` : ""}`}
+                // eslint-disable-next-line react-hooks/refs -- click handler; pickApartment writes pickedRef on click, not during render
+                onClick={() => pickApartment(u, b.id)}
+                style={{
+                  left: `${(box.x + box.w * slotX(box, i, pickUnits.length)) * 100}%`,
+                  top: `${sp.top * 100}%`,
+                  transform: `translate(-50%, calc(-100% - 8px)) scale(${1 / pickingCam.s})`,
+                  transformOrigin: "50% calc(100% + 8px)",
+                  animationDelay: `${0.55 + i * 0.07}s`,
+                }}
+              >
+                <b>{t.apt} {u.unitNumber}{sides ? ` · ${sides[i]}` : ""}</b>
+                <span>{u.unitLabel}</span>
+                <span>{sold ? t.sold : u.status === "reserved" ? t.reserved : price > 0 ? <Money amount={price} /> : null}</span>
+                {fewer ? <small>{t.fewerRooms}</small> : u.unitTypeId === pageType ? <small>{t.yourType}</small> : null}
+              </button>
+            );
+          });
+        })()}
         </div>
       </div>
+
+      {picking && (
+        <div className="hn-ps-pickbar" role="group" aria-label={t.pickTitle}>
+          <b>
+            {sorted.find((b) => b.id === picking.buildingId)?.name} · {t.level} {picking.floor}
+          </b>
+          <span>{t.pickHint}</span>
+          <button type="button" onClick={cancelPick}>{isRtl ? "→ " : "← "}{t.back}</button>
+        </div>
+      )}
 
       <div className="hn-ps-vignette" aria-hidden />
 
@@ -904,6 +1080,7 @@ export default function BuildingPhotoStage({
               {lit && litBuilding && (
                 <div className="hn-ps-eyebrow">
                   {litBuilding.name} · {t.level} {lit.floor}
+                  {(() => { const u = litBuilding.units.find((x) => x.id === picked); return u ? ` · ${t.apt} ${u.unitNumber}` : ""; })()}
                 </div>
               )}
               <h3>{cur.title[lang]}</h3>
@@ -930,7 +1107,7 @@ export default function BuildingPhotoStage({
         );
       })()}
 
-      <div className="hn-ps-head" style={{ opacity: step > 0 ? 0 : 1, transition: "opacity .4s ease" }}>
+      <div className="hn-ps-head" style={{ opacity: step > 0 || picking ? 0 : 1, visibility: step > 0 || picking ? "hidden" : "visible", transition: step > 0 || picking ? "opacity .4s ease, visibility 0s .4s" : "opacity .4s ease" }}>
         <h2>{copy.title}</h2>
         <p>{t.hint}</p>
       </div>
@@ -1019,7 +1196,7 @@ export default function BuildingPhotoStage({
             type="button"
             className="hn-ps-cta"
             disabled={!lit || !litInfo || litInfo.lobby}
-            onClick={() => lit && startEnter(lit.buildingId, lit.floor)}
+            onClick={() => lit && startPick(lit.buildingId, lit.floor)}
           >
             {t.cta}
           </button>

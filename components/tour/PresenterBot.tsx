@@ -106,7 +106,7 @@ export default function PresenterBot({
             justifyContent: "center",
             fontWeight: 700,
             fontSize: 16,
-            color: "#444",
+            color: "var(--qp-ink)",
             position: "relative",
             flexShrink: 0,
           }}
@@ -127,7 +127,7 @@ export default function PresenterBot({
         </div>
         <div>
           <div style={{ fontWeight: 600, fontSize: 14 }}>{danaNameLabel}</div>
-          <div style={{ fontSize: 12, color: "#888" }}>{danaSubtitleLabel}</div>
+          <div style={{ fontSize: 12, color: "var(--qp-muted)" }}>{danaSubtitleLabel}</div>
         </div>
       </div>
 
@@ -135,7 +135,7 @@ export default function PresenterBot({
       <div
         ref={scrollRef}
         style={{
-          maxHeight: 260,
+          maxHeight: 150,
           overflowY: "auto",
           display: "flex",
           flexDirection: "column",
@@ -177,7 +177,7 @@ export default function PresenterBot({
               padding: "5px 14px",
               fontSize: 12,
               cursor: "pointer",
-              color: "#333",
+              color: "var(--qp-ink)",
               fontFamily: "inherit",
               whiteSpace: "nowrap",
             }}

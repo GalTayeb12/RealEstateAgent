@@ -119,7 +119,7 @@ function FloorPanel({
 
   return (
     <div
-      className="hn-floor-panel"
+      className="hn-floor-panel qp-glass"
       style={{
         position: "absolute",
         top: 0, bottom: 0, right: 0,
@@ -412,7 +412,7 @@ function UnitCard({
 
   return (
     <div
-      className="hn-floor-panel"
+      className="hn-floor-panel qp-glass"
       style={{
         position: "absolute",
         top: 0, bottom: 0, right: 0,
@@ -724,6 +724,15 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
+/** ?building=&floor=&unit= → explorer selection (client-only component). */
+function readUrlSelection(): { floor: FloorSelection | null; unitId: string | null } {
+  if (typeof window === "undefined") return { floor: null, unitId: null };
+  const p = new URLSearchParams(window.location.search);
+  const b = p.get("building");
+  const n = parseInt(p.get("floor") ?? "", 10);
+  return { floor: b && !isNaN(n) ? { buildingId: b, floor: n } : null, unitId: p.get("unit") };
+}
+
 export default function BuildingExplorer({
   buildings,
   activeUnitTypeId,
@@ -738,9 +747,10 @@ export default function BuildingExplorer({
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  // Phase 2 state
-  const [selectedFloor, setSelectedFloor] = useState<FloorSelection | null>(null);
-  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  // Phase 2 state — seeded from the URL on the first render, so the URL-sync
+  // effect below never sees an empty selection and drops ?unit= on load
+  const [selectedFloor, setSelectedFloor] = useState<FloorSelection | null>(() => readUrlSelection().floor);
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(() => readUrlSelection().unitId);
   const [hoveredUnitId, setHoveredUnitId] = useState<string | null>(null);
 
   // Phase 3 state
@@ -759,18 +769,13 @@ export default function BuildingExplorer({
       .catch(() => setUnitDataLoading(false));
   }, [selectedUnitId]);
 
-  // ── URL state: read on mount + browser back ──
+  // ── URL state: browser back / forward ──
   useEffect(() => {
     const read = () => {
-      const p = new URLSearchParams(window.location.search);
-      const b = p.get("building");
-      const f = p.get("floor");
-      const u = p.get("unit");
-      const n = f ? parseInt(f, 10) : NaN;
-      setSelectedFloor(b && !isNaN(n) ? { buildingId: b, floor: n } : null);
-      setSelectedUnitId(u ?? null);
+      const { floor, unitId } = readUrlSelection();
+      setSelectedFloor(floor);
+      setSelectedUnitId(unitId);
     };
-    read();
     window.addEventListener("popstate", read);
     return () => window.removeEventListener("popstate", read);
   }, []);
@@ -1046,6 +1051,15 @@ export default function BuildingExplorer({
             --dir: 1;
           }
           [dir="rtl"] .hn-floor-panel { --dir: -1; }
+          /* Desktop: the floor list and apartment card float as glass, like the floor picker */
+          @media (min-width: 641px) {
+            .hn-floor-panel.qp-glass {
+              top: calc(var(--qp-nav-h, 64px) + 1rem) !important;
+              bottom: 1rem !important;
+              right: 1rem !important;
+              overflow: hidden;
+            }
+          }
 
           @media (prefers-reduced-motion: reduce) {
             .hn-floor-panel { animation: none; }
@@ -1065,6 +1079,8 @@ export default function BuildingExplorer({
               box-shadow: 0 -4px 24px rgba(0,0,0,0.10) !important;
             }
             .hn-sheet-handle { display: flex !important; }
+            /* bottom sheet covers the room caption: glass tint, but nearly opaque */
+            .hn-floor-panel.qp-glass { background: linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.03)), rgba(12,18,28,.88) !important; }
           }
           /* Phones: the photo stage's floor picker is a bottom sheet; the legend would cover its CTA */
           @media (max-width: 760px) {
@@ -1094,6 +1110,7 @@ export default function BuildingExplorer({
               onHover={onHover}
               onFloorClick={handleFloorClick}
               onBack={handleBackToBuilding}
+              onUnitClick={(unitId) => setSelectedUnitId(unitId)}
             />
           ) : webgl === null ? null : webgl ? (
             <CanvasGuard
