@@ -8,7 +8,8 @@
 import { Canvas } from "@react-three/fiber";
 import { Html, OrbitControls, useProgress } from "@react-three/drei";
 import * as THREE from "three";
-import { Suspense, useEffect, useState } from "react";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/LocaleProvider";
 import { Apartment, BASE, ROOM_NAMES, type WalkData } from "./ApartmentWalk";
 
@@ -30,7 +31,12 @@ export default function ApartmentOverview() {
   const he = locale === "he";
   const [data, setData] = useState<WalkData | null>(null);
   const [focus, setFocus] = useState<string | null>(null);
+  const controls = useRef<OrbitControlsImpl>(null);
+  const idle = useRef<number | undefined>(undefined);
+  const [spin] = useState(() => typeof window !== "undefined" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [mobile] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
+
+  useEffect(() => () => window.clearTimeout(idle.current), []);
 
   useEffect(() => {
     fetch(`${BASE}/walk.json`).then((r) => r.json()).then(setData).catch(() => setData(null));
@@ -69,14 +75,20 @@ export default function ApartmentOverview() {
             })}
           </Suspense>
           <OrbitControls
+            ref={controls}
             target={CENTER}
+            autoRotate={spin}
+            autoRotateSpeed={0.5}
+            onStart={() => { window.clearTimeout(idle.current); if (controls.current) controls.current.autoRotate = false; }}
+            onEnd={() => {
+              window.clearTimeout(idle.current);
+              idle.current = window.setTimeout(() => { if (controls.current && spin) controls.current.autoRotate = true; }, 2500);
+            }}
             enableDamping
             dampingFactor={0.08}
             minDistance={7}
             maxDistance={32}
-            maxPolarAngle={Math.PI * 0.42}
-            minAzimuthAngle={-Math.PI * 0.4}
-            maxAzimuthAngle={Math.PI * 0.4}
+            maxPolarAngle={Math.PI * 0.47}
             rotateSpeed={0.55}
             screenSpacePanning={false}
           />

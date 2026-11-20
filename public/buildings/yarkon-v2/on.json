@@ -10,6 +10,7 @@
     "stations": [
       {
         "id": "living",
+        "image": "/buildings/yarkon-v2/room-living.webp",
         "title": {
           "he": "הסלון",
           "en": "The living room"

@@ -35,8 +35,17 @@ const EXPOSURE = 1.12;     // global scale on all baked light
 // The 2700 K downlights + oak bounce leave a warm cast; a camera would white-balance it out.
 const WHITE_BALANCE = "vec3(0.93, 0.98, 1.10)";
 const LOOK_SENS = 0.0022;
+const LOOK_SPIKE = 250;      // px per mouse event above this is a pointer-lock glitch, not input
+const LOOK_MAX_FRAME = 160;  // px of look per rendered frame, at most
 
 type Rect = [number, number, number, number];
+
+/** World-space slab x 11.9..12.75, y < 2.2 (the master-bath doorway); clipIntersection discards only inside all three. */
+const BATH_DOOR_HOLE = [
+  new THREE.Plane(new THREE.Vector3(-1, 0, 0), 11.9),
+  new THREE.Plane(new THREE.Vector3(1, 0, 0), -12.75),
+  new THREE.Plane(new THREE.Vector3(0, 1, 0), -2.2),
+];
 export interface WalkData {
   lightmaps: { A: number; B: number };
   probes: Record<string, number>;
@@ -170,7 +179,6 @@ export function Apartment({ data, mobile, overview = false }: { data: WalkData; 
 
   // sky backdrop through the glass (+ env for the balcony)
   useEffect(() => {
-    if (overview) return;
     const pm = new THREE.PMREMGenerator(gl);
     let skyEnv: THREE.Texture | null = null;
     const sky = new THREE.TextureLoader().load(`${BASE}/sky.webp`, (t) => {
@@ -179,10 +187,13 @@ export function Apartment({ data, mobile, overview = false }: { data: WalkData; 
     });
     sky.mapping = THREE.EquirectangularReflectionMapping;
     sky.colorSpace = THREE.SRGBColorSpace;
-    threeScene.background = sky;
-    threeScene.backgroundIntensity = data.sky * EXPOSURE;
-    threeScene.backgroundRotation.set(0, data.skyRot ?? 0, 0);
-    return () => { threeScene.background = null; sky.dispose(); skyEnv?.dispose(); pm.dispose(); };
+    // dollhouse keeps its plain backdrop but still needs the sky as light for the unlit-by-bake plants outside
+    if (!overview) {
+      threeScene.background = sky;
+      threeScene.backgroundIntensity = data.sky * EXPOSURE;
+      threeScene.backgroundRotation.set(0, data.skyRot ?? 0, 0);
+    }
+    return () => { if (!overview) threeScene.background = null; sky.dispose(); skyEnv?.dispose(); pm.dispose(); };
   }, [threeScene, gl, data.sky, data.skyRot, overview]);
 
   // overview: open the dollhouse — hide everything that starts at ceiling height
@@ -240,6 +251,16 @@ export function Apartment({ data, mobile, overview = false }: { data: WalkData; 
         cache.set(key, mat);
       }
       mesh.material = mat;
+      // bath: the marble skin on the south wall also covered the doorway (a see-through "stone wall")
+      if (/(^|\|)bt_s$/.test(mesh.name) || /(^|\|)bt_s$/.test(mesh.parent?.name ?? "")) {
+        const hole = (mat as THREE.MeshStandardMaterial).clone();
+        hole.clippingPlanes = BATH_DOOR_HOLE;
+        hole.clipIntersection = true;
+        if (grp === "A" || grp === "B") bakedOnly(hole);
+        (envUsers.current[probe] ??= []).push(hole);
+        mesh.material = hole;
+        gl.localClippingEnabled = true;
+      }
       // lightmap needs uv1; meshes without it (foliage) stay env-lit
       if (mat.lightMap && !mesh.geometry.getAttribute("uv1")) mat.lightMap = null;
       mesh.frustumCulled = true;
@@ -296,8 +317,10 @@ function Walker({ data, input, reduce, onRoom, onPose }: {
       s.vx = s.vy = 0; inp.teleport = null;
     }
     // look
-    s.yaw -= inp.lookDX * LOOK_SENS;
-    s.pitch = Math.max(-1.2, Math.min(1.2, s.pitch - inp.lookDY * LOOK_SENS));
+    const ldx = Math.max(-LOOK_MAX_FRAME, Math.min(LOOK_MAX_FRAME, inp.lookDX));
+    const ldy = Math.max(-LOOK_MAX_FRAME, Math.min(LOOK_MAX_FRAME, inp.lookDY));
+    s.yaw -= ldx * LOOK_SENS;
+    s.pitch = Math.max(-1.2, Math.min(1.2, s.pitch - ldy * LOOK_SENS));
     inp.lookDX = inp.lookDY = 0;
     // arrow-key turning with eased angular velocity
     const turnIn = (k.has("ArrowLeft") || k.has("KeyQ") ? 1 : 0) - (k.has("ArrowRight") || k.has("KeyE") ? 1 : 0);
@@ -460,6 +483,8 @@ export default function ApartmentWalk() {
     const onLock = () => setLocked(document.pointerLockElement === el.querySelector("canvas"));
     const move = (e: MouseEvent) => {
       if (document.pointerLockElement || dragging) {
+        // Chromium pointer-lock occasionally reports a huge bogus delta (the "camera jump"); real motion is far smaller
+        if (Math.abs(e.movementX) > LOOK_SPIKE || Math.abs(e.movementY) > LOOK_SPIKE) return;
         input.current.lookDX += e.movementX;
         input.current.lookDY += e.movementY;
       }
