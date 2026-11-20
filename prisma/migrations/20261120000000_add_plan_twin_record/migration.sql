@@ -1,5 +1,3 @@
-◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
-◇ injected env (16) from .env.local // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 -- CreateTable
 CREATE TABLE "PlanTwinRecord" (
     "id" TEXT NOT NULL,
