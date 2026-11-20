@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { Component, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { statusVar } from "@/lib/statusColors";
 import { useI18n } from "@/components/LocaleProvider";
@@ -76,7 +75,6 @@ function FloorPanel({
   hoveredUnitId,
   isRtl,
   copy,
-  explorerCopy,
   onBack,
   onFloorNav,
   onUnitClick,
@@ -104,7 +102,6 @@ function FloorPanel({
     noUnits: string;
     escHint: string;
   };
-  explorerCopy: { available: string; reserved: string; sold: string };
   onBack: () => void;
   onFloorNav: (delta: number) => void;
   onUnitClick: (unitId: string) => void;
@@ -353,7 +350,6 @@ function UnitCard({
     panorama: string;
     escHint: string;
     loading: string;
-    enterTour: string;
   };
   onBack: () => void;
   onBackToBuilding: () => void;
@@ -602,27 +598,6 @@ function UnitCard({
                 )}
               </div>
             )}
-
-            {/* Tour button — intercepts to modal overlay */}
-            <Link
-              href={`/tour/${unitData.id}`}
-              style={{
-                display: "block",
-                padding: "0.5rem 1rem",
-                background: "rgba(68,120,180,0.08)",
-                border: "1px solid rgba(68,120,180,0.22)",
-                borderRadius: 8,
-                color: "var(--qp-muted)",
-                fontSize: "0.8125rem",
-                fontWeight: 600,
-                textAlign: "center",
-                textDecoration: "none",
-                letterSpacing: "0.01em",
-                transition: "background 0.12s",
-              }}
-            >
-              {copy.enterTour}
-            </Link>
 
             {/* Reserve button */}
             {unitData.status === "available" && (
@@ -991,7 +966,6 @@ export default function BuildingExplorer({
       return `${hover.buildingName} · ${copy.floor} ${hover.floor} · ${copy.apartment} ${hover.unitNumber}${hover.unitLabel ? ` · ${hover.unitLabel}` : ""}`;
     }
     return null;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitId, unitData, selectedFloor, selectedBuilding, maxFloor, floorUnits, hover, copy, floorCopy]);
 
   return (
@@ -1263,7 +1237,7 @@ export default function BuildingExplorer({
               unitData={unitData}
               loading={unitDataLoading}
               isRtl={isRtl}
-              copy={{ ...unitCopy, enterTour: unitCopy.enterTour }}
+              copy={unitCopy}
               onBack={handleBack}
               onBackToBuilding={handleBackToBuilding}
             />
@@ -1280,7 +1254,6 @@ export default function BuildingExplorer({
               hoveredUnitId={hoveredUnitId}
               isRtl={isRtl}
               copy={floorCopy}
-              explorerCopy={copy}
               onBack={handleBack}
               onFloorNav={handleFloorNav}
               onUnitClick={handleUnitClick}

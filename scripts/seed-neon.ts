@@ -55,7 +55,7 @@ async function main() {
     return;
   }
 
-  const buyer = await upsertUser(DEMO.buyer.email, DEMO.buyer.password, "buyer", {
+  await upsertUser(DEMO.buyer.email, DEMO.buyer.password, "buyer", {
     name: "דנה לוי",
   });
 

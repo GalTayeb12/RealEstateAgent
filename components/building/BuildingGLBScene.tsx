@@ -822,7 +822,6 @@ export default function BuildingGLBScene({
   glbUrl,
   metaUrl,
   buildings,
-  activeUnitTypeId,
   selectedFloor,
   selectedUnitId,
   hoveredUnitId,

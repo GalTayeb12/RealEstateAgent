@@ -12,10 +12,6 @@ import TourAnalytics from "./TourAnalytics";
 export interface TourStrings {
   factsTitle: string;
   sampleTag: string;
-  orbit: string;
-  walk: string;
-  profileTitle: string;
-  profileTag: string;
   danaName: string;
   danaSubtitle: string;
   analyticsTitle: string;
@@ -23,14 +19,7 @@ export interface TourStrings {
   analyticsEmpty: string;
   analyticsInsight: string;
   analyticsFooter: string;
-  hintOrbit: string;
-  hintWalk: string;
-  herePrefix: string;
-  loading: string;
-  noWebGL: string;
-  matchLabel: string;
   sqm: string;
-  monthlyRent: string;
 }
 
 interface TourSidePanelProps {
@@ -175,7 +164,6 @@ export default function TourSidePanel({
           profiles={model.profiles}
           questions={model.questions}
           activeRoomId={activeRoomId}
-          onProfileChange={onProfileChange}
           danaNameLabel={m.danaName}
           danaSubtitleLabel={m.danaSubtitle}
         />

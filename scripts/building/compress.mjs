@@ -7,7 +7,7 @@
  * Mobile:  Same + lower texture quality (100) + smaller UV atlas
  */
 
-import { Document, NodeIO } from "@gltf-transform/core";
+import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import {
   draco,
@@ -17,8 +17,7 @@ import {
   weld,
 } from "@gltf-transform/functions";
 import { createRequire } from "module";
-import { readFileSync, writeFileSync, statSync } from "fs";
-import path from "path";
+import { statSync } from "fs";
 
 const require = createRequire(import.meta.url);
 
@@ -55,7 +54,6 @@ async function main() {
 
   // ── Draco mesh compression ──
   try {
-    const { MeshoptEncoder } = await import("meshoptimizer").catch(() => null) ?? {};
     await doc.transform(
       draco({
         quantizationPosition: MOBILE ? 11 : 14,

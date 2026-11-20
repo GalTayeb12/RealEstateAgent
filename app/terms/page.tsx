@@ -102,14 +102,14 @@ export default function TermsPage() {
 
         {/* Intro */}
         <p style={S.p}>
-          Haveniq ("we," "us," "our," or the "Platform") operates an online marketplace that connects
-          prospective property buyers ("Buyers") with real estate developers and sellers ("Developers")
+          Haveniq (“we,” “us,” “our,” or the “Platform”) operates an online marketplace that connects
+          prospective property buyers (“Buyers”) with real estate developers and sellers (“Developers”)
           in Israel, using an AI-assisted interview process to characterize Buyer preferences and match
           them with relevant property listings.
         </p>
         <p style={S.p}>
           By creating an account or otherwise using the Platform, you agree to these Terms of Service
-          ("Terms"). If you do not agree, please do not use the Platform.
+          (“Terms”). If you do not agree, please do not use the Platform.
         </p>
 
         {/* 2 */}
@@ -139,12 +139,12 @@ export default function TermsPage() {
           <h2 style={S.h2}>3. The AI Interview and Matching Process</h2>
           <ul style={S.ul}>
             <li style={S.li}>
-              Buyers participate in a guided, AI-assisted conversational interview (the "Interview")
+              Buyers participate in a guided, AI-assisted conversational interview (the “Interview”)
               to help the Platform understand their property preferences, budget, timeline, and
               related criteria.
             </li>
             <li style={S.li}>
-              The Interview may be conducted using synthetic voice and/or video (an "AI Avatar") and
+              The Interview may be conducted using synthetic voice and/or video (an “AI Avatar”) and
               is transcribed and analyzed by AI systems, including third-party service providers, to
               produce a structured preference profile.
             </li>
@@ -172,7 +172,7 @@ export default function TermsPage() {
               such offers.
             </li>
             <li style={S.li}>
-              Accepted offers proceed to a "Deal Room" where both parties can track deal status,
+              Accepted offers proceed to a “Deal Room” where both parties can track deal status,
               including a simulated reservation deposit step and a digital contract-signing step.
             </li>
             <li style={S.li}>
@@ -181,7 +181,7 @@ export default function TermsPage() {
                 are currently simulated for demonstration purposes and do not constitute real
                 financial transactions or legally binding agreements.
               </strong>{" "}
-              Any document generated through the Platform's signing flow is provided for
+              Any document generated through the Platform’s signing flow is provided for
               record-keeping and demonstration purposes only and should not be relied upon as a
               substitute for a properly executed, legally binding real estate contract prepared
               with independent legal counsel.
@@ -248,7 +248,7 @@ export default function TermsPage() {
         <div style={S.section}>
           <h2 style={S.h2}>8. Disclaimers and Limitation of Liability</h2>
           <p style={S.p}>
-            The Platform is provided "as is" and "as available," without warranties of any kind,
+            The Platform is provided “as is” and “as available,” without warranties of any kind,
             express or implied. To the maximum extent permitted by law, Haveniq disclaims all
             warranties, and shall not be liable for any indirect, incidental, special, or
             consequential damages arising from your use of the Platform, including reliance on

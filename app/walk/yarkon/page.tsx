@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * /tour/yarkon-walk — first-person walkthrough of the Seed Yarkon 4-room
+ * /walk/yarkon — first-person walkthrough of the Seed Yarkon 4-room
  * apartment (Cycles-baked lighting, three.js). WebGL only, so the scene is
  * client-rendered (`ssr: false` must live in a Client Component).
  */

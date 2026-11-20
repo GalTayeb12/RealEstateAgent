@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useI18n } from "@/components/LocaleProvider";
 import { Logo } from "@/components/Logo";
 import LanguageToggle from "@/components/LanguageToggle";
 import "@/components/quiet/quiet.css";

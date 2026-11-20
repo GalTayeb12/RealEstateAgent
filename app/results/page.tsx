@@ -698,13 +698,9 @@ function renderFailReason(reason: HardFilterReason, m: { filterFailRooms: string
 function NearMatchCard({
   outcome,
   detail,
-  ej,
-  aj,
 }: {
   outcome: MatchOutcome;
   detail: AomDetail | undefined;
-  ej: number;
-  aj: number;
 }) {
   const { m } = useI18n();
   const failReasons = outcome.hardFilterFailReasons ?? [];
@@ -1238,8 +1234,6 @@ export default function ResultsPage() {
                   key={outcome.aomId}
                   outcome={outcome}
                   detail={detail}
-                  ej={ej}
-                  aj={aj}
                 />
               );
             })}

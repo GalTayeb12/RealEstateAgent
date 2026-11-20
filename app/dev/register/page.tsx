@@ -1,10 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 import { TextField, Button } from "@/components/quiet";
-import { AuthAside, AuthRoom, translateAuthError } from "@/components/auth/Room";
+import { AuthAside, AuthRoom } from "@/components/auth/Room";
 
 export default function DevRegisterPage() {
   const router = useRouter();

@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Haveniq
 
-## Getting Started
+Real-estate matching platform for the Israeli market (Hebrew first, English available).
+Buyers do a short AI interview, get matched to projects, explore the building and the
+apartment in 3D, and make or reserve offers. Developers and private sellers list projects.
 
-First, run the development server:
+## Run locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install --legacy-peer-deps   # pannellum-react still declares React 16 as a peer
+cp .env.example .env.local       # then fill in DATABASE_URL and the API keys
+npx prisma generate
+npm run dev                      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```bash
+npm test          # unit tests (vitest)
+npm run lint
+npm run build
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Where things are
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Area | Code |
+| --- | --- |
+| Matching (rooms, budget, location filters, score) | `lib/matching.ts`, `lib/attributes.ts`, `lib/location.ts`, `app/api/match` |
+| Results, one card per project | `app/results`, `lib/projectGroups.ts` |
+| Project page with apartment-type tabs | `app/aom/[id]` |
+| Building explorer, floor picker, room tour | `components/building` (`BuildingPhotoStage.tsx` for photo-based buildings) |
+| First-person 3D walk and top-down view | `app/walk/yarkon`, `components/walk` |
+| Tour side panel and Dana | `components/tour`, `lib/tour` |
+| Developer and seller dashboards | `app/dev`, `app/seller`, `components/listing` |
+| Design tokens (incl. `.qp-glass`) | `components/quiet/quiet.css` |
+| Strings (he / en) | `lib/i18n/messages.ts` |
+| Database schema | `prisma/schema.prisma` |
+| Data and asset scripts | `scripts/` (Blender pipeline in `scripts/blender`) |
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Older status reports and specs are kept in `docs/archive`.

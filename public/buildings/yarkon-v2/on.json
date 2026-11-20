@@ -6,7 +6,7 @@
     "room": "/buildings/yarkon-v2/room-living.webp",
     "video": "/buildings/yarkon-v2/fly-b.mp4",
     "wide": true,
-    "walk": "/tour/yarkon-walk",
+    "walk": "/walk/yarkon",
     "stations": [
       {
         "id": "living",

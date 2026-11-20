@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
@@ -29,12 +30,12 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         >
           נסה שוב
         </button>
-        <a
+        <Link
           href="/"
           style={{ padding: "0.75rem 1.75rem", background: "transparent", color: "var(--qp-ink)", border: "1.5px solid var(--qp-border)", borderRadius: "0.5rem", fontWeight: 500, fontSize: "0.9375rem", textDecoration: "none", fontFamily: "inherit" }}
         >
           דף הבית
-        </a>
+        </Link>
       </div>
     </main>
   );

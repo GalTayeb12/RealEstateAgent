@@ -112,8 +112,8 @@ export default function PrivacyPage() {
 
         {/* 1 — Overview */}
         <p style={S.p}>
-          This Privacy Policy explains how Haveniq ("we," "us," "our") collects, uses, and shares
-          information when you use our platform (the "Platform"). By using the Platform, you consent
+          This Privacy Policy explains how Haveniq (“we,” “us,” “our”) collects, uses, and shares
+          information when you use our platform (the “Platform”). By using the Platform, you consent
           to the practices described here.
         </p>
 
@@ -277,7 +277,7 @@ export default function PrivacyPage() {
           <h2 style={S.h2}>9. Changes to This Policy</h2>
           <p style={S.p}>
             We may update this Privacy Policy from time to time. Material changes will be reflected
-            by updating the "Last updated" date above.
+            by updating the “Last updated” date above.
           </p>
         </div>
 

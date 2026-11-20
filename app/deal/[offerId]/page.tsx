@@ -15,7 +15,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
-import { EstimatedPriceNote, Money } from "@/components/Money";
+import { EstimatedPriceNote } from "@/components/Money";
 import type { Messages } from "@/lib/i18n/messages";
 
 // ── Types ─────────────────────────────────────────────────────────────────────

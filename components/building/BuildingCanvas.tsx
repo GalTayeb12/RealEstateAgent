@@ -20,8 +20,6 @@ const DEPTH    = 1.18;   // building front-to-back depth
 const SHELL_T  = 0.088;  // concrete wall thickness
 const SLAB_H   = 0.048;  // floor-slab band height
 const SLAB_OVR = 0.058;  // slab overhang
-const MULL_W   = 0.024;  // vertical mullion width
-const MULL_D   = 0.028;  // vertical mullion depth
 const BAL_D    = 0.30;   // balcony depth (increased from 0.22)
 const BAL_T    = 0.034;  // balcony slab thickness
 
@@ -394,7 +392,6 @@ function LuxuryTower({
 // ─── Scene ────────────────────────────────────────────────────────────────────
 function Scene({
   buildings,
-  activeUnitTypeId,
   hoveredFloor,
   hoveredBuildingId,
   selectedFloor,

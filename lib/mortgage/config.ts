@@ -35,10 +35,5 @@ export const DTI_THRESHOLDS = {
 export const MAX_TERM_YEARS = 30;
 export const WARN_TERM_YEARS = 25;
 
-/**
- * Legal disclaimer — must appear on every mortgage calculator surface.
- * He: "החישוב להמחשה בלבד ואינו מהווה ייעוץ משכנתאות."
- * En: "This calculation is for illustrative purposes only and does not constitute mortgage advice."
- */
-export const DISCLAIMER_HE = "החישוב להמחשה בלבד ואינו מהווה ייעוץ משכנתאות.";
-export const DISCLAIMER_EN = "This calculation is for illustrative purposes only and does not constitute mortgage advice.";
+// Legal disclaimer (must appear on every mortgage calculator surface): the
+// text lives in lib/i18n/messages.ts → mortgage.disclaimer (he / en).

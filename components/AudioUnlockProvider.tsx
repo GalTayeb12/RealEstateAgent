@@ -61,7 +61,6 @@ export function AudioUnlockProvider({ children }: { children: ReactNode }) {
     }
     console.log("[AudioUnlock] state after:", ctx.state);
   // ensureCtx closes over ctxRef (a ref, stable); no dep needed
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getCtx = useCallback(() => ctxRef.current, []);

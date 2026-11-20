@@ -4,7 +4,7 @@
  * Returns the full block list for a chain + its integrity status.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getChain, verifyChain, verifyAllChains, ChainName } from "@/lib/ledger";
+import { getChain, verifyChain, ChainName } from "@/lib/ledger";
 import { ledgerQuerySchema } from "@/lib/validation/admin";
 import { zodError } from "@/lib/validation";
 

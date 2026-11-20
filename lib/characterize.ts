@@ -136,7 +136,7 @@ Return ONLY valid JSON — no markdown, no explanation, no code fences — match
  */
 export function extractJSON(raw: string): string {
   // Strip markdown code fences (handles ```json\n...\n``` and ```\n...\n```)
-  let s = raw
+  const s = raw
     .replace(/^```(?:json)?\s*/i, "")
     .replace(/\s*```$/, "")
     .trim();

@@ -494,7 +494,6 @@ export const he = {
     panorama: "סיור 360°",
     escHint: "↑↓ ניווט דירות · Esc חזרה",
     loading: "טוען פרטי דירה…",
-    enterTour: "כניסה לסיור בדירה",
     backToResults: "חזרה לתוצאות",
     notFound: "הנכס לא נמצא.",
     projectVideo: "סרטון הפרויקט",
@@ -1030,10 +1029,6 @@ export const he = {
   tour: {
     factsTitle: "פרטי הדירה",
     sampleTag: "דירה לדוגמה",
-    orbit: "מבט על",
-    walk: "סיור בגובה העיניים",
-    profileTitle: "פרופיל הקונה",
-    profileTag: "מתוך ראיון הווידאו",
     danaName: "דנה · המציגה הדיגיטלית",
     danaSubtitle: "מלווה את הסיור ועונה על שאלות",
     analyticsTitle: "נתוני הסיור",
@@ -1044,17 +1039,7 @@ export const he = {
       "הכי הרבה זמן: {room}. בהתאמות הבאות המערכת תעדיף נכסים עם {feature}.",
     analyticsFooter:
       "הזמן בכל חדר נשלח למודול הלמידה ומשפר את ההתאמות הבאות. כל הנתונים בדף הם לדוגמה.",
-    hintOrbit:
-      "גררו לסיבוב · גלגלת לזום · לחיצה על חדר להתמקדות",
-    hintWalk:
-      "חיצים או W/S לתנועה · גררו כדי להסתכל מסביב",
-    herePrefix: "אתם ב",
-    loading: "טוען סיור…",
-    noWebGL:
-      "הדפדפן הזה לא תומך בתלת-ממד (WebGL). נסו לפתוח בכרום או בספארי.",
-    matchLabel: "התאמה",
     sqm: "מ״ר",
-    monthlyRent: "₪ לחודש",
   },
 };
 
@@ -1556,7 +1541,6 @@ export const en: Messages = {
     panorama: "360° Tour",
     escHint: "↑↓ Navigate units · Esc back",
     loading: "Loading unit details…",
-    enterTour: "Enter apartment tour",
     backToResults: "Back to results",
     notFound: "Property not found.",
     projectVideo: "Project video",
@@ -2092,10 +2076,6 @@ export const en: Messages = {
   tour: {
     factsTitle: "Apartment details",
     sampleTag: "Sample apartment",
-    orbit: "Overview",
-    walk: "Eye-level tour",
-    profileTitle: "Buyer profile",
-    profileTag: "From video interview",
     danaName: "Dana - Digital presenter",
     danaSubtitle: "Tour guide and Q&A",
     analyticsTitle: "Tour analytics",
@@ -2106,17 +2086,7 @@ export const en: Messages = {
       "Most time spent: {room}. Future matches will prioritise properties with {feature}.",
     analyticsFooter:
       "Room dwell times are sent to the learning module to improve future matches. All data on this page is for demonstration.",
-    hintOrbit:
-      "Drag to orbit - scroll to zoom - click a room to focus",
-    hintWalk:
-      "Arrows or W/S to move · drag to look around",
-    herePrefix: "You are in",
-    loading: "Loading tour...",
-    noWebGL:
-      "This browser does not support 3D (WebGL). Try opening in Chrome or Safari.",
-    matchLabel: "Match",
     sqm: "sqm",
-    monthlyRent: "ILS / month",
   },
 };
 

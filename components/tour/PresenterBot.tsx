@@ -15,7 +15,6 @@ interface PresenterBotProps {
   profiles: Profile[];
   questions: QuickQuestion[];
   activeRoomId: string | null;
-  onProfileChange: (id: string) => void;
   danaNameLabel: string;
   danaSubtitleLabel: string;
 }
@@ -25,7 +24,6 @@ export default function PresenterBot({
   profiles,
   questions,
   activeRoomId,
-  onProfileChange,
   danaNameLabel,
   danaSubtitleLabel,
 }: PresenterBotProps) {

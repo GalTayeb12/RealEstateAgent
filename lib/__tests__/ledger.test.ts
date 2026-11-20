@@ -85,7 +85,7 @@ function section(title: string): void {
   await resetChains();
   {
     await appendBlock("buyer", { original: true });
-    const chain = await getChain("buyer");
+    await getChain("buyer");
 
     // Manually corrupt the stored hash (simulate tampering)
     // We do this via the internal chains reference (test-only access through getChain)

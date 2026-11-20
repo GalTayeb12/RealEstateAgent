@@ -65,8 +65,3 @@ export function layoutTowers(buildings: ExplorerBuilding[]): {
     maxHeight: Math.max(0.5, ...measured.map((tower) => tower.height)),
   };
 }
-
-export function unitX(index: number, count: number): number {
-  const row = count * SLOT;
-  return -row / 2 + SLOT / 2 + index * SLOT;
-}

@@ -81,13 +81,10 @@ async function handlePost(req: NextRequest, params: Promise<{ id: string }>) {
   }
 
   // ── Fetch context for history + email (before mutation) ─────────────────────
-  const [developer, unitForCtx] = await Promise.all([
-    prisma.user.findUnique({ where: { id: auth.userId }, select: { email: true } }),
-    prisma.unitType.findUnique({
-      where: { id: offer.unitTypeId },
-      select: { unitLabel: true, project: { select: { name: true } } },
-    }),
-  ]);
+  const unitForCtx = await prisma.unitType.findUnique({
+    where: { id: offer.unitTypeId },
+    select: { unitLabel: true, project: { select: { name: true } } },
+  });
 
   let updated: Awaited<ReturnType<typeof prisma.offer.update>>;
 
