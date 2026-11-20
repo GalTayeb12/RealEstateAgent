@@ -11,10 +11,11 @@ import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/LocaleProvider";
-import { Apartment, BASE, ROOM_NAMES, type WalkData } from "./ApartmentWalk";
+import type { ProjectExperience, WalkData } from "@/lib/experience/types";
+import { Apartment } from "./ApartmentWalk";
 
-// Plan (x, y) ↔ world (x, -z); the apartment spans x 0..15, y -2.2..8.5.
-const CENTER = new THREE.Vector3(7.5, 0, -3.15);
+/** Starting camera, relative to the orbit target (world metres): a little left, high, and back past the facade. */
+const CAM_OFFSET = [-1, 17, 14.15] as const;
 
 function Progress({ he }: { he: boolean }) {
   const { progress, active } = useProgress();
@@ -26,7 +27,11 @@ function Progress({ he }: { he: boolean }) {
   );
 }
 
-export default function ApartmentOverview() {
+export default function ApartmentOverview({ experience }: { experience: ProjectExperience }) {
+  const { walk } = experience;
+  // Plan (x, y) ↔ world (x, -z)
+  const [cx, cy] = experience.dollhouse.center;
+  const [CENTER] = useState(() => new THREE.Vector3(cx, 0, -cy));
   const { locale } = useI18n();
   const he = locale === "he";
   const [data, setData] = useState<WalkData | null>(null);
@@ -39,8 +44,12 @@ export default function ApartmentOverview() {
   useEffect(() => () => window.clearTimeout(idle.current), []);
 
   useEffect(() => {
-    fetch(`${BASE}/walk.json`).then((r) => r.json()).then(setData).catch(() => setData(null));
-  }, []);
+    let cancelled = false;
+    fetch(`${walk.base}/walk.json`).then((r) => r.json())
+      .then((d: WalkData) => { if (!cancelled) setData(d); })
+      .catch(() => { if (!cancelled) setData(null); });
+    return () => { cancelled = true; };
+  }, [walk.base]);
 
   return (
     <div className="ao-root">
@@ -49,13 +58,13 @@ export default function ApartmentOverview() {
         <Canvas
           dpr={[1, 1.75]}
           gl={{ antialias: true, toneMapping: THREE.AgXToneMapping }}
-          camera={{ fov: 38, near: 0.1, far: 200, position: [CENTER.x - 1, 17, 11] }}
+          camera={{ fov: 38, near: 0.1, far: 200, position: [CENTER.x + CAM_OFFSET[0], CAM_OFFSET[1], CENTER.z + CAM_OFFSET[2]] }}
           onPointerMissed={() => setFocus(null)}
         >
           <Suspense fallback={null}>
-            <Apartment data={data} mobile={mobile} overview />
+            <Apartment walk={walk} data={data} mobile={mobile} overview />
             {Object.entries(data.rooms).map(([id, [x1, y1, x2, y2]]) => {
-              const name = ROOM_NAMES[id]?.[he ? "he" : "en"] ?? id;
+              const name = walk.rooms[id]?.name[he ? "he" : "en"] ?? id;
               const area = (x2 - x1) * (y2 - y1);
               const on = focus === id;
               return (

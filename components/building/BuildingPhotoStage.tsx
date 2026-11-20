@@ -26,22 +26,10 @@ import { useBuyerMinRooms } from "@/components/useBuyerMinRooms";
 import { roomsOf } from "@/lib/attributes";
 import type { ExplorerBuilding, ExplorerUnit, FloorSelection, HoverInfo } from "./types";
 
-/**
- * bands (optional): floor boundaries as image-height fractions, from the roof
- * down to the ground, length floorCount + 1. Lets floors have real, uneven
- * heights (tall lobby, setback penthouse) instead of an even split of h.
- */
-export interface PhotoBox {
-  x: number; y: number; w: number; h: number; bands?: number[];
-  /** Fly-in clip for this building; falls back to enter.video. */
-  video?: string;
-  /**
-   * Optional: horizontal centre of each apartment on the facade, as fractions
-   * of the box width, indexed by the unit's position on its floor
-   * (positionIndex order). Without it a floor is split evenly, left to right.
-   */
-  slots?: number[];
-}
+// Meta shape (the on.json format) lives with the project experience config.
+import type { PhotoBox, PhotoMeta, ProjectExperience, StationMeta } from "@/lib/experience/types";
+import { loadPhotoStage } from "@/lib/experience/client";
+export type { EnterMeta, PhotoBox, PhotoMeta, StationMeta } from "@/lib/experience/types";
 
 /** Horizontal centre (fraction of box width) of the i-th of n apartments on a floor. */
 function slotX(box: PhotoBox, i: number, n: number): number {
@@ -58,24 +46,6 @@ function floorSpan(box: PhotoBox, n: number, floor: number): { top: number; h: n
   const h = box.h / n;
   return { top: box.y + (n - floor) * h, h };
 }
-export interface StationMeta {
-  id: string;
-  /** Still shown for this room. Omit on the first station: it is the arrival frame of the clip. */
-  image?: string;
-  title: { he: string; en: string };
-  text?: { he: string; en: string };
-  /** "contain" shows the whole image on a dark backdrop (plans, axonometric cutaways). */
-  fit?: "cover" | "contain";
-  /** Replace the still with the interactive dollhouse view of the walk apartment (image stays as fallback). */
-  view3d?: boolean;
-}
-/**
- * wide: the clip's first frame is the full building shot itself (a drone flight
- * from the hero view), so the camera does not zoom into the photo first.
- */
-/** walk: route of a first-person 3D walkthrough of this apartment, linked from the room tour. */
-export interface EnterMeta { window: string; room: string; video?: string; wide?: boolean; stations?: StationMeta[]; walk?: string }
-export interface PhotoMeta { aspect: number; buildings: PhotoBox[]; offImage?: string; enter?: EnterMeta }
 
 interface Cam { dx: number; dy: number; s: number; ox: number; oy: number }
 
@@ -180,6 +150,7 @@ export default function BuildingPhotoStage({
   );
 
   const [meta, setMeta] = useState<PhotoMeta>(() => defaultMeta(sorted.length));
+  const [experience, setExperience] = useState<ProjectExperience | null>(null);
   const [active, setActive] = useState<Active | null>(null);
   const [debug, setDebug] = useState(false);
 
@@ -265,27 +236,12 @@ export default function BuildingPhotoStage({
 
   useEffect(() => {
     let cancelled = false;
-    const metaUrl = photoUrl.replace(/\.[a-z0-9]+$/i, ".json");
-    fetch(metaUrl)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j: Partial<PhotoMeta> | null) => {
-        if (cancelled || !j || !Array.isArray(j.buildings)) return;
-        setMeta({
-          aspect: j.aspect && j.aspect > 0 ? j.aspect : DEFAULT_ASPECT,
-          buildings: j.buildings,
-          offImage: typeof j.offImage === "string" && j.offImage.startsWith("/") ? j.offImage : undefined,
-          enter: j.enter && typeof j.enter.window === "string" && typeof j.enter.room === "string"
-            && j.enter.window.startsWith("/") && j.enter.room.startsWith("/")
-            ? { window: j.enter.window, room: j.enter.room,
-                video: typeof j.enter.video === "string" && j.enter.video.startsWith("/") ? j.enter.video : undefined,
-                wide: j.enter.wide === true,
-                walk: typeof j.enter.walk === "string" && j.enter.walk.startsWith("/") ? j.enter.walk : undefined,
-                stations: Array.isArray(j.enter.stations)
-                  ? j.enter.stations.filter((x: StationMeta) =>
-                      x && typeof x.id === "string" && x.title && (!x.image || x.image.startsWith("/")))
-                  : undefined }
-            : undefined,
-        });
+    // project experience config (lib/experience) first, else the legacy JSON beside the photo
+    loadPhotoStage(photoUrl, DEFAULT_ASPECT)
+      .then(({ meta: m, experience: exp }) => {
+        if (cancelled) return;
+        setExperience(exp);
+        if (m) setMeta(m);
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -1039,9 +995,9 @@ export default function BuildingPhotoStage({
         const lang = isRtl ? "he" : "en";
         return (
           <>
-            {cur.view3d && (
+            {cur.view3d && experience && (
               <div className="hn-ps-3d" key={`3d-${cur.id}`}>
-                <div><ApartmentOverview /></div>
+                <div><ApartmentOverview experience={experience} /></div>
               </div>
             )}
             {stations.map((st, i) => st.image ? (

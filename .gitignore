@@ -108,3 +108,7 @@ __pycache__/
 
 # Raw Higgsfield renders (originals; web versions live in public/)
 assets-src/
+
+# Local test project for the experience config (junction to walk/yarkon-v2, see lib/experience)
+/public/walk/yarkon-alt
+/public/projects/yarkon-alt/

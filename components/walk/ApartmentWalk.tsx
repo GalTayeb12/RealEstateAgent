@@ -3,10 +3,12 @@
    three.js scene objects, cameras and the input ref are mutated imperatively per frame (r3f pattern). */
 
 /**
- * First-person walkthrough of the Seed Yarkon 4-room apartment.
+ * First-person walkthrough of one project's apartment, configured by its
+ * ProjectExperience (lib/experience): asset folder, room names, stand points,
+ * minimap. The Seed Yarkon demo is /walk/yarkon.
  *
  * Assets come from scripts/blender/apartment_walk.py → apartment_bake.py →
- * build-walk-assets.mjs (public/walk/yarkon-v2). Lighting is baked in Cycles:
+ * build-walk-assets.mjs (e.g. public/walk/yarkon-v2). Lighting is baked in Cycles:
  * every lightmapped material gets its group's irradiance atlas (uv1) and a
  * per-room reflection probe for specular; image-based diffuse is switched off
  * on those materials so the bake is the only diffuse light.
@@ -24,8 +26,10 @@ import { useI18n } from "@/components/LocaleProvider";
 import TourSidePanel from "@/components/tour/TourSidePanel";
 import yarkonData from "@/lib/tour/yarkonApartment.json";
 import type { ApartmentModelData } from "@/lib/tour/types";
+import { type ProjectExperience, type Rect, type WalkConfig, type WalkData, roomAt } from "@/lib/experience/types";
+import { standFor } from "@/lib/experience/derive";
 
-export const BASE = "/walk/yarkon-v2";
+export type { WalkData };
 const EYE = 1.6;
 const RADIUS = 0.2;
 const WALK_SPEED = 1.35;   // m/s
@@ -38,54 +42,13 @@ const LOOK_SENS = 0.0022;
 const LOOK_SPIKE = 250;      // px per mouse event above this is a pointer-lock glitch, not input
 const LOOK_MAX_FRAME = 160;  // px of look per rendered frame, at most
 
-type Rect = [number, number, number, number];
-
-/** World-space slab x 11.9..12.75, y < 2.2 (the master-bath doorway); clipIntersection discards only inside all three. */
-const BATH_DOOR_HOLE = [
-  new THREE.Plane(new THREE.Vector3(-1, 0, 0), 11.9),
-  new THREE.Plane(new THREE.Vector3(1, 0, 0), -12.75),
-  new THREE.Plane(new THREE.Vector3(0, 1, 0), -2.2),
-];
-export interface WalkData {
-  lightmaps: { A: number; B: number };
-  probes: Record<string, number>;
-  sky: number;
-  skyRot: number;
-  probeAt: Record<string, [number, number, number]>;
-  rooms: Record<string, Rect>;
-  boxes: Rect[];
-  spawn: [number, number, number];
-}
-
-export const ROOM_NAMES: Record<string, { he: string; en: string }> = {
-  living: { he: "סלון ופינת אוכל", en: "Living & dining" },
-  kitchen: { he: "מטבח", en: "Kitchen" },
-  corridor: { he: "מבואה ומסדרון", en: "Entry & hallway" },
-  bed3: { he: "חדר שינה 3", en: "Bedroom 3" },
-  master: { he: "יחידת הורים", en: "Master bedroom" },
-  bed2: { he: "חדר שינה 2", en: "Bedroom 2" },
-  bath: { he: "חדר רחצה הורים", en: "Master bath" },
-  balcony: { he: "מרפסת", en: "Balcony" },
-};
-
-/** Where "go to room" puts you: a clear spot and a composed view (yaw: forward = (-sin, cos) in plan). */
-const STAND: Record<string, [number, number, number]> = {
-  living: [5.0, 3.9, 2.36],
-  kitchen: [5.2, 4.25, 0.0],
-  corridor: [7.6, 7.9, Math.PI],
-  bed3: [2.6, 5.6, 1.03],
-  master: [9.9, 1.3, -1.0],
-  bed2: [8.65, 7.65, -2.36],
-  bath: [12.3, 5.1, -0.54],
-  balcony: [8.5, -1.0, 1.57],
-};
-
-function roomAt(rooms: Record<string, Rect>, x: number, y: number): string {
-  if (x >= 7.0 && x <= 8.2 && y >= 3.4) return "corridor";
-  for (const [n, [x1, y1, x2, y2]] of Object.entries(rooms)) {
-    if (x >= x1 && x <= x2 && y >= y1 && y <= y2) return n;
-  }
-  return "living";
+/** World-space clip planes for a door hole: plan x in [x1, x2], below `top`; clipIntersection discards only inside all three. */
+function doorHolePlanes({ x: [x1, x2], top }: WalkConfig["doorHoles"][number]): THREE.Plane[] {
+  return [
+    new THREE.Plane(new THREE.Vector3(-1, 0, 0), x1),
+    new THREE.Plane(new THREE.Vector3(1, 0, 0), -x2),
+    new THREE.Plane(new THREE.Vector3(0, 1, 0), -top),
+  ];
 }
 
 /** Circle-vs-AABB push-out, a few relaxation passes. */
@@ -151,7 +114,8 @@ function useTex(url: string, cs: THREE.ColorSpace, flipY: boolean) {
 
 // ─── the apartment ──────────────────────────────────────────────────────────
 /** overview: dollhouse view from above — ceiling-level meshes hidden, plain backdrop instead of the sky. */
-export function Apartment({ data, mobile, overview = false }: { data: WalkData; mobile: boolean; overview?: boolean }) {
+export function Apartment({ walk, data, mobile, overview = false }: { walk: WalkConfig; data: WalkData; mobile: boolean; overview?: boolean }) {
+  const BASE = walk.base;
   const { scene } = useGLTF(`${BASE}/apartment.glb`, false, true);
   const gl = useThree((s) => s.gl);
   const threeScene = useThree((s) => s.scene);
@@ -175,7 +139,7 @@ export function Apartment({ data, mobile, overview = false }: { data: WalkData; 
       out[r] = t;
     }
     return out;
-  }, [data.probes, gl]);
+  }, [data.probes, gl, BASE]);
 
   // sky backdrop through the glass (+ env for the balcony)
   useEffect(() => {
@@ -194,7 +158,7 @@ export function Apartment({ data, mobile, overview = false }: { data: WalkData; 
       threeScene.backgroundRotation.set(0, data.skyRot ?? 0, 0);
     }
     return () => { if (!overview) threeScene.background = null; sky.dispose(); skyEnv?.dispose(); pm.dispose(); };
-  }, [threeScene, gl, data.sky, data.skyRot, overview]);
+  }, [threeScene, gl, data.sky, data.skyRot, overview, BASE]);
 
   // overview: open the dollhouse — hide everything that starts at ceiling height
   useEffect(() => {
@@ -251,10 +215,12 @@ export function Apartment({ data, mobile, overview = false }: { data: WalkData; 
         cache.set(key, mat);
       }
       mesh.material = mat;
-      // bath: the marble skin on the south wall also covered the doorway (a see-through "stone wall")
-      if (/(^|\|)bt_s$/.test(mesh.name) || /(^|\|)bt_s$/.test(mesh.parent?.name ?? "")) {
+      // a wall skin baked across a doorway (Yarkon's bath marble): cut the opening back out
+      const named = (n: string | undefined, want: string) => !!n && (n === want || n.endsWith(`|${want}`));
+      const holeCfg = walk.doorHoles.find((h) => named(mesh.name, h.mesh) || named(mesh.parent?.name, h.mesh));
+      if (holeCfg) {
         const hole = (mat as THREE.MeshStandardMaterial).clone();
-        hole.clippingPlanes = BATH_DOOR_HOLE;
+        hole.clippingPlanes = doorHolePlanes(holeCfg);
         hole.clipIntersection = true;
         if (grp === "A" || grp === "B") bakedOnly(hole);
         (envUsers.current[probe] ??= []).push(hole);
@@ -265,7 +231,7 @@ export function Apartment({ data, mobile, overview = false }: { data: WalkData; 
       if (mat.lightMap && !mesh.geometry.getAttribute("uv1")) mat.lightMap = null;
       mesh.frustumCulled = true;
     });
-  }, [scene, lmA, lmB, data, probeTex]);
+  }, [scene, lmA, lmB, data, probeTex, walk.doorHoles, gl]);
 
   useEffect(() => {
     if (!window.location.search.includes("debug")) return;
@@ -288,8 +254,8 @@ export function Apartment({ data, mobile, overview = false }: { data: WalkData; 
 }
 
 // ─── first-person controller ────────────────────────────────────────────────
-function Walker({ data, input, reduce, onRoom, onPose }: {
-  data: WalkData; input: React.RefObject<Input>; reduce: boolean;
+function Walker({ walk, data, input, reduce, onRoom, onPose }: {
+  walk: WalkConfig; data: WalkData; input: React.RefObject<Input>; reduce: boolean;
   onRoom: (r: string) => void; onPose: (x: number, y: number, yaw: number) => void;
 }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
@@ -350,7 +316,7 @@ function Walker({ data, input, reduce, onRoom, onPose }: {
     const bob = reduce ? 0 : Math.sin(s.bob) * 0.012 * Math.min(1, sp / WALK_SPEED);
     camera.position.set(s.x, EYE + bob, -s.y);
     camera.rotation.set(s.pitch, s.yaw, 0);
-    const room = roomAt(data.rooms, s.x, s.y);
+    const room = roomAt(walk, data.rooms, s.x, s.y);
     if (room !== s.room) { s.room = room; onRoom(room); }
     s.poseT += dt;
     if (s.poseT > 0.066) { s.poseT = 0; onPose(s.x, s.y, s.yaw); }
@@ -370,8 +336,6 @@ function Loader({ he }: { he: boolean }) {
 }
 
 // ─── page shell: canvas + HUD + touch controls ──────────────────────────────
-// apt-top.webp: ortho camera, scale 16.6 m across 1600×1120 px, centred (7.5, 3.15)
-const MAP = { x0: 7.5 - 8.3, w: 16.6, yTop: 3.15 + (16.6 * 1120) / 1600 / 2, h: (16.6 * 1120) / 1600 };
 
 /** Only same-site paths are accepted as the exit target. */
 function safeBack(v: string | null): string | null {
@@ -420,7 +384,11 @@ function useTourPanel(unitId: string | null) {
   return state;
 }
 
-export default function ApartmentWalk() {
+export default function ApartmentWalk({ experience }: { experience: ProjectExperience }) {
+  const { walk, dollhouse } = experience;
+  const BASE = walk.base;
+  // minimap: a top-down plan render and the plan-metre rectangle it covers
+  const MAP = walk.plan;
   const { locale, m } = useI18n();
   const he = locale === "he";
   const [{ unitId, backUrl }] = useState(() => {
@@ -431,8 +399,8 @@ export default function ApartmentWalk() {
   const [profileId, setProfileId] = useState("neutral");
   const [dwell, setDwell] = useState<Record<string, number>>({});
   const [data, setData] = useState<WalkData | null>(null);
-  const [room, setRoom] = useState("corridor");
-  const [pose, setPose] = useState({ x: 7.6, y: 7.9, yaw: Math.PI });
+  const [room, setRoom] = useState("");
+  const [pose, setPose] = useState<{ x: number; y: number; yaw: number } | null>(null);
   const [locked, setLocked] = useState(false);
   const [dpr, setDpr] = useState(1.5);
   const [stickUi, setStickUi] = useState<{ ox: number; oy: number; x: number; y: number } | null>(null);
@@ -444,12 +412,21 @@ export default function ApartmentWalk() {
   }));
 
   useEffect(() => {
-    fetch(`${BASE}/walk.json`).then((r) => r.json()).then(setData).catch(() => setData(null));
-  }, []);
+    useGLTF.preload(`${BASE}/apartment.glb`, false, true);
+    let cancelled = false;
+    fetch(`${BASE}/walk.json`).then((r) => r.json()).then((d: WalkData) => {
+      if (cancelled) return;
+      setData(d);
+      setRoom(roomAt(walk, d.rooms, d.spawn[0], d.spawn[1]));
+      setPose({ x: d.spawn[0], y: d.spawn[1], yaw: d.spawn[2] });
+    }).catch(() => { if (!cancelled) setData(null); });
+    return () => { cancelled = true; };
+  }, [BASE, walk]);
 
   // dwell per room (model ids) for the analytics card
   const modelRoom = room;
   useEffect(() => {
+    if (!modelRoom) return; // walk.json not loaded yet
     const id = window.setInterval(() => {
       setDwell((d) => ({ ...d, [modelRoom]: (d[modelRoom] ?? 0) + 1 }));
     }, 1000);
@@ -545,20 +522,22 @@ export default function ApartmentWalk() {
   }, []);
 
   const goRoom = useCallback((r: string) => {
-    const p = STAND[r];
+    const rect = data?.rooms[r];
+    const p = walk.rooms[r]?.stand ?? (rect && data ? standFor(rect, data.boxes) : undefined);
     if (p) input.current.teleport = { x: p[0], y: p[1], yaw: p[2] };
-  }, []);
+  }, [walk, data]);
 
   const onMapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!data) return;
+    if (!data || !MAP) return;
     const b = e.currentTarget.getBoundingClientRect();
     const x = MAP.x0 + ((e.clientX - b.left) / b.width) * MAP.w;
     const y = MAP.yTop - ((e.clientY - b.top) / b.height) * MAP.h;
     const p = { x, y };
     collide(p, data.boxes);
-    if (p.x > 0.2 && p.x < 14.8 && p.y > -2.0 && p.y < 8.3) input.current.teleport = { x: p.x, y: p.y };
-    else goRoom(roomAt(data.rooms, x, y));
-  }, [data, goRoom]);
+    const [bx1, by1, bx2, by2] = dollhouse.bounds;
+    if (p.x > bx1 + 0.2 && p.x < bx2 - 0.2 && p.y > by1 + 0.2 && p.y < by2 - 0.2) input.current.teleport = { x: p.x, y: p.y };
+    else goRoom(roomAt(walk, data.rooms, x, y));
+  }, [data, goRoom, MAP, walk, dollhouse.bounds]);
 
   const exit = () => {
     if (document.pointerLockElement) document.exitPointerLock();
@@ -568,8 +547,8 @@ export default function ApartmentWalk() {
   };
 
   const T = he
-    ? { title: "סיור בדירה — סיד ירקון, 4 חדרים", back: "יציאה", hintDesk: "חיצים / WASD ללכת · לחצו וגררו כדי להסתכל · Shift לריצה · Esc לשחרר", hintTouch: "אגודל שמאל ללכת · גררו בצד ימין כדי להסתכל", rooms: "מעבר לחדר", map: "תוכנית הדירה — לחצו כדי לעבור" }
-    : { title: "Walkthrough — Seed Yarkon, 4 rooms", back: "Exit", hintDesk: "Arrows / WASD to walk · click & drag to look · Shift to run · Esc to release", hintTouch: "Left thumb to walk · drag on the right to look", rooms: "Go to room", map: "Floor plan — click to jump" };
+    ? { title: experience.title.he, back: "יציאה", hintDesk: "חיצים / WASD ללכת · לחצו וגררו כדי להסתכל · Shift לריצה · Esc לשחרר", hintTouch: "אגודל שמאל ללכת · גררו בצד ימין כדי להסתכל", rooms: "מעבר לחדר", map: "תוכנית הדירה — לחצו כדי לעבור" }
+    : { title: experience.title.en, back: "Exit", hintDesk: "Arrows / WASD to walk · click & drag to look · Shift to run · Esc to release", hintTouch: "Left thumb to walk · drag on the right to look", rooms: "Go to room", map: "Floor plan — click to jump" };
 
   return (
     <div
@@ -582,7 +561,7 @@ export default function ApartmentWalk() {
       onTouchCancel={onTouchEnd}
     >
       <style>{CSS}</style>
-      {panel && (
+      {panel && room && ( /* mount once the start room is known, so the guide does not announce it as a room change */
         <TourSidePanel
           className="aw-ui aw-panel qp-glass"
           style={{ position: "absolute", height: "auto" }}
@@ -607,9 +586,9 @@ export default function ApartmentWalk() {
         >
           <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} />
           <Suspense fallback={null}>
-            <Apartment data={data} mobile={mobile} />
+            <Apartment walk={walk} data={data} mobile={mobile} />
           </Suspense>
-          <Walker data={data} input={input} reduce={reduce} onRoom={setRoom} onPose={(x, y, yaw) => setPose({ x, y, yaw })} />
+          <Walker walk={walk} data={data} input={input} reduce={reduce} onRoom={setRoom} onPose={(x, y, yaw) => setPose({ x, y, yaw })} />
           {!mobile && (
             <EffectComposer multisampling={4}>
               <Bloom mipmapBlur intensity={0.28} luminanceThreshold={1.6} luminanceSmoothing={0.4} radius={0.7} />
@@ -625,22 +604,26 @@ export default function ApartmentWalk() {
         <button type="button" className="aw-btn" onClick={exit}>{he ? "→" : "←"} {T.back}</button>
         <div className="aw-title">
           <strong>{T.title}</strong>
-          <span aria-live="polite">{ROOM_NAMES[room]?.[he ? "he" : "en"]}</span>
+          <span aria-live="polite">{walk.rooms[room]?.name[he ? "he" : "en"]}</span>
         </div>
       </div>
 
-      <div className="aw-ui aw-map" role="button" tabIndex={0} aria-label={T.map} title={T.map} onClick={onMapClick}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/buildings/yarkon-v2/apt-top.webp" alt="" draggable={false} />
-        <span
-          className="aw-dot"
-          style={{
-            left: `${((pose.x - MAP.x0) / MAP.w) * 100}%`,
-            top: `${((MAP.yTop - pose.y) / MAP.h) * 100}%`,
-            transform: `translate(-50%, -50%) rotate(${-pose.yaw}rad)`,
-          }}
-        />
-      </div>
+      {MAP && (
+        <div className="aw-ui aw-map" role="button" tabIndex={0} aria-label={T.map} title={T.map} onClick={onMapClick} style={{ aspectRatio: `${MAP.w} / ${MAP.h}` }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={MAP.image} alt="" draggable={false} />
+          {pose && (
+            <span
+              className="aw-dot"
+              style={{
+                left: `${((pose.x - MAP.x0) / MAP.w) * 100}%`,
+                top: `${((MAP.yTop - pose.y) / MAP.h) * 100}%`,
+                transform: `translate(-50%, -50%) rotate(${-pose.yaw}rad)`,
+              }}
+            />
+          )}
+        </div>
+      )}
 
       {!locked && <p className="aw-hint">{mobile ? T.hintTouch : T.hintDesk}</p>}
       </div>
@@ -654,7 +637,6 @@ export default function ApartmentWalk() {
   );
 }
 
-useGLTF.preload?.(`${BASE}/apartment.glb`, false, true);
 
 const CSS = `
 .aw-root { position: fixed; inset: 0; z-index: 1000; background: #0b0b0c; color: #f4efe6; touch-action: none; user-select: none; -webkit-user-select: none; overscroll-behavior: none; font-family: var(--font-heebo, system-ui, sans-serif); }
@@ -667,7 +649,7 @@ const CSS = `
 .aw-title { display: flex; flex-direction: column; gap: 2px; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
 .aw-title strong { font-weight: 600; font-size: 15px; letter-spacing: .01em; }
 .aw-title span { font-size: 13px; opacity: .85; }
-.aw-map { position: absolute; bottom: 16px; inset-inline-end: 16px; width: min(300px, 38vw); aspect-ratio: 1600 / 1120; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.2); background: rgba(16,16,18,.55); backdrop-filter: blur(8px); cursor: crosshair; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+.aw-map { position: absolute; bottom: 16px; inset-inline-end: 16px; width: min(300px, 38vw); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,.2); background: rgba(16,16,18,.55); backdrop-filter: blur(8px); cursor: crosshair; box-shadow: 0 8px 30px rgba(0,0,0,.35); }
 .aw-map img { width: 100%; height: 100%; display: block; opacity: .92; }
 .aw-dot { position: absolute; width: 18px; height: 18px; pointer-events: none; }
 .aw-dot::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: #e8b65e; box-shadow: 0 0 0 2px #fff, 0 0 10px rgba(232,182,94,.9); }
