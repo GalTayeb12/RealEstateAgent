@@ -28,7 +28,7 @@ import type { ExplorerBuilding, ExplorerUnit, FloorSelection, HoverInfo } from "
 
 // Meta shape (the on.json format) lives with the project experience config.
 import type { PhotoBox, PhotoMeta, ProjectExperience, StationMeta } from "@/lib/experience/types";
-import { loadPhotoStage } from "@/lib/experience/client";
+import { fetchExperience, loadPhotoStage } from "@/lib/experience/client";
 export type { EnterMeta, PhotoBox, PhotoMeta, StationMeta } from "@/lib/experience/types";
 
 /** Horizontal centre (fraction of box width) of the i-th of n apartments on a floor. */
@@ -376,15 +376,32 @@ export default function BuildingPhotoStage({
     }
   };
 
+  /** The apartment the room tour describes: the picked one, else one of this page's type on the lit floor. */
+  const tourUnit = (() => {
+    if (!lit || !litBuilding) return undefined;
+    const pageType = typeof window === "undefined" ? undefined : window.location.pathname.split("/").filter(Boolean).pop();
+    const onFloor = litBuilding.units.filter((u) => u.floor === lit.floor);
+    return onFloor.find((u) => u.id === picked)
+      ?? onFloor.find((u) => u.unitTypeId === pageType && u.status === "available")
+      ?? onFloor.find((u) => u.unitTypeId === pageType) ?? onFloor[0];
+  })();
+  // A unit type built from the developer's own plan has its own walk and top-down view
+  // (lib/experience, aliased by unit type id); otherwise the page's default one is used.
+  const [typeExpFor, setTypeExpFor] = useState<{ id: string; exp: ProjectExperience } | null>(null);
+  const tourTypeId = tourUnit?.unitTypeId;
+  useEffect(() => {
+    let live = true;
+    if (tourTypeId) fetchExperience(tourTypeId).then((e) => { if (live && e?.walk) setTypeExpFor({ id: tourTypeId, exp: e }); });
+    return () => { live = false; };
+  }, [tourTypeId]);
+  const typeExp = typeExpFor && typeExpFor.id === tourTypeId ? typeExpFor.exp : null;
+
   /** Walk link: which unit to describe in its side panel, and where its exit button returns (this room tour). */
-  const walkHref = (walk: string) => {
+  const walkHref = (defaultWalk: string) => {
+    const walk = typeExp ? `/walk/${typeExp.slug}` : defaultWalk;
     const p = new URLSearchParams();
     if (lit && litBuilding) {
-      const pageType = window.location.pathname.split("/").filter(Boolean).pop();
-      const onFloor = litBuilding.units.filter((u) => u.floor === lit.floor);
-      const unit = onFloor.find((u) => u.id === picked)
-        ?? onFloor.find((u) => u.unitTypeId === pageType && u.status === "available")
-        ?? onFloor.find((u) => u.unitTypeId === pageType) ?? onFloor[0];
+      const unit = tourUnit;
       if (unit) p.set("unit", unit.id);
       const back = new URLSearchParams({ building: lit.buildingId, floor: String(lit.floor), [INSIDE_PARAM]: String(station) });
       if (unit && unit.id === picked) back.set("unit", unit.id);
@@ -997,7 +1014,7 @@ export default function BuildingPhotoStage({
           <>
             {cur.view3d && experience && (
               <div className="hn-ps-3d" key={`3d-${cur.id}`}>
-                <div><ApartmentOverview experience={experience} /></div>
+                <div><ApartmentOverview experience={typeExp ?? experience} /></div>
               </div>
             )}
             {stations.map((st, i) => st.image ? (

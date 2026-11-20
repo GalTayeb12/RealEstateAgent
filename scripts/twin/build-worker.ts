@@ -31,6 +31,7 @@ import { type BuildJob, readBuildJob, writeBuildJob } from "../../lib/twin/build
 import { PlanTwin } from "../../lib/twin/schema";
 import { planSvg } from "../../lib/twin/svg";
 import { experienceFromBuild } from "../../lib/experience/fromBuild";
+import { modelFromTwin } from "../../lib/tour/fromTwin";
 
 const argv = process.argv.slice(2);
 const ONCE = argv.includes("--once");
@@ -114,6 +115,8 @@ async function build(job: BuildJob, rec: { twin: unknown; unitType: { id: string
   const projDir = path.join(ROOT, "public", "projects", slug);
   mkdirSync(projDir, { recursive: true });
   writeFileSync(path.join(projDir, "experience.json"), JSON.stringify(experience, null, 2) + "\n");
+  // Dana content for this apartment, derived from the verified twin
+  writeFileSync(path.join(projDir, "tour.json"), JSON.stringify(modelFromTwin(twin), null, 2) + "\n");
 }
 
 async function processQueued(): Promise<number> {

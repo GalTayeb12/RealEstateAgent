@@ -119,9 +119,10 @@ export default function TourAnalytics({
       {/* Insight */}
       {topRoom && (
         <p style={{ fontSize: 12, color: "var(--qp-muted)", lineHeight: 1.5, marginBottom: 8 }}>
-          {insightTemplate
-            .replace("{room}", getRoomName(topRoom) ?? "")
-            .replace("{feature}", ROOM_FEATURES[topRoom] ?? "")}
+          {ROOM_FEATURES[topRoom]
+            ? insightTemplate.replace("{room}", getRoomName(topRoom) ?? "").replace("{feature}", ROOM_FEATURES[topRoom])
+            // a room without a known feature (apartments built from a developer's plan): keep only the first sentence
+            : insightTemplate.replace("{room}", getRoomName(topRoom) ?? "").split(". ")[0] + "."}
         </p>
       )}
 

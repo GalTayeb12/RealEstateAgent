@@ -347,13 +347,20 @@ function safeBack(v: string | null): string | null {
  * Yarkon content (lib/tour/yarkonApartment.json, room ids = walk room ids);
  * facts are overridden with the real unit, and "{price}" in answers is filled in.
  */
-function useTourPanel(unitId: string | null) {
+function useTourPanel(unitId: string | null, experience: ProjectExperience) {
   const [state, setState] = useState<{ model: ApartmentModelData; isSample: boolean } | null>(null);
   useEffect(() => {
     let cancelled = false;
     (async () => {
       let model = yarkonData as unknown as ApartmentModelData;
       let isSample = false;
+      // a walk built from a developer's plan has its own generated content (tour.json beside experience.json)
+      if (experience.slug !== "yarkon") {
+        try {
+          const r = await fetch(`/projects/${encodeURIComponent(experience.slug)}/tour.json`);
+          if (r.ok) model = (await r.json()) as ApartmentModelData;
+        } catch { /* keep the built-in content */ }
+      }
       try {
         if (unitId) {
           const u = (await (await fetch(`/api/buildings/unit/${encodeURIComponent(unitId)}`)).json())?.unit;
@@ -380,7 +387,7 @@ function useTourPanel(unitId: string | null) {
       if (!cancelled) setState({ model, isSample });
     })();
     return () => { cancelled = true; };
-  }, [unitId]);
+  }, [unitId, experience.slug]);
   return state;
 }
 
@@ -395,7 +402,7 @@ export default function ApartmentWalk({ experience }: { experience: ProjectExper
     const p = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : new URLSearchParams();
     return { unitId: p.get("unit"), backUrl: safeBack(p.get("back")) };
   });
-  const panel = useTourPanel(unitId);
+  const panel = useTourPanel(unitId, experience);
   const [profileId, setProfileId] = useState("neutral");
   const [dwell, setDwell] = useState<Record<string, number>>({});
   const [data, setData] = useState<WalkData | null>(null);

@@ -112,10 +112,10 @@ export default function TourSidePanel({
           [`${model.facts.areaSqm} ${m.sqm}`, "שטח דירה"],
           [`${model.facts.balconySqm} ${m.sqm}`, "מרפסת"],
           [`קומה ${model.facts.floor}`, "קומה"],
-          [`${model.facts.storageSqm} ${m.sqm}`, "מחסן"],
-          [`${model.facts.parking}`, "חניה"],
-          [model.facts.priceIls, "מחיר"],
-        ].map(([value, label], i) => (
+          model.facts.storageSqm > 0 ? [`${model.facts.storageSqm} ${m.sqm}`, "מחסן"] : null,
+          model.facts.parking > 0 ? [`${model.facts.parking}`, "חניה"] : null,
+          model.facts.priceIls && model.facts.priceIls !== "—" ? [model.facts.priceIls, "מחיר"] : null,
+        ].filter((x): x is string[] => x !== null).map(([value, label], i) => (
           <div
             key={i}
             style={{
@@ -131,8 +131,8 @@ export default function TourSidePanel({
         ))}
       </div>
 
-      {/* Style chips */}
-      <div style={{ marginBottom: 12 }}>
+      {/* Style chips: only the styles this apartment's model has content for */}
+      {model.profiles.filter((p) => ["family", "wfh", "investor"].includes(p.id)).length > 1 && <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 11, color: "var(--qp-muted)", marginBottom: 6 }}>נסה סגנון אחר</div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
           {([
@@ -155,7 +155,7 @@ export default function TourSidePanel({
             </button>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* Dana bot */}
       <div style={{ marginBottom: 12 }}>
