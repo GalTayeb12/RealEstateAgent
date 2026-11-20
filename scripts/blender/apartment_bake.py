@@ -30,18 +30,30 @@ Steps (each a function, all run at the bottom):
 
 Configure with a WALK dict in the exec namespace, e.g.
   WALK = {"out": r"C:/.../assets-src/yarkon-v2/walk", "lm_size": 4096, "samples": 512}
+or, headless, as JSON after "--":
+  blender -b twin_walk.blend --python apartment_bake.py -- '{"out": "...", "twin": "<twinDir>"}'
+
+With "twin" (a folder with twin.json + layout.json from scripts/twin/export-twin.ts)
+the rooms, probe spots, spawn and wall height come from the plan instead of the
+Yarkon constants below, rooms are matched by polygon, and collision() writes
+only furniture / door boxes: the walls' boxes come from lib/twin/walk.ts
+(objects twin_build.py marked shell=True are skipped).
 """
-import bpy, bmesh, math, os, json
+import bpy, bmesh, math, os, json, sys
 import numpy as np
 from mathutils import Matrix, Vector
 
 cfg = {"out": r"C:\RealEstateAgent\assets-src\yarkon-v2\walk", "lm_size": 4096,
-       "samples": 512, "probe_samples": 256, "steps": "all"}
+       "samples": 512, "probe_samples": 256, "steps": "all", "twin": None}
 cfg.update(globals().get("WALK", {}))
+if "--" in sys.argv and sys.argv.index("--") + 1 < len(sys.argv):
+    cfg.update(json.loads(sys.argv[sys.argv.index("--") + 1]))
 OUT = cfg["out"]
 os.makedirs(OUT, exist_ok=True)
 H = 2.8
+SPAWN = [7.6, 7.9, 3.14159]
 sc = bpy.context.scene
+HERE = os.path.dirname(os.path.abspath(__file__)) if "__file__" in globals() else globals().get("SCRIPTS_DIR", "")
 
 ROOMS = {  # name: (x1, y1, x2, y2) -- probe at the centre, eye-ish height
     "living":   (0.0, 0.0, 7.0, 4.6),
@@ -56,12 +68,23 @@ ROOMS = {  # name: (x1, y1, x2, y2) -- probe at the centre, eye-ish height
 PROBE_AT = {"living": (3.6, 2.4, 1.4), "kitchen": (5.1, 5.6, 1.4), "corridor": (7.6, 6.0, 1.4),
             "bed3": (1.6, 6.6, 1.4), "master": (11.4, 1.8, 1.4), "bed2": (9.8, 6.8, 1.4),
             "bath": (12.6, 6.0, 1.4)}
+TWIN = None
+if cfg["twin"]:
+    sys.path.insert(0, HERE)
+    import twin_plan
+    TWIN = twin_plan.Plan.load(cfg["twin"])
+    H = TWIN.H
+    ROOMS = {k: tuple(v) for k, v in TWIN.layout["rooms"].items()}
+    PROBE_AT = {k: tuple(v) for k, v in TWIN.layout["probeAt"].items()}
+    SPAWN = TWIN.spawn
 GLASS = {"glass", "shower_glass", "water"}
 NO_LM = ("leaves", "calathea", "pachira", "potted_plant", "stem", "pebbles")  # alpha foliage: env-lit
 
 
 def room_of(p):
     x, y = p.x, p.y
+    if TWIN:
+        return TWIN.room_near(x, y)
     if 7.0 <= x <= 7.0 + 1.2 and y >= 3.4:
         return "corridor"
     for n, (x1, y1, x2, y2) in ROOMS.items():
@@ -109,6 +132,7 @@ def realize():
             grp = "E"  # emissive: no lightmap needed
         ob.name = f"{grp}|{room_of(c)}|{src.name}"
         ob["lm_group"] = grp
+        ob["shell"] = bool(src.get("shell", False))
         return ob
 
     for o in bpy.data.collections["APT"].objects:
@@ -267,6 +291,10 @@ def bake(g):
             hidden.append(o)
     sc.render.engine = "CYCLES"
     sc.cycles.device = "GPU"
+    if bpy.app.background:  # the UI applies the GPU prefs, a headless run has to
+        sys.path.insert(0, HERE)
+        import apt_lib
+        print("cycles device", apt_lib.enable_gpu())
     sc.cycles.samples = cfg["samples"]
     sc.cycles.use_denoising = False
     sc.cycles.max_bounces = 8
@@ -432,7 +460,7 @@ def sky():
 
 
 # ── 6. collision boxes ──────────────────────────────────────────────────────
-SKIP = ("floor_", "rug", "balcony_deck", "slab", "ceiling", "soffit", "cove", "lintel", "kitchen_header",
+SKIP = ("floor_", "rug", "tile_", "balcony_deck", "slab", "ceiling", "soffit", "cove", "lintel", "kitchen_header",
         "dl_", "led", "facade_head", "k_upper", "k_hood", "shower_head", "shower_arm", "sk_", "throw", "runner",
         "k_spout", "k_tap", "basin_tap", "basin_spout", "bath_mirror", "bath_led", "sill_stone", "k_backsplash",
         "bt_", "tv", "shower_tray", "wc_flush", "k_pull", "k_tall_pull", "island_oak", "win_frame", "pebbles")
@@ -442,14 +470,14 @@ def collision():
     boxes = []
     for o in bpy.data.collections["EXPORT"].objects:
         src = o.name.split("|", 2)[2]
-        if any(k in src for k in SKIP):
+        if any(k in src for k in SKIP) or (TWIN and o.get("shell")):
             continue
         _, bb = world_center(o)
         xs, ys, zs = [v.x for v in bb], [v.y for v in bb], [v.z for v in bb]
         if min(zs) > 1.4 or max(zs) < 0.12:
             continue
         boxes.append([round(min(xs), 3), round(min(ys), 3), round(max(xs), 3), round(max(ys), 3)])
-    json.dump({"boxes": boxes, "rooms": ROOMS, "probes": PROBE_AT, "spawn": [7.6, 7.9, 3.14159]},
+    json.dump({"boxes": boxes, "rooms": ROOMS, "probes": PROBE_AT, "spawn": SPAWN},
               open(os.path.join(OUT, "collision.json"), "w"))
     print("collision boxes", len(boxes))
 
@@ -466,10 +494,13 @@ def export():
     print("exported")
 
 
+import time as _time
 steps = cfg["steps"]
 if steps == "all":
     steps = ["realize", "box_uvs", "lm_A", "lm_B", "bake_A", "bake_B", "probes", "sky", "collision", "export"]
 for s in steps:
+    _t = _time.time()
     {"realize": realize, "box_uvs": box_uvs, "lm_A": lambda: lightmap_uvs("A"), "lm_B": lambda: lightmap_uvs("B"),
      "bake_A": lambda: bake("A"), "bake_B": lambda: bake("B"), "probes": probes, "sky": sky, "collision": collision,
      "export": export}[s]()
+    print(f"step {s}: {_time.time() - _t:.0f}s", flush=True)

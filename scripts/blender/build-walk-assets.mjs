@@ -13,6 +13,12 @@
  *        walk.json          scales, rooms, collision boxes, spawn
  *
  * Usage: node scripts/blender/build-walk-assets.mjs [srcDir] [outDir]
+ *        npx tsx scripts/blender/build-walk-assets.mjs <srcDir> <outDir> --twin <twinDir>
+ *
+ * With --twin (a folder holding twin.json from scripts/twin/export-twin.ts) the
+ * apartment was generated from a plan twin: walk.json is assembled by
+ * lib/twin/walk.ts assembleWalk() — rooms, wall boxes and spawn from the twin,
+ * furniture boxes and light scales from the bake. Needs tsx to import the .ts.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -23,11 +29,14 @@ import { dedup, prune, weld, textureCompress, meshopt } from "@gltf-transform/fu
 import { MeshoptDecoder, MeshoptEncoder } from "meshoptimizer";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1")), "../..");
-const SRC_DIR = path.resolve(process.argv[2] ?? [
+const flagAt = process.argv.indexOf("--twin");
+const TWIN_DIR = flagAt > 0 ? path.resolve(process.argv[flagAt + 1]) : null;
+const args = process.argv.slice(2).filter((_, i, a) => a[i] !== "--twin" && a[i - 1] !== "--twin");
+const SRC_DIR = path.resolve(args[0] ?? [
   path.join(ROOT, "assets-src/yarkon-v2/walk"),
   "C:/RealEstateAgent/assets-src/yarkon-v2/walk", // worktrees share the main checkout's assets-src
 ].find((p) => fs.existsSync(p)));
-const OUT = path.resolve(process.argv[3] ?? path.join(ROOT, "public/walk/yarkon-v2"));
+const OUT = path.resolve(args[1] ?? path.join(ROOT, "public/walk/yarkon-v2"));
 fs.mkdirSync(OUT, { recursive: true });
 // @gltf-transform/functions pulls in ndarray-pixels, which bundles its own sharp; on Windows two
 // sharp versions in one process clash over libvips-42.dll, so use that same copy everywhere.
@@ -84,7 +93,7 @@ if (fs.existsSync(path.join(SRC_DIR, "sky.png"))) {
 }
 
 const col = JSON.parse(fs.readFileSync(path.join(SRC_DIR, "collision.json"), "utf8"));
-const walk = {
+let walk = {
   lightmaps: { A: meta.LM_A?.scale ?? 1, B: meta.LM_B?.scale ?? 1 },
   probes,
   sky: meta.sky?.scale ?? 1,
@@ -94,7 +103,12 @@ const walk = {
   boxes: col.boxes,
   spawn: col.spawn,
 };
+if (TWIN_DIR) {
+  const { assembleWalk } = await import("../../lib/twin/walk.ts");
+  const twin = JSON.parse(fs.readFileSync(path.join(TWIN_DIR, "twin.json"), "utf8"));
+  walk = assembleWalk(twin, { meta, furniture: col.boxes });
+}
 fs.writeFileSync(path.join(OUT, "walk.json"), JSON.stringify(walk));
 let total = 0;
 for (const f of fs.readdirSync(OUT)) total += fs.statSync(path.join(OUT, f)).size;
-console.log("public/walk/yarkon-v2 total", mb(total));
+console.log(path.relative(ROOT, OUT), "total", mb(total));
