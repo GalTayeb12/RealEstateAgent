@@ -165,6 +165,7 @@ model UnitType {
   images         ListingImage[]
   units          Unit[]
   apartmentModel ApartmentModel?
+  planTwin       PlanTwinRecord?
 }
 
 // One tower in a developer project. unitsPerFloor is a default for new
@@ -342,6 +343,25 @@ model ApartmentModel {
   data       Json     // ApartmentModelData JSON
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+// The verified "plan twin" of a unit type (lib/twin/schema.ts), parsed from the
+// architect's plan file and reviewed by the developer. The source file itself
+// lives in object storage (lib/storage.ts); only its key is stored here.
+model PlanTwinRecord {
+  id         String    @id @default(cuid())
+  unitTypeId String    @unique
+  unitType   UnitType  @relation(fields: [unitTypeId], references: [id], onDelete: Cascade)
+  sourceKey  String    // storage key of the uploaded plan file
+  sourceName String    // original file name
+  sourceKind String    @default("dxf") // "dxf" | "pdf" | "image"
+  twin       Json      // PlanTwin JSON
+  report     Json      // validateTwin() Report JSON
+  notes      String[]  // parser notes
+  status     String    @default("parsed") // "parsed" | "needs_review" | "approved"
+  approvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
 
 // Analytics events captured during apartment tours.

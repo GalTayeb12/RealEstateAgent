@@ -108,3 +108,7 @@ __pycache__/
 
 # Raw Higgsfield renders (originals; web versions live in public/)
 assets-src/
+
+# Local file storage (lib/storage.ts) and generated plan fixtures
+/.storage/
+/tmp/

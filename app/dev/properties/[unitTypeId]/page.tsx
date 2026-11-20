@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { useI18n } from "@/components/LocaleProvider";
+import { PlanReviewSection } from "@/components/dev/plan/PlanReviewSection";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -126,7 +127,7 @@ function readFileAsDataURL(file: File): Promise<string> {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function UnitTypeEditPage() {
-  const { m } = useI18n();
+  const { m, locale } = useI18n();
   const params = useParams();
   const unitTypeId = params.unitTypeId as string;
   const router = useRouter();
@@ -1476,6 +1477,14 @@ export default function UnitTypeEditPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* ── Section 5: Apartment plan (plan twin review) ── */}
+        <div style={cardStyle}>
+          <div style={sectionHeaderStyle as React.CSSProperties}>
+            {locale === "en" ? "Apartment plan" : "תוכנית הדירה"}
+          </div>
+          <PlanReviewSection unitTypeId={unitTypeId} onToast={setToast} />
         </div>
       </div>
     </main>
