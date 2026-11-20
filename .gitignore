@@ -115,3 +115,7 @@ assets-src/
 # Local test project for the experience config (junction to walk/yarkon-v2, see lib/experience)
 /public/walk/yarkon-alt
 /public/projects/yarkon-alt/
+
+# Walkthroughs built from developer plans (scripts/twin/build-worker.ts): per-developer output, not source
+/public/walk/ut-*/
+/public/projects/ut-*/

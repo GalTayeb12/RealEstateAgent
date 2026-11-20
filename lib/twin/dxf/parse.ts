@@ -8,6 +8,7 @@
  * validator issue for the developer's review screen, never a silent guess.
  */
 import { readDxf, type DxfDoc } from "./read";
+import { detectRooms } from "./rooms";
 import { ROOM_NAMES, type Opening, type PlanTwin, type Pt, type Room, type RoomType, type Wall, bbox, pointInPolygon } from "../schema";
 
 export interface LayerRules {
@@ -18,13 +19,29 @@ export interface LayerRules {
   room: RegExp;
 }
 
+// AIA names (A-WALL, A-DOOR, A-GLAZ), plain English, Spanish / French / German,
+// Hebrew and Chinese: what real architects' files use.
 export const DEFAULT_LAYERS: LayerRules = {
-  railing: /RAIL|מעקה/i,
-  glazing: /GLAZ|WIND|WIN\b|חלון|חלונות|זיגוג|ויטרינ/i,
-  door: /DOOR|דלת|דלתות/i,
-  wall: /WALL|קיר|קירות|בניה|בנייה/i,
+  railing: /RAIL|BALUSTR|BARANDA|GEL[ÄA]NDER|מעקה|栏杆/i,
+  glazing: /GLAZ|WIND|WIN\b|VENTANA|FENSTER|FEN[ÊE]TRE|חלון|חלונות|זיגוג|ויטרינ|窗/i,
+  door: /DOOR|PUERTA|PORTE|T[ÜU]R\b|דלת|דלתות|门/i,
+  wall: /WALL|MURO|PARED|\bMUR\b|WAND\b|קיר|קירות|בניה|בנייה|墙/i,
   room: /AREA|ROOM|SPACE|חדר|שטח/i,
 };
+
+/** Layers that never carry walls, even when a guess would pick them. */
+const NOT_WALL = /DIM|TEXT|ANNO|NOTE|HATCH|FURN|GRID|TITLE|FRAME|BORDER|DEFPOINTS|STAIR|COTAS|HZ\b|GROUND|PUB_/i;
+
+export interface ParseOptions {
+  file?: string;
+  layers?: Partial<LayerRules>;
+  /**
+   * Rectangle [x1, y1, x2, y2] in the drawing's own coordinates: only what is
+   * inside is read. A developer's file is often a whole floor with several
+   * units; this picks one.
+   */
+  window?: [number, number, number, number];
+}
 
 export interface ParseResult {
   twin: PlanTwin;
@@ -52,17 +69,40 @@ function axisOf(s: Seg): Pt {
 const along = (ax: Pt, p: Pt) => p[0] * ax[0] + p[1] * ax[1];
 const across = (ax: Pt, p: Pt) => -p[0] * ax[1] + p[1] * ax[0];
 
-function scaleFor(doc: DxfDoc): { k: number; units: "mm" | "cm" | "m" } {
-  const k = UNIT_TO_M[doc.insunits];
-  if (k) return { k, units: k === 0.001 ? "mm" : k === 0.01 ? "cm" : "m" };
-  // unitless: guess from the drawing size (an apartment is ~5–40 m across)
-  let span = 0;
-  for (const e of doc.entities) {
-    if (e.type === "LINE") span = Math.max(span, Math.abs(e.a[0] - e.b[0]), Math.abs(e.a[1] - e.b[1]));
+/** Longest side of the central 98% of the given points, in drawing units (ignores stray far-away objects). */
+function robustExtent(pts: [number, number][]): number | null {
+  if (pts.length < 4) return null;
+  const side = (v: number[]) => { const s = [...v].sort((a, b) => a - b); return s[Math.floor((s.length - 1) * 0.99)] - s[Math.floor((s.length - 1) * 0.01)]; };
+  return Math.max(side(pts.map((p) => p[0])), side(pts.map((p) => p[1])));
+}
+
+/**
+ * Metres per drawing unit. $INSUNITS is trusted only when it makes the drawing
+ * a plausible size: files routinely say "mm" while drawn in metres (and the
+ * other way round), and an apartment is not 3 cm wide.
+ */
+function scaleFor(doc: DxfDoc, extent: number | null): { k: number; units: "mm" | "cm" | "m"; note?: string } {
+  const name = (k: number) => (k === 0.001 ? "mm" : k === 0.01 ? "cm" : "m") as "mm" | "cm" | "m";
+  const declared = UNIT_TO_M[doc.insunits];
+  const ok = (k: number) => extent !== null && extent * k >= 3 && extent * k <= 90;
+  if (declared && (extent === null || ok(declared))) return { k: declared, units: name(declared) };
+  if (extent !== null) {
+    for (const k of [1, 0.01, 0.001]) {
+      if (ok(k)) {
+        return {
+          k, units: name(k),
+          note: declared
+            ? `The file declares ${name(declared)} but the plan measures ${extent.toFixed(1)} drawing units across; read as ${name(k)} (${(extent * k).toFixed(1)} m).`
+            : `The file declares no units; the plan measures ${extent.toFixed(1)} units across, read as ${name(k)}.`,
+        };
+      }
+    }
+    return {
+      k: declared ?? 1, units: name(declared ?? 1),
+      note: `The plan measures ${extent.toFixed(1)} drawing units across, which is not a plausible apartment in mm, cm or m. It may be a scaled print or a scan; check the scale.`,
+    };
   }
-  if (span > 1000) return { k: 0.001, units: "mm" };
-  if (span > 80) return { k: 0.01, units: "cm" };
-  return { k: 1, units: "m" };
+  return { k: declared ?? 1, units: name(declared ?? 1) };
 }
 
 /**
@@ -162,6 +202,13 @@ function mergeRuns(pieces: Piece[]): Run[] {
 const ptOn = (r: Run, s: number, n = 0): Pt => [r.ax[0] * s - r.ax[1] * (r.off + n), r.ax[1] * s + r.ax[0] * (r.off + n)];
 
 const ROOM_KEYWORDS: [RegExp, RoomType][] = [
+  [/阳台|balc[oó]n|terraza/i, "balcony"],
+  [/卫生间|卫|浴室|ba[ñn]o|aseo/i, "bath"],
+  [/厨房|cocina/i, "kitchen"],
+  [/客厅|起居室|sal[oó]n|estar/i, "living"],
+  [/餐厅|comedor/i, "dining"],
+  [/主卧/, "master"],
+  [/卧室|书房|dormitorio|habitaci[oó]n/i, "bedroom"],
   [/מרפסת|balcony|terrace|loggia/i, "balcony"],
   [/ממ["״']?ד|mamad|safe\s*room|shelter/i, "mamad"],
   [/רחצה|אמבט|מקלחת|bath|shower/i, "bath"],
@@ -184,25 +231,77 @@ export function roomType(label: string): RoomType {
   return "other";
 }
 
-export function parseDxf(src: string, opts: { file?: string; layers?: Partial<LayerRules> } = {}): ParseResult {
+export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
   const rules = { ...DEFAULT_LAYERS, ...opts.layers };
   const doc = readDxf(src);
-  const { k, units } = scaleFor(doc);
   const notes: string[] = [];
-  const P = ([x, y]: [number, number]): Pt => [x * k, y * k];
+  const win = opts.window;
+  const refOf = (e: DxfDoc["entities"][number]): [number, number] =>
+    e.type === "LINE" ? [(e.a[0] + e.b[0]) / 2, (e.a[1] + e.b[1]) / 2]
+      : e.type === "POLY" ? [e.pts.reduce((s, p) => s + p[0], 0) / (e.pts.length || 1), e.pts.reduce((s, p) => s + p[1], 0) / (e.pts.length || 1)]
+        : e.type === "ARC" ? e.c : e.at;
+  const inWin = (e: DxfDoc["entities"][number]) => {
+    if (!win) return true;
+    const [x, y] = refOf(e);
+    return x >= win[0] && x <= win[2] && y >= win[1] && y <= win[3];
+  };
+  const layers = new Set(doc.entities.map((e) => e.layer));
+
+  // No layer matches a wall name: guess the layer that looks like walls (many axis-aligned segments).
+  let guessedWall: string | null = null;
+  if (![...layers].some((l) => rules.wall.test(l))) {
+    const score = new Map<string, { n: number; axis: number }>();
+    for (const e of doc.entities) {
+      if (e.type !== "LINE" && e.type !== "POLY") continue;
+      if (NOT_WALL.test(e.layer) || rules.door.test(e.layer) || rules.glazing.test(e.layer) || rules.railing.test(e.layer)) continue;
+      const pts = e.type === "LINE" ? [e.a, e.b] : e.pts;
+      const sc = score.get(e.layer) ?? { n: 0, axis: 0 };
+      for (let i = 0; i + 1 < pts.length; i++) {
+        const dx = Math.abs(pts[i + 1][0] - pts[i][0]), dy = Math.abs(pts[i + 1][1] - pts[i][1]);
+        sc.n++;
+        if (Math.min(dx, dy) < 0.02 * Math.max(dx, dy)) sc.axis++;
+      }
+      score.set(e.layer, sc);
+    }
+    const best = [...score].filter(([, s]) => s.n >= 20 && s.axis / s.n >= 0.6).sort((a, b) => b[1].axis - a[1].axis)[0];
+    if (best) { guessedWall = best[0]; notes.push(`No layer is named like walls; "${best[0]}" looks like the walls (${best[1].axis} straight segments), read as walls.`); }
+  }
 
   const cls = (layer: string): "railing" | "glazing" | "door" | "wall" | "room" | null =>
     rules.railing.test(layer) ? "railing" : rules.glazing.test(layer) ? "glazing" : rules.door.test(layer) ? "door"
-      : rules.wall.test(layer) ? "wall" : rules.room.test(layer) ? "room" : null;
+      : rules.wall.test(layer) || layer === guessedWall ? "wall" : rules.room.test(layer) ? "room" : null;
+
+  // units: judged on the wall geometry (else on every line), inside the window if there is one
+  const wallPts: [number, number][] = [], anyPts: [number, number][] = [];
+  for (const e of doc.entities) {
+    if ((e.type !== "LINE" && e.type !== "POLY") || !inWin(e)) continue;
+    const pts = e.type === "LINE" ? [e.a, e.b] : e.pts;
+    (cls(e.layer) === "wall" ? wallPts : NOT_WALL.test(e.layer) ? [] : anyPts).push(...pts);
+  }
+  const sc = scaleFor(doc, robustExtent(wallPts.length ? wallPts : anyPts));
+  const { k, units } = sc;
+  if (sc.note) notes.push(sc.note);
+  const P = ([x, y]: [number, number]): Pt => [x * k, y * k];
 
   const segs: Record<"wall" | "glazing" | "railing", Seg[]> = { wall: [], glazing: [], railing: [] };
   const doors: { at: Pt; block: string }[] = [];
+  const arcDoors: { c: Pt; r: number; ends: [Pt, Pt] }[] = [];
   const roomPolys: Pt[][] = [];
   const texts: { at: Pt; text: string }[] = [];
   const ignored = new Set<string>();
 
   for (const e of doc.entities) {
+    if (!inWin(e)) continue;
     const c = cls(e.layer);
+    if (e.type === "ARC") {
+      // a door swing: centre = hinge, radius = leaf width, the arc ends where the leaf closes
+      if (c === "door") {
+        const rad = (d: number) => (d * Math.PI) / 180;
+        const ends: [Pt, Pt] = [[e.c[0] + e.r * Math.cos(rad(e.a1)), e.c[1] + e.r * Math.sin(rad(e.a1))], [e.c[0] + e.r * Math.cos(rad(e.a2)), e.c[1] + e.r * Math.sin(rad(e.a2))]];
+        arcDoors.push({ c: P(e.c), r: e.r * k, ends: [P(ends[0]), P(ends[1])] });
+      }
+      continue;
+    }
     if (e.type === "TEXT") { texts.push({ at: P(e.at), text: e.text }); continue; }
     if (e.type === "INSERT") {
       if (c === "door" || rules.door.test(e.block) || /SLID|הזזה/i.test(e.block)) doors.push({ at: P(e.at), block: e.block });
@@ -230,10 +329,63 @@ export function parseDxf(src: string, opts: { file?: string; layers?: Partial<La
   }
   for (const k2 of Object.keys(segs) as (keyof typeof segs)[]) segs[k2] = segs[k2].filter((s) => len(s) > 0.005);
   if (ignored.size) notes.push(`Layers not recognised (ignored): ${[...ignored].join(", ")}`);
-  if (!segs.wall.length) notes.push("No wall lines found: check the wall layer names.");
+  if (!segs.wall.length) {
+    const texts0 = doc.entities.filter((e) => e.type === "TEXT").length;
+    notes.push(layers.size <= 2 && texts0 === 0
+      ? "No wall layer and no text: this looks like a scan converted to lines, not a CAD plan. Upload it as a PDF or an image (read by Claude), or ask the architect for the original DXF."
+      : "No wall lines found: check the wall layer names.");
+  }
 
   // ── walls ──
   const wallRuns = mergeRuns(pairFaces(dropCaps(segs.wall, 0.45), 0.05, 0.45));
+
+  // Door swings drawn as arcs: the opening is the stretch of wall the leaf closes over.
+  // Walls are often drawn unbroken with the door symbol on top, so add the gap here.
+  let arcPlaced = 0;
+  for (const d of arcDoors) {
+    if (d.r < 0.45 || d.r > 1.4) continue;
+    for (const run of wallRuns) {
+      const dist = (p: Pt) => Math.abs(across(run.ax, p) - run.off);
+      const band = (p: Pt) => dist(p) <= run.t / 2 + 0.12;
+      const inRun = (p: Pt) => { const s = along(run.ax, p); return s >= run.lo - 0.05 && s <= run.hi + 0.05; };
+      let span: [number, number] | null = null;
+      if (band(d.c) && inRun(d.c)) {
+        const e = d.ends.filter(band).sort((p, q) => dist(p) - dist(q))[0];
+        if (e) { const s1 = along(run.ax, d.c), s2 = along(run.ax, e); span = [Math.min(s1, s2), Math.max(s1, s2)]; }
+      } else {
+        const e = d.ends.find((p) => band(p) && inRun(p));
+        if (e) { const s = along(run.ax, e); span = [s - d.r / 2, s + d.r / 2]; }
+      }
+      if (!span || span[1] - span[0] < 0.4) continue;
+      const lo = Math.max(span[0], run.lo), hi = Math.min(span[1], run.hi);
+      if (hi - lo < 0.4) continue;
+      const covered = run.gaps.some(([g1, g2]) => Math.min(hi, g2) - Math.max(lo, g1) >= (hi - lo) * 0.5);
+      if (!covered) { run.gaps.push([lo, hi]); run.gaps.sort((a, b) => a[0] - b[0]); }
+      doors.push({ at: ptOn(run, (lo + hi) / 2), block: "arc" });
+      arcPlaced++;
+      break;
+    }
+  }
+  if (arcDoors.length) notes.push(`${arcPlaced} of ${arcDoors.length} door swings were placed on a wall.`);
+
+  // Glazing drawn on top of an unbroken wall (the same habit as door swings): a window.
+  // Cut the gap where the line lies along the wall centre.
+  segs.glazing = segs.glazing.filter((s) => {
+    const L = len(s);
+    if (L < 0.4 || L > 4.5) return true;
+    for (const run of wallRuns) {
+      if (!isParallel(s, { a: ptOn(run, 0), b: ptOn(run, 1) })) continue;
+      const nA = Math.abs(across(run.ax, s.a) - run.off), nB = Math.abs(across(run.ax, s.b) - run.off);
+      if (nA > run.t / 2 + 0.12 || nB > run.t / 2 + 0.12) continue;
+      const s1 = along(run.ax, s.a), s2 = along(run.ax, s.b);
+      const lo = Math.max(Math.min(s1, s2), run.lo), hi = Math.min(Math.max(s1, s2), run.hi);
+      if (hi - lo < 0.4) continue;
+      const covered = run.gaps.some(([g1, g2]) => Math.min(hi, g2) - Math.max(lo, g1) >= (hi - lo) * 0.5);
+      if (!covered) { run.gaps.push([lo, hi]); run.gaps.sort((a, b) => a[0] - b[0]); }
+      return true; // keep it: the gap lookup below turns it into a window
+    }
+    return true;
+  });
 
   // glazing lines that sit inside a wall gap are windows, the rest are glass walls
   const inGap = (p: Pt): { run: Run; gap: [number, number] } | null => {
@@ -287,6 +439,17 @@ export function parseDxf(src: string, opts: { file?: string; layers?: Partial<La
   }
 
   // ── rooms ──
+  if (!roomPolys.length && walls.length) {
+    roomPolys.push(...detectRooms(walls));
+    if (roomPolys.length) notes.push(`No room outlines in the file: ${roomPolys.length} rooms were found from the walls; check names and types.`);
+  }
+  if (walls.length) {
+    const [bx1, by1, bx2, by2] = bbox(walls.flatMap((w) => [w.a, w.b]));
+    const w = bx2 - bx1, h = by2 - by1;
+    if (Math.max(w, h) > 28 || w * h > 450) {
+      notes.push(`The drawing is ${w.toFixed(0)} × ${h.toFixed(0)} m, larger than one apartment: it probably shows a whole floor with several units. Select one unit (crop window) and parse again.`);
+    }
+  }
   const used = new Set<number>();
   const counters: Partial<Record<RoomType, number>> = {};
   const rooms: Room[] = roomPolys.map((poly) => {

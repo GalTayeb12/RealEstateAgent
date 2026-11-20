@@ -281,12 +281,22 @@ class Frame:
 
 
 def enable_gpu():
-    """Cycles on the GPU in background mode (prefs aren't applied without the UI)."""
+    """Cycles on the GPU in background mode (prefs aren't applied without the UI).
+
+    CYCLES_DEVICE=CUDA (or HIP, ONEAPI, METAL, CPU) forces a backend, e.g. when
+    this Blender's OptiX kernel does not compile with the installed driver.
+    """
+    import os
+    forced = os.environ.get("CYCLES_DEVICE", "").strip().upper()
+    if forced == "CPU":
+        bpy.context.scene.cycles.device = "CPU"
+        return "CPU"
     try:
         prefs = bpy.context.preferences.addons["cycles"].preferences
     except KeyError:
         return "CPU"
-    for kind in ("OPTIX", "CUDA", "HIP", "ONEAPI", "METAL"):
+    order = ("OPTIX", "CUDA", "HIP", "ONEAPI", "METAL")
+    for kind in ((forced,) if forced in order else order):
         try:
             prefs.compute_device_type = kind
         except TypeError:

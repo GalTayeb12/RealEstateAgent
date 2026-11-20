@@ -16,14 +16,28 @@ export interface SvgOptions {
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
+const PAD = 1.0;          // margin around the plan, metres
+const SCALE_BAR = 0.6;    // extra strip under the plan for the scale bar, metres
+
+/**
+ * The plan-metre rectangle the SVG shows: left edge x0, top edge yTop (north
+ * is up), width w, height h. The walk's minimap uses it to place the "you are
+ * here" dot on this image.
+ */
+export function planSvgFrame(t: PlanTwin): { x0: number; yTop: number; w: number; h: number } {
+  const pts = [...t.walls.flatMap((w) => [w.a, w.b]), ...t.rooms.flatMap((r) => r.polygon)];
+  const [x1, y1, x2, y2] = bbox(pts.length ? pts : [[0, 0], [1, 1], [0, 1]]);
+  return { x0: x1 - PAD, yTop: y2 + PAD, w: x2 - x1 + PAD * 2, h: y2 - y1 + PAD * 2 + SCALE_BAR };
+}
+
 export function planSvg(t: PlanTwin, opts: SvgOptions = {}): string {
   const lang = opts.lang ?? "he";
   const k = opts.ppm ?? 60;
   const hl = new Set(opts.highlight ?? []);
-  const pts = [...t.walls.flatMap((w) => [w.a, w.b]), ...t.rooms.flatMap((r) => r.polygon)];
-  const [x1, y1, x2, y2] = bbox(pts.length ? pts : [[0, 0], [1, 1], [0, 1]]);
-  const pad = 1.0;
-  const W = (x2 - x1 + pad * 2) * k, H = (y2 - y1 + pad * 2 + 0.6) * k;
+  const frame = planSvgFrame(t);
+  const x1 = frame.x0 + PAD, y2 = frame.yTop - PAD;
+  const pad = PAD;
+  const W = frame.w * k, H = frame.h * k;
   // plan y points north (up); SVG y points down
   const X = (x: number) => +((x - x1 + pad) * k).toFixed(1);
   const Y = (y: number) => +((y2 - y + pad) * k).toFixed(1);

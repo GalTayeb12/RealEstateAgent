@@ -27,10 +27,13 @@ describe("checkPlanFile", () => {
   it("accepts a DXF within the limit", () => {
     expect(() => checkPlanFile({ name: "Plan A.DXF", size: 1000 })).not.toThrow();
   });
+  it("accepts DWG as well as DXF", () => {
+    expect(() => checkPlanFile({ name: "plan.dwg", size: 1000 })).not.toThrow();
+  });
   it("rejects other formats, empty and oversized files with bilingual messages", () => {
-    const dwg = inputError(() => checkPlanFile({ name: "plan.dwg", size: 10 }));
-    expect(dwg.status).toBe(415);
-    expect(dwg.he).toMatch(/DXF/);
+    const pdf = inputError(() => checkPlanFile({ name: "plan.pdf", size: 10 }));
+    expect(pdf.status).toBe(415);
+    expect(pdf.he).toMatch(/DXF/);
     expect(inputError(() => checkPlanFile({ name: "a.dxf", size: 0 })).status).toBe(400);
     expect(inputError(() => checkPlanFile({ name: "a.dxf", size: MAX_PLAN_BYTES + 1 })).status).toBe(413);
   });

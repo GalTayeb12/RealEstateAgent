@@ -79,6 +79,7 @@ export function getStorage(): Storage {
   if (instance) return instance;
   const driver = process.env.STORAGE_DRIVER ?? "local";
   if (driver !== "local") throw new Error(`Unsupported STORAGE_DRIVER: ${driver}`);
-  instance = new LocalDiskStorage(path.resolve(process.env.STORAGE_LOCAL_DIR ?? path.join(process.cwd(), ".storage")));
+  // turbopackIgnore: a runtime data folder, not code; without it the build traces the whole project
+  instance = new LocalDiskStorage(path.resolve(/*turbopackIgnore: true*/ process.env.STORAGE_LOCAL_DIR ?? path.join(/*turbopackIgnore: true*/ process.cwd(), ".storage")));
   return instance;
 }

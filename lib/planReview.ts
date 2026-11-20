@@ -8,6 +8,7 @@ import { PlanTwin } from "./twin/schema";
 import { parseDxf } from "./twin/dxf/parse";
 import { validateTwin, type Report } from "./twin/validate";
 import { safeFileName } from "./storage";
+import { DwgConversionError, dwgToDxf, isDwg } from "./twin/dwg";
 
 export const PLAN_STATUSES = ["parsed", "needs_review", "approved"] as const;
 export type PlanStatus = (typeof PLAN_STATUSES)[number];
@@ -32,8 +33,8 @@ export function canApprove(report: Pick<Report, "ok" | "issues">): boolean {
 
 /** Validate the uploaded file's name and size before reading it. */
 export function checkPlanFile(file: { name: string; size: number }): void {
-  if (!/\.dxf$/i.test(file.name)) {
-    throw new PlanInputError(415, "יש להעלות קובץ DXF (‏.dxf). קובצי DWG יש להמיר ל-DXF קודם.", "Upload a DXF file (.dxf). Convert DWG files to DXF first.");
+  if (!/\.(dxf|dwg)$/i.test(file.name)) {
+    throw new PlanInputError(415, "יש להעלות קובץ DXF או DWG.", "Upload a DXF or DWG file.");
   }
   if (file.size <= 0) throw new PlanInputError(400, "הקובץ ריק", "The file is empty");
   if (file.size > MAX_PLAN_BYTES) {
@@ -48,6 +49,29 @@ export function decodeDxf(bytes: Uint8Array): string {
     return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
   } catch {
     return new TextDecoder("windows-1255").decode(bytes);
+  }
+}
+
+/**
+ * The DXF text of an uploaded plan, and what kind of file it was. A DWG is
+ * recognised by its content (not only its name) and converted first; when no
+ * converter is set up the developer is told to export a DXF instead.
+ */
+export async function readPlanUpload(bytes: Uint8Array, fileName: string): Promise<{ dxf: Uint8Array; kind: "dxf" | "dwg" }> {
+  if (!isDwg(bytes)) {
+    if (/\.dwg$/i.test(fileName)) throw new PlanInputError(422, "הקובץ אינו DWG תקין", "The file is not a valid DWG");
+    return { dxf: bytes, kind: "dxf" };
+  }
+  try {
+    return { dxf: await dwgToDxf(bytes), kind: "dwg" };
+  } catch (err) {
+    if (err instanceof DwgConversionError) {
+      if (err.code === "not_configured") {
+        throw new PlanInputError(501, "קובצי DWG עדיין לא נתמכים בשרת הזה. שמרו את התוכנית כ-DXF (Save As → DXF) והעלו אותה.", "DWG files are not supported on this server yet. Save the plan as DXF (Save As → DXF) and upload that.");
+      }
+      throw new PlanInputError(422, "לא הצלחנו להמיר את קובץ ה-DWG. שמרו אותו כ-DXF והעלו שוב.", `The DWG could not be converted (${err.code}). Save it as DXF and upload that.`);
+    }
+    throw err;
   }
 }
 

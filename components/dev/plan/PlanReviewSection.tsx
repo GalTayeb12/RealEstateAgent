@@ -10,6 +10,8 @@ import { PlanDrawing } from "./PlanDrawing";
 import { PlanIssueList } from "./PlanIssueList";
 import { PlanEditor } from "./PlanEditor";
 import { STATUS_TEXT, TEXT, type Lang } from "./planText";
+import type { BuildView } from "@/lib/twin/buildJobs";
+import { PlanBuildStatus } from "./PlanBuildStatus";
 
 const STATUS_COLORS: Record<PlanRecordView["status"], { fg: string; bg: string }> = {
   parsed: { fg: "var(--qp-info)", bg: "var(--qp-info-bg)" },
@@ -41,6 +43,9 @@ export function PlanReviewSection({ unitTypeId, onToast }: { unitTypeId: string;
   const [busy, setBusy] = useState<"upload" | "save" | "approve" | null>(null);
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  // Walkthrough build of the approved plan (lib/twin/buildJobs.ts)
+  const [build, setBuild] = useState<BuildView | null>(null);
+  const [buildBusy, setBuildBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const call = useCallback(async (url: string, init: RequestInit = {}) => {
@@ -49,7 +54,7 @@ export function PlanReviewSection({ unitTypeId, onToast }: { unitTypeId: string;
     if (res.status === 401) { router.push("/dev/login"); throw new Error("Unauthorized"); }
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error((lang === "he" ? body.errorHe : body.error) ?? body.error ?? `HTTP ${res.status}`);
-    return body as { plan: PlanRecordView | null };
+    return body as { plan: PlanRecordView | null; build?: BuildView | null };
   }, [router, lang]);
 
   const accept = useCallback((p: PlanRecordView | null) => {
@@ -61,7 +66,7 @@ export function PlanReviewSection({ unitTypeId, onToast }: { unitTypeId: string;
   useEffect(() => {
     let cancelled = false;
     call(base)
-      .then((b) => { if (!cancelled) accept(b.plan); })
+      .then((b) => { if (!cancelled) { accept(b.plan); setBuild(b.build ?? null); } })
       .catch((e: Error) => { if (!cancelled) setError(`${TEXT.loadFailed[lang]}: ${e.message}`); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -78,11 +83,13 @@ export function PlanReviewSection({ unitTypeId, onToast }: { unitTypeId: string;
   const errorCount = report?.issues.filter((i) => i.level === "error").length ?? 0;
   const warningCount = report?.issues.filter((i) => i.level === "warning").length ?? 0;
 
-  async function run(kind: "upload" | "save" | "approve", fn: () => Promise<{ plan: PlanRecordView | null }>, toast: string) {
+  async function run(kind: "upload" | "save" | "approve", fn: () => Promise<{ plan: PlanRecordView | null; build?: BuildView | null }>, toast: string) {
     setBusy(kind);
     setError("");
     try {
-      accept((await fn()).plan);
+      const res = await fn();
+      accept(res.plan);
+      if (res.build !== undefined) setBuild(res.build);
       onToast?.(toast);
     } catch (e) {
       setError((e as Error).message);
@@ -101,6 +108,32 @@ export function PlanReviewSection({ unitTypeId, onToast }: { unitTypeId: string;
   }), TEXT.saved[lang]);
   const approve = () => run("approve", () => call(`${base}/approve`, { method: "POST" }), TEXT.approvedToast[lang]);
 
+  async function requestBuild(preview: boolean) {
+    setBuildBusy(true);
+    setError("");
+    try {
+      const res = await call(`${base}/build`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ preview }),
+      });
+      setBuild(res.build ?? null);
+      onToast?.(TEXT.buildQueuedToast[lang]);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBuildBusy(false);
+    }
+  }
+
+  // While a build is queued or running, check on it every 15 s (only the build part is updated).
+  const buildActive = !!build && (build.status === "queued" || build.status === "running");
+  useEffect(() => {
+    if (!buildActive) return;
+    const t = window.setInterval(() => {
+      call(base).then((b) => setBuild(b.build ?? null)).catch(() => {});
+    }, 15_000);
+    return () => window.clearInterval(t);
+  }, [buildActive, base, call]);
+
   const approveBlocked = dirty ? TEXT.saveFirst[lang] : errorCount > 0 ? TEXT.fixErrorsFirst[lang] : "";
   const status = plan?.status;
 
@@ -109,7 +142,7 @@ export function PlanReviewSection({ unitTypeId, onToast }: { unitTypeId: string;
       <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--qp-muted)", lineHeight: 1.6 }}>{TEXT.intro[lang]}</p>
 
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.75rem" }}>
-        <input ref={fileRef} type="file" accept=".dxf" data-testid="plan-file" style={{ display: "none" }}
+        <input ref={fileRef} type="file" accept=".dxf,.dwg" data-testid="plan-file" style={{ display: "none" }}
           onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) upload(f); }} />
         <button type="button" style={btn(!plan, busy !== null)} disabled={busy !== null} onClick={() => fileRef.current?.click()}>
           {busy === "upload" ? TEXT.uploading[lang] : plan ? TEXT.replace[lang] : TEXT.upload[lang]}
@@ -170,6 +203,10 @@ export function PlanReviewSection({ unitTypeId, onToast }: { unitTypeId: string;
             </button>
             {approveBlocked && <span style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>{approveBlocked}</span>}
           </div>
+
+          {status === "approved" && !dirty && (
+            <PlanBuildStatus build={build} lang={lang} busy={buildBusy} onBuild={(preview) => void requestBuild(preview)} />
+          )}
         </>
       )}
     </div>

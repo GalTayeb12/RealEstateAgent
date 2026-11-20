@@ -1,13 +1,15 @@
 /**
  * Minimal ASCII DXF reader: header units, block names, and the model-space
- * entities a floor plan needs (LINE, LWPOLYLINE, POLYLINE/VERTEX, TEXT, MTEXT,
- * INSERT). Arcs, hatches and dimensions are skipped. Binary DXF and DWG are not
+ * entities a floor plan needs (LINE, LWPOLYLINE, POLYLINE/VERTEX, ARC, TEXT,
+ * MTEXT, INSERT). Hatches, dimensions and block bodies are skipped. Binary DXF and DWG are not
  * supported (DWG has to be converted to DXF first, e.g. with the ODA converter).
  */
 
 export type DxfEntity =
   | { type: "LINE"; layer: string; a: [number, number]; b: [number, number] }
   | { type: "POLY"; layer: string; pts: [number, number][]; closed: boolean }
+  /** Arc: centre, radius, start/end angle in degrees, counter-clockwise (door swings). */
+  | { type: "ARC"; layer: string; c: [number, number]; r: number; a1: number; a2: number }
   | { type: "TEXT"; layer: string; at: [number, number]; text: string; height: number }
   | { type: "INSERT"; layer: string; block: string; at: [number, number]; rotation: number; sx: number; sy: number };
 
@@ -93,6 +95,8 @@ export function readDxf(src: string): DxfDoc {
       }
       j++; // past SEQEND
       doc.entities.push({ type: "POLY", layer, pts, closed });
+    } else if (type === "ARC") {
+      doc.entities.push({ type: "ARC", layer, c: [num(first(10, "0")), num(first(20, "0"))], r: num(first(40, "0")), a1: num(first(50, "0")), a2: num(first(51, "0")) });
     } else if (type === "TEXT" || type === "MTEXT") {
       // MTEXT splits long strings over group 3 chunks followed by a final group 1
       const raw = g.filter((p) => p[0] === 3).map((p) => p[1]).join("") + first(1);

@@ -8,10 +8,10 @@ type T = { he: string; en: string };
 export const TEXT = {
   title: { he: "תוכנית הדירה", en: "Apartment plan" },
   intro: {
-    he: "העלו את תוכנית האדריכל (DXF). המערכת תבנה ממנה מודל של הדירה, תבדוק אותו ותציג מה צריך לתקן לפני האישור.",
-    en: "Upload the architect's plan (DXF). The system builds a model of the apartment from it, checks it, and shows what needs fixing before approval.",
+    he: "העלו את תוכנית האדריכל (DXF או DWG). המערכת תבנה ממנה מודל של הדירה, תבדוק אותו ותציג מה צריך לתקן לפני האישור.",
+    en: "Upload the architect's plan (DXF or DWG). The system builds a model of the apartment from it, checks it, and shows what needs fixing before approval.",
   },
-  upload: { he: "העלאת תוכנית DXF", en: "Upload DXF plan" },
+  upload: { he: "העלאת תוכנית (DXF / DWG)", en: "Upload plan (DXF / DWG)" },
   replace: { he: "החלפת קובץ", en: "Replace file" },
   uploading: { he: "מעלה ומנתח…", en: "Uploading and parsing…" },
   source: { he: "קובץ מקור", en: "Source file" },
@@ -49,6 +49,18 @@ export const TEXT = {
     he: "עריכת קירות ומצולעי חדרים תתווסף בהמשך. עד אז, תיקון גיאומטריה נעשה בקובץ ה-DXF והעלאה מחדש.",
     en: "Wall and room-shape editing comes later. Until then, fix geometry in the DXF and upload again.",
   },
+  buildTitle: { he: "סיור תלת-ממד מהתוכנית", en: "3D walkthrough from the plan" },
+  buildQueued: { he: "בתור לבנייה", en: "Queued for building" },
+  buildRunning: { he: "בבנייה… (תצוגה מקדימה: כמה דקות, איכות מלאה: כ-20 דקות)", en: "Building… (preview: a few minutes, full quality: about 20 minutes)" },
+  buildDone: { he: "הסיור מוכן", en: "Walkthrough ready" },
+  buildFailed: { he: "הבנייה נכשלה", en: "Build failed" },
+  buildStale: { he: "נבנה מגרסה קודמת של התוכנית", en: "Built from an earlier version of the plan" },
+  buildNone: { he: "עוד לא נבנה סיור מהתוכנית הזו", en: "No walkthrough built from this plan yet" },
+  buildOpen: { he: "לצפייה בסיור", en: "Open the walkthrough" },
+  buildPreviewTag: { he: "תצוגה מקדימה", en: "preview" },
+  buildAgain: { he: "בנייה מחדש", en: "Build again" },
+  buildPreview: { he: "תצוגה מקדימה מהירה", en: "Quick preview" },
+  buildQueuedToast: { he: "הבנייה נכנסה לתור", en: "Build queued" },
 } satisfies Record<string, T>;
 
 export const STATUS_TEXT: Record<PlanStatus, T> = {

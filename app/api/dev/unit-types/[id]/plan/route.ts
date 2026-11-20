@@ -1,7 +1,7 @@
 /**
  * Plan twin of a unit type (developer review flow).
  *
- * GET  → { plan: PlanRecordView | null }
+ * GET  → { plan: PlanRecordView | null, build: BuildView | null }
  * POST → multipart upload, field "file" (.dxf, ≤ MAX_PLAN_BYTES): parse + validate + save
  * PUT  → { twin }: a corrected twin, re-validated and saved (clears an earlier approval)
  *
@@ -11,9 +11,10 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getStorage } from "@/lib/storage";
-import { MAX_PLAN_BYTES, PlanInputError, checkPlanFile, parsePlanUpload, planSourceKey, reviewCorrectedTwin, toPlanView } from "@/lib/planReview";
+import { MAX_PLAN_BYTES, PlanInputError, checkPlanFile, parsePlanUpload, planSourceKey, readPlanUpload, reviewCorrectedTwin, toPlanView } from "@/lib/planReview";
 import { authorizePlanOwner, planErrorResponse } from "@/lib/planReviewServer";
 import type { PlanTwin } from "@/lib/twin/schema";
+import { readBuildJob, toBuildView } from "@/lib/twin/buildJobs";
 
 const json = (v: unknown) => v as Prisma.InputJsonValue;
 
@@ -25,7 +26,8 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   if ("response" in a) return a.response;
   try {
     const rec = await prisma.planTwinRecord.findUnique({ where: { unitTypeId: id } });
-    return NextResponse.json({ plan: rec ? toPlanView(rec) : null });
+    const build = toBuildView(await readBuildJob(getStorage(), id), rec?.approvedAt ?? null);
+    return NextResponse.json({ plan: rec ? toPlanView(rec) : null, build });
   } catch (err) {
     return planErrorResponse(err, "get");
   }
@@ -51,12 +53,14 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     checkPlanFile(file);
 
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const parsed = parsePlanUpload(bytes, file.name);
+    const { dxf, kind } = await readPlanUpload(bytes, file.name);
+    const parsed = parsePlanUpload(dxf, file.name);
     const key = planSourceKey(id, file.name);
-    await getStorage().put(key, bytes, { contentType: "application/dxf" });
+    // keep the file as uploaded (a DWG stays a DWG), so it can be converted again with a better converter later
+    await getStorage().put(key, bytes, { contentType: kind === "dwg" ? "application/acad" : "application/dxf" });
 
     const data = {
-      sourceKey: key, sourceName: file.name, sourceKind: "dxf",
+      sourceKey: key, sourceName: file.name, sourceKind: kind,
       twin: json(parsed.twin), report: json(parsed.report), notes: parsed.notes,
       status: parsed.status, approvedAt: null,
     };
