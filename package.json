@@ -12,7 +12,9 @@
     "test:attributes": "npx tsx lib/__tests__/attributes.test.ts",
     "seed:neon": "npx tsx scripts/seed-neon.ts",
     "make-admin": "node scripts/make-admin.mjs",
-    "build:building": "npx tsx scripts/building/pipeline.ts"
+    "build:building": "npx tsx scripts/building/pipeline.ts",
+    "worker": "npx tsx scripts/twin/build-worker.ts --preview",
+    "worker:full": "npx tsx scripts/twin/build-worker.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.113.0",
