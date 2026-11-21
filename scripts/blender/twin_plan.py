@@ -395,7 +395,16 @@ class Grid:
     def ok(self, extra=(), must=()):
         """True when every doorway (both sides) and every `must` point stays reachable."""
         seen = self.reach(extra)
-        for _, x, y in self.door_points():
+        # A doorway already cut off before any furniture (a real plan can have a door onto a
+        # closed void, or a probe point inside a wall) cannot be kept clear: ignore those,
+        # otherwise every placement would be refused and the apartment stays empty.
+        if getattr(self, "_base_ok", None) is None:
+            base = self.reach()
+            self._base_ok = {(i, round(x, 3), round(y, 3)) for i, x, y in self.door_points()
+                             if self.idx(x, y) >= 0 and base[self.idx(x, y)]}
+        for i, x, y in self.door_points():
+            if (i, round(x, 3), round(y, 3)) not in self._base_ok:
+                continue
             k = self.idx(x, y)
             if k < 0 or not seen[k]:
                 return False

@@ -231,6 +231,9 @@ def group_objs(g):
 
 def lightmap_uvs(g, margin=0.0015):
     obs = group_objs(g)
+    if not obs:
+        print(f"lm uvs {g}: no objects, skipped")
+        return
     for ob in obs:
         me = ob.data
         while len(me.uv_layers) > 1:
@@ -263,6 +266,9 @@ def srgb_encode(x):
 
 def bake(g):
     obs = group_objs(g)
+    if not obs:
+        print(f"bake {g}: no objects, skipped")
+        return
     size = cfg["lm_size"]
     name = f"LM_{g}"
     if name in bpy.data.images:
