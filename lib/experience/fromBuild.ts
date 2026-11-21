@@ -52,12 +52,16 @@ export function stageFromBuild(b: BuiltWalk, rooms: string[]): ProjectExperience
     .filter((id) => has.has(`still-${id}.webp`))
     .sort((x, y) => ROOM_ORDER.indexOf(byType.get(x)?.type ?? "other") - ROOM_ORDER.indexOf(byType.get(y)?.type ?? "other"));
   if (!ordered.length) return undefined;
-  const stations: StationMeta[] = ordered.map((id) => ({
+  const room = (id: string): StationMeta => ({
     id, image: url(`still-${id}.webp`), title: cleanName(byType.get(id)?.name ?? { he: id, en: id }),
     ...(byType.get(id) ? { text: roomCaption(b.twin, byType.get(id)!) } : {}),
-  }));
-  if (has.has("top.webp")) stations.push({ id: "plan-top", image: url("top.webp"), fit: "contain", title: { he: "תוכנית הדירה", en: "Floor plan" } });
+  });
+  // ONE template for every project, the order Yarkon uses: the main room, the top-down view,
+  // the floor plan, then the other rooms (the first station is the one shown on arrival).
+  const stations: StationMeta[] = [room(ordered[0])];
   if (has.has("axo.webp")) stations.push({ id: "plan-axo", image: url("axo.webp"), fit: "contain", view3d: true, title: { he: "הדירה במבט על", en: "The apartment from above" } });
+  if (has.has("top.webp")) stations.push({ id: "plan-top", image: url("top.webp"), fit: "contain", title: { he: "תוכנית הדירה", en: "Floor plan" } });
+  for (const id of ordered.slice(1)) stations.push(room(id));
   const first = url(`still-${ordered[0]}.webp`);
   return { aspect: 1.7778, buildings: [], enter: { window: first, room: first, walk: `/walk/${b.slug}`, stations } };
 }

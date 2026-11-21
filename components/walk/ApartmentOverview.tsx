@@ -31,6 +31,9 @@ export default function ApartmentOverview({ experience }: { experience: ProjectE
   const { walk } = experience;
   // Plan (x, y) ↔ world (x, -z)
   const [cx, cy] = experience.dollhouse.center;
+  // camera and zoom limits were tuned on Yarkon (15 m wide): scale them to this apartment
+  const [bx1, by1, bx2, by2] = experience.dollhouse.bounds;
+  const k = Math.min(1.8, Math.max(0.6, Math.max(bx2 - bx1, by2 - by1) / 15));
   const [CENTER] = useState(() => new THREE.Vector3(cx, 0, -cy));
   const { locale } = useI18n();
   const he = locale === "he";
@@ -58,7 +61,7 @@ export default function ApartmentOverview({ experience }: { experience: ProjectE
         <Canvas
           dpr={[1, 1.75]}
           gl={{ antialias: true, toneMapping: THREE.AgXToneMapping }}
-          camera={{ fov: 38, near: 0.1, far: 200, position: [CENTER.x + CAM_OFFSET[0], CAM_OFFSET[1], CENTER.z + CAM_OFFSET[2]] }}
+          camera={{ fov: 38, near: 0.1, far: 200, position: [CENTER.x + CAM_OFFSET[0] * k, CAM_OFFSET[1] * k, CENTER.z + CAM_OFFSET[2] * k] }}
           onPointerMissed={() => setFocus(null)}
         >
           <Suspense fallback={null}>
@@ -95,8 +98,8 @@ export default function ApartmentOverview({ experience }: { experience: ProjectE
             }}
             enableDamping
             dampingFactor={0.08}
-            minDistance={7}
-            maxDistance={32}
+            minDistance={7 * k}
+            maxDistance={32 * k}
             maxPolarAngle={Math.PI * 0.47}
             rotateSpeed={0.55}
             screenSpacePanning={false}

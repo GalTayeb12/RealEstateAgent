@@ -1017,9 +1017,9 @@ export default function BuildingPhotoStage({
         const lang = isRtl ? "he" : "en";
         return (
           <>
-            {cur.view3d && experience && (
+            {cur.view3d && (typeExp ?? experience) && (
               <div className="hn-ps-3d" key={`3d-${cur.id}`}>
-                <div><ApartmentOverview experience={typeExp ?? experience} /></div>
+                <div><ApartmentOverview experience={(typeExp ?? experience)!} /></div>
               </div>
             )}
             {stations.map((st, i) => st.image ? (

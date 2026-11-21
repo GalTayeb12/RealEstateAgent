@@ -126,9 +126,11 @@ describe("stageFromBuild (building page stations)", () => {
 
   it("makes one station per room with a still, then the plan and the top-down view", () => {
     const st = exp.photoStage!.enter!.stations!;
-    expect(st.slice(0, Object.keys(walk.rooms).length).map((s) => s.id).sort()).toEqual(Object.keys(walk.rooms).sort());
-    expect(st.slice(-2).map((s) => s.id)).toEqual(["plan-top", "plan-axo"]);
-    expect(st[st.length - 1].view3d).toBe(true);
+    // the Yarkon order: main room, top-down view, plan, then the rest
+    expect(st[1].id).toBe("plan-axo");
+    expect(st[1].view3d).toBe(true);
+    expect(st[2].id).toBe("plan-top");
+    expect(st.filter((x) => x.id !== "plan-axo" && x.id !== "plan-top").map((s) => s.id).sort()).toEqual(Object.keys(walk.rooms).sort());
     expect(exp.photoStage!.enter!.walk).toBe("/walk/ut-tlv3");
   });
 
