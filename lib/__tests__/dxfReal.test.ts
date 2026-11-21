@@ -131,3 +131,20 @@ describe("several units on one sheet", () => {
     expect(one.notes.join(" ")).not.toMatch(/larger than one apartment/);
   });
 });
+
+describe("walls drawn as filled outlines", () => {
+  const poly = (layer: string, pts: [number, number][]) =>
+    ["0", "LWPOLYLINE", "8", layer, "90", String(pts.length), "70", "1", ...pts.flatMap(([x, y]) => ["10", String(x), "20", String(y)])];
+
+  it("reads closed rectangles and L-shapes on the wall layer as walls", () => {
+    // a 6 × 4 m box of four 20 cm wall rectangles, one corner drawn as an L-shaped outline
+    const src = dxf([
+      poly("WALL", [[0, 0], [6, 0], [6, 0.2], [0.2, 0.2], [0.2, 4], [0, 4]]),
+      poly("WALL", [[0, 4], [6.2, 4], [6.2, 3.8], [0, 3.8]].reverse() as [number, number][]),
+      poly("WALL", [[6, 0], [6.2, 0], [6.2, 4], [6, 4]]),
+    ]);
+    const { twin } = parseDxf(src, { file: "solids.dxf" });
+    expect(twin.walls.length).toBeGreaterThanOrEqual(4);
+    for (const w of twin.walls) expect(w.thickness).toBeCloseTo(0.2, 1);
+  });
+});

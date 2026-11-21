@@ -9,7 +9,7 @@
  */
 import { readDxf, type DxfDoc } from "./read";
 import { detectRooms } from "./rooms";
-import { ROOM_NAMES, type Opening, type PlanTwin, type Pt, type Room, type RoomType, type Wall, bbox, pointInPolygon } from "../schema";
+import { ROOM_NAMES, type Opening, type PlanTwin, type Pt, type Room, type RoomType, type Wall, bbox, pointInPolygon, polygonArea } from "../schema";
 
 export interface LayerRules {
   wall: RegExp;
@@ -162,6 +162,50 @@ function pairFaces(segs: Seg[], minT: number, maxT: number): Piece[] {
   return out;
 }
 
+/**
+ * A wall drawn as a closed filled outline (rectangles and L-shapes of "wall
+ * material") instead of two face lines. Axis-aligned outlines are cut into
+ * rectangles; each rectangle is a wall piece along its long side. Returns null
+ * when the outline is not such a solid (a room-sized loop, or a skewed shape),
+ * so the caller reads its edges as face lines instead.
+ */
+function solidPieces(poly: Pt[], maxT: number): Piece[] | null {
+  const n = poly.length;
+  if (n < 4) return null;
+  for (let i = 0; i < n; i++) {
+    const a = poly[i], b = poly[(i + 1) % n];
+    if (Math.abs(a[0] - b[0]) > 0.003 && Math.abs(a[1] - b[1]) > 0.003) return null;
+  }
+  const area = Math.abs(polygonArea(poly));
+  let perim = 0;
+  for (let i = 0; i < n; i++) perim += Math.hypot(poly[i][0] - poly[(i + 1) % n][0], poly[i][1] - poly[(i + 1) % n][1]);
+  if (!(area > 0) || (2 * area) / perim > maxT) return null;
+  const uniq = (v: number[]) => [...v].sort((a, b) => a - b).filter((x, i, arr) => i === 0 || x - arr[i - 1] > 0.003);
+  const xs = uniq(poly.map((p) => p[0])), ys = uniq(poly.map((p) => p[1]));
+  // cells inside the outline, merged per row then vertically where the x-range matches
+  const strips: { x1: number; x2: number; y1: number; y2: number }[] = [];
+  for (let j = 0; j + 1 < ys.length; j++) {
+    let start: number | null = null;
+    for (let i = 0; i <= xs.length - 1; i++) {
+      const inside = i + 1 < xs.length && pointInPolygon([(xs[i] + xs[i + 1]) / 2, (ys[j] + ys[j + 1]) / 2], poly);
+      if (inside && start === null) start = i;
+      if (!inside && start !== null) { strips.push({ x1: xs[start], x2: xs[i], y1: ys[j], y2: ys[j + 1] }); start = null; }
+    }
+  }
+  const rects: typeof strips = [];
+  for (const st of strips) {
+    const prev = rects.find((r) => Math.abs(r.x1 - st.x1) < 0.003 && Math.abs(r.x2 - st.x2) < 0.003 && Math.abs(r.y2 - st.y1) < 0.003);
+    if (prev) prev.y2 = st.y2; else rects.push({ ...st });
+  }
+  return rects.map((r) => {
+    const horizontal = r.x2 - r.x1 >= r.y2 - r.y1;
+    const ax: Pt = horizontal ? [1, 0] : [0, 1];
+    const c: Pt = [(r.x1 + r.x2) / 2, (r.y1 + r.y2) / 2];
+    const t = horizontal ? r.y2 - r.y1 : r.x2 - r.x1;
+    return { ax, off: across(ax, c), t: Math.round(t * 200) / 200, lo: horizontal ? r.x1 : r.y1, hi: horizontal ? r.x2 : r.y2 };
+  }).filter((q) => q.t >= 0.04 && q.hi - q.lo >= 0.04);
+}
+
 interface Run { ax: Pt; off: number; t: number; lo: number; hi: number; gaps: [number, number][] }
 
 /** Merge collinear pieces into runs; short holes are filled, holes up to 3 m become candidate openings. */
@@ -287,6 +331,7 @@ export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
   const doors: { at: Pt; block: string }[] = [];
   const arcDoors: { c: Pt; r: number; ends: [Pt, Pt] }[] = [];
   const roomPolys: Pt[][] = [];
+  const solids: Piece[] = [];
   const texts: { at: Pt; text: string }[] = [];
   const ignored = new Set<string>();
 
@@ -320,6 +365,12 @@ export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
       if (e.type === "LINE") list.push({ a: P(e.a), b: P(e.b) });
       else if (e.type === "POLY") {
         const pts = e.pts.map(P);
+        if (c === "wall" && e.closed) {
+          if (near(pts[0], pts[pts.length - 1], 0.001)) pts.pop();
+          const solid = solidPieces(pts, 0.6);
+          if (solid) { solids.push(...solid); continue; }
+          pts.push(pts[0]);
+        }
         for (let i = 0; i + 1 < pts.length; i++) list.push({ a: pts[i], b: pts[i + 1] });
         if (e.closed && pts.length > 2) list.push({ a: pts[pts.length - 1], b: pts[0] });
       }
@@ -329,7 +380,7 @@ export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
   }
   for (const k2 of Object.keys(segs) as (keyof typeof segs)[]) segs[k2] = segs[k2].filter((s) => len(s) > 0.005);
   if (ignored.size) notes.push(`Layers not recognised (ignored): ${[...ignored].join(", ")}`);
-  if (!segs.wall.length) {
+  if (!segs.wall.length && !solids.length) {
     const texts0 = doc.entities.filter((e) => e.type === "TEXT").length;
     notes.push(layers.size <= 2 && texts0 === 0
       ? "No wall layer and no text: this looks like a scan converted to lines, not a CAD plan. Upload it as a PDF or an image (read by Claude), or ask the architect for the original DXF."
@@ -337,7 +388,7 @@ export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
   }
 
   // ── walls ──
-  const wallRuns = mergeRuns(pairFaces(dropCaps(segs.wall, 0.45), 0.05, 0.45));
+  const wallRuns = mergeRuns([...pairFaces(dropCaps(segs.wall, 0.45), 0.05, 0.45), ...solids]);
 
   // Door swings drawn as arcs: the opening is the stretch of wall the leaf closes over.
   // Walls are often drawn unbroken with the door symbol on top, so add the gap here.
