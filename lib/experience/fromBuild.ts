@@ -34,6 +34,8 @@ export interface BuiltWalk {
    * file names inside `<base>/stills`: still-<room>.webp, top.webp, axo.webp.
    */
   stills?: string[];
+  /** Fly-in clip (public path) made by scripts/twin/entry-video.ts; kept across rebuilds. */
+  entryVideo?: string;
 }
 
 const ROOM_ORDER = ["living", "kitchen", "dining", "master", "bedroom", "mamad", "bath", "wc", "laundry", "balcony", "corridor", "entry", "storage", "other"];
@@ -63,7 +65,7 @@ export function stageFromBuild(b: BuiltWalk, rooms: string[]): ProjectExperience
   if (has.has("top.webp")) stations.push({ id: "plan-top", image: url("top.webp"), fit: "contain", title: { he: "תוכנית הדירה", en: "Floor plan" } });
   for (const id of ordered.slice(1)) stations.push(room(id));
   const first = url(`still-${ordered[0]}.webp`);
-  return { aspect: 1.7778, buildings: [], enter: { window: first, room: first, walk: `/walk/${b.slug}`, stations } };
+  return { aspect: 1.7778, buildings: [], enter: { window: first, room: first, walk: `/walk/${b.slug}`, stations, ...(b.entryVideo ? { video: b.entryVideo, wide: true } : {}) } };
 }
 
 export function experienceFromBuild(b: BuiltWalk): ProjectExperience {

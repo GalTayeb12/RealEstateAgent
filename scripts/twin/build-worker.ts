@@ -111,6 +111,7 @@ async function build(job: BuildJob, rec: { twin: unknown; unitType: { id: string
     title: { he: label, en: label },
     aliases: [unitType.id],
     planImage: `/walk/${slug}/plan.svg`,
+    entryVideo: existsSync(path.join(ROOT, "public", "projects", slug, "entry.mp4")) ? `/projects/${slug}/entry.mp4` : undefined,
     stills: existsSync(path.join(walkDir, "stills")) ? readdirSync(path.join(walkDir, "stills")).filter((f) => f.endsWith(".webp")) : [],
   });
   const projDir = path.join(ROOT, "public", "projects", slug);

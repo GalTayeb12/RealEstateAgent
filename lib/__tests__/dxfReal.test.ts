@@ -168,5 +168,13 @@ describe("room labels for display", () => {
     expect(cleanRoomLabel("Bedroom 3.4x3.3")).toBe("Bedroom");
     expect(cleanRoomLabel("חדר שינה 2")).toBe("חדר שינה 2");
     expect(cleanRoomLabel("427 × 381")).toBe("427 × 381"); // never leave a room without a name
+    // open-plan spaces: keep what the space is
+    expect(cleanRoomLabel("מבואת כניסה מסדרון חדר מגורים מטבח פינת אוכל")).toBe("סלון ומטבח");
+    expect(cleanRoomLabel("סלון מטבח מסדרון")).toBe("סלון ומטבח");
+    expect(cleanRoomLabel("סלון ופינת אוכל")).toBe("סלון ופינת אוכל"); // two functions: a fine name as is
+    expect(cleanRoomLabel("Living, kitchen and dining area")).toBe("Living, kitchen and dining area");
+    expect(cleanRoomLabel("סלון")).toBe("סלון");
+    expect(cleanRoomLabel("חדר שינה")).toBe("חדר שינה");
+    expect(cleanRoomLabel("מסדרון כניסה")).toBe("מסדרון כניסה");
   });
 });
