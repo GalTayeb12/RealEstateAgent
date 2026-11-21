@@ -30,6 +30,8 @@ export const BuildJob = z.object({
   queuedAt: z.string(),
   startedAt: z.string().optional(),
   finishedAt: z.string().optional(),
+  /** A walkthrough from an earlier build of this unit type is still published (kept while rebuilding). */
+  previousWalk: z.boolean().optional(),
   /** Short reason when failed (also shown to the developer). */
   error: z.string().optional(),
   /** Tail of the build output, for debugging a failed build. */
@@ -68,10 +70,12 @@ export async function queueBuild(
   approvedAt: Date,
   opts: { preview?: boolean; now?: Date } = {},
 ): Promise<BuildJob> {
+  const before = await readBuildJob(storage, unitTypeId);
   const job: BuildJob = {
     unitTypeId,
     slug: buildSlug(unitTypeId),
     status: "queued",
+    ...(before && (before.status === "done" || before.previousWalk) ? { previousWalk: true } : {}),
     preview: opts.preview ?? false,
     approvedAt: approvedAt.toISOString(),
     queuedAt: (opts.now ?? new Date()).toISOString(),
@@ -97,7 +101,7 @@ export function toBuildView(job: BuildJob | null, planApprovedAt: Date | null): 
   if (!job) return null;
   return {
     status: job.status,
-    walkUrl: job.status === "done" ? `/walk/${job.slug}` : null,
+    walkUrl: job.status === "done" || job.previousWalk ? `/walk/${job.slug}` : null,
     preview: job.preview,
     queuedAt: job.queuedAt,
     finishedAt: job.finishedAt ?? null,

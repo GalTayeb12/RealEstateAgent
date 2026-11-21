@@ -45,8 +45,11 @@ export function PlanBuildStatus({
           <span style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>{TEXT.buildNone[lang]}</span>
         )}
         {build?.walkUrl && (
-          <a href={build.walkUrl} target="_blank" rel="noopener" style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)" }}>
-            {TEXT.buildOpen[lang]} ↗
+          <a
+            href={build.walkUrl} target="_blank" rel="noopener" data-testid="plan-build-open"
+            style={{ padding: "0.45rem 1rem", borderRadius: "0.4rem", fontSize: "0.875rem", fontWeight: 700, background: "var(--qp-accent)", color: "#fff", textDecoration: "none" }}
+          >
+            {TEXT.buildOpen[lang]} ↗{build.status !== "done" && ` (${TEXT.buildOpenPrevious[lang]})`}
           </a>
         )}
         {build?.stale && <span style={{ fontSize: "0.8125rem", color: "var(--qp-warning)" }}>{TEXT.buildStale[lang]}</span>}

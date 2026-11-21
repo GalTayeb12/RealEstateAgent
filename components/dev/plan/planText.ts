@@ -56,10 +56,11 @@ export const TEXT = {
   buildFailed: { he: "הבנייה נכשלה", en: "Build failed" },
   buildStale: { he: "נבנה מגרסה קודמת של התוכנית", en: "Built from an earlier version of the plan" },
   buildNone: { he: "עוד לא נבנה סיור מהתוכנית הזו", en: "No walkthrough built from this plan yet" },
-  buildOpen: { he: "לצפייה בסיור", en: "Open the walkthrough" },
+  buildOpen: { he: "פתיחת הסיור", en: "Open the walkthrough" },
+  buildOpenPrevious: { he: "הגרסה הקודמת", en: "previous version" },
   buildPreviewTag: { he: "תצוגה מקדימה", en: "preview" },
-  buildAgain: { he: "בנייה מחדש", en: "Build again" },
-  buildPreview: { he: "תצוגה מקדימה מהירה", en: "Quick preview" },
+  buildAgain: { he: "בנייה מחדש באיכות מלאה", en: "Rebuild, full quality" },
+  buildPreview: { he: "בנייה מחדש מהירה", en: "Rebuild, quick" },
   buildQueuedToast: { he: "הבנייה נכנסה לתור", en: "Build queued" },
 } satisfies Record<string, T>;
 

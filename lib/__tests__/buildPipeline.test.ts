@@ -91,6 +91,16 @@ describe("build jobs", () => {
     expect(toBuildView(done, null)!.stale).toBe(true);
   });
 
+  it("keeps linking the earlier walk while a rebuild is queued or running", async () => {
+    const s = memStorage();
+    const approvedAt = new Date("2026-11-20T10:00:00Z");
+    await writeBuildJob(s, { ...(await queueBuild(s, "u2", approvedAt)), status: "done" });
+    const again = await queueBuild(s, "u2", approvedAt, { preview: true });
+    expect(again.status).toBe("queued");
+    expect(toBuildView(again, approvedAt)).toMatchObject({ status: "queued", walkUrl: "/walk/ut-u2" });
+    expect(toBuildView(await queueBuild(s, "never-built", approvedAt), approvedAt)!.walkUrl).toBeNull();
+  });
+
   it("ignores a corrupt job file instead of throwing", async () => {
     const s = memStorage();
     s.files.set(buildJobKey("u2"), Buffer.from(JSON.stringify({ status: "weird" })));
