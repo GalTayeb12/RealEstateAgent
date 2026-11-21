@@ -402,6 +402,13 @@ function LeverageModal({
 
 // ── Alignment bar ─────────────────────────────────────────────────────────────
 
+/** Seller range, buyer range and their overlap: three clearly different colours, shared by the bar and its legend. */
+const BAR = {
+  seller: { color: "#3C8C86", opacity: 0.55 },
+  buyer: { color: "#C58B2E", opacity: 0.55 },
+  overlap: { color: "#1F5C45", opacity: 0.95 },
+} as const;
+
 function AlignmentBar({
   outcome,
   ej,
@@ -425,14 +432,14 @@ function AlignmentBar({
     <div dir="ltr" style={{ marginTop: "1.25rem", direction: "ltr" }}>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", marginBottom: "0.625rem", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>
         <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#123F40", display: "inline-block" }} />{m.results.sellerRange}
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: BAR.seller.color, opacity: BAR.seller.opacity + 0.3, display: "inline-block" }} />{m.results.sellerRange}
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: "#756039", display: "inline-block" }} />{m.results.yourRange}
+          <span style={{ width: 10, height: 10, borderRadius: 2, background: BAR.buyer.color, opacity: BAR.buyer.opacity + 0.3, display: "inline-block" }} />{m.results.yourRange}
         </span>
         {valid && (
           <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: 10, height: 10, borderRadius: 2, background: "#0E3332", display: "inline-block" }} />{m.results.overlap}
+            <span style={{ width: 10, height: 10, borderRadius: 2, background: BAR.overlap.color, display: "inline-block" }} />{m.results.overlap}
           </span>
         )}
         {showElasticity && (
@@ -444,9 +451,9 @@ function AlignmentBar({
 
       <div style={{ position: "relative" }}>
         <div style={{ position: "relative", height: "1.5rem", background: "#EFEDE6", borderRadius: 7, overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(eil), width: `${ail - eil}%`, background: "#123F40", opacity: 0.35 }} />
-          <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(aj), width: `${ej - aj}%`, background: "#756039", opacity: 0.4 }} />
-          {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(lowerBound), width: `${upperBound - lowerBound}%`, background: "#0E3332", opacity: 0.75 }} />}
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(eil), width: `${ail - eil}%`, background: BAR.seller.color, opacity: BAR.seller.opacity }} />
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(aj), width: `${ej - aj}%`, background: BAR.buyer.color, opacity: BAR.buyer.opacity }} />
+          {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(lowerBound), width: `${upperBound - lowerBound}%`, background: BAR.overlap.color, opacity: BAR.overlap.opacity }} />}
           {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(pfij), width: 2, background: "#fff", transform: "translateX(-1px)" }} />}
         </div>
         {showElasticity && (
@@ -745,12 +752,29 @@ function NearMatchCard({
           </div>
         )}
         <div style={{ marginTop: "1rem" }}>
-          <Link href={`/aom/${outcome.aomId}`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#756039", textDecoration: "none" }}>
-            {m.results.viewDetails} →
-          </Link>
+          <DetailsLink href={`/aom/${outcome.aomId}`} tone="#756039">{m.results.viewDetails} →</DetailsLink>
         </div>
       </div>
     </div>
+  );
+}
+
+/** "לפרטי הנכס": an outlined pill that fills on hover, instead of a bare text link. */
+function DetailsLink({ href, tone = "#123F40", children }: { href: string; tone?: string; children: React.ReactNode }) {
+  const [on, setOn] = useState(false);
+  return (
+    <Link
+      href={href}
+      onMouseEnter={() => setOn(true)} onMouseLeave={() => setOn(false)} onFocus={() => setOn(true)} onBlur={() => setOn(false)}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.45rem 1.1rem", borderRadius: 999,
+        border: `1.5px solid ${tone}`, background: on ? tone : "transparent", color: on ? "#fff" : tone,
+        fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none", transition: "background .18s, color .18s, transform .18s",
+        transform: on ? "translateY(-1px)" : "none",
+      }}
+    >
+      {children}
+    </Link>
   );
 }
 
@@ -766,17 +790,13 @@ function MatchCard({
   onOfferSent,
   onOpenLeverage,
   mortgageMaxPrice,
-  others = [],
   hidden = [],
-  aomDetails = {},
 }: {
   outcome: MatchOutcome;
   detail: AomDetail | undefined;
   /** Other apartment types in the same project that fit the buyer */
-  others?: MatchOutcome[];
   /** Types in the same project that fail the buyer's requirements */
   hidden?: MatchOutcome[];
-  aomDetails?: Record<string, AomDetail>;
   rank: number;
   ej: number;
   aj: number;
@@ -865,27 +885,6 @@ function MatchCard({
           </div>
         )}
 
-        {others.length > 0 && (
-          <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.375rem" }}>
-            <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#526563" }}>{m.results.otherTypesTitle}</div>
-            {others.map((o) => {
-              const d = aomDetails[o.aomId];
-              return (
-                <Link
-                  key={o.aomId}
-                  href={`/aom/${o.aomId}`}
-                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem", padding: "0.5rem 0.75rem", borderRadius: 10, border: "1px solid #D4DED8", background: "#F7F8F5", textDecoration: "none", color: "#123F40", fontSize: "0.875rem" }}
-                >
-                  <span style={{ fontWeight: 600 }}>{o.unitLabel ?? o.title}</span>
-                  <span style={{ display: "flex", gap: "0.75rem", alignItems: "center", color: "#526563", fontVariantNumeric: "tabular-nums" }}>
-                    {d && d.price > 0 && <span>{d.priceFrom ? `${m.results.from} ` : ""}<Money amount={d.price} /></span>}
-                    <span>{m.results.typeScore.replace("{n}", String(Math.round(o.zij)))}</span>
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
-        )}
         {hidden.length > 0 && (
           <p style={{ margin: "0.625rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>
             {m.results.hiddenTypesLabel}{" "}
@@ -896,9 +895,7 @@ function MatchCard({
         <AlignmentBar outcome={outcome} ej={ej} aj={aj} aom={{ eil, ail }} elasticity={elasticity} />
 
         <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
-          <Link href={`/aom/${outcome.aomId}`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", textDecoration: "none" }}>
-            {m.results.viewDetails} →
-          </Link>
+          <DetailsLink href={`/aom/${outcome.aomId}`}>{m.results.viewDetails} →</DetailsLink>
           {outcome.valid && (
             <button
               onClick={() => onOpenLeverage(outcome)}
@@ -1185,7 +1182,7 @@ export default function ResultsPage() {
         </div>
 
         {/* Full match cards */}
-        {projectCards.map(({ key, best: outcome, others, hidden }) => {
+        {projectCards.map(({ key, best: outcome, hidden }) => {
           validRank++;
           const detail = aomDetails[outcome.aomId];
           return (
@@ -1193,9 +1190,7 @@ export default function ResultsPage() {
               key={key}
               outcome={outcome}
               detail={detail}
-              others={others}
               hidden={hidden}
-              aomDetails={aomDetails}
               rank={validRank}
               ej={ej}
               aj={aj}
