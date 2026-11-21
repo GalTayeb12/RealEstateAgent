@@ -181,8 +181,6 @@ export default function DevDashboardPage() {
   const [groupCounter, setGroupCounter] = useState({ counterDiscountPercent: "", counterTerms: "" });
 
   // Project video state
-  const [projectVideoFiles, setProjectVideoFiles] = useState<Record<string, File | null>>({});
-  const [projectVideoUploading, setProjectVideoUploading] = useState<Set<string>>(new Set());
 
   // Import state
   const [importingProjectId, setImportingProjectId] = useState<string | null>(null);
@@ -326,46 +324,6 @@ export default function DevDashboardPage() {
     const res = await fetch(`/api/dev/leverage-groups/${id}/respond`, { method: "POST", headers: { ...auth(), "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!res.ok) { const d = await res.json(); alert(d.error ?? "Failed"); return; }
     setCounteringGroupId(null); setGroupCounter({ counterDiscountPercent: "", counterTerms: "" }); loadGroups();
-  }
-
-  // ── Project video upload ────────────────────────────────────────────────────
-
-  const SIZE_VIDEO_WARN_MB = 50;
-
-  async function uploadProjectVideo(projectId: string) {
-    const file = projectVideoFiles[projectId];
-    if (!file) return;
-    setProjectVideoUploading(prev => new Set(prev).add(projectId));
-    try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error("Failed to read file"));
-        reader.readAsDataURL(file);
-      });
-      const res = await fetch(`/api/dev/projects/${projectId}/video`, {
-        method: "POST",
-        headers: { ...auth(), "Content-Type": "application/json" },
-        body: JSON.stringify({ videoData: dataUrl }),
-      });
-      if (!res.ok) { const d = await res.json(); alert(d.error ?? "Upload failed"); return; }
-      setProjectVideoFiles(prev => ({ ...prev, [projectId]: null }));
-      loadProjects();
-    } catch (err) {
-      alert((err as Error).message);
-    } finally {
-      setProjectVideoUploading(prev => { const s = new Set(prev); s.delete(projectId); return s; });
-    }
-  }
-
-  async function removeProjectVideo(projectId: string) {
-    if (!confirm(m.dev.removeVideoConfirm)) return;
-    const res = await fetch(`/api/dev/projects/${projectId}/video`, {
-      method: "DELETE",
-      headers: auth(),
-    });
-    if (!res.ok) { const d = await res.json(); alert(d.error ?? "Remove failed"); return; }
-    loadProjects();
   }
 
   // ── Import ──────────────────────────────────────────────────────────────────
@@ -651,13 +609,11 @@ export default function DevDashboardPage() {
                           </div>
                         )}
 
-                        {(project.buildings ?? []).length > 0 && (
-                          <div style={{ padding: "0.75rem 1.375rem", borderTop: "1px solid #F4F5F0" }}>
-                            <Link href={`/dev/projects/${project.id}/stage`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40" }}>
-                              {m.dev.buildingImage} →
-                            </Link>
-                          </div>
-                        )}
+                        <div style={{ padding: "0.75rem 1.375rem", borderTop: "1px solid #F4F5F0" }}>
+                          <Link href={`/dev/projects/${project.id}/stage`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40" }}>
+                            {m.dev.buildingImage} →
+                          </Link>
+                        </div>
 
                         <DevInventory
                           buildings={project.buildings ?? []}
@@ -677,54 +633,6 @@ export default function DevDashboardPage() {
                             />
                           </div>
                         )}
-
-                        {/* ── Project video section ── */}
-                        <div style={{ borderTop: "1px solid #E9EEEA", padding: "0.875rem 1.375rem", background: "#F4F5F0" }}>
-                          <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "0.625rem" }}>
-                            {m.dev.projectVideo}
-                          </div>
-                          {project.hasTeaserVideo ? (
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                              <span style={{ fontSize: "0.8125rem", color: "#123F40", fontWeight: 600 }}>{m.dev.videoUploaded}</span>
-                              <button
-                                onClick={() => removeProjectVideo(project.id)}
-                                style={{ fontSize: "0.75rem", fontWeight: 600, color: "#9E3434", background: "none", border: "1px solid #9E3434", borderRadius: "0.375rem", padding: "0.25rem 0.625rem", cursor: "pointer" }}
-                              >
-                                {m.dev.remove}
-                              </button>
-                            </div>
-                          ) : (
-                            <span style={{ fontSize: "0.8125rem", color: "#526563" }}>{m.dev.noVideo}</span>
-                          )}
-                          <div style={{ display: "flex", gap: "0.625rem", alignItems: "center", marginTop: "0.5rem", flexWrap: "wrap" }}>
-                            <input
-                              type="file"
-                              accept="video/*"
-                              style={{ fontSize: "0.8125rem", color: "#123F40" }}
-                              onChange={e => {
-                                const f = e.target.files?.[0] ?? null;
-                                setProjectVideoFiles(prev => ({ ...prev, [project.id]: f }));
-                              }}
-                            />
-                            <button
-                              onClick={() => uploadProjectVideo(project.id)}
-                              disabled={projectVideoUploading.has(project.id) || !projectVideoFiles[project.id]}
-                              style={{
-                                fontSize: "0.8125rem", fontWeight: 600, color: "#fff",
-                                background: "#123F40", border: "none", borderRadius: "0.375rem",
-                                padding: "0.3rem 0.75rem", cursor: projectVideoUploading.has(project.id) || !projectVideoFiles[project.id] ? "not-allowed" : "pointer",
-                                opacity: projectVideoUploading.has(project.id) || !projectVideoFiles[project.id] ? 0.55 : 1,
-                              }}
-                            >
-                              {projectVideoUploading.has(project.id) ? m.dev.uploading : m.dev.upload}
-                            </button>
-                          </div>
-                          {projectVideoFiles[project.id] && projectVideoFiles[project.id]!.size > SIZE_VIDEO_WARN_MB * 1024 * 1024 && (
-                            <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", background: "#FCF2D9", border: "1px solid #F0D98A", borderRadius: "0.375rem", fontSize: "0.8125rem", color: "#A07020" }}>
-                              {m.dev.fileLarge}
-                            </div>
-                          )}
-                        </div>
 
                         {/* ── Import panel ── */}
                         {importingProjectId === project.id && (
