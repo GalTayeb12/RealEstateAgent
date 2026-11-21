@@ -44,6 +44,15 @@ function describe(room: TwinRoom, area: number, windows: number): string {
   return by[room.type] ?? `${name}: ${size}${light ? `, ${light}` : ""}.`;
 }
 
+/** One line under a room picture on the building page: size and light, from the twin only. */
+export function roomCaption(twin: PlanTwin, room: TwinRoom): { he: string; en: string } {
+  const area = r1(polygonArea(room.polygon));
+  const windows = windowCount(twin, room);
+  const he = `${area} מ״ר${windows >= 2 ? ", עם כמה חלונות ואור טבעי טוב" : windows === 1 ? ", עם חלון לאור טבעי" : ""}.`;
+  const en = `${area} m²${windows >= 2 ? ", several windows and plenty of daylight" : windows === 1 ? ", with a window for daylight" : ""}.`;
+  return { he, en };
+}
+
 export function modelFromTwin(twin: PlanTwin): ApartmentModelData {
   const rooms: Room[] = twin.rooms.map((r) => {
     const [x1, z1, x2, z2] = bbox(r.polygon);

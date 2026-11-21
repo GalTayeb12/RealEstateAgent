@@ -23,11 +23,15 @@ const T = {
   upload: { he: "העלאת תמונה", en: "Upload image" },
   replace: { he: "החלפת תמונה", en: "Replace image" },
   replaceWarn: { he: "להחליף את התמונה? אם הגודל זהה הסימון נשמר, אחרת הוא מתאפס.", en: "Replace the image? The marking is kept if the size is the same, otherwise it resets." },
-  litImage: { he: "תמונה עם אורות", en: "Lights-on image" },
-  litHelp: { he: "כל הדירות מוארות. הקומה שהקונה לוחץ עליה נחשפת מתוכה.", en: "Every apartment lit. The floor a buyer clicks is revealed from it." },
-  offImage: { he: "תמונה בלי אורות", en: "Lights-off image" },
-  offHelp: { he: "תצוגת הפתיחה. אותו גודל בדיוק כמו התמונה עם האורות.", en: "The opening view. Exactly the same size as the lights-on image." },
-  offFirst: { he: "קודם מעלים את התמונה עם האורות", en: "Upload the lights-on image first" },
+  litImage: { he: "תמונת לילה (אורות דולקים)", en: "Night image (lights on)" },
+  litHelp: { he: "כל הדירות מוארות. כשהקונה עובר עם העכבר על קומה, היא נדלקת מתוך התמונה הזו.", en: "Every apartment lit. When a buyer hovers a floor, it lights up from this image." },
+  offImage: { he: "תמונת יום (אורות כבויים)", en: "Day image (lights off)" },
+  offHelp: { he: "תצוגת הפתיחה של הבניין. אותו גודל בדיוק כמו תמונת הלילה.", en: "The opening view of the building. Exactly the same size as the night image." },
+  offFirst: { he: "קודם מעלים את תמונת הלילה", en: "Upload the night image first" },
+  needDay: { he: "בלי תמונת יום, קומה לא נדלקת במעבר עכבר: התמונה רק מתעממת. העלו גם תמונת יום באותו גודל.", en: "Without the day image a floor does not light up on hover: the picture just dims. Upload the day image too, same size." },
+  showNight: { he: "מציג: לילה", en: "Showing: night" },
+  showDay: { he: "מציג: יום", en: "Showing: day" },
+  buyerView: { he: "תצוגה לקונה", en: "Buyer view" },
   uploading: { he: "מעלה…", en: "Uploading…" },
   save: { he: "שמירת הסימון", en: "Save marking" },
   saving: { he: "שומר…", en: "Saving…" },
@@ -74,6 +78,7 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [rev, setRev] = useState(0);
   const [offUrl, setOffUrl] = useState<string | null>(null);
+  const [showDay, setShowDay] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [nb, setNb] = useState({ name: "", floors: "10", units: "4" });
   const stage = useRef<HTMLDivElement>(null);
@@ -259,12 +264,17 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
         {meta && imageUrl ? (
           <>
             <p style={{ margin: 0, color: "var(--qp-muted)", fontSize: "0.8125rem" }}>{T.hint[lang]}</p>
+            {!offUrl && <div role="status" style={{ fontSize: "0.8125rem", color: "var(--qp-warning)" }}>{T.needDay[lang]}</div>}
+            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              {offUrl && <button type="button" style={btn} onClick={() => setShowDay((v) => !v)}>{showDay ? T.showDay[lang] : T.showNight[lang]}</button>}
+              {types[0] && !dirty && <a href={`/aom/${types[0].id}`} target="_blank" rel="noopener" style={{ ...btn, textDecoration: "none" }}>{T.buyerView[lang]} ↗</a>}
+            </div>
             <div
               ref={stage} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
               style={{ position: "relative", width: "100%", aspectRatio: String(meta.aspect), touchAction: "none", userSelect: "none", borderRadius: "0.5rem", overflow: "hidden", background: "#111" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- a stored upload, not a static asset */}
-              <img src={`${imageUrl}?v=${rev}`} alt="" draggable={false} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "fill" }} />
+              <img src={`${showDay && offUrl ? offUrl : imageUrl}?v=${rev}`} alt="" draggable={false} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "fill" }} />
               {meta.buildings.map((bx, i) => i !== sel && (
                 <div key={i} style={{ position: "absolute", left: `${bx.x * 100}%`, top: `${bx.y * 100}%`, width: `${bx.w * 100}%`, height: `${bx.h * 100}%`, border: `1px dashed ${COLORS[i % COLORS.length]}`, opacity: 0.6, pointerEvents: "none" }} />
               ))}

@@ -132,6 +132,14 @@ describe("stageFromBuild (building page stations)", () => {
     expect(exp.photoStage!.enter!.walk).toBe("/walk/ut-tlv3");
   });
 
+  it("gives every room station a caption from the twin", () => {
+    const st = exp.photoStage!.enter!.stations!.filter((x) => x.id !== "plan-top" && x.id !== "plan-axo");
+    for (const x of st) {
+      expect(x.text?.he).toMatch(/מ״ר/);
+      expect(x.text?.en).toMatch(/m²/);
+    }
+  });
+
   it("adds no stage when no stills were rendered", () => {
     const none = experienceFromBuild({ slug: "ut-tlv3", base: "/walk/tlv3", walk, twin: TLV3_TWIN, title: { he: "ד", en: "d" } });
     expect(none.photoStage).toBeUndefined();
