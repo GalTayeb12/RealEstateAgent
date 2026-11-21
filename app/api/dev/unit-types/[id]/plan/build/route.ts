@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { PlanInputError } from "@/lib/planReview";
 import { authorizePlanOwner, planErrorResponse } from "@/lib/planReviewServer";
 import { getStorage } from "@/lib/storage";
-import { queueBuild, readBuildJob, toBuildView } from "@/lib/twin/buildJobs";
+import { isRedundantPreview, queueBuild, readBuildJob, toBuildView } from "@/lib/twin/buildJobs";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -26,6 +26,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       throw new PlanInputError(409, "הבנייה כבר בתור", "A build of this plan is already queued or running");
     }
     const body = (await req.json().catch(() => ({}))) as { preview?: unknown };
+    if (isRedundantPreview(current, rec.approvedAt.toISOString(), body.preview === true)) {
+      throw new PlanInputError(409, "הסיור כבר נבנה במהירות מהתוכנית הזו. לאיכות מלאה בחרו בנייה באיכות מלאה", "This plan was already built in quick mode. Use the full-quality rebuild instead");
+    }
     const job = await queueBuild(storage, id, rec.approvedAt, { preview: body.preview === true });
     return NextResponse.json({ build: toBuildView(job, rec.approvedAt) });
   } catch (err) {

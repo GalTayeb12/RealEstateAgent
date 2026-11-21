@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { experienceFromBuild } from "../experience/fromBuild";
 import { ProjectExperience } from "../experience/types";
-import { buildJobKey, buildSlug, queueBuild, readBuildJob, toBuildView, writeBuildJob, type BuildJob } from "../twin/buildJobs";
+import { isRedundantPreview, buildJobKey, buildSlug, queueBuild, readBuildJob, toBuildView, writeBuildJob, type BuildJob } from "../twin/buildJobs";
 import { TLV3_TWIN } from "../twin/fixtures/tlv3";
 import { planSvgFrame } from "../twin/svg";
 import type { Storage } from "../storage";
@@ -99,6 +99,16 @@ describe("build jobs", () => {
     expect(again.status).toBe("queued");
     expect(toBuildView(again, approvedAt)).toMatchObject({ status: "queued", walkUrl: "/walk/ut-u2" });
     expect(toBuildView(await queueBuild(s, "never-built", approvedAt), approvedAt)!.walkUrl).toBeNull();
+  });
+
+  it("refuses a quick rebuild of a quick build from the same approval", () => {
+    const done = { status: "done" as const, preview: true, approvedAt: "2026-11-20T10:00:00.000Z" };
+    expect(isRedundantPreview(done, done.approvedAt, true)).toBe(true);
+    expect(isRedundantPreview(done, done.approvedAt, false)).toBe(false); // full quality is a real change
+    expect(isRedundantPreview(done, "2026-11-21T00:00:00.000Z", true)).toBe(false); // newer approval
+    expect(isRedundantPreview({ ...done, preview: false }, done.approvedAt, true)).toBe(false);
+    expect(isRedundantPreview({ ...done, status: "failed" as never }, done.approvedAt, true)).toBe(false);
+    expect(isRedundantPreview(null, done.approvedAt, true)).toBe(false);
   });
 
   it("ignores a corrupt job file instead of throwing", async () => {

@@ -63,6 +63,14 @@ export async function writeBuildJob(storage: Storage, job: BuildJob): Promise<vo
   });
 }
 
+/**
+ * A quick rebuild of a plan that was already built quickly from the same
+ * approval produces the same walkthrough: refused (UI and API).
+ */
+export function isRedundantPreview(current: Pick<BuildJob, "status" | "preview" | "approvedAt"> | null, approvedAtIso: string | null, wantPreview: boolean): boolean {
+  return !!current && wantPreview && current.status === "done" && current.preview && current.approvedAt === approvedAtIso;
+}
+
 /** Queue (or re-queue) the build of an approved plan. Returns the new job. */
 export async function queueBuild(
   storage: Storage,

@@ -57,6 +57,7 @@ export const TEXT = {
   buildStale: { he: "נבנה מגרסה קודמת של התוכנית", en: "Built from an earlier version of the plan" },
   buildNone: { he: "עוד לא נבנה סיור מהתוכנית הזו", en: "No walkthrough built from this plan yet" },
   buildOpen: { he: "פתיחת הסיור", en: "Open the walkthrough" },
+  buildQuickDone: { he: "הסיור כבר נבנה במהירות מהתוכנית הזו. אפשר לבנות באיכות מלאה.", en: "Already built in quick mode from this plan. You can rebuild at full quality." },
   buildOpenPrevious: { he: "הגרסה הקודמת", en: "previous version" },
   buildPreviewTag: { he: "תצוגה מקדימה", en: "preview" },
   buildAgain: { he: "בנייה מחדש באיכות מלאה", en: "Rebuild, full quality" },

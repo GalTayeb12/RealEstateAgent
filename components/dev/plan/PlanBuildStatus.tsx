@@ -26,6 +26,7 @@ export function PlanBuildStatus({
   onBuild: (preview: boolean) => void;
 }) {
   const active = build && (build.status === "queued" || build.status === "running") && !build.stale;
+  const quickRedundant = !!build && build.status === "done" && build.preview && !build.stale;
   const btn: React.CSSProperties = {
     padding: "0.4rem 0.875rem", borderRadius: "0.4rem", fontSize: "0.8125rem", fontWeight: 600,
     border: "1px solid var(--qp-border)", background: "var(--qp-surface)", color: "var(--qp-ink)",
@@ -54,7 +55,11 @@ export function PlanBuildStatus({
         )}
         {build?.stale && <span style={{ fontSize: "0.8125rem", color: "var(--qp-warning)" }}>{TEXT.buildStale[lang]}</span>}
         <span style={{ marginInlineStart: "auto", display: "flex", gap: "0.5rem" }}>
-          <button type="button" style={btn} disabled={busy || !!active} onClick={() => onBuild(true)}>{TEXT.buildPreview[lang]}</button>
+          <button
+            type="button" disabled={busy || !!active || quickRedundant} onClick={() => onBuild(true)}
+            style={{ ...btn, ...(quickRedundant ? { cursor: "not-allowed", opacity: 0.55 } : {}) }}
+            title={quickRedundant ? TEXT.buildQuickDone[lang] : undefined}
+          >{TEXT.buildPreview[lang]}</button>
           <button type="button" style={btn} disabled={busy || !!active} onClick={() => onBuild(false)}>{TEXT.buildAgain[lang]}</button>
         </span>
       </div>
