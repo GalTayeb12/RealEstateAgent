@@ -651,6 +651,14 @@ export default function DevDashboardPage() {
                           </div>
                         )}
 
+                        {(project.buildings ?? []).length > 0 && (
+                          <div style={{ padding: "0.75rem 1.375rem", borderTop: "1px solid #F4F5F0" }}>
+                            <Link href={`/dev/projects/${project.id}/stage`} style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40" }}>
+                              {m.dev.buildingImage} →
+                            </Link>
+                          </div>
+                        )}
+
                         <DevInventory
                           buildings={project.buildings ?? []}
                           unitTypes={project.unitTypes}
