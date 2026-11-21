@@ -22,7 +22,7 @@ export interface LayerRules {
 // AIA names (A-WALL, A-DOOR, A-GLAZ), plain English, Spanish / French / German,
 // Hebrew and Chinese: what real architects' files use.
 export const DEFAULT_LAYERS: LayerRules = {
-  railing: /RAIL|BALUSTR|BARANDA|GEL[ÄA]NDER|מעקה|栏杆/i,
+  railing: /RAIL|BALUSTR|BARANDA|GEL[ÄA]NDER|מעק|栏杆/i,
   glazing: /GLAZ|WIND|WIN\b|VENTANA|FENSTER|FEN[ÊE]TRE|חלון|חלונות|זיגוג|ויטרינ|窗/i,
   door: /DOOR|PUERTA|PORTE|T[ÜU]R\b|דלת|דלתות|门/i,
   wall: /WALL|MURO|PARED|\bMUR\b|WAND\b|קיר|קירות|בניה|בנייה|墙/i,
@@ -256,11 +256,12 @@ const ROOM_KEYWORDS: [RegExp, RoomType][] = [
   [/מרפסת|balcony|terrace|loggia/i, "balcony"],
   [/ממ["״']?ד|mamad|safe\s*room|shelter/i, "mamad"],
   [/רחצה|אמבט|מקלחת|bath|shower/i, "bath"],
-  [/שירותים|שרותים|wc|toilet|powder/i, "wc"],
+  [/שירותי|שרותי|wc|toilet|powder/i, "wc"],
+  [/חדר שירות|שירות|utility/i, "laundry"],
   [/כביסה|laundry|utility/i, "laundry"],
   [/מחסן|storage|store/i, "storage"],
-  [/מטבח|kitchen/i, "kitchen"],
   [/סלון|living|lounge|family/i, "living"],
+  [/מטבח|kitchen/i, "kitchen"],
   [/פינת אוכל|dining/i, "dining"],
   [/הורים|master|parents/i, "master"],
   [/מסדרון|מבואה|פרוזדור|hall|corridor|entry|foyer|lobby/i, "corridor"],
@@ -376,7 +377,7 @@ export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
       }
       continue;
     }
-    if (c === null) ignored.add(e.layer);
+    if (c === null && !/FURN|FIXT|EQUIP|ריהוט|סניטר|כלים/i.test(e.layer)) ignored.add(e.layer);
   }
   for (const k2 of Object.keys(segs) as (keyof typeof segs)[]) segs[k2] = segs[k2].filter((s) => len(s) > 0.005);
   if (ignored.size) notes.push(`Layers not recognised (ignored): ${[...ignored].join(", ")}`);
