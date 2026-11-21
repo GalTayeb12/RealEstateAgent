@@ -9,6 +9,7 @@
 import type { PlanTwin } from "@/lib/twin/schema";
 import { planSvgFrame } from "@/lib/twin/svg";
 import { deriveWalkDefaults, twinHints } from "./derive";
+import { cleanName } from "@/lib/twin/labels";
 import { ProjectExperience, type Bilingual, type Rect, type StationMeta } from "./types";
 
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
@@ -51,7 +52,7 @@ export function stageFromBuild(b: BuiltWalk, rooms: string[]): ProjectExperience
     .sort((x, y) => ROOM_ORDER.indexOf(byType.get(x)?.type ?? "other") - ROOM_ORDER.indexOf(byType.get(y)?.type ?? "other"));
   if (!ordered.length) return undefined;
   const stations: StationMeta[] = ordered.map((id) => ({
-    id, image: url(`still-${id}.webp`), title: byType.get(id)?.name ?? { he: id, en: id },
+    id, image: url(`still-${id}.webp`), title: cleanName(byType.get(id)?.name ?? { he: id, en: id }),
   }));
   if (has.has("top.webp")) stations.push({ id: "plan-top", image: url("top.webp"), fit: "contain", title: { he: "תוכנית הדירה", en: "Floor plan" } });
   if (has.has("axo.webp")) stations.push({ id: "plan-axo", image: url("axo.webp"), fit: "contain", view3d: true, title: { he: "הדירה במבט על", en: "The apartment from above" } });

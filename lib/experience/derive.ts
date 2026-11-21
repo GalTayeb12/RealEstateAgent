@@ -10,6 +10,7 @@
  * - minimap: the plan image's extent, framed around the dollhouse centre.
  */
 import { ROOM_NAMES as TYPE_NAMES, ROOM_TYPES, type PlanTwin, type RoomType, alongWall } from "@/lib/twin/schema";
+import { cleanName } from "@/lib/twin/labels";
 import type { Bilingual, DollhouseConfig, Rect, Stand, WalkConfig, WalkRoom } from "./types";
 
 /** A segment on the plan, e.g. a window: [[x1, y1], [x2, y2]]. */
@@ -151,5 +152,5 @@ export function twinHints(t: PlanTwin): { names: Record<string, Bilingual>; wind
   }
   // glazing walls are windows end to end
   for (const w of t.walls) if (w.kind === "glazing") windows.push([w.a, w.b]);
-  return { names: Object.fromEntries(t.rooms.map((r) => [r.id, r.name])), windows };
+  return { names: Object.fromEntries(t.rooms.map((r) => [r.id, cleanName(r.name)])), windows };
 }

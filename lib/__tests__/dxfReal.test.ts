@@ -158,3 +158,15 @@ describe("Hebrew room labels", () => {
     expect(roomType("סלון מטבח")).toBe("living");
   });
 });
+
+describe("room labels for display", () => {
+  it("drops dimensions and areas, keeps the name and short numbers", async () => {
+    const { cleanRoomLabel } = await import("../twin/labels");
+    expect(cleanRoomLabel("חדר הורים 427 × 381 427")).toBe("חדר הורים");
+    expect(cleanRoomLabel("חדר שינה ג 346 × 336")).toBe("חדר שינה ג");
+    expect(cleanRoomLabel("סלון 32 מ״ר")).toBe("סלון");
+    expect(cleanRoomLabel("Bedroom 3.4x3.3")).toBe("Bedroom");
+    expect(cleanRoomLabel("חדר שינה 2")).toBe("חדר שינה 2");
+    expect(cleanRoomLabel("427 × 381")).toBe("427 × 381"); // never leave a room without a name
+  });
+});

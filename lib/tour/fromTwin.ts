@@ -6,6 +6,7 @@
  */
 import { alongWall, bbox, polygonArea, type PlanTwin, type Room as TwinRoom, type RoomType } from "@/lib/twin/schema";
 import type { ApartmentModelData, BotScript, Room } from "./types";
+import { cleanRoomLabel } from "@/lib/twin/labels";
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
@@ -47,7 +48,7 @@ export function modelFromTwin(twin: PlanTwin): ApartmentModelData {
   const rooms: Room[] = twin.rooms.map((r) => {
     const [x1, z1, x2, z2] = bbox(r.polygon);
     return {
-      id: r.id, x1, x2, z1, z2, floor: FLOOR[r.type] ?? "wood", name: r.name.he,
+      id: r.id, x1, x2, z1, z2, floor: FLOOR[r.type] ?? "wood", name: cleanRoomLabel(r.name.he),
       w: r1(x2 - x1), d: r1(z2 - z1), area: r1(polygonArea(r.polygon)), cx: r1((x1 + x2) / 2), cz: r1((z1 + z2) / 2),
     };
   });

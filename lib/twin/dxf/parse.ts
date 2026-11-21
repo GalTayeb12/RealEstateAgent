@@ -9,6 +9,7 @@
  */
 import { readDxf, type DxfDoc } from "./read";
 import { detectRooms } from "./rooms";
+import { cleanRoomLabel } from "../labels";
 import { ROOM_NAMES, type Opening, type PlanTwin, type Pt, type Room, type RoomType, type Wall, bbox, pointInPolygon, polygonArea } from "../schema";
 
 export interface LayerRules {
@@ -516,7 +517,7 @@ export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
     const m = areaText?.text.match(AREA_RE);
     return {
       id, type,
-      name: { he: nameText || ROOM_NAMES[type].he, en: ROOM_NAMES[type].en + (num ? ` ${num}` : "") },
+      name: { he: cleanRoomLabel(nameText) || ROOM_NAMES[type].he, en: ROOM_NAMES[type].en + (num && num.length <= 2 ? ` ${num}` : "") },
       polygon: poly.map(([x, y]) => [r3(x), r3(y)] as Pt),
       ...(m ? { areaDeclared: parseFloat(m[1].replace(",", ".")) } : {}),
     };
