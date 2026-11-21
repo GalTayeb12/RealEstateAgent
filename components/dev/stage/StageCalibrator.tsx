@@ -37,6 +37,13 @@ const T = {
   noImage: { he: "עוד לא הועלתה תמונה.", en: "No image uploaded yet." },
   preview: { he: "תצוגה לקונה", en: "Buyer view" },
   back: { he: "← חזרה ללוח הבקרה", en: "← Back to dashboard" },
+  addBuilding: { he: "+ הוספת בניין", en: "+ Add building" },
+  buildingName: { he: "שם הבניין", en: "Building name" },
+  floorCount: { he: "מספר קומות", en: "Floors" },
+  unitsPerFloor: { he: "דירות בקומה", en: "Apartments per floor" },
+  create: { he: "יצירת הבניין", en: "Create building" },
+  creating: { he: "יוצר…", en: "Creating…" },
+  needBuilding: { he: "קודם מוסיפים את הבניין (שם, קומות, דירות בקומה), ואחר כך מעלים את ההדמיה.", en: "First add the building (name, floors, apartments per floor), then upload the rendering." },
   wrongType: { he: "יש להעלות תמונת WebP, JPEG או PNG", en: "Use a WebP, JPEG or PNG image" },
 } satisfies Record<string, Record<Lang, string>>;
 
@@ -57,6 +64,8 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
   const [busy, setBusy] = useState<null | "upload" | "save">(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [rev, setRev] = useState(0);
+  const [addOpen, setAddOpen] = useState(false);
+  const [nb, setNb] = useState({ name: "", floors: "10", units: "4" });
   const stage = useRef<HTMLDivElement>(null);
   const drag = useRef<{ mode: Mode; start: [number, number]; box: PhotoBox } | null>(null);
 
@@ -137,6 +146,20 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
     finally { setBusy(null); }
   };
 
+  const createBuilding = async () => {
+    setBusy("save"); setMsg(null);
+    try {
+      await call(`/api/dev/projects/${projectId}/buildings`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: nb.name.trim(), floorCount: Number(nb.floors), unitsPerFloor: Number(nb.units) }),
+      });
+      const b = await call(`/api/dev/projects/${projectId}/stage`);
+      setImageUrl(b.imageUrl); setMeta(b.meta); setBuildings(b.buildings); setSel(b.buildings.length - 1);
+      setAddOpen(false); setNb({ name: "", floors: nb.floors, units: nb.units }); setDirty(false);
+    } catch (e) { setMsg({ kind: "error", text: (e as Error).message }); }
+    finally { setBusy(null); }
+  };
+
   const issues = meta ? validateStage(meta, buildings) : [];
   const save = async () => {
     if (!meta) return;
@@ -165,10 +188,11 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
 
       <div style={{ ...card, display: "flex", flexDirection: "column", gap: "0.875rem" }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" }}>
-          <label style={{ ...btn, opacity: busy ? 0.6 : 1 }}>
+          {buildings.length === 0 || addOpen ? null : <button type="button" style={btn} onClick={() => setAddOpen(true)}>{T.addBuilding[lang]}</button>}
+          {buildings.length > 0 && <label style={{ ...btn, opacity: busy ? 0.6 : 1 }}>
             {busy === "upload" ? T.uploading[lang] : imageUrl ? T.replace[lang] : T.upload[lang]}
             <input type="file" accept="image/webp,image/jpeg,image/png" hidden disabled={!!busy} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f); }} />
-          </label>
+          </label>}
           {buildings.length > 1 && buildings.map((x, i) => (
             <button key={x.id} type="button" onClick={() => setSel(i)} style={{ ...btn, borderColor: COLORS[i % COLORS.length], background: i === sel ? COLORS[i % COLORS.length] : "var(--qp-surface)", color: i === sel ? "#fff" : "var(--qp-ink)" }}>{x.name}</button>
           ))}
@@ -181,6 +205,26 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
             </button>
           </span>
         </div>
+
+        {(buildings.length === 0 || addOpen) && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "flex-end" }}>
+            {buildings.length === 0 && <p style={{ margin: 0, width: "100%", color: "var(--qp-muted)", fontSize: "0.875rem" }}>{T.needBuilding[lang]}</p>}
+            {([["name", T.buildingName, "text"], ["floors", T.floorCount, "number"], ["units", T.unitsPerFloor, "number"]] as const).map(([k, label, type]) => (
+              <label key={k} style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
+                {label[lang]}
+                <input
+                  type={type} value={nb[k]} min={type === "number" ? 1 : undefined} max={type === "number" ? (k === "floors" ? 120 : 12) : undefined}
+                  onChange={(e) => setNb((v) => ({ ...v, [k]: e.target.value }))}
+                  style={{ padding: "0.45rem 0.6rem", borderRadius: "0.4rem", border: "1px solid var(--qp-border)", background: "var(--qp-bg, #fff)", color: "var(--qp-ink)", width: k === "name" ? 180 : 100 }}
+                />
+              </label>
+            ))}
+            <button type="button" disabled={!!busy || !nb.name.trim()} onClick={createBuilding} style={{ ...btn, background: "var(--qp-accent)", color: "#fff", border: "none", opacity: busy || !nb.name.trim() ? 0.5 : 1 }}>
+              {busy ? T.creating[lang] : T.create[lang]}
+            </button>
+            {addOpen && buildings.length > 0 && <button type="button" style={btn} onClick={() => setAddOpen(false)}>✕</button>}
+          </div>
+        )}
 
         {meta && imageUrl ? (
           <>
@@ -220,7 +264,7 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
               )}
             </div>
           </>
-        ) : buildings.length > 0 ? <p style={{ margin: 0, color: "var(--qp-muted)" }}>{T.noImage[lang]}</p> : msg ? null : <p style={{ margin: 0, color: "var(--qp-muted)" }}>{T.noBuilding[lang]}</p>}
+        ) : buildings.length > 0 ? <p style={{ margin: 0, color: "var(--qp-muted)" }}>{T.noImage[lang]}</p> : null}
 
         {issues.length > 0 && <ul role="alert" style={{ margin: 0, paddingInlineStart: "1.25rem", color: "var(--qp-error)", fontSize: "0.8125rem" }}>{issues.map((i, k) => <li key={k}>{i[lang]}</li>)}</ul>}
         {msg && <div role={msg.kind === "error" ? "alert" : "status"} style={{ fontSize: "0.875rem", color: msg.kind === "error" ? "var(--qp-error)" : "var(--qp-success)" }}>{msg.text}</div>}
