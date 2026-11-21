@@ -5,7 +5,7 @@
  *   node scripts/twin/build-walk.mjs <source> <slug> [--preview] [--from <step>] [--only <step>]
  *
  * <source>: fixture name (yarkon, tlv3), architect .dxf, or twin .json — see export-twin.ts.
- * Steps (all by default):
+ * Steps (all by default; "stills" renders the room pictures of the building page):
  *   export  twin.json + layout.json         → assets-src/<slug>/
  *   build   shell + furniture (twin_build.py, twin_furnish.py) from the base .blend
  *                                           → assets-src/<slug>/blender/twin_walk.blend
@@ -38,7 +38,7 @@ const SRC = path.join(process.env.ASSETS_SRC ?? (fs.existsSync(path.join(ROOT, "
 const BASE = process.env.BASE_BLEND ?? path.join(path.dirname(SRC), "yarkon-v2/blender/apartment.blend");
 const BLEND = path.join(SRC, "blender/twin_walk.blend");
 const OUT = path.join(ROOT, "public/walk", slug);
-const STEPS = ["export", "build", "bake", "pack"];
+const STEPS = ["export", "build", "stills", "bake", "pack"];
 const from = opt("--from"), only = opt("--only");
 const run = STEPS.filter((s, i) => (only ? s === only : i >= (from ? STEPS.indexOf(from) : 0)));
 
@@ -58,6 +58,12 @@ for (const step of run) {
     times.export = sh(npx, ["tsx", "scripts/twin/export-twin.ts", source, SRC], "export twin");
   if (step === "build")
     times.build = sh(BLENDER, ["-b", BASE, "--python", "scripts/blender/twin_build.py", "--", SRC, BLEND], "build shell + furniture");
+  if (step === "stills") {
+    // room pictures + plan view + cutaway for the building page (before the bake: the shell blend is enough)
+    const dir = path.join(SRC, "stills");
+    times.stills = sh(BLENDER, ["-b", BLEND, "--python", "scripts/blender/twin_stills.py", "--", SRC, dir, PREVIEW ? "48" : "128"], "render stills");
+    times.stillsWebp = sh(npx, ["tsx", "scripts/twin/stills-to-web.ts", dir, path.join(OUT, "stills")], "stills to WebP");
+  }
   if (step === "bake") {
     const cfg = { out: path.join(SRC, "walk"), twin: SRC, ...(PREVIEW ? { lm_size: 2048, samples: 256, probe_samples: 64 } : { lm_size: 4096, samples: 2048, probe_samples: 256 }) };
     times.bake = sh(BLENDER, ["-b", BLEND, "--python", "scripts/blender/apartment_bake.py", "--python-expr",

@@ -117,3 +117,23 @@ describe("build jobs", () => {
     expect(await readBuildJob(s, "u2")).toBeNull();
   });
 });
+
+describe("stageFromBuild (building page stations)", () => {
+  const exp = experienceFromBuild({
+    slug: "ut-tlv3", base: "/walk/tlv3", walk, twin: TLV3_TWIN, title: { he: "ד", en: "d" }, planImage: "/walk/tlv3/plan.svg",
+    stills: [...Object.keys(walk.rooms).map((id) => `still-${id}.webp`), "top.webp", "axo.webp"],
+  });
+
+  it("makes one station per room with a still, then the plan and the top-down view", () => {
+    const st = exp.photoStage!.enter!.stations!;
+    expect(st.slice(0, Object.keys(walk.rooms).length).map((s) => s.id).sort()).toEqual(Object.keys(walk.rooms).sort());
+    expect(st.slice(-2).map((s) => s.id)).toEqual(["plan-top", "plan-axo"]);
+    expect(st[st.length - 1].view3d).toBe(true);
+    expect(exp.photoStage!.enter!.walk).toBe("/walk/ut-tlv3");
+  });
+
+  it("adds no stage when no stills were rendered", () => {
+    const none = experienceFromBuild({ slug: "ut-tlv3", base: "/walk/tlv3", walk, twin: TLV3_TWIN, title: { he: "ד", en: "d" } });
+    expect(none.photoStage).toBeUndefined();
+  });
+});

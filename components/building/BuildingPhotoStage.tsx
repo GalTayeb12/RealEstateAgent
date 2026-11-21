@@ -150,6 +150,12 @@ export default function BuildingPhotoStage({
   );
 
   const [meta, setMeta] = useState<PhotoMeta>(() => defaultMeta(sorted.length));
+  // The room tour of the apartment type being looked at (built from its own plan) replaces the
+  // project-level one; its experience is loaded further down, once the apartment is known.
+  const [typeExpFor, setTypeExpFor] = useState<{ id: string; exp: ProjectExperience | null } | null>(null);
+  const enterMeta = typeExpFor?.exp?.photoStage?.enter ?? meta.enter;
+  // the page is /aom/<unitTypeId>: that type's tour is the default before any apartment is picked
+  const [pageTypeId] = useState(() => (typeof window === "undefined" ? undefined : window.location.pathname.split("/").filter(Boolean).pop()));
   const [experience, setExperience] = useState<ProjectExperience | null>(null);
   const [active, setActive] = useState<Active | null>(null);
   const [debug, setDebug] = useState(false);
@@ -212,8 +218,8 @@ export default function BuildingPhotoStage({
     if (v !== null) resumeStation.current = Math.max(0, parseInt(v, 10) || 0);
   }, []);
   useEffect(() => {
-    if (resumeStation.current === null || !selectedFloor || !meta.enter) return;
-    const idx = Math.min(resumeStation.current, Math.max((meta.enter.stations?.length ?? 1) - 1, 0));
+    if (resumeStation.current === null || !selectedFloor || !enterMeta) return;
+    const idx = Math.min(resumeStation.current, Math.max((enterMeta.stations?.length ?? 1) - 1, 0));
     resumeStation.current = null;
     setActive({ buildingId: selectedFloor.buildingId, floor: selectedFloor.floor });
     setStep(5);
@@ -222,7 +228,7 @@ export default function BuildingPhotoStage({
     const v = videoRef.current;
     const bi = sorted.findIndex((x) => x.id === selectedFloor.buildingId);
     const box = bi >= 0 ? meta.buildings[bi] : undefined;
-    const clip = box?.video && box.video.startsWith("/") ? box.video : meta.enter.video;
+    const clip = box?.video && box.video.startsWith("/") ? box.video : enterMeta.video;
     if (v && clip) {
       if (v.getAttribute("src") !== clip) v.setAttribute("src", clip);
       const toEnd = () => { if (Number.isFinite(v.duration)) v.currentTime = Math.max(0, v.duration - 0.04); };
@@ -232,7 +238,7 @@ export default function BuildingPhotoStage({
     url.searchParams.delete(INSIDE_PARAM);
     window.history.replaceState(window.history.state, "", url.toString());
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot resume; sorted/meta.buildings are read at that moment
-  }, [selectedFloor, meta.enter]);
+  }, [selectedFloor, enterMeta]);
 
   useEffect(() => {
     let cancelled = false;
@@ -332,12 +338,12 @@ export default function BuildingPhotoStage({
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const fr = frameRef.current?.getBoundingClientRect();
     const st = rootRef.current?.getBoundingClientRect();
-    if (!meta.enter || reduce || step > 0 || !b || !box || !fr || !st) {
+    if (!enterMeta || reduce || step > 0 || !b || !box || !fr || !st) {
       onFloorClick(buildingId, floor);
       return;
     }
     const at = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)); };
-    if (meta.enter.wide && meta.enter.video) {
+    if (enterMeta.wide && enterMeta.video) {
       // Drone clip starts on the hero frame: crossfade straight into it, no zoom.
       pending.current = { buildingId, floor };
       select(buildingId, floor);
@@ -347,7 +353,7 @@ export default function BuildingPhotoStage({
       const v = videoRef.current;
       // Per-building clip. Set imperatively so play() runs on the right source
       // in this same click (keeps the user-gesture for autoplay policies).
-      const clip = box.video && box.video.startsWith("/") ? box.video : meta.enter.video;
+      const clip = box.video && box.video.startsWith("/") ? box.video : enterMeta.video;
       if (v && clip && v.getAttribute("src") !== clip) v.setAttribute("src", clip);
       if (v) v.currentTime = 0;
       v?.play().catch(() => finishEnter());
@@ -363,13 +369,13 @@ export default function BuildingPhotoStage({
     clearTimers();
     at(950, () => {
       setStep(2);
-      if (meta.enter?.video) {
+      if (enterMeta?.video) {
         if (videoRef.current) videoRef.current.currentTime = 0;
         videoRef.current?.play().catch(() => finishEnter());
         at(12000, finishEnter);
       }
     });
-    if (!meta.enter.video) {
+    if (!enterMeta.video) {
       at(1550, () => setStep(3));
       at(2300, () => setStep(4));
       at(3500, finishEnter);
@@ -387,11 +393,10 @@ export default function BuildingPhotoStage({
   })();
   // A unit type built from the developer's own plan has its own walk and top-down view
   // (lib/experience, aliased by unit type id); otherwise the page's default one is used.
-  const [typeExpFor, setTypeExpFor] = useState<{ id: string; exp: ProjectExperience } | null>(null);
-  const tourTypeId = tourUnit?.unitTypeId;
+  const tourTypeId = tourUnit?.unitTypeId ?? pageTypeId;
   useEffect(() => {
     let live = true;
-    if (tourTypeId) fetchExperience(tourTypeId).then((e) => { if (live && e?.walk) setTypeExpFor({ id: tourTypeId, exp: e }); });
+    if (tourTypeId) fetchExperience(tourTypeId).then((e) => { if (live) setTypeExpFor({ id: tourTypeId, exp: e?.walk ? e : null }); });
     return () => { live = false; };
   }, [tourTypeId]);
   const typeExp = typeExpFor && typeExpFor.id === tourTypeId ? typeExpFor.exp : null;
@@ -424,7 +429,7 @@ export default function BuildingPhotoStage({
   const startPick = (buildingId: string, floor: number) => {
     const b = sorted.find((x) => x.id === buildingId);
     const units = (b?.units ?? []).filter((u) => u.floor === floor);
-    if (!meta.enter || step > 0 || units.length === 0) { startEnter(buildingId, floor); return; }
+    if (!enterMeta || step > 0 || units.length === 0) { startEnter(buildingId, floor); return; }
     if (units.length === 1) { pickApartment(units[0], buildingId); return; }
     const c = camFor(buildingId, floor, 0.8, 1.5, 4.5);
     clearTimers();
@@ -483,7 +488,7 @@ export default function BuildingPhotoStage({
   }, [step, selectedFloor, panelBuilding?.id, panelFloors.join(","), lit?.buildingId, lit?.floor, litInfo?.lobby, meta]);
 
   // Keyboard: left/right between room stations once inside.
-  const stationCount = meta.enter?.stations?.length ?? 0;
+  const stationCount = enterMeta?.stations?.length ?? 0;
   useEffect(() => {
     if (step < 5 || stationCount < 2) return;
     const onKey = (e: KeyboardEvent) => {
@@ -948,13 +953,13 @@ export default function BuildingPhotoStage({
       <div className="hn-ps-vignette" aria-hidden />
 
       {/* Fly-in layers: window close-up, then the living room */}
-      {meta.enter && (
+      {enterMeta && (
         <>
-          {!meta.enter.video && (
+          {!enterMeta.video && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             className="hn-ps-fly"
-            src={meta.enter.room}
+            src={enterMeta.room}
             alt=""
             aria-hidden
             draggable={false}
@@ -966,11 +971,11 @@ export default function BuildingPhotoStage({
             }}
           />
           )}
-          {meta.enter.video ? (
+          {enterMeta.video ? (
             <video
               ref={videoRef}
               className="hn-ps-fly"
-              src={meta.enter.video}
+              src={enterMeta.video}
               muted
               playsInline
               preload="auto"
@@ -981,7 +986,7 @@ export default function BuildingPhotoStage({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               className="hn-ps-fly"
-              src={meta.enter.window}
+              src={enterMeta.window}
               alt=""
               aria-hidden
               draggable={false}
@@ -1004,9 +1009,9 @@ export default function BuildingPhotoStage({
       )}
 
       {/* Inside the apartment: room stations */}
-      {meta.enter && step >= 5 && (() => {
-        const stations: StationMeta[] = meta.enter.stations && meta.enter.stations.length
-          ? meta.enter.stations
+      {enterMeta && step >= 5 && (() => {
+        const stations: StationMeta[] = enterMeta.stations && enterMeta.stations.length
+          ? enterMeta.stations
           : [{ id: "living", title: { he: "הסלון", en: "The living room" } }];
         const cur = stations[Math.min(station, stations.length - 1)];
         const lang = isRtl ? "he" : "en";
@@ -1044,8 +1049,8 @@ export default function BuildingPhotoStage({
                   {st.title[lang]}
                 </button>
               ))}
-              {meta.enter?.walk && (
-                <a className="hn-ps-walk" href={walkHref(meta.enter.walk)}>{t.walk}</a>
+              {enterMeta?.walk && (
+                <a className="hn-ps-walk" href={walkHref(enterMeta.walk)}>{t.walk}</a>
               )}
             </div>
 

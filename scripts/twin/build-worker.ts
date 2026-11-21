@@ -19,7 +19,7 @@
  * Env: as build-walk.mjs (BLENDER, ASSETS_SRC, BASE_BLEND), plus DATABASE_URL.
  */
 import { spawn } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
@@ -111,6 +111,7 @@ async function build(job: BuildJob, rec: { twin: unknown; unitType: { id: string
     title: { he: label, en: label },
     aliases: [unitType.id],
     planImage: `/walk/${slug}/plan.svg`,
+    stills: existsSync(path.join(walkDir, "stills")) ? readdirSync(path.join(walkDir, "stills")).filter((f) => f.endsWith(".webp")) : [],
   });
   const projDir = path.join(ROOT, "public", "projects", slug);
   mkdirSync(projDir, { recursive: true });
