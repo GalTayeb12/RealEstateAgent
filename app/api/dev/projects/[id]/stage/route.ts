@@ -44,8 +44,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const o = await owned(req, id);
   if ("res" in o) return o.res;
-  const [meta, ext] = await Promise.all([readMeta(id), currentExt(id)]);
-  return NextResponse.json({ imageUrl: ext ? stageImageUrl(id, ext) : null, meta, buildings: o.project.buildings });
+  const [meta, ext, units, unitTypes] = await Promise.all([
+    readMeta(id), currentExt(id),
+    prisma.unit.findMany({ where: { projectId: id }, select: { id: true, buildingId: true, floor: true, positionIndex: true, unitTypeId: true, status: true } }),
+    prisma.unitType.findMany({ where: { projectId: id }, orderBy: { createdAt: "asc" }, select: { id: true, unitLabel: true } }),
+  ]);
+  return NextResponse.json({ imageUrl: ext ? stageImageUrl(id, ext) : null, meta, buildings: o.project.buildings, units, unitTypes });
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

@@ -9,6 +9,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
 import type { PhotoBox, PhotoMeta } from "@/lib/experience/types";
+import { PlacementGrid, type GridType, type GridUnit } from "./PlacementGrid";
+import type { CellEdit } from "@/lib/placement";
 import { evenBands, evenSlots, validateStage, type StageBuilding } from "@/lib/stage";
 
 type Lang = "he" | "en";
@@ -59,6 +61,8 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [meta, setMeta] = useState<PhotoMeta | null>(null);
   const [buildings, setBuildings] = useState<StageBuilding[]>([]);
+  const [units, setUnits] = useState<GridUnit[]>([]);
+  const [types, setTypes] = useState<GridType[]>([]);
   const [sel, setSel] = useState(0);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState<null | "upload" | "save">(null);
@@ -81,7 +85,7 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
   useEffect(() => {
     let live = true;
     call(`/api/dev/projects/${projectId}/stage`)
-      .then((b) => { if (!live) return; setImageUrl(b.imageUrl); setMeta(b.meta); setBuildings(b.buildings); })
+      .then((b) => { if (!live) return; setImageUrl(b.imageUrl); setMeta(b.meta); setBuildings(b.buildings); setUnits(b.units ?? []); setTypes(b.unitTypes ?? []); })
       .catch((e: Error) => { if (live) setMsg({ kind: "error", text: e.message }); });
     return () => { live = false; };
   }, [call, projectId]);
@@ -154,8 +158,20 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
         body: JSON.stringify({ name: nb.name.trim(), floorCount: Number(nb.floors), unitsPerFloor: Number(nb.units) }),
       });
       const b = await call(`/api/dev/projects/${projectId}/stage`);
-      setImageUrl(b.imageUrl); setMeta(b.meta); setBuildings(b.buildings); setSel(b.buildings.length - 1);
+      setImageUrl(b.imageUrl); setMeta(b.meta); setBuildings(b.buildings); setUnits(b.units ?? []); setTypes(b.unitTypes ?? []); setSel(b.buildings.length - 1);
       setAddOpen(false); setNb({ name: "", floors: nb.floors, units: nb.units }); setDirty(false);
+    } catch (e) { setMsg({ kind: "error", text: (e as Error).message }); }
+    finally { setBusy(null); }
+  };
+
+  const place = async (cells: CellEdit[]) => {
+    const target = buildings[sel];
+    if (!target) return;
+    setBusy("save"); setMsg(null);
+    try {
+      const r = await call(`/api/dev/buildings/${target.id}/units`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ cells }) });
+      setUnits((prev) => [...prev.filter((u) => u.buildingId !== target.id), ...r.units.map((u: Omit<GridUnit, "buildingId">) => ({ ...u, buildingId: target.id }))]);
+      return { blocked: (r.blocked ?? []).length as number };
     } catch (e) { setMsg({ kind: "error", text: (e as Error).message }); }
     finally { setBusy(null); }
   };
@@ -269,6 +285,12 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
         {issues.length > 0 && <ul role="alert" style={{ margin: 0, paddingInlineStart: "1.25rem", color: "var(--qp-error)", fontSize: "0.8125rem" }}>{issues.map((i, k) => <li key={k}>{i[lang]}</li>)}</ul>}
         {msg && <div role={msg.kind === "error" ? "alert" : "status"} style={{ fontSize: "0.875rem", color: msg.kind === "error" ? "var(--qp-error)" : "var(--qp-success)" }}>{msg.text}</div>}
       </div>
+
+      {b && (
+        <div style={card}>
+          <PlacementGrid lang={lang} building={b} units={units} types={types} busy={busy !== null} onApply={place} />
+        </div>
+      )}
     </div>
   );
 }
