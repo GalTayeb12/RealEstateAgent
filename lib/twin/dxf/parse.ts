@@ -255,7 +255,7 @@ const ROOM_KEYWORDS: [RegExp, RoomType][] = [
   [/卧室|书房|dormitorio|habitaci[oó]n/i, "bedroom"],
   [/מרפסת|balcony|terrace|loggia/i, "balcony"],
   [/ממ["״']?ד|mamad|safe\s*room|shelter/i, "mamad"],
-  [/רחצה|אמבט|מקלחת|bath|shower/i, "bath"],
+  [/רחצ|אמבט|מקלחת|bath|shower/i, "bath"],
   [/שירותי|שרותי|wc|toilet|powder/i, "wc"],
   [/חדר שירות|שירות|utility/i, "laundry"],
   [/כביסה|laundry|utility/i, "laundry"],

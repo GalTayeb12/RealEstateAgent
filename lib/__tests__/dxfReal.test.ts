@@ -148,3 +148,13 @@ describe("walls drawn as filled outlines", () => {
     for (const w of twin.walls) expect(w.thickness).toBeCloseTo(0.2, 1);
   });
 });
+
+describe("Hebrew room labels", () => {
+  it("reads the parents' bathroom as a bathroom, not a bedroom", () => {
+    expect(roomType("רחצת הורים 246 × 265")).toBe("bath");
+    expect(roomType("חדר רחצה")).toBe("bath");
+    expect(roomType("חדר הורים")).toBe("master");
+    expect(roomType("שירותי אורחים")).toBe("wc");
+    expect(roomType("סלון מטבח")).toBe("living");
+  });
+});

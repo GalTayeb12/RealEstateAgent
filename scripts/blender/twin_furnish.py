@@ -138,18 +138,29 @@ def try_place(name, room, cands, allow=(), max_path_checks=30, quiet=False):
     Returns the payload of the best candidate that passes, after registering its boxes."""
     cands = sorted(cands, key=lambda c: -c[0])
     checked = 0
+    why = {"outside": 0, "solid": 0, "clear": 0, "keep": 0, "clear_blocked": 0, "path": 0}
     solid_rects = [s for s, _ in SOLIDS]
     for score, solids, clears, must, payload in cands:
         if any(not inside_room(s, room.id, allow) for s in solids):
+            why["outside"] += 1
             continue
-        if any(overlaps_any(s, solid_rects) or overlaps_any(s, CLEARS) or overlaps_any(s, room.keep) for s in solids):
+        if any(overlaps_any(s, solid_rects) for s in solids):
+            why["solid"] += 1
+            continue
+        if any(overlaps_any(s, CLEARS) for s in solids):
+            why["clear"] += 1
+            continue
+        if any(overlaps_any(s, room.keep) for s in solids):
+            why["keep"] += 1
             continue
         if any(overlaps_any(c, solid_rects) or not inside_room(c, room.id, allow + tuple(P.rooms)) for c in clears):
+            why["clear_blocked"] += 1
             continue
         checked += 1
         if checked > max_path_checks:
             break
         if not GRID.ok(extra=solids, must=must):
+            why["path"] += 1
             continue
         for s in solids:
             SOLIDS.append((s, name))
@@ -158,7 +169,7 @@ def try_place(name, room, cands, allow=(), max_path_checks=30, quiet=False):
         LOG.append({"room": room.id, "item": name, "boxes": [[round(v, 3) for v in s] for s in solids], "score": round(score, 2)})
         return payload
     if not quiet:
-        print(f"  - {room.id}: no spot for {name} ({len(cands)} candidates, {checked} path-checked)")
+        print(f"  - {room.id}: no spot for {name} ({len(cands)} candidates, {checked} path-checked; rejected: " + ", ".join(f"{k}={v}" for k, v in why.items() if v) + ")")
     return None
 
 
@@ -390,6 +401,53 @@ def furnish_bath(room):
             build_tub(*r)
             fr.box("tub_filler", a2 + 0.02, 0.4, 0, a2 + 0.06, 0.44, 0.95, M["steel"]) if a2 + 0.1 < side["L"] else None
 
+    # Order matters in a small bathroom: the shower needs a corner, then the toilet a stretch of wall,
+    # and the vanity (the most flexible piece: three widths) takes what is left. In a small room the
+    # open side of a walk-in shower is not kept clear (it is entered from the room anyway).
+    # walk-in shower in a corner (two walls), screen on the room side, entry left open
+    cands = []
+    for S in (((1.2, 0.95), (1.0, 0.9), (0.9, 0.85)) if room.w * room.d >= 6.0 else ((0.9, 0.85),)):
+        for side, a1, a2, s1, s2 in room.wall_cands(S[0], kind_wall_or_high_window(1.2), align="ends"):
+            at_corner = (a1 < 0.02 and side["kinds"][0] != "open") or (a2 > side["L"] - 0.02)
+            if not at_corner:
+                continue
+            fr = room.frame(side)
+            cands.append((S[0] + (0.5 if room.relation(side) != "door" else 0), [frect(fr, a1, 0, a2, S[1])],
+                          ([frect(fr, a1, S[1], a2, S[1] + 0.6)] if room.w * room.d >= 6.0 else []), [], (side, a1, a2, S[1])))
+    got = try_place("shower", room, cands)
+    if got:
+        side, a1, a2, dep = got
+        fr = room.frame(side)
+        fr.box("shower_tray", a1, 0.0, 0, a2, dep, 0.015, M["bathfloor"])
+        inner_end = a2 if a1 < 0.02 else a1  # the open end of the stall faces the room
+        # glass on the long open side, leaving 0.6 m to step in at the room end
+        g1, g2 = (a1, a2 - 0.6) if inner_end == a2 else (a1 + 0.6, a2)
+        fr.box("shower_glass", g1, dep - 0.01, 0, g2, dep, 2.0, M["clear_glass"])
+        fr.box("shower_bar", g1, dep - 0.012, 1.98, g2, dep + 0.002, 2.0, M["frame"])
+        c = (a1 + a2) / 2
+        fr.cyl("shower_head", c, dep / 2, 2.3, 2.31, 0.15, M["steel"])
+        fr.box("shower_arm", c - 0.01, 0.0, 2.3, c + 0.01, dep / 2, 2.32, M["steel"])
+
+    # wall-hung toilet with a concealed cistern ledge
+    got = None
+    for clear_depth in (0.6, 0.3):  # a small bathroom gets a tighter step-in zone rather than no toilet
+        cands = []
+        for side, a1, a2, s1, s2 in room.wall_cands(0.8, kind_wall_or_high_window(1.1)):
+            fr = room.frame(side)
+            score = {"opposite": 0.3, "beside": 1.0, "door": 0.6}[room.relation(side)] - 0.1 * min(a1 - s1, s2 - a2)
+            cands.append((score, [frect(fr, a1 + 0.2, 0, a2 - 0.2, 0.75)], [frect(fr, a1, 0.75, a2, 0.75 + clear_depth)], [], (side, a1, a2)))
+        got = try_place("toilet", room, cands, quiet=clear_depth > 0.3)
+        if got:
+            break
+    if got:
+        side, a1, a2 = got
+        fr = room.frame(side)
+        c = (a1 + a2) / 2
+        fr.box("wc_ledge", a1 + 0.05, 0.0, 0, a2 - 0.05, 0.2, 1.05, M["tile"])
+        L.subsurf(fr.box("toilet", c - 0.19, 0.2, 0.32, c + 0.19, 0.72, 0.42, M["porcelain"]), 3)
+        fr.box("wc_lid", c - 0.18, 0.21, 0.42, c + 0.18, 0.71, 0.44, M["porcelain"], bevel=0.015)
+        fr.box("wc_flush", c - 0.1, 0.2, 0.85, c + 0.1, 0.21, 0.95, M["steel"])
+
     # vanity against a plain wall (the mirror needs one), double basin when there is room
     cands = []
     for Lv in ((1.6, 1.2, 0.9) if big else (1.2, 0.9, 0.7)):
@@ -411,47 +469,6 @@ def furnish_bath(room):
             fr.box(f"basin_spout_{i}", c - 0.01, 0.05, 1.06, c + 0.01, 0.21, 1.08, M["brass"])
         fr.box("bath_mirror", a1 + 0.05, 0.0, 1.1, a2 - 0.05, 0.02, 1.9, M["mirror"])
         fr.box("bath_led", a1 + 0.05, 0.02, 1.9, a2 - 0.05, 0.04, 1.92, M["led"])
-
-    # walk-in shower in a corner (two walls), screen on the room side, entry left open
-    cands = []
-    for S in ((1.2, 0.95), (1.0, 0.9), (0.9, 0.85)):
-        for side, a1, a2, s1, s2 in room.wall_cands(S[0], kind_wall_or_high_window(1.2), align="ends"):
-            at_corner = (a1 < 0.02 and side["kinds"][0] != "open") or (a2 > side["L"] - 0.02)
-            if not at_corner:
-                continue
-            fr = room.frame(side)
-            cands.append((S[0] + (0.5 if room.relation(side) != "door" else 0), [frect(fr, a1, 0, a2, S[1])],
-                          [frect(fr, a1, S[1], a2, S[1] + 0.6)], [], (side, a1, a2, S[1])))
-    got = try_place("shower", room, cands)
-    if got:
-        side, a1, a2, dep = got
-        fr = room.frame(side)
-        fr.box("shower_tray", a1, 0.0, 0, a2, dep, 0.015, M["bathfloor"])
-        inner_end = a2 if a1 < 0.02 else a1  # the open end of the stall faces the room
-        # glass on the long open side, leaving 0.6 m to step in at the room end
-        g1, g2 = (a1, a2 - 0.6) if inner_end == a2 else (a1 + 0.6, a2)
-        fr.box("shower_glass", g1, dep - 0.01, 0, g2, dep, 2.0, M["clear_glass"])
-        fr.box("shower_bar", g1, dep - 0.012, 1.98, g2, dep + 0.002, 2.0, M["frame"])
-        c = (a1 + a2) / 2
-        fr.cyl("shower_head", c, dep / 2, 2.3, 2.31, 0.15, M["steel"])
-        fr.box("shower_arm", c - 0.01, 0.0, 2.3, c + 0.01, dep / 2, 2.32, M["steel"])
-
-    # wall-hung toilet with a concealed cistern ledge
-    cands = []
-    for side, a1, a2, s1, s2 in room.wall_cands(0.8, kind_wall_or_high_window(1.1)):
-        fr = room.frame(side)
-        score = {"opposite": 0.3, "beside": 1.0, "door": 0.6}[room.relation(side)] - 0.1 * min(a1 - s1, s2 - a2)
-        cands.append((score, [frect(fr, a1 + 0.2, 0, a2 - 0.2, 0.75)], [frect(fr, a1, 0.75, a2, 1.35)], [], (side, a1, a2)))
-    got = try_place("toilet", room, cands)
-    if got:
-        side, a1, a2 = got
-        fr = room.frame(side)
-        c = (a1 + a2) / 2
-        fr.box("wc_ledge", a1 + 0.05, 0.0, 0, a2 - 0.05, 0.2, 1.05, M["tile"])
-        L.subsurf(fr.box("toilet", c - 0.19, 0.2, 0.32, c + 0.19, 0.72, 0.42, M["porcelain"]), 3)
-        fr.box("wc_lid", c - 0.18, 0.21, 0.42, c + 0.18, 0.71, 0.44, M["porcelain"], bevel=0.015)
-        fr.box("wc_flush", c - 0.1, 0.2, 0.85, c + 0.1, 0.21, 0.95, M["steel"])
-
 
 def furnish_bedroom(room):
     t = room.type

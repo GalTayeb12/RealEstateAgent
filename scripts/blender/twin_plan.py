@@ -325,6 +325,12 @@ class Grid:
             for o in w.openings:
                 if w.axis and o["kind"] in PASSABLE:
                     x1, y1, x2, y2 = w.footprint(o["at"] - o["width"] / 2, o["at"] + o["width"] / 2)
+                    # room polygons often stop short of a thick wall's face (a real plan: ~10 cm), which
+                    # left a gap between the room and the doorway; bridge it across the wall's thickness
+                    if (x2 - x1) >= (y2 - y1):
+                        y1, y2 = y1 - 0.15, y2 + 0.15
+                    else:
+                        x1, x2 = x1 - 0.15, x2 + 0.15
                     for j in range(max(0, int((y1 - self.y0) / cell)), min(self.ny, int((y2 - self.y0) / cell) + 1)):
                         for i in range(max(0, int((x1 - self.x0) / cell)), min(self.nx, int((x2 - self.x0) / cell) + 1)):
                             self.inside[j * self.nx + i] = 1
