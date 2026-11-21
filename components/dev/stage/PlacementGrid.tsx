@@ -30,6 +30,9 @@ const T = {
   noTypes: { he: "אין עדיין סוגי דירות בפרויקט. הוסיפו סוג דירה בדף הפרויקט.", en: "This project has no apartment types yet. Add one on the project page." },
   locked: { he: "דירה שנשמרה או נמכרה לא משתנה", en: "Reserved or sold apartments are not changed" },
   count: { he: "דירות בבניין", en: "apartments in the building" },
+  outside: { he: "דירות מחוץ לגודל הבניין (נשארו מגודל קודם)", en: "apartments outside the building size (left from an earlier size)" },
+  removeOutside: { he: "הסרת הדירות שמחוץ לבניין", en: "Remove apartments outside the building" },
+  onlyAvailable: { he: "רק דירות פנויות יוסרו", en: "Only available apartments are removed" },
   blocked: { he: "דירות שלא שונו כי הן כבר שמורות או נמכרו", en: "apartments left unchanged because they are reserved or sold" },
 } satisfies Record<string, Record<Lang, string>>;
 
@@ -50,6 +53,7 @@ export function PlacementGrid({
   const [anchor, setAnchor] = useState<{ floor: number; positionIndex: number } | null>(null);
   const [blockedMsg, setBlockedMsg] = useState(0);
   const mine = useMemo(() => units.filter((u) => u.buildingId === building.id), [units, building.id]);
+  const outsideUnits = useMemo(() => mine.filter((u) => u.floor > building.floorCount || u.positionIndex >= building.unitsPerFloor), [mine, building.floorCount, building.unitsPerFloor]);
   const at = useMemo(() => new Map(mine.map((u) => [key(u.floor, u.positionIndex), u])), [mine]);
   const colorOf = (id: string) => PALETTE[Math.max(types.findIndex((t) => t.id === id), 0) % PALETTE.length];
   const floors = Array.from({ length: building.floorCount }, (_, i) => building.floorCount - i);
@@ -87,6 +91,12 @@ export function PlacementGrid({
               {busy ? T.saving[lang] : picked.size > 0 ? `${picked.size} ${T.selected[lang]}` : `${mine.length} ${T.count[lang]}`}
             </span>
           </div>
+          {outsideUnits.length > 0 && (
+            <div role="alert" style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center", padding: "0.6rem 0.8rem", borderRadius: "0.5rem", background: "var(--qp-warning-bg)", color: "var(--qp-warning)", fontSize: "0.8125rem" }}>
+              <span>{outsideUnits.length} {T.outside[lang]}</span>
+              <button type="button" disabled={busy} title={T.onlyAvailable[lang]} onClick={async () => { const r = await onApply(outsideUnits.map((u) => ({ floor: u.floor, positionIndex: u.positionIndex, unitTypeId: null }))); setBlockedMsg(r ? r.blocked : 0); }} style={btn}>{T.removeOutside[lang]}</button>
+            </div>
+          )}
           {blockedMsg > 0 && <div role="status" style={{ fontSize: "0.8125rem", color: "var(--qp-warning)" }}>{blockedMsg} {T.blocked[lang]}</div>}
 
           <div

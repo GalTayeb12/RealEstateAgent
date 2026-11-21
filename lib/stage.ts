@@ -98,3 +98,22 @@ export function cleanMeta(m: PhotoMeta): PhotoMeta {
     })),
   };
 }
+
+/**
+ * Keep the marking in step with the buildings after floors or apartments per
+ * floor changed: floor lines and apartment dots are re-spaced inside the frame
+ * for a building whose counts no longer match; frames the developer placed stay.
+ */
+export function reconcileMeta(meta: PhotoMeta, buildings: StageBuilding[]): { meta: PhotoMeta; changed: boolean } {
+  let changed = false;
+  const out = meta.buildings.map((box, i) => {
+    const b = buildings[i];
+    if (!b) return box;
+    let next = box;
+    if (box.bands && box.bands.length !== b.floorCount + 1) { next = { ...next, bands: evenBands(box, b.floorCount) }; changed = true; }
+    if (box.slots && box.slots.length !== b.unitsPerFloor) { next = { ...next, slots: evenSlots(b.unitsPerFloor) }; changed = true; }
+    if (!box.bands && !box.slots) return box;
+    return next;
+  });
+  return { meta: { ...meta, buildings: out }, changed };
+}

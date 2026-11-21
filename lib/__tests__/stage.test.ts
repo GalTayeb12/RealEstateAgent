@@ -45,3 +45,19 @@ describe("stage", () => {
     expect(sameProportions(1.78, 1.5)).toBe(false);
   });
 });
+
+describe("reconcileMeta", () => {
+  it("re-spaces floor lines and apartment dots when a building was resized, keeps the frame", async () => {
+    const { reconcileMeta } = await import("../stage");
+    const old: StageBuilding[] = [{ id: "a", name: "A", floorCount: 14, unitsPerFloor: 4 }];
+    const meta = defaultMeta(1.7777, old);
+    const now: StageBuilding[] = [{ id: "a", name: "A", floorCount: 6, unitsPerFloor: 3 }];
+    const r = reconcileMeta(meta, now);
+    expect(r.changed).toBe(true);
+    expect(r.meta.buildings[0].bands).toHaveLength(7);
+    expect(r.meta.buildings[0].slots).toHaveLength(3);
+    expect(r.meta.buildings[0].x).toBe(meta.buildings[0].x);
+    expect(validateStage(r.meta, now)).toEqual([]);
+    expect(reconcileMeta(r.meta, now).changed).toBe(false);
+  });
+});

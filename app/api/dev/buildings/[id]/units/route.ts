@@ -37,7 +37,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return zodError(parsed.error);
   const { cells } = parsed.data;
-  if (cells.some((c) => c.floor > building.floorCount || c.positionIndex >= building.unitsPerFloor)) {
+  // placing outside the building is refused; clearing an apartment that is outside (left from a resize) is allowed
+  if (cells.some((c) => c.unitTypeId !== null && (c.floor > building.floorCount || c.positionIndex >= building.unitsPerFloor))) {
     return NextResponse.json({ error: "A cell is outside the building", errorHe: "תא מחוץ לגבולות הבניין" }, { status: 422 });
   }
   const typeIds = [...new Set(cells.flatMap((c) => (c.unitTypeId ? [c.unitTypeId] : [])))];

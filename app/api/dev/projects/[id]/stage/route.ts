@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { extractToken } from "@/lib/auth";
 import { getStorage } from "@/lib/storage";
 import { PhotoMeta } from "@/lib/experience/types";
+import { syncStageToBuildings } from "@/lib/stageServer";
 import { MAX_STAGE_IMAGE_BYTES, STAGE_EXTS, cleanMeta, defaultMeta, sameProportions, sniffImage, stageImageUrl, stageKey, validateStage, type StageKind } from "@/lib/stage";
 
 async function owned(req: NextRequest, id: string) {
@@ -45,7 +46,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const o = await owned(req, id);
   if ("res" in o) return o.res;
   const [meta, ext, units, unitTypes] = await Promise.all([
-    readMeta(id), currentExt(id),
+    // a building resized since the last save: floor lines and apartment dots follow it
+    syncStageToBuildings(id, o.project.buildings), currentExt(id),
     prisma.unit.findMany({ where: { projectId: id }, select: { id: true, buildingId: true, floor: true, positionIndex: true, unitTypeId: true, status: true } }),
     prisma.unitType.findMany({ where: { projectId: id }, orderBy: { createdAt: "asc" }, select: { id: true, unitLabel: true } }),
   ]);
