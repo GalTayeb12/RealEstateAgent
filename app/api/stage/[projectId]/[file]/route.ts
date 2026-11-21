@@ -8,6 +8,7 @@ import { stageKey } from "@/lib/stage";
 
 const TYPES: Record<string, string> = {
   "on.webp": "image/webp", "on.jpg": "image/jpeg", "on.png": "image/png", "on.json": "application/json",
+  "off.webp": "image/webp", "off.jpg": "image/jpeg", "off.png": "image/png",
 };
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ projectId: string; file: string }> }) {

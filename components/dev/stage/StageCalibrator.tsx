@@ -22,7 +22,12 @@ const T = {
   },
   upload: { he: "העלאת תמונה", en: "Upload image" },
   replace: { he: "החלפת תמונה", en: "Replace image" },
-  replaceWarn: { he: "החלפת התמונה מאפסת את הסימון. להמשיך?", en: "Replacing the image resets the marking. Continue?" },
+  replaceWarn: { he: "להחליף את התמונה? אם הגודל זהה הסימון נשמר, אחרת הוא מתאפס.", en: "Replace the image? The marking is kept if the size is the same, otherwise it resets." },
+  litImage: { he: "תמונה עם אורות", en: "Lights-on image" },
+  litHelp: { he: "כל הדירות מוארות. הקומה שהקונה לוחץ עליה נחשפת מתוכה.", en: "Every apartment lit. The floor a buyer clicks is revealed from it." },
+  offImage: { he: "תמונה בלי אורות", en: "Lights-off image" },
+  offHelp: { he: "תצוגת הפתיחה. אותו גודל בדיוק כמו התמונה עם האורות.", en: "The opening view. Exactly the same size as the lights-on image." },
+  offFirst: { he: "קודם מעלים את התמונה עם האורות", en: "Upload the lights-on image first" },
   uploading: { he: "מעלה…", en: "Uploading…" },
   save: { he: "שמירת הסימון", en: "Save marking" },
   saving: { he: "שומר…", en: "Saving…" },
@@ -68,6 +73,7 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
   const [busy, setBusy] = useState<null | "upload" | "save">(null);
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [rev, setRev] = useState(0);
+  const [offUrl, setOffUrl] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [nb, setNb] = useState({ name: "", floors: "10", units: "4" });
   const stage = useRef<HTMLDivElement>(null);
@@ -85,7 +91,7 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
   useEffect(() => {
     let live = true;
     call(`/api/dev/projects/${projectId}/stage`)
-      .then((b) => { if (!live) return; setImageUrl(b.imageUrl); setMeta(b.meta); setBuildings(b.buildings); setUnits(b.units ?? []); setTypes(b.unitTypes ?? []); })
+      .then((b) => { if (!live) return; setImageUrl(b.imageUrl); setMeta(b.meta); setBuildings(b.buildings); setUnits(b.units ?? []); setTypes(b.unitTypes ?? []); setOffUrl(b.offImageUrl ?? null); })
       .catch((e: Error) => { if (live) setMsg({ kind: "error", text: e.message }); });
     return () => { live = false; };
   }, [call, projectId]);
@@ -132,8 +138,9 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
   };
   const onUp = () => { drag.current = null; };
 
-  const upload = async (file: File) => {
-    if (meta && !window.confirm(T.replaceWarn[lang])) return;
+  const upload = async (file: File, kind: "on" | "off") => {
+    const has = kind === "on" ? !!imageUrl : !!offUrl;
+    if (has && !window.confirm(T.replaceWarn[lang])) return;
     setBusy("upload"); setMsg(null);
     try {
       const dims = await new Promise<{ w: number; h: number }>((res, rej) => {
@@ -143,9 +150,9 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
         img.src = url;
       });
       const fd = new FormData();
-      fd.append("file", file); fd.append("aspect", String(dims.w / dims.h));
+      fd.append("file", file); fd.append("aspect", String(dims.w / dims.h)); fd.append("kind", kind);
       const b = await call(`/api/dev/projects/${projectId}/stage`, { method: "POST", body: fd });
-      setImageUrl(b.imageUrl); setMeta(b.meta); setBuildings(b.buildings); setSel(0); setDirty(false); setRev((r) => r + 1);
+      setImageUrl(b.imageUrl); setOffUrl(b.offImageUrl ?? null); setMeta(b.meta); setBuildings(b.buildings); if (kind === "on" && !b.kept) setSel(0); setDirty(false); setRev((r) => r + 1);
     } catch (e) { setMsg({ kind: "error", text: (e as Error).message }); }
     finally { setBusy(null); }
   };
@@ -205,10 +212,17 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
       <div style={{ ...card, display: "flex", flexDirection: "column", gap: "0.875rem" }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" }}>
           {buildings.length === 0 || addOpen ? null : <button type="button" style={btn} onClick={() => setAddOpen(true)}>{T.addBuilding[lang]}</button>}
-          {buildings.length > 0 && <label style={{ ...btn, opacity: busy ? 0.6 : 1 }}>
-            {busy === "upload" ? T.uploading[lang] : imageUrl ? T.replace[lang] : T.upload[lang]}
-            <input type="file" accept="image/webp,image/jpeg,image/png" hidden disabled={!!busy} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f); }} />
-          </label>}
+          {buildings.length > 0 && (["on", "off"] as const).map((k) => {
+            const has = k === "on" ? !!imageUrl : !!offUrl;
+            const off = k === "off" && !imageUrl;
+            return (
+              <label key={k} title={off ? T.offFirst[lang] : (k === "on" ? T.litHelp : T.offHelp)[lang]} style={{ ...btn, opacity: busy || off ? 0.55 : 1, cursor: off ? "not-allowed" : "pointer", display: "inline-flex", flexDirection: "column", gap: 2 }}>
+                <span>{has ? "✓ " : ""}{(k === "on" ? T.litImage : T.offImage)[lang]}</span>
+                <span style={{ fontWeight: 400, fontSize: "0.75rem", color: "var(--qp-muted)" }}>{busy === "upload" ? T.uploading[lang] : has ? T.replace[lang] : T.upload[lang]}</span>
+                <input type="file" accept="image/webp,image/jpeg,image/png" hidden disabled={!!busy || off} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) void upload(f, k); }} />
+              </label>
+            );
+          })}
           {buildings.length > 1 && buildings.map((x, i) => (
             <button key={x.id} type="button" onClick={() => setSel(i)} style={{ ...btn, borderColor: COLORS[i % COLORS.length], background: i === sel ? COLORS[i % COLORS.length] : "var(--qp-surface)", color: i === sel ? "#fff" : "var(--qp-ink)" }}>{x.name}</button>
           ))}

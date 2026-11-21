@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultMeta, evenBands, evenSlots, sniffImage, validateStage, type StageBuilding } from "../stage";
+import { cleanMeta, defaultMeta, evenBands, evenSlots, sameProportions, sniffImage, stageImageUrl, validateStage, type StageBuilding } from "../stage";
 import { readPhotoMeta } from "../experience/types";
 
 const two: StageBuilding[] = [
@@ -35,5 +35,13 @@ describe("stage", () => {
     expect(sniffImage(Uint8Array.from([0xff, 0xd8, 0xff, 0xe0]))?.ext).toBe("jpg");
     expect(sniffImage(new TextEncoder().encode("RIFF\0\0\0\0WEBPVP8 "))?.ext).toBe("webp");
     expect(sniffImage(new TextEncoder().encode("<svg xmlns='http://www.w3.org/2000/svg'></svg>"))).toBeNull();
+  });
+
+  it("keeps the lights-off image through cleaning and compares proportions", () => {
+    const m = { ...defaultMeta(1.7, two), offImage: stageImageUrl("p1", "png", "off") };
+    expect(cleanMeta(m).offImage).toBe("/api/stage/p1/off.png");
+    expect(cleanMeta(defaultMeta(1.7, two)).offImage).toBeUndefined();
+    expect(sameProportions(1.7777, 1.78)).toBe(true);
+    expect(sameProportions(1.78, 1.5)).toBe(false);
   });
 });

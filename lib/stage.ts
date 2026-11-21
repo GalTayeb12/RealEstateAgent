@@ -16,7 +16,15 @@ export type StageExt = (typeof STAGE_EXTS)[number];
 export const MAX_STAGE_IMAGE_BYTES = 12 * 1024 * 1024;
 
 export const stageKey = (projectId: string, file: string) => `stages/${projectId}/${file}`;
-export const stageImageUrl = (projectId: string, ext: StageExt) => `/api/stage/${projectId}/on.${ext}`;
+/**
+ * Two renderings of the same building, same size: "on" (lights on in every
+ * apartment; the floor you click is revealed from it) and "off" (the opening
+ * view, lights off). With only "on" the stage dims it instead of using "off".
+ */
+export type StageKind = "on" | "off";
+export const stageImageUrl = (projectId: string, ext: StageExt, kind: StageKind = "on") => `/api/stage/${projectId}/${kind}.${ext}`;
+/** Two renderings of one building should have the same proportions (the frame is shared). */
+export const sameProportions = (a: number, b: number) => Math.abs(a - b) / Math.max(a, b) < 0.02;
 
 /** File type from the first bytes (never trust the name or the declared type). */
 export function sniffImage(b: Uint8Array): { ext: StageExt; contentType: string } | null {
@@ -82,6 +90,7 @@ export function validateStage(meta: PhotoMeta, buildings: StageBuilding[]): Stag
 export function cleanMeta(m: PhotoMeta): PhotoMeta {
   return {
     aspect: r3(m.aspect),
+    ...(m.offImage ? { offImage: m.offImage } : {}),
     buildings: m.buildings.map((b) => ({
       x: r3(b.x), y: r3(b.y), w: r3(b.w), h: r3(b.h),
       ...(b.bands ? { bands: b.bands.map(r3) } : {}),
