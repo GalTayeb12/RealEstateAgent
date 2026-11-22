@@ -153,3 +153,7 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - Explorer nav is now the standard dark nav (`--nav-bg`) instead of light frosted glass; on desktop the back pill sits in the nav row so it no longer covers the floor panel.
 - Top-down apartment view: room labels used `--qp-ink` (white in dark theme) on a white pill; now fixed dark text (`components/walk/ApartmentOverview.tsx`).
 - Project street address (`project.location`) is stored in `matchResults.aomDetails[*].address` and shown under the project name in the /results hero. Sessions stored before this change have no address until the buyer re-runs matching.
+
+## Phase 2j — /buyer/offers V3 + explorer panels
+- `/buyer/offers`: photographic hero (illustrative render) with serif title, status counts and back pill; offer cards are glass with an illustrative thumbnail and a status hairline instead of the 4px bar. All negotiation logic/APIs unchanged. Styles in `app/buyer/offers/offers-v3.css`.
+- Explorer floor list / apartment card (`.hn-floor-panel.qp-glass`) is now dark glass on every breakpoint.

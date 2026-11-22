@@ -1034,6 +1034,12 @@ export default function BuildingExplorer({
               overflow: hidden;
             }
           }
+          /* Floor list + apartment card: same dark glass as the rest of the site */
+          .hn-floor-panel.qp-glass {
+            background: rgba(10,16,15,.82) !important;
+            border: 1px solid var(--qp-border, rgba(239,233,220,.18)) !important;
+            backdrop-filter: blur(22px) saturate(1.2) !important; -webkit-backdrop-filter: blur(22px) saturate(1.2) !important;
+          }
 
           @media (prefers-reduced-motion: reduce) {
             .hn-floor-panel { animation: none; }

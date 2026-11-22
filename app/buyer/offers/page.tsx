@@ -11,7 +11,10 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Money } from "@/components/Money";
+import Image from "next/image";
 import { useI18n } from "@/components/LocaleProvider";
+import { illustrativeImage } from "@/lib/illustrative";
+import "./offers-v3.css";
 
 interface OfferUnit {
   unitLabel: string;
@@ -215,18 +218,16 @@ function OfferCard({
   }
 
   return (
-    <div style={{
-      background: "var(--c-card,#fff)",
-      borderRadius: "0.875rem",
-      border: `${dealComplete ? "2px" : "1px"} solid ${dealComplete ? "var(--c-gold,#756039)" : isNew ? "var(--c-gold,#756039)" : "var(--c-line,#D4DED8)"}`,
-      overflow: "hidden",
-      borderTop: `4px solid ${
-        dealComplete ? "#756039" :
-        offer.status === "accepted" ? "#123F40" :
-        offer.status === "rejected" ? "#9E3434" :
-        offer.status === "countered" ? "#756039" : "#E0DDD7"
-      }`,
-    }}>
+    <div className="of-card" data-new={isNew || undefined} data-deal={dealComplete || undefined}>
+      <div className="of-thumb" aria-hidden="true">
+        <Image src={illustrativeImage(offer.id)} alt="" fill sizes="200px" />
+      </div>
+      <div>
+      <div className="of-stripe" style={{ ["--stripe" as string]:
+        dealComplete ? "var(--qp-accent)" :
+        offer.status === "accepted" ? "var(--qp-ink)" :
+        offer.status === "rejected" ? "var(--c-err,#c46a5e)" :
+        offer.status === "countered" ? "var(--qp-accent)" : "var(--qp-border)" }} />
       <div style={{ padding: "1.25rem 1.5rem" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.875rem" }}>
@@ -502,6 +503,7 @@ function OfferCard({
           )}
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -509,7 +511,7 @@ function OfferCard({
 function EmptyState() {
   const { m } = useI18n();
   return (
-    <div style={{ textAlign: "center", padding: "4rem 2rem", background: "var(--c-card,#fff)", borderRadius: "0.875rem", border: "1px solid var(--c-line,#D4DED8)" }}>
+    <div className="of-empty">
       <div style={{ width: "3rem", height: "3rem", borderRadius: "50%", background: "var(--c-soft,#E9EEEA)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--c-ink,#123F40)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -565,7 +567,7 @@ export default function BuyerOffersPage() {
   const rest = offers.filter(o => !isRecentlyUpdated(o.updatedAt, o.createdAt));
 
   return (
-    <main style={{ minHeight: "100vh", background: "var(--c-soft,#F4F5F0)", fontFamily: "var(--font-inter, sans-serif)", paddingBottom: "4rem" }}>
+    <main className="of-page" style={{ fontFamily: "var(--font-inter, sans-serif)" }}>
       <style>{`
         @media (max-width: 640px) {
           .hn-offer-actions     { flex-wrap: wrap; }
@@ -575,29 +577,29 @@ export default function BuyerOffersPage() {
       `}</style>
       {toast && <Toast message={toast} onDismiss={() => setToast("")} />}
 
-      {/* Header */}
-      <div style={{ borderBottom: "1px solid var(--c-line,#D4DED8)", background: "var(--c-card,#fff)" }}>
-        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
-          <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--c-ink,#123F40)", marginBottom: "0.5rem" }}>
-            Haveniq
-          </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
-            <div>
-              <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.875rem", fontWeight: 600, color: "var(--c-ink,#123F40)", margin: 0 }}>
-                {m.offers.title}
-              </h1>
-              <p style={{ margin: "0.375rem 0 0", color: "var(--c-muted,#526563)", fontSize: "0.9375rem" }}>
-                {m.offers.subtitle}
-              </p>
-            </div>
-            <Link href="/results" style={{ fontSize: "0.875rem", color: "var(--c-ink,#123F40)", fontWeight: 600, textDecoration: "none" }}>
-              {m.offers.backToResults}
-            </Link>
-          </div>
+      {/* Hero */}
+      <section className="of-hero">
+        <div className="of-hero-bg" aria-hidden="true">
+          <Image src={illustrativeImage(offers[0]?.id ?? "offers")} alt="" fill priority sizes="100vw" />
         </div>
-      </div>
+        <div className="of-hero-in">
+          <div>
+            <span className="of-kick">Haveniq</span>
+            <h1>{m.offers.title}</h1>
+            <p>{m.offers.subtitle}</p>
+            {offers.length > 0 && (
+              <div className="of-stats">
+                <div><b>{offers.length}</b><span>{m.offers.allOffers}</span></div>
+                <div><b>{offers.filter(o => o.status === "pending" || o.status === "countered").length}</b><span>{m.offers.statusPending} / {m.offers.statusCountered}</span></div>
+                <div><b>{offers.filter(o => o.status === "accepted").length}</b><span>{m.offers.statusAccepted}</span></div>
+              </div>
+            )}
+          </div>
+          <Link href="/results" className="of-back">{m.offers.backToResults}</Link>
+        </div>
+      </section>
 
-      <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <div className="of-body">
         {loading && (
           <div style={{ display: "flex", justifyContent: "center", padding: "4rem 0" }}>
             <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "var(--c-ink,#123F40)", animation: "spin 0.9s linear infinite" }} />
@@ -615,11 +617,11 @@ export default function BuyerOffersPage() {
 
         {recentlyUpdated.length > 0 && (
           <div>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--c-gold,#756039)", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div className="of-sec" style={{ color: "var(--qp-accent-text)" }}>
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--c-gold,#756039)", display: "inline-block" }} />
               {m.offers.recentUpdates} ({recentlyUpdated.length})
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="of-list">
               {recentlyUpdated.map(o => (
                 <OfferCard key={o.id} offer={o} isNew={true} onUpdated={handleUpdated} onToast={setToast} />
               ))}
@@ -630,11 +632,11 @@ export default function BuyerOffersPage() {
         {rest.length > 0 && (
           <div>
             {recentlyUpdated.length > 0 && (
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "0.75rem" }}>
+              <div className="of-sec">
                 {m.offers.allOffers} ({rest.length})
               </div>
             )}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="of-list">
               {rest.map(o => (
                 <OfferCard key={o.id} offer={o} isNew={false} onUpdated={handleUpdated} onToast={setToast} />
               ))}
