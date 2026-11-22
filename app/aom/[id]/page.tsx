@@ -17,14 +17,11 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { TourScene } from "./VirtualTour";
-import { Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding } from "@/components/building/types";
 import { illustrativeImage } from "@/lib/illustrative";
 import "./aom-hero.css";
-import { useBuyerMinRooms } from "@/components/useBuyerMinRooms";
 import { parseAttributes, roomsOf } from "@/lib/attributes";
-import { unitFactsSummary } from "@/components/listing/UnitFactsFields";
 
 const BuildingExplorer = dynamic(() => import("@/components/building/BuildingExplorer"), {
   ssr: false,
@@ -121,7 +118,6 @@ export default function VprPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   // Buyer's minimum rooms: apartment-type tabs below it are dimmed, not hidden
-  const minRooms = useBuyerMinRooms();
 
   // Lazy-loaded teaser video
   const [videoData, setVideoData] = useState<string | null>(null);
@@ -217,46 +213,6 @@ export default function VprPage() {
       )}
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
-
-        {/* ── Apartment-type tabs (developer project with > 1 type) ────────── */}
-        {asProject && (
-          <>
-            <style>{`
-              .hn-type-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; border-bottom: 1px solid rgba(18,63,64,0.12); margin-bottom: 1.5rem; }
-              .hn-type-tab { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.625rem 1rem 0.75rem; border-radius: 12px 12px 0 0; text-decoration: none; color: var(--qp-ink); border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; transition: background .15s, opacity .15s; min-width: 8.5rem; }
-              .hn-type-tab:hover { background: var(--qp-soft); }
-              .hn-type-tab[aria-selected="true"] { background: var(--qp-surface, var(--c-card,#fff)); border-color: rgba(18,63,64,0.12); box-shadow: inset 0 3px 0 var(--qp-ink); }
-              .hn-type-tab[data-dim] { opacity: 0.5; }
-              .hn-type-tab[data-dim]:hover, .hn-type-tab[data-dim][aria-selected="true"] { opacity: 0.8; }
-              .hn-type-tab b { font-size: 0.9375rem; }
-              .hn-type-tab small { font-size: 0.75rem; color: var(--qp-muted); font-variant-numeric: tabular-nums; }
-              .hn-type-tab em { font-style: normal; font-size: 0.6875rem; font-weight: 700; color: var(--c-gold,#756039); }
-              .hn-type-tab:focus-visible { outline: 3px solid var(--qp-accent, var(--c-gold,#b38b4d)); outline-offset: 2px; }
-            `}</style>
-            <nav className="hn-type-tabs" role="tablist" aria-label={m.unitView.typesInProject}>
-              {siblingTypes.map(sibling => {
-                const fewer = minRooms != null && sibling.rooms != null && sibling.rooms < minRooms;
-                const facts = unitFactsSummary(parseAttributes(sibling.attributes), sibling.unitLabel, m.dev);
-                return (
-                  <Link
-                    key={sibling.id}
-                    href={`/aom/${sibling.id}`}
-                    role="tab"
-                    aria-selected={sibling.id === id}
-                    className="hn-type-tab"
-                    data-dim={fewer || undefined}
-                    scroll={false}
-                  >
-                    <b>{sibling.unitLabel}</b>
-                    {facts && <small>{facts}</small>}
-                    {sibling.price > 0 && <small><Money amount={sibling.price} /></small>}
-                    {fewer && <em>{m.unitView.fewerRooms}</em>}
-                  </Link>
-                );
-              })}
-            </nav>
-          </>
-        )}
 
         {/* ── Project teaser video (developer only) ────────────────────────── */}
         {unit.ownerType === "developer" && videoData && (

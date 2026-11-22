@@ -697,8 +697,8 @@ export default function BuildingPhotoStage({
           position: absolute; z-index: 5; top: 50%; transform: translateY(-50%);
           width: min(310px, 28vw); min-width: 270px;
           padding: 1.4rem 1.4rem 1.25rem; color: #fff;
-          background: linear-gradient(160deg, rgba(255,255,255,.17), rgba(255,255,255,.07));
-          border: 1px solid rgba(255,255,255,.26); border-radius: 18px;
+          background: rgba(10,16,15,.62);
+          border: 1px solid var(--qp-border, rgba(239,233,220,.18)); border-radius: 18px;
           backdrop-filter: blur(22px) saturate(1.4); -webkit-backdrop-filter: blur(22px) saturate(1.4);
           box-shadow: 0 24px 60px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.3);
           animation: hn-ps-rise .8s .3s cubic-bezier(.22,1,.36,1) both;

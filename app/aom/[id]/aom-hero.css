@@ -18,3 +18,5 @@ html[lang=he] .av-in small{letter-spacing:0;text-transform:none;font-size:12px}
 html[dir=rtl] .av-arrow{display:inline-block;transform:scaleX(-1)}
 /* Over the 3D explorer the floor panel sits where the pill would be, so on desktop the pill moves into the nav row, beside the logo */
 @media(min-width:901px){.av-backbtn.in-nav{top:7px;min-height:38px;inset-inline-start:calc(max(16px,calc((100vw - 75rem)/2 + 20px)) + 120px);z-index:400}}
+/* Phones: arrow-only pill so it never covers the centred title */
+@media(max-width:900px){.av-backbtn{font-size:0;gap:0;min-width:40px;padding:0 12px;justify-content:center}.av-backbtn .av-arrow{font-size:16px}}
