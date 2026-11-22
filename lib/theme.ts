@@ -4,6 +4,6 @@ const CINEMATIC_EXACT = new Set([
   "/seller/register", "/forgot-password", "/reset-password", "/verify-email",
   "/profile", "/processing", "/terms", "/privacy",
 ]);
-const CINEMATIC_PREFIX: string[] = ["/buyer", "/results", "/deal", "/aom"];
+const CINEMATIC_PREFIX: string[] = ["/buyer", "/results", "/deal", "/aom", "/dev"];
 export const isCinematicPath = (pathname: string | null) =>
   !!pathname && (CINEMATIC_EXACT.has(pathname) || CINEMATIC_PREFIX.some((p) => pathname === p || pathname.startsWith(p + "/")));

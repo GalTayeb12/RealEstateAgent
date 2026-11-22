@@ -229,13 +229,13 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
             );
           })}
           {buildings.length > 1 && buildings.map((x, i) => (
-            <button key={x.id} type="button" onClick={() => setSel(i)} style={{ ...btn, borderColor: COLORS[i % COLORS.length], background: i === sel ? COLORS[i % COLORS.length] : "var(--qp-surface)", color: i === sel ? "#fff" : "var(--qp-ink)" }}>{x.name}</button>
+            <button key={x.id} type="button" onClick={() => setSel(i)} style={{ ...btn, borderColor: COLORS[i % COLORS.length], background: i === sel ? COLORS[i % COLORS.length] : "var(--qp-surface)", color: i === sel ? "var(--c-on-btn,#fff)" : "var(--qp-ink)" }}>{x.name}</button>
           ))}
           {b && <span style={{ color: "var(--qp-muted)", fontSize: "0.8125rem" }}>{b.floorCount} {T.floors[lang]} · {b.unitsPerFloor} {T.apts[lang]}</span>}
           <span style={{ marginInlineStart: "auto", display: "flex", gap: "0.5rem", alignItems: "center" }}>
             {dirty && <span style={{ fontSize: "0.8125rem", color: "var(--qp-warning)" }}>{T.unsaved[lang]}</span>}
             {box && b && <button type="button" style={btn} onClick={() => update(sel, (cur) => ({ ...cur, bands: evenBands(cur, b.floorCount) }))}>{T.evenLines[lang]}</button>}
-            <button type="button" disabled={!dirty || !!busy || issues.length > 0} onClick={save} style={{ ...btn, background: "var(--qp-accent)", color: "#fff", border: "none", opacity: !dirty || busy || issues.length ? 0.5 : 1 }}>
+            <button type="button" disabled={!dirty || !!busy || issues.length > 0} onClick={save} style={{ ...btn, background: "var(--qp-accent)", color: "var(--c-on-btn,#fff)", border: "none", opacity: !dirty || busy || issues.length ? 0.5 : 1 }}>
               {busy === "save" ? T.saving[lang] : T.save[lang]}
             </button>
           </span>
@@ -250,11 +250,11 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
                 <input
                   type={type} value={nb[k]} min={type === "number" ? 1 : undefined} max={type === "number" ? (k === "floors" ? 120 : 12) : undefined}
                   onChange={(e) => setNb((v) => ({ ...v, [k]: e.target.value }))}
-                  style={{ padding: "0.45rem 0.6rem", borderRadius: "0.4rem", border: "1px solid var(--qp-border)", background: "var(--qp-bg, #fff)", color: "var(--qp-ink)", width: k === "name" ? 180 : 100 }}
+                  style={{ padding: "0.45rem 0.6rem", borderRadius: "0.4rem", border: "1px solid var(--qp-border)", background: "var(--qp-bg, var(--c-card,#fff))", color: "var(--qp-ink)", width: k === "name" ? 180 : 100 }}
                 />
               </label>
             ))}
-            <button type="button" disabled={!!busy || !nb.name.trim()} onClick={createBuilding} style={{ ...btn, background: "var(--qp-accent)", color: "#fff", border: "none", opacity: busy || !nb.name.trim() ? 0.5 : 1 }}>
+            <button type="button" disabled={!!busy || !nb.name.trim()} onClick={createBuilding} style={{ ...btn, background: "var(--qp-accent)", color: "var(--c-on-btn,#fff)", border: "none", opacity: busy || !nb.name.trim() ? 0.5 : 1 }}>
               {busy ? T.creating[lang] : T.create[lang]}
             </button>
             {addOpen && buildings.length > 0 && <button type="button" style={btn} onClick={() => setAddOpen(false)}>✕</button>}
@@ -289,7 +289,7 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
                           <div style={{ width: "100%", height: 0, borderTop: `1.5px solid ${color}` }} />
                         </div>
                         {k < bands.length - 1 && (
-                          <span style={{ position: "absolute", insetInlineStart: 3, top: `${top + ((bands[k + 1] - v) / box.h) * 50}%`, transform: "translateY(-50%)", fontSize: 10, color: "#fff", textShadow: "0 0 3px #000", pointerEvents: "none" }}>{floor}</span>
+                          <span style={{ position: "absolute", insetInlineStart: 3, top: `${top + ((bands[k + 1] - v) / box.h) * 50}%`, transform: "translateY(-50%)", fontSize: 10, color: "var(--c-on-btn,#fff)", textShadow: "0 0 3px #000", pointerEvents: "none" }}>{floor}</span>
                         )}
                       </div>
                     );
@@ -298,7 +298,7 @@ export function StageCalibrator({ projectId }: { projectId: string }) {
                     <span key={i} style={{ position: "absolute", left: `${s * 100}%`, top: `${groundRow}%`, width: 9, height: 9, marginLeft: -4.5, marginTop: -4.5, borderRadius: 999, background: color, border: "1.5px solid #fff", pointerEvents: "none" }} />
                   ))}
                   {(["nw", "ne", "sw", "se"] as const).map((c) => (
-                    <span key={c} onPointerDown={(e) => onDown(e, c)} style={{ position: "absolute", [c.includes("n") ? "top" : "bottom"]: -7, [c.includes("w") ? "left" : "right"]: -7, width: 14, height: 14, borderRadius: 3, background: "#fff", border: `2px solid ${color}`, cursor: c === "nw" || c === "se" ? "nwse-resize" : "nesw-resize" }} />
+                    <span key={c} onPointerDown={(e) => onDown(e, c)} style={{ position: "absolute", [c.includes("n") ? "top" : "bottom"]: -7, [c.includes("w") ? "left" : "right"]: -7, width: 14, height: 14, borderRadius: 3, background: "var(--c-card,#fff)", border: `2px solid ${color}`, cursor: c === "nw" || c === "se" ? "nwse-resize" : "nesw-resize" }} />
                   ))}
                 </div>
               )}

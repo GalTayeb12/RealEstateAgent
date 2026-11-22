@@ -62,7 +62,7 @@ export default function DevPendingPage() {
                 marginTop: 3,
               }}>
                 {s.done   && <svg width="9" height="9" viewBox="0 0 10 10" fill="none" aria-hidden><path d="M2 5l2.5 2.5L8 3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                {s.active && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#fff", display: "block" }} />}
+                {s.active && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--c-card,#fff)", display: "block" }} />}
               </div>
               {i < 3 && <div style={{ width: 2, flex: 1, minHeight: 20, background: s.done ? "var(--qp-ink)" : "var(--qp-soft)", margin: "2px 0" }} />}
             </div>

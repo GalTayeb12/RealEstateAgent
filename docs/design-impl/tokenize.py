@@ -8,9 +8,9 @@ BG = {"background", "backgroundColor"}
 COL = {"color", "accentColor", "fill", "stroke", "caretColor"}
 INK = {"#123F40", "#123332", "#0C3031", "#082526"}
 WHITE = {"#FFF", "#FFFFFF", "#FBFAF7"}
-SOFT = {"#EEF4F3", "#F0F6F5", "#EFEDE6", "#EDEBE7", "#FAFAF8", "#FAFAF9", "#D4EDEA", "#F5F3EE", "#EDEAE3", "#F4F5F0", "#E9EEEA", "#EAF3F2", "#F5F2EC"}
-LINE = {"#E8E4DF", "#B8D4D3", "#E0DDD7", "#D4DED8", "#E4DED3", "#C0DBD9"}
-GOLD = {"#756039", "#A88B52", "#8A6530", "#B38B4D"}
+SOFT = {"#FDFCFB", "#FDF6F6", "#EEF4F3", "#F0F6F5", "#EFEDE6", "#EDEBE7", "#FAFAF8", "#FAFAF9", "#D4EDEA", "#F5F3EE", "#EDEAE3", "#F4F5F0", "#E9EEEA", "#EAF3F2", "#F5F2EC"}
+LINE = {"#E7C9C9", "#E8BDBD", "#E8E4DF", "#B8D4D3", "#E0DDD7", "#D4DED8", "#E4DED3", "#C0DBD9"}
+GOLD = {"#A07020", "#756039", "#A88B52", "#8A6530", "#B38B4D"}
 
 
 def role(prop):
@@ -29,11 +29,11 @@ def pick(r, h):
         return "gold"
     if u in {"#526563", "#4E6566", "#55534C", "#3A6B6A"}:
         return None if r == "bg" else "muted"
-    if u == "#9E3434":
+    if u in {"#9E3434", "#8C3030"}:
         return "err"
     if u == "#FBECEA":
         return "err-bg"
-    if u in {"#FCF2D9", "#FFF8E6", "#EDD9A3", "#FEF3E2"}:
+    if u in {"#F5E9C4", "#FCF2D9", "#FFF8E6", "#EDD9A3", "#FEF3E2"}:
         return "warn-bg"
     if u == "#246046":
         return "ok"

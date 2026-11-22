@@ -17,7 +17,7 @@ export function PlanDrawing({ twin, lang, highlight }: { twin: PlanTwin; lang: L
   return (
     <div
       data-testid="plan-drawing"
-      style={{ border: "1px solid var(--qp-border)", borderRadius: "0.625rem", overflow: "hidden", background: "#fbfaf7" }}
+      style={{ border: "1px solid var(--qp-border)", borderRadius: "0.625rem", overflow: "hidden", background: "var(--c-card,#fbfaf7)" }}
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

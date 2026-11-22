@@ -81,7 +81,7 @@ export function PlacementGrid({
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
             {types.map((t) => (
               <button key={t.id} type="button" disabled={busy || picked.size === 0} onClick={() => apply(t.id)}
-                style={{ ...btn, background: colorOf(t.id), color: "#fff", border: "none", opacity: busy || picked.size === 0 ? 0.45 : 1 }}>
+                style={{ ...btn, background: colorOf(t.id), color: "var(--c-on-btn,#fff)", border: "none", opacity: busy || picked.size === 0 ? 0.45 : 1 }}>
                 {T.apply[lang]}: {t.unitLabel}
               </button>
             ))}
@@ -119,7 +119,7 @@ export function PlacementGrid({
                         title={u && u.status !== "available" ? T.locked[lang] : undefined}
                         style={{
                           height: 30, borderRadius: 5, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600, cursor: "pointer",
-                          background: u ? colorOf(u.unitTypeId) : "transparent", color: u ? "#fff" : "var(--qp-muted)",
+                          background: u ? colorOf(u.unitTypeId) : "transparent", color: u ? "var(--c-on-btn,#fff)" : "var(--qp-muted)",
                           border: sel ? "2px solid #facc15" : u ? "1px solid transparent" : "1px dashed var(--qp-border)",
                           opacity: u && u.status !== "available" ? 0.6 : 1,
                         }}

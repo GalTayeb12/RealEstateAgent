@@ -71,7 +71,9 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - TopNav still has 3 pre-existing eslint `set-state-in-effect` errors (unchanged).
 - Recolour ≠ redesign: layouts of offers/deal/groups are the original ones.
 
-## Phase 3 — developer experience (started; blocked on a developer test account)
-- Checked: the buyer test account gets 401s on `/dev/dashboard`, so developer screens cannot be rendered or verified yet. Not restyling blind.
-- Scope found: `app/dev/dashboard` (936 lines, ~127 hard-coded colours), `app/dev/admin/approvals` (788, ~148), `app/dev/properties/[unitTypeId]` (579, token-based), `components/DevInventory.tsx`, `components/dev/plan/*`, `components/dev/stage/*` (token-based). Auth screens (`/dev/login`, `/dev/register`, `/dev/pending`, `/dev/rejected`) are already cinematic.
-- Plan once an account exists: add `/dev` to `CINEMATIC_PREFIX`, run `docs/design-impl/tokenize.py` on the hard-coded files, then screenshot each screen (he/en, 1440/390) and fix contrast; keep tables/forms dense and readable (V2 developer prototype as reference: KPI strip, inventory map, approvals queue). Admin approvals needs an admin account.
+## Phase 3 — developer experience (done for the screens a developer account can reach)
+- With a user-supplied developer test account (credentials not stored): `/dev` added to the cinematic prefixes; `tokenize.py` applied to `app/dev/dashboard`, `app/dev/admin/approvals`, `components/DevInventory.tsx`, the unit-type page, stage components, pending/rejected. Logic untouched.
+- Verified rendered (he; desktop 1440 + mobile 390; no console errors, no overflow): `/dev/dashboard` (projects, expanded inventory table with inline-edit fields, status pills), `/dev/properties/[unitTypeId]` (form, floor-plan SVG preview, rooms/openings tables), `/dev/projects/[id]/stage`. Dense tables stay readable (cream-on-near-black, gold primary actions, red for release/danger).
+- NOT verified: `/dev/admin/approvals` (needs an admin account; recoloured mechanically only), the 3D building/stage viewers with real data, `/dev/pending`, English locale on developer screens, new-project flow.
+- The floor-plan preview keeps its own light drawing surface (it is an SVG drawing), which reads as a deliberate paper plan on the dark page.
+- Recolour, not restructure: the V2 developer prototype's KPI strip / inventory map / approvals queue layouts are NOT built; developer screens keep their current functional layouts.
