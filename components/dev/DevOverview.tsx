@@ -91,8 +91,8 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
                   const sold = Math.max(0, t.quantityTotal - t.quantityAvailable);
                   const dots: St[] = [...Array(t.quantityAvailable).fill("available"), ...Array(sold).fill("sold")];
                   return (
-                    <div className="dov-floor" key={t.id}>
-                      <span className="dov-fl" style={{ width: "auto", minWidth: 96, textAlign: "start" }}>{t.unitLabel ?? ""}</span>
+                    <div className="dov-floor dov-typerow" key={t.id}>
+                      <span className="dov-fl">{t.unitLabel ?? ""}</span>
                       <div className="dov-units">
                         {dots.map((st, i) => <i key={i} className="dov-dot" style={{ background: COLORS[st], boxShadow: `0 0 10px ${COLORS[st]}66` }} title={names[st]} aria-label={names[st]} />)}
                       </div>

@@ -27,3 +27,6 @@
 .dov-map>div+div{margin-top:28px}
 .dov-mini{margin-top:18px;padding-top:14px;border-top:1px solid var(--qp-border)}
 .dov-mini button{min-height:28px;padding:0 11px;font-size:11.5px}
+.dov-typerow{grid-template-columns:96px 1fr;align-items:start}
+.dov-typerow .dov-fl{text-align:start;padding-top:2px}
+.dov-floors:has(.dov-typerow){max-width:720px}
