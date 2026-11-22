@@ -14,11 +14,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { TourScene } from "./VirtualTour";
 import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding } from "@/components/building/types";
+import { illustrativeImage } from "@/lib/illustrative";
+import "./aom-hero.css";
 import { useBuyerMinRooms } from "@/components/useBuyerMinRooms";
 import { formatArea, formatAttributeValue, parseAttributes, roomsOf, translateAttrKey } from "@/lib/attributes";
 import { unitFactsSummary } from "@/components/listing/UnitFactsFields";
@@ -92,7 +95,7 @@ export default function VprPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
-  const { m } = useI18n();
+  const { m, locale } = useI18n();
   const [unit, setUnit] = useState<UnitDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -178,8 +181,25 @@ export default function VprPage() {
   // A project page: project name on top, one tab per apartment type
   const asProject = unit.ownerType === "developer" && siblingTypes.length > 1;
 
+  const hasExplorer = unit.ownerType === "developer" && (unit.buildings?.length ?? 0) > 0;
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)" }}>
+
+      {/* ── Photographic hero (V3) when there is no 3D building ─────────── */}
+      {!hasExplorer && (
+        <section className="av-hero">
+          <Image src={illustrativeImage(unit.id)} alt="" fill priority sizes="100vw" />
+          <div className="av-shade" />
+          <div className="av-in">
+            <Link href="/results" className="av-back">{m.unitView.backToResults}</Link>
+            <span className="av-kick">{unit.project.name} · {unit.project.location}</span>
+            <h1>{asProject ? unit.project.name : unit.unitLabel}</h1>
+            {!asProject && unit.description && <p>{unit.description}</p>}
+            <small>{locale === "he" ? "התמונה להמחשה בלבד · הדמיה" : "Illustrative rendering"}</small>
+          </div>
+        </section>
+      )}
 
       {/* ── Building hero: full-bleed, nav floats over it ───────────────── */}
       {unit.ownerType === "developer" && (unit.buildings?.length ?? 0) > 0 && (
@@ -187,12 +207,12 @@ export default function VprPage() {
       )}
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
-        <p style={{ margin: "0 0 1.25rem" }}>
+        <p style={{ margin: "0 0 1.25rem", display: hasExplorer ? undefined : "none" }}>
           <Link href="/results" style={{ color: "var(--qp-ink)", fontWeight: 500, textDecoration: "none" }}>{m.unitView.backToResults}</Link>
         </p>
 
         {/* ── Property header ─────────────────────────────────────────────── */}
-        <div style={{ marginBottom: "2rem" }}>
+        <div style={{ marginBottom: "2rem", display: hasExplorer ? undefined : "none" }}>
           <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "var(--qp-ink)", marginBottom: "0.5rem" }}>
             {unit.project.name} · {unit.project.location}
           </div>
@@ -308,7 +328,7 @@ export default function VprPage() {
 
         {/* ── Details card ─────────────────────────────────────────────────── */}
         <div style={{ background: "var(--qp-surface)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.10)", overflow: "hidden", marginBottom: "1.25rem" }}>
-          <div style={{ height: 4, background: "var(--qp-accent)" }} />
+          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, var(--qp-accent), transparent)", opacity: 0.7 }} />
           <div style={{ padding: "1.75rem" }}>
             <h3 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 1.25rem", letterSpacing: "0" }}>
               {m.unitView.matchParams}

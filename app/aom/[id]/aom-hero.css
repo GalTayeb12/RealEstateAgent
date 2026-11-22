@@ -1,0 +1,14 @@
+/* /aom/[id] photographic hero (Concept C V3) — shown when the listing has no 3D building. */
+.av-hero{position:relative;isolation:isolate;min-height:clamp(340px,52vh,520px);display:flex;align-items:flex-end;overflow:hidden;border-bottom:1px solid var(--qp-border)}
+.av-hero>img{object-fit:cover;z-index:-2}
+.av-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(7,12,11,.8),rgba(7,12,11,.2) 70%),linear-gradient(transparent 35%,var(--qp-bg) 98%)}
+html[dir=rtl] .av-shade{background:linear-gradient(270deg,rgba(7,12,11,.8),rgba(7,12,11,.2) 70%),linear-gradient(transparent 35%,var(--qp-bg) 98%)}
+.av-in{width:100%;max-width:75rem;margin:0 auto;padding:clamp(72px,12vh,120px) 1.25rem clamp(28px,5vh,48px);display:grid;gap:12px;justify-items:start}
+.av-back{font-size:13px;color:var(--qp-muted);text-decoration:none}.av-back:hover{color:var(--qp-ink)}
+.av-kick{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--qp-muted);display:flex;align-items:center;gap:14px}
+.av-kick::before{content:"";width:28px;height:1px;background:var(--qp-accent)}
+html[lang=he] .av-kick{letter-spacing:.02em;text-transform:none;font-size:12.5px}
+.av-in h1{margin:0;font-size:clamp(34px,4.6vw,68px);line-height:1.05;color:var(--qp-ink)}
+.av-in p{margin:0;font-size:16px;color:var(--qp-muted);line-height:1.6;max-width:46rem}
+.av-in small{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--qp-muted)}
+html[lang=he] .av-in small{letter-spacing:0;text-transform:none;font-size:12px}

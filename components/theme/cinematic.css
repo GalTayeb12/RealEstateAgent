@@ -40,3 +40,22 @@
   --c-card:#0D1514; --c-soft:#121C1A; --c-line:rgba(239,233,220,.16);
   --c-err:#FFB4A8; --c-err-bg:rgba(255,120,100,.12); --c-warn-bg:rgba(201,164,106,.14); --c-ok:#8FE0B8;
 }
+
+/* ---- V3 surfaces: one rule set gives every inline-styled card on a cinematic screen the glass treatment
+   (cards are the elements that use the card colour with a 14-20px radius), and the old 4px gold top bar
+   becomes the V3 hairline. Presentation only. ---- */
+.cin [style*="--c-card"][style*="border-radius: 20px"],
+.cin [style*="--c-card"][style*="border-radius: 18px"],
+.cin [style*="--c-card"][style*="border-radius: 16px"],
+.cin [style*="--c-card"][style*="border-radius: 14px"],
+.cin [style*="--c-card"][style*="border-radius: 1.25rem"],
+.cin [style*="--c-card"][style*="border-radius: 0.875rem"],
+.cin [style*="--c-card"][style*="border-radius: 1rem"]{
+  background:rgba(10,16,15,.58)!important;backdrop-filter:blur(18px) saturate(1.2);
+  border-color:var(--qp-border)!important;box-shadow:none!important}
+.cin [style*="height: 4px"][style*="linear-gradient"],.cin [style*="height: 4px"][style*="--c-"]{height:1px!important;opacity:.7;background:linear-gradient(90deg,transparent,var(--qp-accent),transparent)!important}
+@supports not (backdrop-filter:blur(1px)){
+  .cin [style*="--c-card"][style*="border-radius"]{background:#0D1514!important}}
+/* V3 headings: serif, light weight, on every cinematic screen (overrides inline heebo/600 on page and card titles) */
+.cin h1,.cin h2{font-family:var(--cin-serif)!important;font-weight:300!important}
+.cin h1{letter-spacing:0!important}

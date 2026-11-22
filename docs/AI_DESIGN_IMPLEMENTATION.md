@@ -123,3 +123,13 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - `components/results/results-sections.css` (imported by `app/results/page.tsx`). Layout: match cards in the main column, with the profile, alerts and mortgage row in a sticky side column (below the cards on mobile); services and group-buying CTA full width.
 - Match cards: glass panels with a hairline gold top edge, serif title, outlined unit pill, large mono score, chip row, thinner alignment bar; near-match cards use the same shell. Logic (offers, leverage, mortgage badge, hidden types) is unchanged; offer panel internals (`SendOfferPanel`) keep their earlier recolour.
 - Checked he/en at 1440 and he at 390: no console errors (en shows only the blocked-profile 404s), no horizontal overflow.
+
+### Phase 4 — Concept C V3 across the whole site
+
+- `lib/theme.ts` inverted: the cinematic (dark) theme is now the default for every route; only `/design-system` stays light. This also fixes the 404 page (light nav/footer on unknown paths) and covers `/interview`, `/seller/*`, `/walk/*` and any future route.
+- `components/theme/cinematic.css`: one rule set gives every inline-styled card (card colour + 14-20px radius) the V3 glass treatment, turns the old 4px gold top bars into the hairline, and sets page/card h1/h2 to the serif light heading style. Presentation only.
+- `/aom/[id]`: photographic hero (illustrative render via `lib/illustrative.ts`, shared with the results hero) when the listing has no 3D building; listings with a building keep the 3D explorer.
+- `app/not-found.tsx`: dark, serif, gold button.
+- Audit tooling: `docs/design-impl/audit.mjs` (contact sheet of ~18 routes, theme + overflow flags), `multi-shot.mjs`.
+- Checked in he and en at 1440 (no overflow, all routes on the dark theme) and `/aom` + `/results` at 390.
+- Not visually verified: `/seller/dashboard` (needs a seller account), `/walk/*` (no known slug), `/interview` live session, `/deal/[id]`, admin approvals.

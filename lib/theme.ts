@@ -1,9 +1,7 @@
-/** Routes that render in the Concept C cinematic (dark) theme. Grows with each phase. */
-const CINEMATIC_EXACT = new Set([
-  "/login", "/register", "/dev/login", "/dev/register", "/dev/pending", "/dev/rejected",
-  "/seller/register", "/forgot-password", "/reset-password", "/verify-email",
-  "/profile", "/processing", "/terms", "/privacy",
-]);
-const CINEMATIC_PREFIX: string[] = ["/buyer", "/results", "/deal", "/aom", "/dev"];
+/**
+ * Concept C cinematic (dark) theme is the site default. Only routes listed here keep the original
+ * light "quiet perspective" theme (the internal design-system reference page).
+ */
+const LIGHT_PREFIX: string[] = ["/design-system"];
 export const isCinematicPath = (pathname: string | null) =>
-  !!pathname && (CINEMATIC_EXACT.has(pathname) || CINEMATIC_PREFIX.some((p) => pathname === p || pathname.startsWith(p + "/")));
+  !LIGHT_PREFIX.some((p) => pathname === p || (pathname ?? "").startsWith(p + "/"));
