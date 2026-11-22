@@ -94,6 +94,8 @@ html[lang] .hv *{letter-spacing:var(--ls,0)!important}
 .hv-apt figure{margin:0}
 .hv-apt .im{position:relative;aspect-ratio:16/8;overflow:hidden;border-radius:6px}
 .hv-apt .im img{object-fit:cover;object-position:50% 60%}
+.hv-apt .im.plan{aspect-ratio:4/3;max-width:980px;margin-inline:auto;overflow:visible;border-radius:0;background:radial-gradient(60% 55% at 50% 55%,rgba(201,164,106,.14),transparent 72%)}
+.hv-apt .im.plan img{object-fit:contain;object-position:center;filter:drop-shadow(0 28px 36px rgba(0,0,0,.45))}
 .hv-apt figcaption{display:flex;justify-content:space-between;gap:16px;border-top:1px solid var(--line);margin-top:14px;padding-top:14px}
 /* developer preview */
 .hv-peek{padding:24px;display:grid;gap:20px;max-width:520px}
@@ -120,6 +122,7 @@ html[lang] .hv *{letter-spacing:var(--ls,0)!important}
  .hv-split{grid-template-columns:1fr}
  .hv-hero-img img{object-position:62% 50%}.hv-hero-in{padding-bottom:110px}
  .hv-apt .im{aspect-ratio:4/5}
+ .hv-apt .im.plan{aspect-ratio:4/3}
  .hv-bar{grid-template-columns:70px 1fr 28px}
 }
 @media(max-width:560px){.hv-peek .k b{font-size:24px}.hv-hero-foot .eyebrow::before{display:none}}

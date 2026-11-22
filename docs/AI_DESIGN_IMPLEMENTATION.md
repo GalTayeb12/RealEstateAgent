@@ -105,3 +105,8 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - Checked in English (en/ltr) at 1440 and 390: `/dev/dashboard` projects, Reservations and Leverage groups tabs. No horizontal overflow, no real console errors (only the 404s from the blocked profile request).
 - Fixed: the available-value KPI showed ₪ in English while all other prices show USD (now converted with the shared rate); "1 members" in the timeline; the dashboard tab bar overflowed to 436px at 390px in English (now scrolls, no wrap).
 - Not covered: `/dev/properties/[unitTypeId]` (no unit-type link was reachable on the collapsed project cards), `/dev/admin/approvals` (needs admin), and the existing "1 buyers" string on the groups tab, which is not from this work. Project names stay Hebrew because they are user data.
+
+### Homepage fixes (user feedback)
+
+- "Start interview" now sends guests (no `token`) to `/login` instead of `/interview`; signed-in users still go to `/interview` and unlock audio. Login already routes buyers on to the interview. Checked as a guest with `docs/design-impl/cta-guest.mjs`.
+- Apartment section uses `docs/design/section-03-apartment.png` (isometric plan with transparent background), optimised to `public/images/section-03-apartment.webp` (2000px, ~340 KB, from 4.7 MB). Shown contained (no cropping) with a soft glow; caption changed to "Top view · sample apartment". The old room-living render is no longer used on the homepage.

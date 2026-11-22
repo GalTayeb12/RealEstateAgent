@@ -4,8 +4,9 @@
  * the language toggle, nav state, parallax and count-up. All styles live in
  * ./home.css under the .hv scope.
  */
-import { useState, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useI18n } from "@/components/LocaleProvider";
 import { Logo } from "@/components/Logo";
@@ -16,7 +17,7 @@ import "./home.css";
 const IMG = {
   hero: "/images/hero-desktop.jpg",
   bedroom: "/buildings/yarkon-v2/room-bedroom.webp",
-  living: "/buildings/yarkon-v2/room-living.webp",
+  plan: "/images/section-03-apartment.webp",
   cta: "/images/cta-living-room.jpg",
 };
 
@@ -32,6 +33,14 @@ function Rv({ children, delay = 0, className = "" }: { children: ReactNode; dela
 export default function Home() {
   const { locale, setLocale, m } = useI18n();
   const { unlock } = useAudioUnlock();
+  const router = useRouter();
+  /** The interview needs a signed-in buyer: guests go to sign-in (login routes buyers on to the interview). */
+  const startInterview = (e: MouseEvent) => {
+    let signedIn = false;
+    try { signedIn = !!localStorage.getItem("token"); } catch { /* storage blocked: treat as guest */ }
+    if (!signedIn) { e.preventDefault(); router.push("/login"); return; }
+    void unlock();
+  };
   const he = locale === "he";
   const t = <T,>(h: T, e: T) => (he ? h : e);
   const dir = he ? "rtl" : "ltr";
@@ -100,7 +109,7 @@ export default function Home() {
               <h2 id="hv-adv-t" className="hv-h2" style={{ margin: "22px 0 26px" }}>{t("מכיר אתכם, לא את המסננים שלכם.", "It learns you, not your filters.")}</h2>
               <p className="hv-lede">{t("שיחה טבעית על החיים, והתאמה שמסבירה את עצמה. כל ציון נפתח לגורמים שאפשר לבדוק ולשנות.", "A natural conversation about your life, and a match that explains itself. Every score opens into factors you can inspect and re-weigh.")}</p>
               <div style={{ marginTop: 28 }}>
-                <Link className="hv-btn" href="/interview" onClick={() => void unlock()}>{m.home.startInterview} <Arrow /></Link>
+                <Link className="hv-btn" href="/interview" onClick={startInterview}>{m.home.startInterview} <Arrow /></Link>
               </div>
             </Rv>
             <div className="hv-chat hv-glass" role="img" aria-label={t("דוגמה להמחשה: שיחה עם יועץ והתאמה של 94%", "Illustrative example: a conversation with an advisor and a 94% match")}>
@@ -126,8 +135,8 @@ export default function Home() {
           </div>
           <Rv delay={150}>
             <figure>
-              <div className="im"><Image src={IMG.living} alt={t("סלון בדירה לדוגמה, הדמיה", "Living room of a sample apartment, rendering")} fill sizes="(max-width:1000px) 100vw, 88vw" /></div>
-              <figcaption><span className="eyebrow">{t("סלון · דירה לדוגמה", "Living room · sample apartment")}</span><span className="eyebrow">{t("הדמיה להמחשה", "Illustrative rendering")}</span></figcaption>
+              <div className="im plan"><Image src={IMG.plan} alt={t("מבט איזומטרי על דירה לדוגמה: שלושה חדרי שינה, סלון, מטבח ומרפסת, הדמיה", "Isometric view of a sample apartment: three bedrooms, living area, kitchen and terrace, rendering")} fill sizes="(max-width:1000px) 100vw, 980px" /></div>
+              <figcaption><span className="eyebrow">{t("מבט על · דירה לדוגמה", "Top view · sample apartment")}</span><span className="eyebrow">{t("הדמיה להמחשה", "Illustrative rendering")}</span></figcaption>
             </figure>
           </Rv>
         </section>
