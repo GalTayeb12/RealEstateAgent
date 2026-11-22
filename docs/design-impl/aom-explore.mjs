@@ -9,8 +9,6 @@ const shot = (n) => p.screenshot({ path: new URL(`./shots/${n}.png`, import.meta
 await p.goto("http://localhost:3001/aom/" + id, { waitUntil: "load" }); await p.waitForTimeout(3500); await shot("ax-0");
 const floor = p.locator(".hn-ps-floor").first();
 if (await floor.count()) { await floor.click({ force: true }); await p.waitForTimeout(2500); await shot("ax-1"); }
-const apt = p.getByText("דירה 602").first();
-console.log("apt buttons", await p.locator(".hn-ps-chips button").count());
 await p.mouse.click(1280, 260); await p.waitForTimeout(3500); await p.mouse.click(718, 310); await p.waitForTimeout(4500); await shot("ax-2");
 console.log("errors", errs.length ? errs : "none");
 await b.close();

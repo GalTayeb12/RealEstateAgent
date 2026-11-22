@@ -15,7 +15,7 @@ const routes = [
   ["dev", "dev-login", "/dev/login", null], ["dev", "dev-register", "/dev/register", null], ["dev", "dev-props", "/dev/projects", "D"],
 ];
 const b = await chromium.launch(); const out = [];
-for (const [who, name, path, st] of routes) {
+for (const [, name, path, st] of routes) {
   const state = st === "S" ? process.env.STATE : st === "D" ? process.env.DEVSTATE : undefined;
   const ctx = await b.newContext({ viewport: { width: 1440, height: 900 }, ...(state ? { storageState: state } : {}) });
   await ctx.addCookies([{ name: "haveniq-locale", value: lang, url: base }]);
