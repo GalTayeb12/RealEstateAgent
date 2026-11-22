@@ -48,5 +48,15 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - Verified: login (en), dev register (he), login mobile — no console errors, no overflow; vitest 271/271; eslint clean on changed files.
 - Pre-existing, untouched: eslint `set-state-in-effect` errors in `components/TopNav.tsx`.
 
-## Phase 2 — remaining (blocked on test account)
-`/interview`, `/processing` (with a transcript), `/results`, `/aom/[id]`, `/buyer/offers`, `/buyer/leverage-groups`, `/profile`, `/deal/[offerId]`, TopNav for signed-in buyers. These redirect to `/login` without a session, so they cannot be rendered or verified. `/results` and `/buyer/offers` use ~220 / ~100 hard-coded colours and need real restyling, not just tokens.
+## Phase 2b — buyer screens (authenticated, verified with a user-supplied test buyer)
+- `components/theme/ThemeScope.tsx` (root layout) puts `.cin` on the routed content for opted-in routes; `lib/theme.ts` now includes `/profile`, `/processing`, `/terms`, `/privacy`, and the prefixes `/buyer`, `/results`, `/deal`, `/aom`. TopNav (and its logo) and footer follow the same list.
+- Screens that hard-code light colours were converted with `docs/design-impl/tokenize.py`: inline hex → `var(--c-role, <original hex>)`. The `--c-*` roles exist only under `.cin`, so light screens keep their literal colours. Applied to: `/results`, `/buyer/offers`, `/buyer/leverage-groups`, `/deal/[offerId]`, `/aom/[id]`, `/profile`, `MortgageCalculator`, `AlertCard`. SVG strokes and the deal signature canvas stroke follow the theme.
+- Not changed: logic, API calls, matching, signing/ledger behaviour (style values only).
+- Verified rendered (desktop 1440 + mobile 390, no console errors, no overflow): `/buyer/offers`, `/profile`, `/buyer/leverage-groups`, `/deal/<id>`, `/results` (empty state only).
+- Authenticated screenshots are kept local (they show the test account email); only home screenshots are committed.
+
+## Phase 2 — still open
+- `/results` with real match data (the test account has no interview session, so only the empty state was seen) — a full restyle toward the C V2 results design (cinematic hero card, score, factor bars) is NOT done; currently it is a token recolour.
+- `/interview` (full-screen avatar) and `/processing` with a transcript, `/aom/[id]` building/apartment pages with real data, 3D explorer, `/walk`: not visually verified.
+- TopNav still has 3 pre-existing eslint `set-state-in-effect` errors (unchanged).
+- Recolour ≠ redesign: layouts of offers/deal/groups are the original ones.

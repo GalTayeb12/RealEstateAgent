@@ -21,6 +21,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 import LanguageToggle from "@/components/LanguageToggle";
+import { isCinematicPath } from "@/lib/theme";
 import { Logo } from "@/components/Logo";
 
 // Marketing homepage has its own sticky nav (with the language toggle inside it).
@@ -232,11 +233,11 @@ export default function TopNav() {
   }
 
   return (
-    <nav style={{
+    <nav className={isCinematicPath(pathname) ? "cin" : undefined} style={{
       position: "sticky",
       top: 0,
       zIndex: 100,
-      background: "rgba(251,250,247,0.85)",
+      background: "var(--nav-bg, rgba(251,250,247,0.85))",
       backdropFilter: "blur(12px)",
       WebkitBackdropFilter: "blur(12px)",
       borderBottom: "1px solid var(--qp-border)",
@@ -267,7 +268,7 @@ export default function TopNav() {
         alignItems: "center",
       }}>
         {/* Col 1: Logo */}
-        <Logo href={showAppNav ? dashHref : "/"} height={22} />
+        <Logo variant={isCinematicPath(pathname) ? "light" : "default"} href={showAppNav ? dashHref : "/"} height={22} />
 
         {/* Col 2: Nav links (centered) — desktop only */}
         <div

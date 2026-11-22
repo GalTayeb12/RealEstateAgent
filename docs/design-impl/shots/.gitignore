@@ -1,0 +1,4 @@
+# working screenshots (authenticated pages contain the test account email) stay local
+*
+!.gitignore
+!home-*.png

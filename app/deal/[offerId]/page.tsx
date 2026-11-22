@@ -69,7 +69,7 @@ function fmtDate(iso: string, locale?: string) {
 
 function CheckIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-on-btn,#fff)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -103,38 +103,38 @@ function Step({
   return (
     <div style={{
       display: "flex", gap: "1rem", padding: "1.125rem 1.375rem",
-      background: isDone ? "#F0F6F5" : isActive ? "#fff" : "#FAFAF9",
+      background: isDone ? "var(--c-soft,#F0F6F5)" : isActive ? "var(--c-card,#fff)" : "var(--c-soft,#FAFAF9)",
       borderRadius: "0.625rem",
-      border: `1px solid ${isDone ? "#B8D4D3" : isActive ? "#D4DED8" : "#EDEBE7"}`,
+      border: `1px solid ${isDone ? "var(--c-line,#B8D4D3)" : isActive ? "var(--c-line,#D4DED8)" : "var(--c-line,#EDEBE7)"}`,
       opacity: state === "upcoming" ? 0.6 : 1,
     }}>
       <div style={{
         flexShrink: 0, width: 32, height: 32, borderRadius: "50%",
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: isDone ? "#123F40" : isActive ? "#756039" : "#E8E4DF",
+        background: isDone ? "var(--c-btn,#123F40)" : isActive ? "var(--c-gold,#756039)" : "var(--c-soft,#E8E4DF)",
         marginTop: 2,
       }}>
         {isDone
           ? <CheckIcon />
-          : <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: isActive ? "#fff" : "#526563" }}>{num}</span>
+          : <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: isActive ? "var(--c-on-btn,#fff)" : "var(--c-muted,#526563)" }}>{num}</span>
         }
       </div>
       <div style={{ flex: 1 }}>
         <div style={{
           fontSize: "0.9375rem", fontWeight: 600,
-          color: isDone ? "#123F40" : isActive ? "#123F40" : "#526563",
+          color: isDone ? "var(--c-ink,#123F40)" : isActive ? "var(--c-ink,#123F40)" : "var(--c-muted,#526563)",
           marginBottom: "0.2rem", fontFamily: "var(--font-inter, sans-serif)",
         }}>
           {title}
         </div>
-        <div style={{ fontSize: "0.8125rem", color: "#526563", lineHeight: 1.5 }}>
+        <div style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)", lineHeight: 1.5 }}>
           {description}
         </div>
         {action && <div style={{ marginTop: "0.875rem" }}>{action}</div>}
       </div>
       <div style={{ flexShrink: 0, display: "flex", alignItems: "flex-start", paddingTop: 6 }}>
         {isDone && (
-          <span style={{ fontSize: "0.6875rem", fontWeight: 600, color: "#123F40", background: "#D4EDEA", borderRadius: 999, padding: "0.15rem 0.5rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          <span style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--c-ink,#123F40)", background: "var(--c-soft,#D4EDEA)", borderRadius: 999, padding: "0.15rem 0.5rem", letterSpacing: "0.06em", textTransform: "uppercase" }}>
             {doneLabel}
           </span>
         )}
@@ -149,12 +149,12 @@ function Step({
 function LedgerDisclosure({ hash, m }: { hash: string; m: Messages }) {
   const [copied, setCopied] = useState(false);
   return (
-    <div style={{ textAlign: "center", fontSize: "0.75rem", color: "#526563" }}>
-      <div style={{ color: "#123F40", fontWeight: 600, marginBottom: "0.25rem" }}>
+    <div style={{ textAlign: "center", fontSize: "0.75rem", color: "var(--c-muted,#526563)" }}>
+      <div style={{ color: "var(--c-ink,#123F40)", fontWeight: 600, marginBottom: "0.25rem" }}>
         ✓ {m.deal.ledgerRecorded}
       </div>
       <details style={{ display: "inline-block" }}>
-        <summary style={{ cursor: "pointer", color: "#526563", fontSize: "0.6875rem" }}>
+        <summary style={{ cursor: "pointer", color: "var(--c-muted,#526563)", fontSize: "0.6875rem" }}>
           {m.deal.ledgerDetails}
         </summary>
         <div style={{ marginTop: "0.375rem", fontFamily: "monospace", fontSize: "0.6875rem", color: "#7A7570", display: "flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
@@ -162,7 +162,7 @@ function LedgerDisclosure({ hash, m }: { hash: string; m: Messages }) {
           <button
             type="button"
             onClick={() => { navigator.clipboard.writeText(hash).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); }}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", padding: "0 0.25rem", fontSize: "0.6875rem" }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-muted,#526563)", padding: "0 0.25rem", fontSize: "0.6875rem" }}
           >
             {copied ? m.deal.ledgerCopied : "⧉"}
           </button>
@@ -203,7 +203,7 @@ function SignatureModal({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d")!;
-    ctx.strokeStyle = "#123F40";
+    ctx.strokeStyle = getComputedStyle(canvas).getPropertyValue("--c-ink").trim() || "#123F40"; // follows the theme
     ctx.lineWidth   = 2;
     ctx.lineCap     = "round";
     ctx.lineJoin    = "round";
@@ -331,23 +331,23 @@ function SignatureModal({
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{
-        background: "#fff", borderRadius: "1rem", width: "100%", maxWidth: "34rem",
+        background: "var(--c-card,#fff)", borderRadius: "1rem", width: "100%", maxWidth: "34rem",
         boxShadow: "0 32px 64px -24px rgba(18,51,50,0.4)",
         display: "flex", flexDirection: "column", maxHeight: "90vh", overflow: "hidden",
       }}>
         {/* Modal header */}
-        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #E9EEEA", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--c-line,#E9EEEA)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 600, fontSize: "1.125rem", color: "#123F40" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 600, fontSize: "1.125rem", color: "var(--c-ink,#123F40)" }}>
               {m.deal.contractTitle}
             </div>
-            <div style={{ fontSize: "0.8125rem", color: "#526563", marginTop: "0.125rem" }}>
-              {m.deal.signingAs} <strong style={{ color: "#123F40" }}>{role === "buyer" ? m.nav.roleBuyer : role === "seller" ? m.nav.roleSeller : m.nav.roleDeveloper}</strong>
+            <div style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)", marginTop: "0.125rem" }}>
+              {m.deal.signingAs} <strong style={{ color: "var(--c-ink,#123F40)" }}>{role === "buyer" ? m.nav.roleBuyer : role === "seller" ? m.nav.roleSeller : m.nav.roleDeveloper}</strong>
             </div>
           </div>
           <button
             onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", padding: "0.25rem", lineHeight: 0 }}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-muted,#526563)", padding: "0.25rem", lineHeight: 0 }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -361,21 +361,21 @@ function SignatureModal({
 
             {/* Contract text */}
             <div>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563", marginBottom: "0.5rem" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--c-muted,#526563)", marginBottom: "0.5rem" }}>
                 {m.deal.agreementText}
               </div>
               <pre style={{
                 fontFamily: "var(--font-heebo, sans-serif)",
                 fontSize: "0.75rem",
                 lineHeight: 1.7,
-                color: "#123F40",
-                background: "#F5F3EE",
+                color: "var(--c-ink,#123F40)",
+                background: "var(--c-soft,#F5F3EE)",
                 borderRadius: "0.5rem",
                 padding: "1rem",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
                 margin: 0,
-                border: "1px solid #E0DDD7",
+                border: "1px solid var(--c-line,#E0DDD7)",
               }}>
                 {contractText}
               </pre>
@@ -383,8 +383,8 @@ function SignatureModal({
 
             {/* Full legal name */}
             <div>
-              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.4rem" }}>
-                {m.deal.legalName} <span style={{ color: "#9E3434" }}>*</span>
+              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--c-muted,#55534C)", marginBottom: "0.4rem" }}>
+                {m.deal.legalName} <span style={{ color: "var(--c-err,#9E3434)" }}>*</span>
               </label>
               <input
                 type="text"
@@ -393,9 +393,9 @@ function SignatureModal({
                 onChange={(e) => setTypedName(e.target.value)}
                 placeholder={m.deal.legalNamePh}
                 style={{
-                  width: "100%", background: "#F5F3EE", border: "1.5px solid #E0DDD7",
+                  width: "100%", background: "var(--c-soft,#F5F3EE)", border: "1.5px solid var(--c-line,#E0DDD7)",
                   borderRadius: "0.625rem", padding: "0.75rem 1rem",
-                  fontSize: "0.9375rem", color: "#123F40", outline: "none", boxSizing: "border-box",
+                  fontSize: "0.9375rem", color: "var(--c-ink,#123F40)", outline: "none", boxSizing: "border-box",
                 }}
                 onFocus={(e) => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
                 onBlur={(e) => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
@@ -405,13 +405,13 @@ function SignatureModal({
             {/* Signature pad */}
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
-                <label style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C" }}>
-                  {m.deal.drawSignature} <span style={{ color: "#9E3434" }}>*</span>
+                <label style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--c-muted,#55534C)" }}>
+                  {m.deal.drawSignature} <span style={{ color: "var(--c-err,#9E3434)" }}>*</span>
                 </label>
                 <button
                   type="button"
                   onClick={clearCanvas}
-                  style={{ fontSize: "0.75rem", fontWeight: 600, color: "#526563", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--c-muted,#526563)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
                 >
                   {m.deal.clearSignature}
                 </button>
@@ -431,15 +431,15 @@ function SignatureModal({
                   display: "block",
                   width: "100%",
                   height: 120,
-                  background: "#F5F3EE",
-                  border: `1.5px solid ${hasDrawn ? "#123F40" : "#E0DDD7"}`,
+                  background: "var(--c-soft,#F5F3EE)",
+                  border: `1.5px solid ${hasDrawn ? "var(--c-ink,#123F40)" : "var(--c-line,#E0DDD7)"}`,
                   borderRadius: "0.625rem",
                   cursor: "crosshair",
                   touchAction: "none",
                 }}
               />
               {!hasDrawn && (
-                <p style={{ margin: "0.375rem 0 0", fontSize: "0.75rem", color: "#526563" }}>
+                <p style={{ margin: "0.375rem 0 0", fontSize: "0.75rem", color: "var(--c-muted,#526563)" }}>
                   {m.deal.signatureHint}
                 </p>
               )}
@@ -451,16 +451,16 @@ function SignatureModal({
                 type="checkbox"
                 checked={checked}
                 onChange={(e) => setChecked(e.target.checked)}
-                style={{ marginTop: "0.1rem", flexShrink: 0, accentColor: "#123F40", width: 16, height: 16 }}
+                style={{ marginTop: "0.1rem", flexShrink: 0, accentColor: "var(--c-ink,#123F40)", width: 16, height: 16 }}
               />
-              <span style={{ fontSize: "0.875rem", color: "#55534C", lineHeight: 1.5 }}>
+              <span style={{ fontSize: "0.875rem", color: "var(--c-muted,#55534C)", lineHeight: 1.5 }}>
                 {m.deal.confirmStatement}
               </span>
             </label>
 
             {/* Error */}
             {error && (
-              <div style={{ background: "#FBECEA", border: "1px solid rgba(176,64,64,0.2)", borderRadius: "0.5rem", padding: "0.75rem 1rem", fontSize: "0.875rem", color: "#9E3434" }}>
+              <div style={{ background: "var(--c-err-bg,#FBECEA)", border: "1px solid rgba(176,64,64,0.2)", borderRadius: "0.5rem", padding: "0.75rem 1rem", fontSize: "0.875rem", color: "var(--c-err,#9E3434)" }}>
                 {error}
               </div>
             )}
@@ -471,8 +471,8 @@ function SignatureModal({
               disabled={!canSubmit}
               style={{
                 width: "100%", padding: "0.875rem", borderRadius: 999,
-                fontSize: "0.9375rem", fontWeight: 600, color: "#fff",
-                background: canSubmit ? "linear-gradient(155deg, #123F40, #123332)" : "rgba(31,75,74,0.35)",
+                fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-on-btn,#fff)",
+                background: canSubmit ? "linear-gradient(155deg, var(--c-btn,#123F40), var(--c-btn-hover,#123332))" : "rgba(31,75,74,0.35)",
                 border: "none",
                 cursor: canSubmit ? "pointer" : "not-allowed",
                 boxShadow: canSubmit ? "0 10px 24px -10px rgba(18,51,50,0.55)" : "none",
@@ -593,8 +593,8 @@ export default function DealRoomPage() {
 
   if (loading) {
     return (
-      <main style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "#123F40", animation: "spin 0.9s linear infinite" }} />
+      <main style={{ minHeight: "100vh", background: "var(--c-soft,#F4F5F0)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "2rem", height: "2rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "var(--c-ink,#123F40)", animation: "spin 0.9s linear infinite" }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </main>
     );
@@ -605,20 +605,20 @@ export default function DealRoomPage() {
   if (error) {
     const backHref = role === "developer" ? "/dev/dashboard" : role === "seller" ? "/seller/dashboard" : errorCode === 403 ? "/buyer/offers" : "/";
     return (
-      <main style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, sans-serif)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <main style={{ minHeight: "100vh", background: "var(--c-soft,#F4F5F0)", fontFamily: "var(--font-inter, sans-serif)", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
         <div style={{ maxWidth: "28rem", width: "100%", textAlign: "center" }}>
-          <div style={{ width: "3.5rem", height: "3.5rem", borderRadius: "50%", background: "#FBECEA", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem" }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9E3434" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div style={{ width: "3.5rem", height: "3.5rem", borderRadius: "50%", background: "var(--c-err-bg,#FBECEA)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.25rem" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--c-err,#9E3434)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
-          <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.375rem", fontWeight: 600, color: "#123F40", margin: "0 0 0.5rem" }}>
+          <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", margin: "0 0 0.5rem" }}>
             {errorCode === 403 ? m.deal.accessDenied : m.deal.notFound}
           </h1>
-          <p style={{ color: "#526563", fontSize: "0.9375rem", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
+          <p style={{ color: "var(--c-muted,#526563)", fontSize: "0.9375rem", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
             {error}
           </p>
-          <Link href={backHref} style={{ display: "inline-block", padding: "0.625rem 1.5rem", borderRadius: 999, background: "#123F40", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}>
+          <Link href={backHref} style={{ display: "inline-block", padding: "0.625rem 1.5rem", borderRadius: 999, background: "var(--c-btn,#123F40)", color: "var(--c-on-btn,#fff)", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}>
             {m.deal.backToDashboard}
           </Link>
         </div>
@@ -651,7 +651,7 @@ export default function DealRoomPage() {
 
   const depositAction = role !== "buyer" ? (
     // Developer read-only view
-    <span style={{ fontSize: "0.8125rem", color: "#756039", fontWeight: 600 }}>
+    <span style={{ fontSize: "0.8125rem", color: "var(--c-gold,#756039)", fontWeight: 600 }}>
       {offer.depositPaid ? m.deal.paidByBuyer : m.deal.waitingBuyer}
     </span>
   ) : step2 === "active" ? (
@@ -660,7 +660,7 @@ export default function DealRoomPage() {
       disabled={payingDeposit}
       style={{
         padding: "0.5rem 1.25rem", borderRadius: 999, border: "none",
-        background: "#756039", color: "#fff", fontSize: "0.875rem", fontWeight: 600,
+        background: "var(--c-gold,#756039)", color: "var(--c-on-btn,#fff)", fontSize: "0.875rem", fontWeight: 600,
         cursor: payingDeposit ? "not-allowed" : "pointer",
         opacity: payingDeposit ? 0.7 : 1,
       }}
@@ -682,7 +682,7 @@ export default function DealRoomPage() {
       {/* Own signing row */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
         {mySig ? (
-          <span style={{ fontSize: "0.8125rem", color: "#123F40", fontWeight: 600 }}>
+          <span style={{ fontSize: "0.8125rem", color: "var(--c-ink,#123F40)", fontWeight: 600 }}>
             ✓ {isBuyer ? m.offers.signedByBuyer : m.offers.signedByDev}: <em>{mySig.typedName}</em> · {fmtDate(mySig.signedAt, locale)}
           </span>
         ) : (
@@ -690,7 +690,7 @@ export default function DealRoomPage() {
             onClick={() => setShowSignModal(true)}
             style={{
               padding: "0.5rem 1.125rem", borderRadius: 999, border: "none",
-              background: "#123F40", color: "#fff", fontSize: "0.875rem", fontWeight: 600,
+              background: "var(--c-btn,#123F40)", color: "var(--c-on-btn,#fff)", fontSize: "0.875rem", fontWeight: 600,
               cursor: "pointer",
             }}
           >
@@ -700,9 +700,9 @@ export default function DealRoomPage() {
       </div>
 
       {/* Counterpart row */}
-      <div style={{ fontSize: "0.8125rem", color: "#526563" }}>
+      <div style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>
         {otherSig
-          ? <span style={{ color: "#123F40", fontWeight: 600 }}>✓ {otherLabel}: <em>{otherSig.typedName}</em> · {fmtDate(otherSig.signedAt, locale)}</span>
+          ? <span style={{ color: "var(--c-ink,#123F40)", fontWeight: 600 }}>✓ {otherLabel}: <em>{otherSig.typedName}</em> · {fmtDate(otherSig.signedAt, locale)}</span>
           : <span>{m.offers.awaitingDev}</span>
         }
       </div>
@@ -725,7 +725,7 @@ export default function DealRoomPage() {
         />
       )}
 
-      <main style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, sans-serif)", paddingBottom: "4rem" }}>
+      <main style={{ minHeight: "100vh", background: "var(--c-soft,#F4F5F0)", fontFamily: "var(--font-inter, sans-serif)", paddingBottom: "4rem" }}>
         <style>{`
           @media (max-width: 640px) {
             .hn-deal-summary-grid { grid-template-columns: 1fr !important; }
@@ -734,31 +734,31 @@ export default function DealRoomPage() {
         `}</style>
 
         {/* Header */}
-        <div style={{ borderBottom: "1px solid #D4DED8", background: "#fff" }}>
+        <div style={{ borderBottom: "1px solid var(--c-line,#D4DED8)", background: "var(--c-card,#fff)" }}>
           <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "1.5rem" }}>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.5rem" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--c-ink,#123F40)", marginBottom: "0.5rem" }}>
               Haveniq
             </div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
               <div>
-                <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.875rem", fontWeight: 600, color: "#123F40", margin: 0 }}>
+                <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.875rem", fontWeight: 600, color: "var(--c-ink,#123F40)", margin: 0 }}>
                   {m.deal.step1}
                 </h1>
-                <p style={{ margin: "0.375rem 0 0", color: "#526563", fontSize: "0.9375rem" }}>
+                <p style={{ margin: "0.375rem 0 0", color: "var(--c-muted,#526563)", fontSize: "0.9375rem" }}>
                   {offer.unitType.project.name} — {offer.unitType.unitLabel}
                 </p>
               </div>
               <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
                 {role === "developer" ? (
-                  <Link href="/dev/dashboard" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
+                  <Link href="/dev/dashboard" style={{ fontSize: "0.875rem", color: "var(--c-muted,#526563)", fontWeight: 500, textDecoration: "none" }}>
                     {m.deal.backToDashboard}
                   </Link>
                 ) : role === "seller" ? (
-                  <Link href="/seller/dashboard" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
+                  <Link href="/seller/dashboard" style={{ fontSize: "0.875rem", color: "var(--c-muted,#526563)", fontWeight: 500, textDecoration: "none" }}>
                     {m.deal.backToDashboard}
                   </Link>
                 ) : (
-                  <Link href="/buyer/offers" style={{ fontSize: "0.875rem", color: "#526563", fontWeight: 500, textDecoration: "none" }}>
+                  <Link href="/buyer/offers" style={{ fontSize: "0.875rem", color: "var(--c-muted,#526563)", fontWeight: 500, textDecoration: "none" }}>
                     {m.deal.myOffers}
                   </Link>
                 )}
@@ -770,27 +770,27 @@ export default function DealRoomPage() {
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "2rem 1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
           {/* Status card */}
-          <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #B8D4D3", borderTop: "4px solid #123F40", overflow: "hidden" }}>
+          <div style={{ background: "var(--c-card,#fff)", borderRadius: "0.875rem", border: "1px solid var(--c-line,#B8D4D3)", borderTop: "4px solid var(--c-ink,#123F40)", overflow: "hidden" }}>
             <div style={{ padding: "1.5rem 1.75rem" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", marginBottom: "0.625rem", flexWrap: "wrap" }}>
-                    <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 600, color: "#123F40" }}>
+                    <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 600, color: "var(--c-ink,#123F40)" }}>
                       {m.deal.step1}
                     </span>
-                    <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "0.2rem 0.75rem", borderRadius: 999, background: "#D4EDEA", color: "#123F40", border: "1px solid #B8D4D3" }}>
+                    <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "0.2rem 0.75rem", borderRadius: 999, background: "var(--c-soft,#D4EDEA)", color: "var(--c-ink,#123F40)", border: "1px solid var(--c-line,#B8D4D3)" }}>
                       {m.dev.statusReserved}
                     </span>
                   </div>
-                  <div style={{ fontSize: "0.9375rem", color: "#526563" }}>
+                  <div style={{ fontSize: "0.9375rem", color: "var(--c-muted,#526563)" }}>
                     {offer.unitType.project.name} · {offer.unitType.project.location}
                   </div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>
+                  <div style={{ fontSize: "0.6875rem", color: "var(--c-muted,#526563)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.25rem" }}>
                     {m.offers.finalPrice}
                   </div>
-                  <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "2rem", fontWeight: 600, color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
+                  <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "2rem", fontWeight: 600, color: "var(--c-ink,#123F40)", fontVariantNumeric: "tabular-nums" }}>
                     {formatPrice(finalPrice)}
                     <EstimatedPriceNote />
                   </div>
@@ -800,9 +800,9 @@ export default function DealRoomPage() {
           </div>
 
           {/* Summary table */}
-          <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
-            <div style={{ padding: "1rem 1.5rem 0.5rem", borderBottom: "1px solid #E9EEEA" }}>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>{m.deal.step1}</div>
+          <div style={{ background: "var(--c-card,#fff)", borderRadius: "0.875rem", border: "1px solid var(--c-line,#D4DED8)", overflow: "hidden" }}>
+            <div style={{ padding: "1rem 1.5rem 0.5rem", borderBottom: "1px solid var(--c-line,#E9EEEA)" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--c-muted,#526563)" }}>{m.deal.step1}</div>
             </div>
             <div className="hn-deal-summary-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
               {([
@@ -811,11 +811,11 @@ export default function DealRoomPage() {
                 [m.offers.finalPrice,   formatPrice(finalPrice),   true],
                 [m.results.timeline,    dateAccepted,              false],
               ] as [string, string, boolean][]).map(([label, value, isPrice], i) => (
-                <div key={label} style={{ padding: "1rem 1.5rem", borderBottom: i < 2 ? "1px solid #E9EEEA" : undefined, borderRight: i % 2 === 0 ? "1px solid #E9EEEA" : undefined }}>
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "#526563", marginBottom: "0.3rem" }}>
+                <div key={label} style={{ padding: "1rem 1.5rem", borderBottom: i < 2 ? "1px solid var(--c-line,#E9EEEA)" : undefined, borderRight: i % 2 === 0 ? "1px solid var(--c-line,#E9EEEA)" : undefined }}>
+                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--c-muted,#526563)", marginBottom: "0.3rem" }}>
                     {label}
                   </div>
-                  <div style={{ fontSize: "0.9375rem", fontWeight: 600, color: "#123F40", fontFamily: isPrice ? "var(--font-heebo, sans-serif)" : undefined, fontVariantNumeric: isPrice ? "tabular-nums" : undefined }}>
+                  <div style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", fontFamily: isPrice ? "var(--font-heebo, sans-serif)" : undefined, fontVariantNumeric: isPrice ? "tabular-nums" : undefined }}>
                     {value}
                   </div>
                 </div>
@@ -824,9 +824,9 @@ export default function DealRoomPage() {
           </div>
 
           {/* Checklist */}
-          <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
-            <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid #E9EEEA" }}>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>
+          <div style={{ background: "var(--c-card,#fff)", borderRadius: "0.875rem", border: "1px solid var(--c-line,#D4DED8)", overflow: "hidden" }}>
+            <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid var(--c-line,#E9EEEA)" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--c-muted,#526563)" }}>
                 {(role === "developer" || role === "seller") ? m.deal.dealStatus : m.deal.whatNext}
               </div>
             </div>
@@ -890,7 +890,7 @@ export default function DealRoomPage() {
                   padding: "0.55rem 1.125rem",
                   borderRadius: 999,
                   border: "1px solid #E7C9C9",
-                  background: "#fff",
+                  background: "var(--c-card,#fff)",
                   color: "#8C3030",
                   fontSize: "0.875rem",
                   fontWeight: 600,
@@ -899,45 +899,45 @@ export default function DealRoomPage() {
               >
                 {m.deal.cancelHold}
               </button>
-              {cancelError && <p style={{ margin: 0, color: "#9E3434", fontSize: "0.8125rem" }}>{cancelError}</p>}
+              {cancelError && <p style={{ margin: 0, color: "var(--c-err,#9E3434)", fontSize: "0.8125rem" }}>{cancelError}</p>}
             </div>
           )}
 
           {/* Video call */}
           {offer.meetingLink && (
-            <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
-              <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid #E9EEEA" }}>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>{m.deal.meetingLink}</div>
+            <div style={{ background: "var(--c-card,#fff)", borderRadius: "0.875rem", border: "1px solid var(--c-line,#D4DED8)", overflow: "hidden" }}>
+              <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid var(--c-line,#E9EEEA)" }}>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--c-muted,#526563)" }}>{m.deal.meetingLink}</div>
               </div>
               <div style={{ padding: "1rem 1.5rem", display: "flex", alignItems: "center", gap: "0.875rem", flexWrap: "wrap" }}>
                 <a
                   href={offer.meetingLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "#123F40", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "var(--c-btn,#123F40)", color: "var(--c-on-btn,#fff)", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none" }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-on-btn,#fff)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
                   </svg>
                   {m.offers.joinCall}
                 </a>
-                <span style={{ fontSize: "0.8125rem", color: "#526563" }}>{m.deal.meetingLink}</span>
+                <span style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>{m.deal.meetingLink}</span>
               </div>
             </div>
           )}
 
           {/* Documents */}
-          <div style={{ background: "#fff", borderRadius: "0.875rem", border: "1px solid #D4DED8", overflow: "hidden" }}>
-            <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid #E9EEEA" }}>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#526563" }}>{m.deal.downloadPdf}</div>
+          <div style={{ background: "var(--c-card,#fff)", borderRadius: "0.875rem", border: "1px solid var(--c-line,#D4DED8)", overflow: "hidden" }}>
+            <div style={{ padding: "1rem 1.5rem 0.75rem", borderBottom: "1px solid var(--c-line,#E9EEEA)" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--c-muted,#526563)" }}>{m.deal.downloadPdf}</div>
             </div>
             <div style={{ padding: "1rem 1.5rem" }}>
               <button
                 onClick={downloadPdf}
                 disabled={pdfLoading}
-                style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1.25rem", borderRadius: "0.5rem", border: "1px solid #D4DED8", background: "#fff", color: "#123F40", fontSize: "0.875rem", fontWeight: 600, cursor: pdfLoading ? "not-allowed" : "pointer", opacity: pdfLoading ? 0.7 : 1 }}
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.625rem 1.25rem", borderRadius: "0.5rem", border: "1px solid var(--c-line,#D4DED8)", background: "var(--c-card,#fff)", color: "var(--c-ink,#123F40)", fontSize: "0.875rem", fontWeight: 600, cursor: pdfLoading ? "not-allowed" : "pointer", opacity: pdfLoading ? 0.7 : 1 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--c-ink,#123F40)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline points="14 2 14 8 20 8"/>
                   <line x1="12" y1="18" x2="12" y2="12"/>
@@ -945,7 +945,7 @@ export default function DealRoomPage() {
                 </svg>
                 {m.deal.downloadPdf}
               </button>
-              <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>{m.deal.pdfNote}</p>
+              <p style={{ margin: "0.5rem 0 0", fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>{m.deal.pdfNote}</p>
             </div>
           </div>
 

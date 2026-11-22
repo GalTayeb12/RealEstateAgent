@@ -126,20 +126,20 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
     <div style={{
       position: "fixed", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)",
       zIndex: 9999, display: "flex", alignItems: "center", gap: "0.75rem",
-      background: "#FFFFFF", color: "#123F40", borderRadius: 16,
-      border: "1px solid #D4DED8",
+      background: "var(--c-card,#FFFFFF)", color: "var(--c-ink,#123F40)", borderRadius: 16,
+      border: "1px solid var(--c-line,#D4DED8)",
       padding: "0.875rem 1.25rem", boxShadow: "0 10px 28px rgba(18,63,64,0.12)",
       fontSize: "0.9375rem", fontWeight: 500, maxWidth: "90vw",
       animation: "slideUp 0.25s ease-out",
     }}>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#246046" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-ok,#246046)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="20 6 9 17 4 12" />
       </svg>
       <span>{message}</span>
-      <Link href="/buyer/offers" style={{ color: "#756039", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap", marginLeft: "0.25rem" }}>
+      <Link href="/buyer/offers" style={{ color: "var(--c-gold,#756039)", fontWeight: 600, textDecoration: "none", whiteSpace: "nowrap", marginLeft: "0.25rem" }}>
         {m.results.trackIt}
       </Link>
-      <button onClick={onDismiss} style={{ background: "none", border: "none", color: "#526563", cursor: "pointer", fontSize: "1rem", padding: "0 0.125rem", marginLeft: "0.25rem" }}>✕</button>
+      <button onClick={onDismiss} style={{ background: "none", border: "none", color: "var(--c-muted,#526563)", cursor: "pointer", fontSize: "1rem", padding: "0 0.125rem", marginLeft: "0.25rem" }}>✕</button>
     </div>
   );
 }
@@ -280,7 +280,7 @@ function LeverageModal({
         position: "fixed", top: "50%", left: "50%",
         transform: "translate(-50%, -50%)",
         zIndex: 1001, width: "min(92vw, 30rem)",
-        background: "#FFFFFF", borderRadius: 24,
+        background: "var(--c-card,#FFFFFF)", borderRadius: 24,
         border: "1px solid rgba(18,63,64,0.1)",
         boxShadow: "0 24px 64px -20px rgba(0,0,0,0.4)",
         overflow: "hidden",
@@ -288,14 +288,14 @@ function LeverageModal({
         {/* Header */}
         <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.2rem" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-ink,#123F40)", marginBottom: "0.2rem" }}>
               {m.results.groupBuyingInterest}
             </div>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 600, color: "#123F40" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 600, color: "var(--c-ink,#123F40)" }}>
               {outcome.title}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", fontSize: "1.25rem", lineHeight: 1 }}>✕</button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-muted,#526563)", fontSize: "1.25rem", lineHeight: 1 }}>✕</button>
         </div>
 
         <div style={{ padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -303,21 +303,21 @@ function LeverageModal({
           {/* Loading */}
           {loading && (
             <div style={{ textAlign: "center", padding: "1.5rem 0" }}>
-              <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "#123F40", animation: "spin 0.9s linear infinite", margin: "0 auto" }} />
+              <div style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%", border: "2px solid rgba(18,63,64,0.08)", borderTopColor: "var(--c-ink,#123F40)", animation: "spin 0.9s linear infinite", margin: "0 auto" }} />
             </div>
           )}
 
           {/* Success confirmation */}
           {success && (
-            <div style={{ background: "#E9EEEA", borderRadius: 10, padding: "1rem 1.125rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
+            <div style={{ background: "var(--c-soft,#E9EEEA)", borderRadius: 10, padding: "1rem 1.125rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-ink,#123F40)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <div>
-                <div style={{ fontWeight: 600, color: "#123F40", fontSize: "0.9375rem", marginBottom: "0.3rem" }}>
+                <div style={{ fontWeight: 600, color: "var(--c-ink,#123F40)", fontSize: "0.9375rem", marginBottom: "0.3rem" }}>
                   {success === "join" ? m.results.youreIn : m.results.groupRegisteredTitle}
                 </div>
-                <div style={{ fontSize: "0.875rem", color: "#3A6B6A", lineHeight: 1.55 }}>{successMsg}</div>
+                <div style={{ fontSize: "0.875rem", color: "var(--c-muted,#3A6B6A)", lineHeight: 1.55 }}>{successMsg}</div>
               </div>
             </div>
           )}
@@ -328,40 +328,40 @@ function LeverageModal({
               {existingGroups.length > 0 ? (
                 <div>
                   {/* How it works blurb */}
-                  <div style={{ background: "#F5F3EE", borderRadius: 10, padding: "0.75rem 1rem", fontSize: "0.8125rem", color: "#526563", lineHeight: 1.55, marginBottom: "0.875rem" }}>
+                  <div style={{ background: "var(--c-soft,#F5F3EE)", borderRadius: 10, padding: "0.75rem 1rem", fontSize: "0.8125rem", color: "var(--c-muted,#526563)", lineHeight: 1.55, marginBottom: "0.875rem" }}>
                     {m.results.poolBlurb}
                   </div>
 
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563", marginBottom: "0.625rem" }}>
+                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "0.625rem" }}>
                     {m.results.openGroup}
                   </div>
 
                   {existingGroups.map(g => {
                     const inGroup = myGroupIds.has(g.id);
                     return (
-                      <div key={g.id} style={{ background: "#fff", border: "1px solid #E0DDD7", borderRadius: 12, padding: "0.875rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: "0.625rem" }}>
+                      <div key={g.id} style={{ background: "var(--c-card,#fff)", border: "1px solid var(--c-line,#E0DDD7)", borderRadius: 12, padding: "0.875rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: "0.625rem" }}>
                         <div>
                           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--c-ink,#123F40)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                               <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                             </svg>
-                            <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 600, fontSize: "0.9375rem", color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
+                            <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 600, fontSize: "0.9375rem", color: "var(--c-ink,#123F40)", fontVariantNumeric: "tabular-nums" }}>
                               {g.memberCount} {g.memberCount === 1 ? m.results.buyerInterested : m.results.buyersInterested}
                             </span>
                           </div>
-                          <div style={{ fontSize: "0.8125rem", color: "#526563", marginTop: "0.25rem" }}>
+                          <div style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)", marginTop: "0.25rem" }}>
                             {m.results.started} {new Date(g.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                           </div>
                         </div>
                         {inGroup ? (
-                          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "#123F40", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                          <span style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--c-ink,#123F40)", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                             {m.results.joinedCheck}
                           </span>
                         ) : (
                           <button
                             onClick={() => join(g.id)}
-                            style={{ padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 12px -4px rgba(18,51,50,0.4)" }}
+                            style={{ padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))", color: "var(--c-on-btn,#fff)", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 4px 12px -4px rgba(18,51,50,0.4)" }}
                           >
                             {m.results.joinGroup}
                           </button>
@@ -373,14 +373,14 @@ function LeverageModal({
               ) : (
                 /* No group yet — show "start one" */
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
-                  <div style={{ background: "#F5F3EE", borderRadius: 10, padding: "0.875rem 1rem", fontSize: "0.875rem", color: "#526563", lineHeight: 1.6 }}>
+                  <div style={{ background: "var(--c-soft,#F5F3EE)", borderRadius: 10, padding: "0.875rem 1rem", fontSize: "0.875rem", color: "var(--c-muted,#526563)", lineHeight: 1.6 }}>
                     {m.results.noGroupYet}
                   </div>
-                  {error && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434" }}>{error}</p>}
+                  {error && <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--c-err,#9E3434)" }}>{error}</p>}
                   <button
                     onClick={create}
                     disabled={submitting}
-                    style={{ padding: "0.6875rem 1.5rem", borderRadius: 999, background: submitting ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: submitting ? "not-allowed" : "pointer", boxShadow: submitting ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", alignSelf: "flex-start" }}
+                    style={{ padding: "0.6875rem 1.5rem", borderRadius: 999, background: submitting ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))", color: "var(--c-on-btn,#fff)", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: submitting ? "not-allowed" : "pointer", boxShadow: submitting ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", alignSelf: "flex-start" }}
                   >
                     {submitting ? m.results.registering : m.results.signalInterest}
                   </button>
@@ -389,7 +389,7 @@ function LeverageModal({
 
               {/* Shared error for join actions */}
               {error && existingGroups.length > 0 && (
-                <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434" }}>{error}</p>
+                <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--c-err,#9E3434)" }}>{error}</p>
               )}
             </>
           )}
@@ -430,7 +430,7 @@ function AlignmentBar({
 
   return (
     <div dir="ltr" style={{ marginTop: "1.25rem", direction: "ltr" }}>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", marginBottom: "0.625rem", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "1.25rem", marginBottom: "0.625rem", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--c-muted,#526563)" }}>
         <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
           <span style={{ width: 10, height: 10, borderRadius: 2, background: BAR.seller.color, opacity: BAR.seller.opacity + 0.3, display: "inline-block" }} />{m.results.sellerRange}
         </span>
@@ -444,40 +444,40 @@ function AlignmentBar({
         )}
         {showElasticity && (
           <span style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
-            <span style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "6px solid #123F40", display: "inline-block" }} />{m.results.suggestedMarker}
+            <span style={{ width: 0, height: 0, borderLeft: "4px solid transparent", borderRight: "4px solid transparent", borderTop: "6px solid var(--c-ink,#123F40)", display: "inline-block" }} />{m.results.suggestedMarker}
           </span>
         )}
       </div>
 
       <div style={{ position: "relative" }}>
-        <div style={{ position: "relative", height: "1.5rem", background: "#EFEDE6", borderRadius: 7, overflow: "hidden" }}>
+        <div style={{ position: "relative", height: "1.5rem", background: "var(--c-soft,#EFEDE6)", borderRadius: 7, overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(eil), width: `${ail - eil}%`, background: BAR.seller.color, opacity: BAR.seller.opacity }} />
           <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(aj), width: `${ej - aj}%`, background: BAR.buyer.color, opacity: BAR.buyer.opacity }} />
           {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(lowerBound), width: `${upperBound - lowerBound}%`, background: BAR.overlap.color, opacity: BAR.overlap.opacity }} />}
-          {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(pfij), width: 2, background: "#fff", transform: "translateX(-1px)" }} />}
+          {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(pfij), width: 2, background: "var(--c-card,#fff)", transform: "translateX(-1px)" }} />}
         </div>
         {showElasticity && (
           <div
             title={`${m.results.suggestedMarker}: ${elasticity!.suggestedScore}`}
-            style={{ position: "absolute", top: "1.5rem", left: pct(elasticity!.suggestedScore), transform: "translateX(-50%)", marginTop: 3, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "7px solid #123F40" }}
+            style={{ position: "absolute", top: "1.5rem", left: pct(elasticity!.suggestedScore), transform: "translateX(-50%)", marginTop: 3, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "7px solid var(--c-ink,#123F40)" }}
           />
         )}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: showElasticity ? "0.8rem" : "0.3rem", fontSize: "0.625rem", color: "#526563", fontFamily: "var(--font-heebo, sans-serif)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: showElasticity ? "0.8rem" : "0.3rem", fontSize: "0.625rem", color: "var(--c-muted,#526563)", fontFamily: "var(--font-heebo, sans-serif)" }}>
         <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
       </div>
 
-      <div style={{ marginTop: "0.625rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", fontSize: "0.75rem", color: "#526563", fontFamily: "var(--font-heebo, sans-serif)" }}>
+      <div style={{ marginTop: "0.625rem", display: "flex", flexWrap: "wrap", gap: "0.75rem", fontSize: "0.75rem", color: "var(--c-muted,#526563)", fontFamily: "var(--font-heebo, sans-serif)" }}>
         <span>{m.results.sellerMin}: {eil}</span><span>{m.results.sellerTarget}: {ail}</span>
-        <span style={{ color: "#756039" }}>{m.results.yourFloor}: {aj}</span>
-        <span style={{ color: "#756039" }}>{m.results.yourIdeal}: {ej}</span>
-        {valid && <span style={{ color: "#123F40", fontWeight: 600 }}>{m.results.matchScore}: {pfij}</span>}
-        {showElasticity && <span style={{ color: "#123F40", fontWeight: 600 }}>↓ {m.results.suggested}: {elasticity!.suggestedScore}</span>}
+        <span style={{ color: "var(--c-gold,#756039)" }}>{m.results.yourFloor}: {aj}</span>
+        <span style={{ color: "var(--c-gold,#756039)" }}>{m.results.yourIdeal}: {ej}</span>
+        {valid && <span style={{ color: "var(--c-ink,#123F40)", fontWeight: 600 }}>{m.results.matchScore}: {pfij}</span>}
+        {showElasticity && <span style={{ color: "var(--c-ink,#123F40)", fontWeight: 600 }}>↓ {m.results.suggested}: {elasticity!.suggestedScore}</span>}
       </div>
 
       {showElasticity && (
-        <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", color: "#526563", fontStyle: "italic", lineHeight: 1.5 }}>
+        <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", color: "var(--c-muted,#526563)", fontStyle: "italic", lineHeight: 1.5 }}>
           {elasticity!.direction === "toward_seller"
             ? m.results.towardSeller
             : elasticity!.direction === "toward_buyer"
@@ -560,16 +560,16 @@ function SendOfferPanel({
 
   if (phase === "sent") {
     return (
-      <div style={{ marginTop: "1.25rem", padding: "1rem 1.125rem", background: "linear-gradient(135deg, #EEF4F3, #E4EEEC)", borderRadius: 12, border: "1px solid #B8D4D3", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#123F40" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <div style={{ marginTop: "1.25rem", padding: "1rem 1.125rem", background: "linear-gradient(135deg, var(--c-soft,#EEF4F3), #E4EEEC)", borderRadius: 12, border: "1px solid var(--c-line,#B8D4D3)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-ink,#123F40)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
         <div>
-          <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#123F40" }}>
+          <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--c-ink,#123F40)" }}>
             {m.results.offerSent} — <Money amount={Number(offeredPrice)} />
             <EstimatedPriceNote />
           </div>
-          {terms && <div style={{ fontSize: "0.8125rem", color: "#3A6B6A", marginTop: "0.125rem" }}>&ldquo;{terms}&rdquo;</div>}
+          {terms && <div style={{ fontSize: "0.8125rem", color: "var(--c-muted,#3A6B6A)", marginTop: "0.125rem" }}>&ldquo;{terms}&rdquo;</div>}
         </div>
       </div>
     );
@@ -580,7 +580,7 @@ function SendOfferPanel({
       <div style={{ marginTop: "1.5rem" }}>
         <button
           onClick={() => setPhase("open")}
-          style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", letterSpacing: "0.01em" }}
+          style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))", color: "var(--c-on-btn,#fff)", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", letterSpacing: "0.01em" }}
         >
           {isDeveloperUnit ? m.results.reserve : m.results.sendOffer}
         </button>
@@ -591,34 +591,34 @@ function SendOfferPanel({
   // Developer unit: simplified confirmation panel — no price input or terms
   if (isDeveloperUnit) {
     return (
-      <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
-        <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
-          <span style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#123F40" }}>{m.results.reserve}</span>
-          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
+      <div style={{ marginTop: "1.25rem", background: "var(--c-soft,#F5F3EE)", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
+        <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--c-card,#fff)" }}>
+          <span style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-ink,#123F40)" }}>{m.results.reserve}</span>
+          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-muted,#526563)", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
         </div>
         <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div style={{ background: "#fff", borderRadius: 10, border: "1px solid #E0DDD7", padding: "0.875rem 1rem" }}>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "#526563", marginBottom: "0.25rem" }}>
+          <div style={{ background: "var(--c-card,#fff)", borderRadius: 10, border: "1px solid var(--c-line,#E0DDD7)", padding: "0.875rem 1rem" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.07em", color: "var(--c-muted,#526563)", marginBottom: "0.25rem" }}>
               {m.results.reservingAt}
             </div>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 600, color: "#123F40" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 600, color: "var(--c-ink,#123F40)" }}>
               {detail.priceFrom ? `${m.results.from} ` : ""}
               <Money amount={detail.price} />
             </div>
             <EstimatedPriceNote />
-            <div style={{ fontSize: "0.8125rem", color: "#526563", marginTop: "0.25rem" }}>
+            <div style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)", marginTop: "0.25rem" }}>
               {m.results.fixed}
             </div>
           </div>
-          {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434", fontWeight: 500 }}>{errMsg}</p>}
+          {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--c-err,#9E3434)", fontWeight: 500 }}>{errMsg}</p>}
           <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
             <button
               onClick={submit} disabled={phase === "submitting"}
-              style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
+              style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))", color: "var(--c-on-btn,#fff)", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
             >
               {phase === "submitting" ? m.results.reserving : m.results.confirm}
             </button>
-            <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "#526563", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
+            <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "var(--c-muted,#526563)", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
               {m.results.cancel}
             </button>
           </div>
@@ -629,55 +629,55 @@ function SendOfferPanel({
 
   // Seller unit: standard offer form
   return (
-    <div style={{ marginTop: "1.25rem", background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
-      <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff" }}>
-        <span style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#123F40" }}>{m.results.makeOffer}</span>
-        <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#526563", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
+    <div style={{ marginTop: "1.25rem", background: "var(--c-soft,#F5F3EE)", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
+      <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--c-card,#fff)" }}>
+        <span style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-ink,#123F40)" }}>{m.results.makeOffer}</span>
+        <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-muted,#526563)", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
       </div>
 
       <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
         <div>
-          <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
+          <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--c-muted,#55534C)", marginBottom: "0.5rem" }}>
             {m.results.yourPrice}
           </label>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <div style={{ position: "relative" }}>
-              <span style={{ position: "absolute", insetInlineStart: "0.875rem", top: "50%", transform: "translateY(-50%)", fontSize: "1rem", fontWeight: 600, color: "#526563", pointerEvents: "none" }}>₪</span>
+              <span style={{ position: "absolute", insetInlineStart: "0.875rem", top: "50%", transform: "translateY(-50%)", fontSize: "1rem", fontWeight: 600, color: "var(--c-muted,#526563)", pointerEvents: "none" }}>₪</span>
               <input
                 type="number" min={1} step={1000} value={offeredPrice}
                 onChange={e => setOfferedPrice(e.target.value)}
-                style={{ background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.625rem 0.875rem 0.625rem 2rem", fontSize: "1.125rem", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)", outline: "none", width: "12rem", boxSizing: "border-box" }}
+                style={{ background: "var(--c-card,#fff)", border: "1.5px solid var(--c-line,#E0DDD7)", borderRadius: 10, padding: "0.625rem 0.875rem 0.625rem 2rem", fontSize: "1.125rem", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)", outline: "none", width: "12rem", boxSizing: "border-box" }}
                 onFocus={e => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
                 onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
               />
             </div>
-            {detail.price > 0 && <span style={{ fontSize: "0.8125rem", color: "#526563" }}>{m.results.listedAt} <Money amount={detail.price} /></span>}
+            {detail.price > 0 && <span style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>{m.results.listedAt} <Money amount={detail.price} /></span>}
           </div>
         </div>
 
         <div>
-          <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.5rem" }}>
+          <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--c-muted,#55534C)", marginBottom: "0.5rem" }}>
             {m.results.termsOptional}
           </label>
           <textarea
             rows={2} value={terms} onChange={e => setTerms(e.target.value)}
             placeholder={m.results.termsPh}
-            style={{ width: "100%", background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.625rem 0.875rem", fontSize: "0.9375rem", outline: "none", resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
+            style={{ width: "100%", background: "var(--c-card,#fff)", border: "1.5px solid var(--c-line,#E0DDD7)", borderRadius: 10, padding: "0.625rem 0.875rem", fontSize: "0.9375rem", outline: "none", resize: "none", fontFamily: "inherit", boxSizing: "border-box" }}
             onFocus={e => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
             onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
           />
         </div>
 
-        {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "#9E3434", fontWeight: 500 }}>{errMsg}</p>}
+        {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--c-err,#9E3434)", fontWeight: 500 }}>{errMsg}</p>}
 
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
           <button
             onClick={submit} disabled={phase === "submitting"}
-            style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
+            style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: phase === "submitting" ? "rgba(31,75,74,0.55)" : "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))", color: "var(--c-on-btn,#fff)", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: phase === "submitting" ? "not-allowed" : "pointer", boxShadow: phase === "submitting" ? "none" : "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)" }}
           >
             {phase === "submitting" ? m.results.sending : m.results.submitOffer}
           </button>
-          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "#526563", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
+          <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", fontSize: "0.8125rem", color: "var(--c-muted,#526563)", cursor: "pointer", padding: "0.25rem", fontWeight: 500 }}>
             {m.results.cancel}
           </button>
         </div>
@@ -713,27 +713,27 @@ function NearMatchCard({
   const failReasons = outcome.hardFilterFailReasons ?? [];
 
   return (
-    <div style={{ background: "#FAFAF8", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(117,96,57,0.2)", opacity: 0.85 }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, #756039)" }} />
+    <div style={{ background: "var(--c-soft,#FAFAF8)", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(117,96,57,0.2)", opacity: 0.85 }}>
+      <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, var(--c-gold,#756039))" }} />
       <div style={{ padding: "1.5rem 1.75rem" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
           <div>
-            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 600, color: "#123F40", margin: 0, lineHeight: 1.2 }}>
+            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 600, color: "var(--c-ink,#123F40)", margin: 0, lineHeight: 1.2 }}>
               {outcome.title}
             </h2>
             {detail?.description && (
-              <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>
+              <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "var(--c-muted,#526563)", lineHeight: 1.5 }}>
                 {detail.description.replace(/^DESCRIPTION:\s*/i, "")}
               </p>
             )}
             {detail && detail.price > 0 && (
-              <p style={{ margin: "0.5rem 0 0", fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
+              <p style={{ margin: "0.5rem 0 0", fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", fontVariantNumeric: "tabular-nums" }}>
                 <Money amount={detail.price} />
               </p>
             )}
           </div>
-          <div style={{ flexShrink: 0, background: "#FEF3E2", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center" }}>
-            <div style={{ fontSize: "0.625rem", color: "#756039", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)" }}>
+          <div style={{ flexShrink: 0, background: "var(--c-warn-bg,#FEF3E2)", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center" }}>
+            <div style={{ fontSize: "0.625rem", color: "var(--c-gold,#756039)", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)" }}>
               {m.results.nearMatchTitle}
             </div>
           </div>
@@ -744,7 +744,7 @@ function NearMatchCard({
             {failReasons.map((reason, i) => (
               <span
                 key={i}
-                style={{ fontSize: "0.75rem", background: "#FEF3E2", color: "#756039", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid #E8D3A5", fontWeight: 500 }}
+                style={{ fontSize: "0.75rem", background: "var(--c-warn-bg,#FEF3E2)", color: "var(--c-gold,#756039)", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid #E8D3A5", fontWeight: 500 }}
               >
                 {renderFailReason(reason, m.results)}
               </span>
@@ -768,7 +768,7 @@ function DetailsLink({ href, tone = "#123F40", children }: { href: string; tone?
       onMouseEnter={() => setOn(true)} onMouseLeave={() => setOn(false)} onFocus={() => setOn(true)} onBlur={() => setOn(false)}
       style={{
         display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.45rem 1.1rem", borderRadius: 999,
-        border: `1.5px solid ${tone}`, background: on ? tone : "transparent", color: on ? "#fff" : tone,
+        border: `1.5px solid ${tone}`, background: on ? tone : "transparent", color: on ? "var(--c-on-btn,#fff)" : tone,
         fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none", transition: "background .18s, color .18s, transform .18s",
         transform: on ? "translateY(-1px)" : "none",
       }}
@@ -816,36 +816,36 @@ function MatchCard({
   );
 
   return (
-    <div style={{ background: "#FFFFFF", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(18,63,64,0.08)", boxShadow: outcome.valid ? "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)" : "0 1px 3px rgba(18,63,64,0.04)", opacity: outcome.valid ? 1 : 0.6 }}>
-      <div style={{ height: 4, background: outcome.valid ? "linear-gradient(90deg, #0C3031, #123332)" : "#E0DDD7" }} />
+    <div style={{ background: "var(--c-card,#FFFFFF)", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(18,63,64,0.08)", boxShadow: outcome.valid ? "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)" : "0 1px 3px rgba(18,63,64,0.04)", opacity: outcome.valid ? 1 : 0.6 }}>
+      <div style={{ height: 4, background: outcome.valid ? "linear-gradient(90deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))" : "var(--c-soft,#E0DDD7)" }} />
       <div style={{ padding: "1.75rem" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
           <div>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: outcome.valid ? "#123F40" : "#526563", marginBottom: "0.375rem" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: outcome.valid ? "var(--c-ink,#123F40)" : "var(--c-muted,#526563)", marginBottom: "0.375rem" }}>
               {outcome.valid ? `${m.results.matchN} #${rank}` : m.results.notFeasible}
             </div>
-            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.375rem", fontWeight: 600, color: "#123F40", margin: 0, lineHeight: 1.2, letterSpacing: "0" }}>
+            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", margin: 0, lineHeight: 1.2, letterSpacing: "0" }}>
               {outcome.projectName ?? outcome.title}
             </h2>
             {outcome.projectName && outcome.unitLabel && (
-              <span style={{ display: "inline-block", marginTop: "0.5rem", fontSize: "0.8125rem", fontWeight: 700, color: "#fff", background: "#123F40", borderRadius: 999, padding: "0.2rem 0.75rem" }}>
+              <span style={{ display: "inline-block", marginTop: "0.5rem", fontSize: "0.8125rem", fontWeight: 700, color: "var(--c-on-btn,#fff)", background: "var(--c-btn,#123F40)", borderRadius: 999, padding: "0.2rem 0.75rem" }}>
                 {outcome.unitLabel}
               </span>
             )}
-            {detail?.description && <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>{detail.description.replace(/^DESCRIPTION:\s*/i, "")}</p>}
+            {detail?.description && <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "var(--c-muted,#526563)", lineHeight: 1.5 }}>{detail.description.replace(/^DESCRIPTION:\s*/i, "")}</p>}
             {detail && detail.price > 0 && (
               <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
-                <p style={{ margin: 0, fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
+                <p style={{ margin: 0, fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", fontVariantNumeric: "tabular-nums" }}>
                   {detail.priceFrom ? `${m.results.from} ` : ""}
                   <Money amount={detail.price} />
                 </p>
                 {mortgageMaxPrice != null && (
                   detail.price <= mortgageMaxPrice ? (
-                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: 999, background: "#E9EEEA", color: "#246046", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.04em" }}>
+                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: 999, background: "var(--c-soft,#E9EEEA)", color: "var(--c-ok,#246046)", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.04em" }}>
                       {m.profile.mortgageInRange}
                     </span>
                   ) : (
-                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: 999, background: "#FFF8E6", color: "#756039", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.04em" }}>
+                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: 999, background: "var(--c-warn-bg,#FFF8E6)", color: "var(--c-gold,#756039)", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.04em" }}>
                       {m.profile.mortgageAboveRange}
                     </span>
                   )
@@ -856,14 +856,14 @@ function MatchCard({
 
           <div style={{ flexShrink: 0, textAlign: "right" }}>
             {outcome.valid ? (
-              <div style={{ background: "linear-gradient(155deg, #EEF4F3, #E1EBE9)", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center", minWidth: 72 }}>
-                <div style={{ fontSize: "0.625rem", color: "#123F40", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)" }}>{m.results.matchQuality}</div>
-                <div style={{ fontSize: "1.375rem", fontWeight: 700, color: "#123332", lineHeight: 1.1, fontFamily: "var(--font-heebo, sans-serif)", fontVariantNumeric: "tabular-nums" }}>{Math.round(outcome.zij)}</div>
+              <div style={{ background: "linear-gradient(155deg, var(--c-soft,#EEF4F3), #E1EBE9)", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center", minWidth: 72 }}>
+                <div style={{ fontSize: "0.625rem", color: "var(--c-ink,#123F40)", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)" }}>{m.results.matchQuality}</div>
+                <div style={{ fontSize: "1.375rem", fontWeight: 700, color: "var(--c-ink,#123332)", lineHeight: 1.1, fontFamily: "var(--font-heebo, sans-serif)", fontVariantNumeric: "tabular-nums" }}>{Math.round(outcome.zij)}</div>
               </div>
             ) : (
-              <div style={{ background: "#FBECEA", borderRadius: 12, padding: "0.625rem 1rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "#9E3434", fontWeight: 600 }}>{m.results.notFeasible}</div>
-                <div style={{ fontSize: "0.6875rem", color: "#9E3434", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
+              <div style={{ background: "var(--c-err-bg,#FBECEA)", borderRadius: 12, padding: "0.625rem 1rem" }}>
+                <div style={{ fontSize: "0.75rem", color: "var(--c-err,#9E3434)", fontWeight: 600 }}>{m.results.notFeasible}</div>
+                <div style={{ fontSize: "0.6875rem", color: "var(--c-err,#9E3434)", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
               </div>
             )}
           </div>
@@ -877,7 +877,7 @@ function MatchCard({
               const text = k === "area" ? formatArea(v, m.attributes.sqmUnit) : (formatAttributeValue(v) || m.attributes.unknown);
               if (!text || text === m.attributes.unknown) return null;
               return (
-                <span key={k} style={{ fontSize: "0.75rem", background: "#E9EEEA", color: "#123F40", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid #D4DED8", fontWeight: 500 }}>
+                <span key={k} style={{ fontSize: "0.75rem", background: "var(--c-soft,#E9EEEA)", color: "var(--c-ink,#123F40)", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid var(--c-line,#D4DED8)", fontWeight: 500 }}>
                   {label}: {text}
                 </span>
               );
@@ -886,7 +886,7 @@ function MatchCard({
         )}
 
         {hidden.length > 0 && (
-          <p style={{ margin: "0.625rem 0 0", fontSize: "0.8125rem", color: "#526563" }}>
+          <p style={{ margin: "0.625rem 0 0", fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>
             {m.results.hiddenTypesLabel}{" "}
             {hidden.map((h) => `${h.unitLabel ?? h.title} (${(h.hardFilterFailReasons ?? []).map((r) => renderFailReason(r, m.results)).join(", ")})`).join(" · ")}
           </p>
@@ -899,7 +899,7 @@ function MatchCard({
           {outcome.valid && (
             <button
               onClick={() => onOpenLeverage(outcome)}
-              style={{ background: "none", border: "1px solid #756039", borderRadius: 999, padding: "0.3rem 0.875rem", fontSize: "0.8125rem", fontWeight: 600, color: "#756039", cursor: "pointer" }}
+              style={{ background: "none", border: "1px solid var(--c-gold,#756039)", borderRadius: 999, padding: "0.3rem 0.875rem", fontSize: "0.8125rem", fontWeight: 600, color: "var(--c-gold,#756039)", cursor: "pointer" }}
             >
               {m.results.groupDiscount}
             </button>
@@ -985,10 +985,10 @@ export default function ResultsPage() {
 
   if (missing) {
     return (
-      <main style={{ minHeight: "100vh", background: "#F4F5F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-inter, sans-serif)" }}>
+      <main style={{ minHeight: "100vh", background: "var(--c-soft,#F4F5F0)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-inter, sans-serif)" }}>
         <div style={{ textAlign: "center" }}>
-          <p style={{ color: "#526563", marginBottom: "1rem", fontSize: "0.9375rem" }}>{m.results.noSession}</p>
-          <Link href="/processing" style={{ color: "#123F40", fontWeight: 600, textDecoration: "none" }}>{m.results.runMatching} →</Link>
+          <p style={{ color: "var(--c-muted,#526563)", marginBottom: "1rem", fontSize: "0.9375rem" }}>{m.results.noSession}</p>
+          <Link href="/processing" style={{ color: "var(--c-ink,#123F40)", fontWeight: 600, textDecoration: "none" }}>{m.results.runMatching} →</Link>
         </div>
       </main>
     );
@@ -1023,7 +1023,7 @@ export default function ResultsPage() {
   let validRank = 0;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#F4F5F0", fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--c-soft,#F4F5F0)", fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)" }}>
       <style>{`
         @media (max-width: 640px) {
           .hn-results-2col { grid-template-columns: 1fr !important; gap: 0.75rem !important; }
@@ -1040,13 +1040,13 @@ export default function ResultsPage() {
 
       {/* Page intro */}
       <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "3rem 1.5rem 0" }}>
-        <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "#123F40", marginBottom: "0.625rem" }}>
+        <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "var(--c-ink,#123F40)", marginBottom: "0.625rem" }}>
           {m.results.kicker}
         </div>
-        <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "2.25rem", fontWeight: 500, color: "#123F40", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "0" }}>
+        <h1 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "2.25rem", fontWeight: 500, color: "var(--c-ink,#123F40)", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "0" }}>
           {m.results.title}
         </h1>
-        <p style={{ margin: 0, color: "#526563", fontSize: "1rem", lineHeight: 1.5 }}>
+        <p style={{ margin: 0, color: "var(--c-muted,#526563)", fontSize: "1rem", lineHeight: 1.5 }}>
           {m.results.summary.replace("{valid}", String(projectCards.length)).replace("{total}", String(projectCount))}
         </p>
       </div>
@@ -1055,45 +1055,45 @@ export default function ResultsPage() {
       <main style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "1.75rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
         {/* Buyer profile card */}
-        <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.03), 0 16px 36px -16px rgba(18,51,50,0.10)", overflow: "hidden" }}>
-          <div style={{ height: 4, background: "linear-gradient(90deg, #756039, #756039)" }} />
+        <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.03), 0 16px 36px -16px rgba(18,51,50,0.10)", overflow: "hidden" }}>
+          <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-gold,#756039), var(--c-gold,#756039))" }} />
           <div style={{ padding: "1.75rem" }}>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "1.25rem" }}>{m.results.yourProfile}</div>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "1.25rem" }}>{m.results.yourProfile}</div>
             <div className="hn-results-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem 2.5rem" }}>
               {[[m.results.type, prefs.property_type], [m.results.location, prefs.location], [m.results.bedrooms, prefs.bedrooms != null ? `${prefs.bedrooms}+` : "—"], [m.results.timeline, prefs.timeline]].map(([label, value]) => (
                 <div key={label}>
-                  <div style={{ fontSize: "0.6875rem", color: "#526563", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.2rem" }}>{label}</div>
-                  <div style={{ fontSize: "0.9375rem", color: "#123F40", fontWeight: 500 }}>{value}</div>
+                  <div style={{ fontSize: "0.6875rem", color: "var(--c-muted,#526563)", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.2rem" }}>{label}</div>
+                  <div style={{ fontSize: "0.9375rem", color: "var(--c-ink,#123F40)", fontWeight: 500 }}>{value}</div>
                 </div>
               ))}
             </div>
             <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(18,63,64,0.06)", display: "flex", gap: "2rem", fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.8125rem" }}>
-              <div><span style={{ color: "#526563" }}>{m.results.yourIdeal} </span><span style={{ color: "#123F40", fontWeight: 600 }}>{ej}</span></div>
-              <div><span style={{ color: "#526563" }}>{m.results.yourFloor} </span><span style={{ color: "#756039", fontWeight: 600 }}>{aj}</span></div>
+              <div><span style={{ color: "var(--c-muted,#526563)" }}>{m.results.yourIdeal} </span><span style={{ color: "var(--c-ink,#123F40)", fontWeight: 600 }}>{ej}</span></div>
+              <div><span style={{ color: "var(--c-muted,#526563)" }}>{m.results.yourFloor} </span><span style={{ color: "var(--c-gold,#756039)", fontWeight: 600 }}>{aj}</span></div>
             </div>
             {/* Retake interview section */}
             <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(18,63,64,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.875rem" }}>
               <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#526563", marginBottom: "0.25rem" }}>
+                <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "0.25rem" }}>
                   {m.results.quota}
                 </div>
                 {rateLimit ? (
-                  <div style={{ fontSize: "0.875rem", color: "#526563" }}>
-                    <span style={{ color: rateLimit.remaining === 0 ? "#9E3434" : "#123F40", fontWeight: 600 }}>
+                  <div style={{ fontSize: "0.875rem", color: "var(--c-muted,#526563)" }}>
+                    <span style={{ color: rateLimit.remaining === 0 ? "var(--c-err,#9E3434)" : "var(--c-ink,#123F40)", fontWeight: 600 }}>
                       {rateLimit.attempts} / {MAX_INTERVIEWS_PER_DAY}
                     </span>{" "}
                     {m.results.usedToday}
                     {rateLimit.remaining === 0 && rateLimit.nextAvailableAt && (
-                      <span style={{ color: "#526563" }}>
+                      <span style={{ color: "var(--c-muted,#526563)" }}>
                         {" "}— {m.results.resetsIn}{" "}
-                        <span style={{ color: "#756039", fontWeight: 600 }}>
+                        <span style={{ color: "var(--c-gold,#756039)", fontWeight: 600 }}>
                           {formatWait(rateLimit.nextAvailableAt, m.results.soon)}
                         </span>
                       </span>
                     )}
                   </div>
                 ) : (
-                  <div style={{ fontSize: "0.875rem", color: "#526563" }}>{m.common.loading}</div>
+                  <div style={{ fontSize: "0.875rem", color: "var(--c-muted,#526563)" }}>{m.common.loading}</div>
                 )}
               </div>
 
@@ -1111,9 +1111,9 @@ export default function ResultsPage() {
                     padding: "0.5rem 1.125rem",
                     borderRadius: 999,
                     border: "1px solid",
-                    borderColor: !rateLimit || rateLimit.remaining === 0 ? "#E0DDD7" : "#123F40",
-                    background: !rateLimit || rateLimit.remaining === 0 ? "transparent" : "linear-gradient(155deg, #0C3031, #123332)",
-                    color: !rateLimit || rateLimit.remaining === 0 ? "#C0BAB2" : "#fff",
+                    borderColor: !rateLimit || rateLimit.remaining === 0 ? "var(--c-line,#E0DDD7)" : "var(--c-ink,#123F40)",
+                    background: !rateLimit || rateLimit.remaining === 0 ? "transparent" : "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))",
+                    color: !rateLimit || rateLimit.remaining === 0 ? "#C0BAB2" : "var(--c-on-btn,#fff)",
                     fontSize: "0.875rem",
                     fontWeight: 600,
                     cursor: !rateLimit || rateLimit.remaining === 0 ? "not-allowed" : "pointer",
@@ -1125,12 +1125,12 @@ export default function ResultsPage() {
                   {m.results.redo}
                 </button>
                 {rateLimit && rateLimit.remaining > 0 && (
-                  <div style={{ fontSize: "0.6875rem", color: "#526563", textAlign: "end" }}>
+                  <div style={{ fontSize: "0.6875rem", color: "var(--c-muted,#526563)", textAlign: "end" }}>
                     {rateLimit.remaining} {m.results.retakesLeft}
                   </div>
                 )}
                 {rateLimit && rateLimit.remaining === 0 && rateLimit.nextAvailableAt && (
-                  <div style={{ fontSize: "0.6875rem", color: "#9E3434", textAlign: "end" }}>
+                  <div style={{ fontSize: "0.6875rem", color: "var(--c-err,#9E3434)", textAlign: "end" }}>
                     {m.results.tryAgainIn} {formatWait(rateLimit.nextAvailableAt, m.results.soon)}
                   </div>
                 )}
@@ -1143,15 +1143,15 @@ export default function ResultsPage() {
         {token && <AlertCard token={token} />}
 
         {/* Mortgage budget row */}
-        <div style={{ background: "#fff", borderRadius: 16, border: "1px solid rgba(18,63,64,0.08)", padding: "0.875rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+        <div style={{ background: "var(--c-card,#fff)", borderRadius: 16, border: "1px solid rgba(18,63,64,0.08)", padding: "0.875rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
           {mortgageSavedData?.maxPrice ? (
             <>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.875rem", color: "#526563" }}>{m.profile.mortgageBudgetRow}</span>
-                <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 700, color: "#123F40", fontSize: "1rem", fontVariantNumeric: "tabular-nums" }}>
+                <span style={{ fontSize: "0.875rem", color: "var(--c-muted,#526563)" }}>{m.profile.mortgageBudgetRow}</span>
+                <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontWeight: 700, color: "var(--c-ink,#123F40)", fontSize: "1rem", fontVariantNumeric: "tabular-nums" }}>
                   ₪{new Intl.NumberFormat("he-IL", { maximumFractionDigits: 0 }).format(mortgageSavedData.maxPrice)}
                 </span>
-                <Link href="/profile#mortgage" style={{ fontSize: "0.8125rem", color: "#756039", fontWeight: 600, textDecoration: "none" }}>· {m.profile.mortgageUpdate}</Link>
+                <Link href="/profile#mortgage" style={{ fontSize: "0.8125rem", color: "var(--c-gold,#756039)", fontWeight: 600, textDecoration: "none" }}>· {m.profile.mortgageUpdate}</Link>
               </div>
               <button
                 onClick={() => {
@@ -1162,9 +1162,9 @@ export default function ResultsPage() {
                   padding: "0.4rem 1rem",
                   borderRadius: 999,
                   border: "1.5px solid",
-                  borderColor: mortgageFilterActive ? "#756039" : "#E0DDD7",
-                  background: mortgageFilterActive ? "#FFF8E6" : "transparent",
-                  color: mortgageFilterActive ? "#756039" : "#526563",
+                  borderColor: mortgageFilterActive ? "var(--c-gold,#756039)" : "var(--c-line,#E0DDD7)",
+                  background: mortgageFilterActive ? "var(--c-warn-bg,#FFF8E6)" : "transparent",
+                  color: mortgageFilterActive ? "var(--c-gold,#756039)" : "var(--c-muted,#526563)",
                   fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
                   whiteSpace: "nowrap",
                   transition: "all 0.15s",
@@ -1175,8 +1175,8 @@ export default function ResultsPage() {
             </>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "0.875rem", color: "#526563" }}>{m.profile.mortgageNoCta}</span>
-              <Link href="/profile#mortgage" style={{ fontSize: "0.875rem", color: "#756039", fontWeight: 600, textDecoration: "none" }}>{m.profile.mortgageNoCtaLink} →</Link>
+              <span style={{ fontSize: "0.875rem", color: "var(--c-muted,#526563)" }}>{m.profile.mortgageNoCta}</span>
+              <Link href="/profile#mortgage" style={{ fontSize: "0.875rem", color: "var(--c-gold,#756039)", fontWeight: 600, textDecoration: "none" }}>{m.profile.mortgageNoCtaLink} →</Link>
             </div>
           )}
         </div>
@@ -1204,12 +1204,12 @@ export default function ResultsPage() {
 
         {/* No full matches message */}
         {projectCards.length === 0 && (
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", padding: "1.75rem", boxShadow: "0 1px 3px rgba(18,63,64,0.04)" }}>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 600, color: "#123F40", marginBottom: "0.4rem" }}>
+          <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", padding: "1.75rem", boxShadow: "0 1px 3px rgba(18,63,64,0.04)" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 600, color: "var(--c-ink,#123F40)", marginBottom: "0.4rem" }}>
               {m.results.noFullMatchesTitle}
             </div>
             {nearMatches.length > 0 && (
-              <p style={{ margin: 0, fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--c-muted,#526563)", lineHeight: 1.5 }}>
                 {m.results.noFullMatchesBody}
               </p>
             )}
@@ -1219,7 +1219,7 @@ export default function ResultsPage() {
         {/* Near match cards */}
         {nearMatches.length > 0 && (
           <>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#756039", paddingTop: "0.5rem" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-gold,#756039)", paddingTop: "0.5rem" }}>
               {m.results.nearMatchTitle}
             </div>
             {nearMatches.map((outcome) => {
@@ -1237,19 +1237,19 @@ export default function ResultsPage() {
 
         {/* Recommendations */}
         {fullMatches.length > 0 && recommendations.length > 0 && (
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", padding: "1.75rem" }}>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "1.25rem" }}>
+          <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", padding: "1.75rem" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "1.25rem" }}>
               {m.results.nextSteps}
             </div>
             <div className="hn-results-recs" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(19rem, 1fr))", gap: "0.875rem" }}>
               {recommendations.map(r => {
                 const recText = (m.results.recs as Record<string, { label: string; blurb: string }>)[r.id];
                 return (
-                  <div key={r.id} style={{ background: "#F5F3EE", borderRadius: 14, border: "1px solid rgba(18,63,64,0.07)", padding: "1.125rem 1.25rem", display: "flex", gap: "0.875rem", alignItems: "flex-start" }}>
+                  <div key={r.id} style={{ background: "var(--c-soft,#F5F3EE)", borderRadius: 14, border: "1px solid rgba(18,63,64,0.07)", padding: "1.125rem 1.25rem", display: "flex", gap: "0.875rem", alignItems: "flex-start" }}>
                     <span style={{ fontSize: "1.375rem", lineHeight: 1, flexShrink: 0, marginTop: "0.1rem" }}>{r.icon}</span>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "#123F40", marginBottom: "0.3rem" }}>{recText?.label ?? r.label}</div>
-                      <p style={{ margin: 0, fontSize: "0.875rem", color: "#526563", lineHeight: 1.6 }}>{recText?.blurb ?? r.blurb}</p>
+                      <div style={{ fontWeight: 600, fontSize: "0.9375rem", color: "var(--c-ink,#123F40)", marginBottom: "0.3rem" }}>{recText?.label ?? r.label}</div>
+                      <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--c-muted,#526563)", lineHeight: 1.6 }}>{recText?.blurb ?? r.blurb}</p>
                     </div>
                   </div>
                 );
@@ -1260,18 +1260,18 @@ export default function ResultsPage() {
 
         {/* Leverage groups CTA */}
         {fullMatches.length > 0 && (
-          <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", overflow: "hidden" }}>
-            <div style={{ height: 4, background: "linear-gradient(90deg, #756039, #756039)" }} />
+          <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", overflow: "hidden" }}>
+            <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-gold,#756039), var(--c-gold,#756039))" }} />
             <div style={{ padding: "1.5rem 1.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.25rem", flexWrap: "wrap" }}>
               <div>
-                <div style={{ fontWeight: 600, color: "#123F40", fontSize: "1rem", marginBottom: "0.3rem", letterSpacing: "0" }}>{m.results.groupCtaTitle}</div>
-                <p style={{ margin: 0, fontSize: "0.9375rem", color: "#526563", lineHeight: 1.5 }}>
+                <div style={{ fontWeight: 600, color: "var(--c-ink,#123F40)", fontSize: "1rem", marginBottom: "0.3rem", letterSpacing: "0" }}>{m.results.groupCtaTitle}</div>
+                <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--c-muted,#526563)", lineHeight: 1.5 }}>
                   {m.results.groupCtaBody}
                 </p>
               </div>
               <Link
                 href="/buyer/leverage-groups"
-                style={{ padding: "0.6875rem 1.375rem", borderRadius: 999, background: "linear-gradient(155deg, #0C3031, #123332)", color: "#fff", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", flexShrink: 0, boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", whiteSpace: "nowrap" }}
+                style={{ padding: "0.6875rem 1.375rem", borderRadius: 999, background: "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))", color: "var(--c-on-btn,#fff)", fontSize: "0.875rem", fontWeight: 600, textDecoration: "none", flexShrink: 0, boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", whiteSpace: "nowrap" }}
               >
                 {m.results.viewGroups} →
               </Link>

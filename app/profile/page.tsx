@@ -55,7 +55,7 @@ function textOf(value: unknown): string {
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#526563", marginBottom: "0.75rem" }}>
+    <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "0.75rem" }}>
       {label}
     </div>
   );

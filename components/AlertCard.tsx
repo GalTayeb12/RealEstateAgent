@@ -82,19 +82,19 @@ export function AlertCard({ token }: { token: string }) {
   if (loading || !pref) return null;
 
   return (
-    <div style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", overflow: "hidden" }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg, #123F40, #1E6B6C)" }} />
+    <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", overflow: "hidden" }}>
+      <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-btn,#123F40), #1E6B6C)" }} />
       <div style={{ padding: "1.25rem 1.75rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
           <div>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#123F40", marginBottom: "0.2rem" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-ink,#123F40)", marginBottom: "0.2rem" }}>
               {ma.kicker}
             </div>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 500, color: "#123F40" }}>
+            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 500, color: "var(--c-ink,#123F40)" }}>
               {ma.title}
             </div>
             {!pref.active && (
-              <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem", color: "#526563" }}>{ma.subtitle}</p>
+              <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem", color: "var(--c-muted,#526563)" }}>{ma.subtitle}</p>
             )}
           </div>
           {/* Toggle */}
@@ -107,7 +107,7 @@ export function AlertCard({ token }: { token: string }) {
               height: "1.5rem",
               borderRadius: 999,
               border: "none",
-              background: pref.active ? "#123F40" : "#D4DED8",
+              background: pref.active ? "var(--c-btn,#123F40)" : "var(--c-soft,#D4DED8)",
               cursor: saving ? "not-allowed" : "pointer",
               position: "relative",
               flexShrink: 0,
@@ -121,7 +121,7 @@ export function AlertCard({ token }: { token: string }) {
               width: "1.125rem",
               height: "1.125rem",
               borderRadius: "50%",
-              background: "#fff",
+              background: "var(--c-card,#fff)",
               boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
               transition: "inset-inline-start 0.2s",
             }} />
@@ -133,7 +133,7 @@ export function AlertCard({ token }: { token: string }) {
           <div style={{ marginTop: "1.125rem", paddingTop: "1.125rem", borderTop: "1px solid rgba(18,63,64,0.06)", display: "flex", flexDirection: "column", gap: "0.875rem" }}>
             {/* Frequency */}
             <div>
-              <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563", marginBottom: "0.5rem" }}>
+              <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "0.5rem" }}>
                 {ma.frequency}
               </div>
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -145,9 +145,9 @@ export function AlertCard({ token }: { token: string }) {
                       padding: "0.3125rem 0.875rem",
                       borderRadius: 999,
                       border: "1px solid",
-                      borderColor: pref.frequency === f ? "#123F40" : "#E0DDD7",
-                      background: pref.frequency === f ? "#123F40" : "transparent",
-                      color: pref.frequency === f ? "#fff" : "#526563",
+                      borderColor: pref.frequency === f ? "var(--c-ink,#123F40)" : "var(--c-line,#E0DDD7)",
+                      background: pref.frequency === f ? "var(--c-btn,#123F40)" : "transparent",
+                      color: pref.frequency === f ? "var(--c-on-btn,#fff)" : "var(--c-muted,#526563)",
                       fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
                       transition: "all 0.15s",
                     }}
@@ -161,10 +161,10 @@ export function AlertCard({ token }: { token: string }) {
             {/* Min score */}
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.3rem" }}>
-                <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "#526563" }}>
+                <label style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--c-muted,#526563)" }}>
                   {ma.minScore}
                 </label>
-                <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40" }}>
+                <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-ink,#123F40)" }}>
                   {pref.minScore}
                 </span>
               </div>
@@ -173,7 +173,7 @@ export function AlertCard({ token }: { token: string }) {
                 min={0} max={100} step={5}
                 value={pref.minScore}
                 onChange={e => update("minScore", Number(e.target.value))}
-                style={{ width: "100%", accentColor: "#123F40", cursor: "pointer" }}
+                style={{ width: "100%", accentColor: "var(--c-ink,#123F40)", cursor: "pointer" }}
               />
             </div>
 
@@ -183,12 +183,12 @@ export function AlertCard({ token }: { token: string }) {
                 { key: "emailAlerts" as const, label: ma.emailAlerts },
                 { key: "siteAlerts"  as const, label: ma.siteAlerts  },
               ].map(({ key, label }) => (
-                <label key={key} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.875rem", color: "#526563" }}>
+                <label key={key} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.875rem", color: "var(--c-muted,#526563)" }}>
                   <input
                     type="checkbox"
                     checked={pref[key] as boolean}
                     onChange={e => update(key, e.target.checked)}
-                    style={{ accentColor: "#123F40", width: "1rem", height: "1rem", cursor: "pointer" }}
+                    style={{ accentColor: "var(--c-ink,#123F40)", width: "1rem", height: "1rem", cursor: "pointer" }}
                   />
                   {label}
                 </label>
@@ -196,13 +196,13 @@ export function AlertCard({ token }: { token: string }) {
             </div>
 
             {saved && (
-              <div style={{ fontSize: "0.8125rem", color: "#246046", fontWeight: 500 }}>✓ {ma.saved}</div>
+              <div style={{ fontSize: "0.8125rem", color: "var(--c-ok,#246046)", fontWeight: 500 }}>✓ {ma.saved}</div>
             )}
           </div>
         )}
 
         {saving && !saved && (
-          <div style={{ marginTop: "0.5rem", fontSize: "0.75rem", color: "#526563" }}>{ma.saving}</div>
+          <div style={{ marginTop: "0.5rem", fontSize: "0.75rem", color: "var(--c-muted,#526563)" }}>{ma.saving}</div>
         )}
       </div>
     </div>

@@ -211,13 +211,13 @@ export default function VprPage() {
               .hn-type-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; border-bottom: 1px solid rgba(18,63,64,0.12); margin-bottom: 1.5rem; }
               .hn-type-tab { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.625rem 1rem 0.75rem; border-radius: 12px 12px 0 0; text-decoration: none; color: var(--qp-ink); border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; transition: background .15s, opacity .15s; min-width: 8.5rem; }
               .hn-type-tab:hover { background: var(--qp-soft); }
-              .hn-type-tab[aria-selected="true"] { background: var(--qp-surface, #fff); border-color: rgba(18,63,64,0.12); box-shadow: inset 0 3px 0 var(--qp-ink); }
+              .hn-type-tab[aria-selected="true"] { background: var(--qp-surface, var(--c-card,#fff)); border-color: rgba(18,63,64,0.12); box-shadow: inset 0 3px 0 var(--qp-ink); }
               .hn-type-tab[data-dim] { opacity: 0.5; }
               .hn-type-tab[data-dim]:hover, .hn-type-tab[data-dim][aria-selected="true"] { opacity: 0.8; }
               .hn-type-tab b { font-size: 0.9375rem; }
               .hn-type-tab small { font-size: 0.75rem; color: var(--qp-muted); font-variant-numeric: tabular-nums; }
-              .hn-type-tab em { font-style: normal; font-size: 0.6875rem; font-weight: 700; color: #756039; }
-              .hn-type-tab:focus-visible { outline: 3px solid var(--qp-accent, #b38b4d); outline-offset: 2px; }
+              .hn-type-tab em { font-style: normal; font-size: 0.6875rem; font-weight: 700; color: var(--c-gold,#756039); }
+              .hn-type-tab:focus-visible { outline: 3px solid var(--qp-accent, var(--c-gold,#b38b4d)); outline-offset: 2px; }
             `}</style>
             <nav className="hn-type-tabs" role="tablist" aria-label={m.unitView.typesInProject}>
               {siblingTypes.map(sibling => {

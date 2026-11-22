@@ -65,13 +65,13 @@ function ResultTable({ rows }: ResultTableProps) {
             borderBottom: "1px solid rgba(18,63,64,0.05)",
           }}
         >
-          <span style={{ fontSize: "0.8125rem", color: "#526563" }}>{label}</span>
+          <span style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>{label}</span>
           <span
             style={{
               fontFamily: "var(--font-heebo, sans-serif)",
               fontSize: gold ? "1.125rem" : "0.9375rem",
               fontWeight: gold ? 600 : 500,
-              color: gold ? "#756039" : "#123F40",
+              color: gold ? "var(--c-gold,#756039)" : "var(--c-ink,#123F40)",
               fontVariantNumeric: "tabular-nums",
             }}
           >
@@ -104,7 +104,7 @@ function SliderRow({ label, value, min, max, step, onChange, formatValue, inputS
         <label style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C" }}>
           {label}
         </label>
-        <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "#123F40", fontVariantNumeric: "tabular-nums" }}>
+        <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", fontVariantNumeric: "tabular-nums" }}>
           {display}{inputSuffix}
         </span>
       </div>
@@ -115,7 +115,7 @@ function SliderRow({ label, value, min, max, step, onChange, formatValue, inputS
         step={step}
         value={value}
         onChange={e => onChange(Number(e.target.value))}
-        style={{ width: "100%", accentColor: "#123F40", cursor: "pointer" }}
+        style={{ width: "100%", accentColor: "var(--c-ink,#123F40)", cursor: "pointer" }}
       />
     </div>
   );
@@ -206,9 +206,9 @@ export function MortgageCalculator({
   if (mini) {
     return (
       <div dir={dir} style={{ background: "var(--qp-surface)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.04)", overflow: "hidden", marginTop: "1.25rem" }}>
-        <div style={{ height: 4, background: "linear-gradient(90deg, #756039, #A88B52)" }} />
+        <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-gold,#756039), var(--c-gold,#A88B52))" }} />
         <div style={{ padding: "1.5rem 1.75rem" }}>
-          <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#756039", marginBottom: "1rem" }}>
+          <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-gold,#756039)", marginBottom: "1rem" }}>
             {mm.miniTitle}
           </div>
 
@@ -224,7 +224,7 @@ export function MortgageCalculator({
                 value={annualRate}
                 onChange={e => setAnnualRate(e.target.value)}
                 placeholder={mm.ratePh}
-                style={{ background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.5rem 0.75rem", fontSize: "1rem", fontWeight: 600, fontFamily: "var(--font-heebo, monospace)", outline: "none", width: "8rem", boxSizing: "border-box" }}
+                style={{ background: "var(--c-card,#fff)", border: "1.5px solid var(--c-line,#E0DDD7)", borderRadius: 10, padding: "0.5rem 0.75rem", fontSize: "1rem", fontWeight: 600, fontFamily: "var(--font-heebo, monospace)", outline: "none", width: "8rem", boxSizing: "border-box" }}
                 onFocus={e => { e.target.style.borderColor = "#756039"; e.target.style.boxShadow = "0 0 0 3px rgba(117,96,57,0.12)"; }}
                 onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
               />
@@ -253,13 +253,13 @@ export function MortgageCalculator({
 
           {/* Results */}
           {!hasRate && (
-            <p style={{ margin: "1rem 0 0", fontSize: "0.875rem", color: "#756039" }}>{mm.enterRate}</p>
+            <p style={{ margin: "1rem 0 0", fontSize: "0.875rem", color: "var(--c-gold,#756039)" }}>{mm.enterRate}</p>
           )}
 
           {hasRate && forward && (
             <div style={{ marginTop: "1.125rem" }}>
               {ltvCheck.status === "insufficient_equity" && (
-                <div style={{ background: "#FBECEA", borderRadius: 10, padding: "0.625rem 0.875rem", fontSize: "0.8125rem", color: "#9E3434", fontWeight: 500, marginBottom: "0.875rem" }}>
+                <div style={{ background: "var(--c-err-bg,#FBECEA)", borderRadius: 10, padding: "0.625rem 0.875rem", fontSize: "0.8125rem", color: "var(--c-err,#9E3434)", fontWeight: 500, marginBottom: "0.875rem" }}>
                   {mm.ltvWarning.replace("{amount}", fmtILS(ltvCheck.shortfall))}
                 </div>
               )}
@@ -279,16 +279,16 @@ export function MortgageCalculator({
 
   // ── Full card ──
   return (
-    <div dir={dir} style={{ background: "#fff", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.03), 0 16px 36px -16px rgba(18,51,50,0.10)", overflow: "hidden" }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg, #756039, #A88B52)" }} />
+    <div dir={dir} style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.03), 0 16px 36px -16px rgba(18,51,50,0.10)", overflow: "hidden" }}>
+      <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-gold,#756039), var(--c-gold,#A88B52))" }} />
       <div style={{ padding: "1.75rem" }}>
         {/* Header + mode toggle */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem", marginBottom: "1.5rem" }}>
           <div>
-            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#756039", marginBottom: "0.3rem" }}>
+            <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-gold,#756039)", marginBottom: "0.3rem" }}>
               {mm.kicker}
             </div>
-            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 500, color: "#123F40", margin: 0, lineHeight: 1.2 }}>
+            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 500, color: "var(--c-ink,#123F40)", margin: 0, lineHeight: 1.2 }}>
               {mm.title}
             </h2>
           </div>
@@ -299,8 +299,8 @@ export function MortgageCalculator({
                 onClick={() => setMode(m_)}
                 style={{
                   padding: "0.4rem 1rem",
-                  background: mode === m_ ? "#123F40" : "transparent",
-                  color: mode === m_ ? "#fff" : "#526563",
+                  background: mode === m_ ? "var(--c-btn,#123F40)" : "transparent",
+                  color: mode === m_ ? "var(--c-on-btn,#fff)" : "var(--c-muted,#526563)",
                   border: "none", fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
                   transition: "all 0.15s",
                 }}
@@ -360,7 +360,7 @@ export function MortgageCalculator({
                     value={desiredPayment}
                     onChange={e => setDesiredPayment(e.target.value)}
                     placeholder={mm.reverseDesiredPaymentPh}
-                    style={{ background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.5rem 0.75rem", fontSize: "1rem", fontWeight: 600, fontFamily: "var(--font-heebo, monospace)", outline: "none", width: "100%", boxSizing: "border-box" }}
+                    style={{ background: "var(--c-card,#fff)", border: "1.5px solid var(--c-line,#E0DDD7)", borderRadius: 10, padding: "0.5rem 0.75rem", fontSize: "1rem", fontWeight: 600, fontFamily: "var(--font-heebo, monospace)", outline: "none", width: "100%", boxSizing: "border-box" }}
                     onFocus={e => { e.target.style.borderColor = "#756039"; e.target.style.boxShadow = "0 0 0 3px rgba(117,96,57,0.12)"; }}
                     onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
                   />
@@ -379,7 +379,7 @@ export function MortgageCalculator({
                 value={annualRate}
                 onChange={e => setAnnualRate(e.target.value)}
                 placeholder={mm.ratePh}
-                style={{ background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.5rem 0.75rem", fontSize: "1rem", fontWeight: 600, fontFamily: "var(--font-heebo, monospace)", outline: "none", width: "100%", boxSizing: "border-box" }}
+                style={{ background: "var(--c-card,#fff)", border: "1.5px solid var(--c-line,#E0DDD7)", borderRadius: 10, padding: "0.5rem 0.75rem", fontSize: "1rem", fontWeight: 600, fontFamily: "var(--font-heebo, monospace)", outline: "none", width: "100%", boxSizing: "border-box" }}
                 onFocus={e => { e.target.style.borderColor = "#756039"; e.target.style.boxShadow = "0 0 0 3px rgba(117,96,57,0.12)"; }}
                 onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
               />
@@ -396,7 +396,7 @@ export function MortgageCalculator({
               inputSuffix={isRtl ? " שנה" : " yr"}
             />
             {termYears > WARN_TERM_YEARS && (
-              <p style={{ margin: 0, fontSize: "0.75rem", color: "#756039" }}>{mm.termWarning}</p>
+              <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--c-gold,#756039)" }}>{mm.termWarning}</p>
             )}
 
             {/* Buyer type */}
@@ -413,9 +413,9 @@ export function MortgageCalculator({
                       padding: "0.3125rem 0.875rem",
                       borderRadius: 999,
                       border: "1px solid",
-                      borderColor: buyerType === t ? "#123F40" : "#E0DDD7",
-                      background: buyerType === t ? "#123F40" : "transparent",
-                      color: buyerType === t ? "#fff" : "#526563",
+                      borderColor: buyerType === t ? "var(--c-ink,#123F40)" : "var(--c-line,#E0DDD7)",
+                      background: buyerType === t ? "var(--c-btn,#123F40)" : "transparent",
+                      color: buyerType === t ? "var(--c-on-btn,#fff)" : "var(--c-muted,#526563)",
                       fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
                       transition: "all 0.15s",
                     }}
@@ -437,7 +437,7 @@ export function MortgageCalculator({
                 value={income}
                 onChange={e => setIncome(e.target.value)}
                 placeholder={mm.incomePh}
-                style={{ background: "#fff", border: "1.5px solid #E0DDD7", borderRadius: 10, padding: "0.5rem 0.75rem", fontSize: "1rem", fontFamily: "var(--font-heebo, monospace)", fontWeight: 500, outline: "none", width: "100%", boxSizing: "border-box" }}
+                style={{ background: "var(--c-card,#fff)", border: "1.5px solid var(--c-line,#E0DDD7)", borderRadius: 10, padding: "0.5rem 0.75rem", fontSize: "1rem", fontFamily: "var(--font-heebo, monospace)", fontWeight: 500, outline: "none", width: "100%", boxSizing: "border-box" }}
                 onFocus={e => { e.target.style.borderColor = "#123F40"; e.target.style.boxShadow = "0 0 0 3px rgba(31,75,74,0.12)"; }}
                 onBlur={e => { e.target.style.borderColor = "#E0DDD7"; e.target.style.boxShadow = "none"; }}
               />
@@ -447,8 +447,8 @@ export function MortgageCalculator({
           {/* ── Right: results ── */}
           <div>
             {!hasRate && (
-              <div style={{ background: "#F5F3EE", borderRadius: 14, padding: "1.5rem", textAlign: "center" }}>
-                <div style={{ fontSize: "0.9375rem", color: "#756039", fontWeight: 500 }}>{mm.enterRate}</div>
+              <div style={{ background: "var(--c-soft,#F5F3EE)", borderRadius: 14, padding: "1.5rem", textAlign: "center" }}>
+                <div style={{ fontSize: "0.9375rem", color: "var(--c-gold,#756039)", fontWeight: 500 }}>{mm.enterRate}</div>
               </div>
             )}
 
@@ -456,18 +456,18 @@ export function MortgageCalculator({
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 {/* LTV warning */}
                 {ltvCheck.status === "insufficient_equity" && (
-                  <div style={{ background: "#FBECEA", borderRadius: 12, padding: "0.75rem 1rem", display: "flex", gap: "0.625rem", alignItems: "flex-start" }}>
+                  <div style={{ background: "var(--c-err-bg,#FBECEA)", borderRadius: 12, padding: "0.75rem 1rem", display: "flex", gap: "0.625rem", alignItems: "flex-start" }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9E3434" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}>
                       <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
                     </svg>
-                    <span style={{ fontSize: "0.8125rem", color: "#9E3434", fontWeight: 500, lineHeight: 1.5 }}>
+                    <span style={{ fontSize: "0.8125rem", color: "var(--c-err,#9E3434)", fontWeight: 500, lineHeight: 1.5 }}>
                       {mm.ltvWarning.replace("{amount}", fmtILS(ltvCheck.shortfall))}
                     </span>
                   </div>
                 )}
 
                 {/* Main results */}
-                <div style={{ background: "#F5F3EE", borderRadius: 14, padding: "1.25rem" }}>
+                <div style={{ background: "var(--c-soft,#F5F3EE)", borderRadius: 14, padding: "1.25rem" }}>
                   <ResultTable rows={[
                     { label: mm.monthlyPayment, value: "₪" + fmtILS(forward.monthlyPayment), gold: true },
                     { label: mm.loanAmount, value: "₪" + fmtILS(forward.loanAmount) },
@@ -480,7 +480,7 @@ export function MortgageCalculator({
                 {/* DTI */}
                 {dti && (
                   <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
-                    <span style={{ fontSize: "0.8125rem", color: "#526563" }}>{mm.dtiLabel}:</span>
+                    <span style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>{mm.dtiLabel}:</span>
                     <DtiBadge
                       ratio={dti.ratio}
                       color={dti.color}
@@ -501,9 +501,9 @@ export function MortgageCalculator({
                       padding: "0.5rem 1.125rem",
                       borderRadius: 999,
                       border: "1.5px solid",
-                      borderColor: filterActive ? "#756039" : "#E0DDD7",
-                      background: filterActive ? "#FFF8E6" : "transparent",
-                      color: filterActive ? "#756039" : "#526563",
+                      borderColor: filterActive ? "var(--c-gold,#756039)" : "var(--c-line,#E0DDD7)",
+                      background: filterActive ? "var(--c-warn-bg,#FFF8E6)" : "transparent",
+                      color: filterActive ? "var(--c-gold,#756039)" : "var(--c-muted,#526563)",
                       fontSize: "0.8125rem", fontWeight: 600, cursor: "pointer",
                       display: "flex", alignItems: "center", gap: "0.4rem",
                       transition: "all 0.15s",
@@ -521,11 +521,11 @@ export function MortgageCalculator({
             {hasRate && mode === "reverse" && (
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 {reverse ? (
-                  <div style={{ background: "#F5F3EE", borderRadius: 14, padding: "1.25rem" }}>
-                    <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#756039", marginBottom: "0.75rem" }}>
+                  <div style={{ background: "var(--c-soft,#F5F3EE)", borderRadius: 14, padding: "1.25rem" }}>
+                    <div style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-gold,#756039)", marginBottom: "0.75rem" }}>
                       {mm.reverseResult}
                     </div>
-                    <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.5rem", fontWeight: 600, color: "#756039", marginBottom: "1rem", fontVariantNumeric: "tabular-nums" }}>
+                    <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.5rem", fontWeight: 600, color: "var(--c-gold,#756039)", marginBottom: "1rem", fontVariantNumeric: "tabular-nums" }}>
                       ₪{fmtILS(reverse.maxPrice)}
                     </div>
                     <ResultTable rows={[
@@ -533,12 +533,12 @@ export function MortgageCalculator({
                       { label: mm.ltv, value: pct(reverse.maxLoan / reverse.maxPrice) + " (max " + pct(ltvCheck.maxLtv) + ")" },
                     ]} />
                     {reverse.ltvConstrained && (
-                      <p style={{ margin: "0.75rem 0 0", fontSize: "0.75rem", color: "#9E3434" }}>{mm.reverseLtvNote}</p>
+                      <p style={{ margin: "0.75rem 0 0", fontSize: "0.75rem", color: "var(--c-err,#9E3434)" }}>{mm.reverseLtvNote}</p>
                     )}
                   </div>
                 ) : (
-                  <div style={{ background: "#F5F3EE", borderRadius: 14, padding: "1.5rem", textAlign: "center" }}>
-                    <div style={{ fontSize: "0.875rem", color: "#526563" }}>{mm.reverseDesiredPayment}</div>
+                  <div style={{ background: "var(--c-soft,#F5F3EE)", borderRadius: 14, padding: "1.5rem", textAlign: "center" }}>
+                    <div style={{ fontSize: "0.875rem", color: "var(--c-muted,#526563)" }}>{mm.reverseDesiredPayment}</div>
                   </div>
                 )}
               </div>
@@ -570,8 +570,8 @@ export function MortgageCalculator({
                 padding: "0.5625rem 1.25rem",
                 borderRadius: 999,
                 border: "none",
-                background: saved ? "#246046" : "#123F40",
-                color: "#fff",
+                background: saved ? "var(--c-ok,#246046)" : "var(--c-btn,#123F40)",
+                color: "var(--c-on-btn,#fff)",
                 fontSize: "0.875rem",
                 fontWeight: 600,
                 cursor: saving ? "wait" : "pointer",
