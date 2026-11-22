@@ -1,0 +1,7 @@
+/* Covers the product chrome (TopNav/Footer) so the lab is fully self-contained. */
+.dl-root{position:fixed;inset:0;z-index:9999;overflow-y:auto;overflow-x:hidden;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+.dl-root *{box-sizing:border-box}
+.dl-root a{color:inherit;text-decoration:none}
+.dl-root img{display:block;max-width:100%}
+.dl-proto{position:fixed;z-index:10000;inset-block-end:12px;inset-inline-start:12px;font:500 11px/1 var(--dl-mono),monospace;letter-spacing:.06em;text-transform:uppercase;background:#111;color:#fff;padding:8px 10px;border-radius:99px;opacity:.85;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.dl-root{scroll-behavior:auto}.dl-root *{animation:none!important;transition:none!important}}
