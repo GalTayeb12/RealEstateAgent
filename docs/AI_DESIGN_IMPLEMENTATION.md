@@ -157,3 +157,7 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 ## Phase 2j — /buyer/offers V3 + explorer panels
 - `/buyer/offers`: photographic hero (illustrative render) with serif title, status counts and back pill; offer cards are glass with an illustrative thumbnail and a status hairline instead of the 4px bar. All negotiation logic/APIs unchanged. Styles in `app/buyer/offers/offers-v3.css`.
 - Explorer floor list / apartment card (`.hn-floor-panel.qp-glass`) is now dark glass on every breakpoint.
+
+## Phase 2k — admin page in Hebrew, dev map switcher
+- `/dev/admin/approvals`: all UI copy now comes from a local he/en dictionary (`TXT` in the page) and follows the language toggle; dates use the locale; tables/headers use logical alignment for RTL. Text produced by the server (AI research summaries, registry flags) is shown as written (English).
+- Dev dashboard inventory map: under "All projects" it shows one project with small buttons below to switch; picking a project in the main filter shows just that project.

@@ -25,6 +25,9 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
   // Projects with a 3D building show the floor map, the rest show one row per apartment type.
   const [sel, setSel] = useState<string>("all");
   const scope = sel === "all" ? projects : projects.filter((p) => p.id === sel);
+  // The map shows one project at a time; under "all" small buttons below it switch which one.
+  const [mapId, setMapId] = useState<string>("");
+  const mapProj = sel === "all" ? (scope.find((p) => p.id === mapId) ?? scope[0]) : scope[0];
   const scopeNames = new Set(scope.map((p) => p.name));
   const openOffers = offerProjects.filter((n) => scopeNames.has(n)).length;
   const pendingGroups = groupProjects.filter((n) => scopeNames.has(n)).length;
@@ -72,13 +75,13 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
         {kpis.map(([v, l]) => <div key={l} className="dov-kpi"><b className="num">{v}</b><small>{l}</small></div>)}
       </div>
 
-      {scope.length > 0 && (
+      {mapProj && (
         <div className="dov-map">
           <div className="dov-maphead">
             <h3>{he ? "מפת מלאי" : "Inventory map"}</h3>
             <div className="dov-legend">{(Object.keys(COLORS) as St[]).map((s) => <span key={s}><i style={{ background: COLORS[s] }} />{names[s]}</span>)}</div>
           </div>
-          {scope.map((proj) => (
+          {[mapProj].filter(Boolean).map((proj) => (
             <div key={proj.id}>
           {!(proj.buildings ?? []).some((b) => b.units.length > 0) && (
             <div className="dov-bld">
@@ -123,6 +126,11 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
           })}
             </div>
           ))}
+          {sel === "all" && scope.length > 1 && (
+            <div className="dov-tabs dov-mini" role="group" aria-label={he ? "מעבר בין פרויקטים במפה" : "Switch project on the map"}>
+              {scope.map((p) => <button key={p.id} type="button" aria-pressed={p.id === mapProj?.id} onClick={() => setMapId(p.id)}>{p.name}</button>)}
+            </div>
+          )}
         </div>
       )}
     </section>
