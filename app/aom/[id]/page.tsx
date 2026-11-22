@@ -11,8 +11,8 @@
  * WebGL/Canvas APIs that don't exist in Node.
  */
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
@@ -87,6 +87,28 @@ interface UnitDetail {
   seller: { email: string };
   images: ListingImage[];
   buildings?: ExplorerBuilding[];
+}
+
+/**
+ * Fixed back pill. Returns to wherever the buyer came from (results, offers, a group...), else to /results.
+ * The 3D explorer pushes history entries while browsing floors/units, so a plain router.back() would only
+ * step through those; we count the entries added since this page opened and go back past all of them.
+ */
+function BackButton({ label }: { label: string }) {
+  const router = useRouter();
+  const base = useRef<number | null>(null);
+  useEffect(() => { base.current = window.history.length; }, []);
+  function goBack() {
+    const start = base.current;
+    if (start == null || start <= 1) { router.push("/results"); return; }
+    const added = Math.max(0, window.history.length - start);
+    window.history.go(-(added + 1));
+  }
+  return (
+    <button type="button" className="av-backbtn" onClick={goBack}>
+      <span aria-hidden="true" className="av-arrow">←</span>{label}
+    </button>
+  );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
@@ -186,13 +208,14 @@ export default function VprPage() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)" }}>
 
+      <BackButton label={locale === "he" ? "חזרה" : "Back"} />
+
       {/* ── Photographic hero (V3) when there is no 3D building ─────────── */}
       {!hasExplorer && (
         <section className="av-hero">
           <Image src={illustrativeImage(unit.id)} alt="" fill priority sizes="100vw" />
           <div className="av-shade" />
           <div className="av-in">
-            <Link href="/results" className="av-back">{m.unitView.backToResults}</Link>
             <span className="av-kick">{unit.project.name} · {unit.project.location}</span>
             <h1>{asProject ? unit.project.name : unit.unitLabel}</h1>
             {!asProject && unit.description && <p>{unit.description}</p>}
@@ -207,9 +230,6 @@ export default function VprPage() {
       )}
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
-        <p style={{ margin: "0 0 1.25rem", display: hasExplorer ? undefined : "none" }}>
-          <Link href="/results" style={{ color: "var(--qp-ink)", fontWeight: 500, textDecoration: "none" }}>{m.unitView.backToResults}</Link>
-        </p>
 
         {/* ── Property header ─────────────────────────────────────────────── */}
         <div style={{ marginBottom: "2rem", display: hasExplorer ? undefined : "none" }}>

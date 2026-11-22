@@ -6,7 +6,7 @@
  * deterministically per listing (labelled as such). Offers, group buying and details live in the
  * per-project cards below the hero (anchor targets `#match-<key>`), so no transactional behaviour is here.
  */
-import { useState, type KeyboardEvent } from "react";
+import { useState, type KeyboardEvent, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import "./results-hero.css";
@@ -34,8 +34,14 @@ export interface HeroItem {
 const pickImage = illustrativeImage;
 const two = (n: number) => String(n).padStart(2, "0");
 
-export default function ResultsHero({ items, ej, aj, summary, kicker, title }: {
+export default function ResultsHero({ items, ej, aj, summary, kicker, title, renderOffer, onGroup, renderRange }: {
   items: HeroItem[]; ej: number; aj: number; summary: string; kicker: string; title: string;
+  /** "Reserve at listed price" / offer control for the selected match (button + its expanding panel) */
+  renderOffer?: (key: string) => ReactNode;
+  /** Opens the group-discount flow for the selected match */
+  onGroup?: (key: string) => void;
+  /** Detailed negotiation-range chart for the selected match */
+  renderRange?: (key: string) => ReactNode;
 }) {
   const { locale, m } = useI18n();
   const he = locale === "he";
@@ -90,8 +96,9 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title }: {
             {facts.map((f) => <div key={f.label}><b>{f.text}</b><span>{f.label}</span></div>)}
           </div>
           <div className="rh-act">
-            <a className="primary" href={`#match-${cur.key}`}>{he ? "הצעה ופרטים" : "Offer & details"}</a>
+            {renderOffer?.(cur.key)}
             <Link href={`/aom/${cur.aomId}`}>{m.results.viewDetails} →</Link>
+            {onGroup && <button type="button" className="rh-ghost" onClick={() => onGroup(cur.key)}>{m.results.groupDiscount}</button>}
           </div>
         </div>
         <aside className="rh-side" aria-live="polite">
@@ -103,6 +110,12 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title }: {
             <li>{he ? `טווח ההסכמה שלכם והמוכר חופפים ב-${overlap} נקודות` : `Your range and the seller's overlap by ${overlap} points`}</li>
             <li>{he ? `ציון ההסכמה המוצע: ${Math.round(cur.zij)} מתוך 100` : `Proposed agreement score: ${Math.round(cur.zij)} of 100`}</li>
           </ul>
+          {renderRange && (
+            <details className="rh-range">
+              <summary>{he ? "טווח המשא ומתן" : "Negotiation range"}</summary>
+              {renderRange(cur.key)}
+            </details>
+          )}
         </aside>
       </div>
 

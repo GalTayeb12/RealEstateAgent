@@ -133,3 +133,11 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - Audit tooling: `docs/design-impl/audit.mjs` (contact sheet of ~18 routes, theme + overflow flags), `multi-shot.mjs`.
 - Checked in he and en at 1440 (no overflow, all routes on the dark theme) and `/aom` + `/results` at 390.
 - Not visually verified: `/seller/dashboard` (needs a seller account), `/walk/*` (no known slug), `/interview` live session, `/deal/[id]`, admin approvals.
+
+### Phase 2g — /results restructured around the hero (user feedback)
+
+- Hero actions for the selected match: "Reserve at listed price" (the real `SendOfferPanel`, compact, its form/confirmation expand across the hero row), "Property details", "Group discount" (opens the existing leverage modal). A collapsible "Negotiation range" shows the old alignment bar with the suggested-price marker.
+- The rail under the hero is the scroller of every project that is a feasible match AND passes the hard filters (rooms, budget, location). The per-project cards below the hero were removed.
+- Below the hero: profile (+ interview quota/retake), alerts and mortgage row, near matches, services, group-buying CTA.
+- `/aom/[id]`: fixed "Back" pill on every variant. It returns past any history entries the 3D explorer pushed (floor/unit selection), falling back to `/results`.
+- Matching maths untouched. Finding recorded: Zij = 2·pfij − eil − ej, which (when the seller's ail ≥ ej, as in all current listings) equals ej − eil. It can never exceed ej (74 here) and ranks listings only by the seller's minimum; location/rooms/budget are pass/fail filters, not part of the score. See chat for details.

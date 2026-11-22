@@ -12,3 +12,7 @@ html[lang=he] .av-kick{letter-spacing:.02em;text-transform:none;font-size:12.5px
 .av-in p{margin:0;font-size:16px;color:var(--qp-muted);line-height:1.6;max-width:46rem}
 .av-in small{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--qp-muted)}
 html[lang=he] .av-in small{letter-spacing:0;text-transform:none;font-size:12px}
+
+.av-backbtn{position:fixed;top:68px;inset-inline-start:max(16px,calc((100vw - 75rem)/2 + 20px));z-index:60;display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 18px;border-radius:99px;border:1px solid rgba(239,233,220,.38);background:rgba(10,16,15,.6);backdrop-filter:blur(12px);color:var(--qp-ink);font:inherit;font-size:13.5px;cursor:pointer;transition:background .3s,color .3s}
+.av-backbtn:hover{background:var(--qp-ink);color:var(--qp-bg)}
+html[dir=rtl] .av-arrow{display:inline-block;transform:scaleX(-1)}

@@ -18,7 +18,6 @@ import { useI18n } from "@/components/LocaleProvider";
 import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 import Link from "next/link";
 import { computeElasticity, ElasticityResult } from "@/lib/elasticity";
-import { formatAttributeValue, parseAttributes, translateAttrKey, formatArea } from "@/lib/attributes";
 import { AlertCard } from "@/components/AlertCard";
 import type { MortgageSavedData } from "@/components/MortgageCalculator";
 import { groupByProject } from "@/lib/projectGroups";
@@ -503,12 +502,15 @@ function SendOfferPanel({
   token,
   onOfferSent,
   ownerType,
+  compact = false,
 }: {
   outcome: MatchOutcome;
   detail: AomDetail;
   token: string;
   onOfferSent: () => void;
   ownerType: string;
+  /** Hero use: bare button inline with its siblings; the form/confirmation panels span the full row. */
+  compact?: boolean;
 }) {
   const router = useRouter();
   const { m } = useI18n();
@@ -562,7 +564,7 @@ function SendOfferPanel({
 
   if (phase === "sent") {
     return (
-      <div style={{ marginTop: "1.25rem", padding: "1rem 1.125rem", background: "linear-gradient(135deg, var(--c-soft,#EEF4F3), var(--c-soft,#E4EEEC))", borderRadius: 12, border: "1px solid var(--c-line,#B8D4D3)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <div style={{ marginTop: compact ? 0 : "1.25rem", flexBasis: compact ? "100%" : undefined, padding: "1rem 1.125rem", background: "linear-gradient(135deg, var(--c-soft,#EEF4F3), var(--c-soft,#E4EEEC))", borderRadius: 12, border: "1px solid var(--c-line,#B8D4D3)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-ink,#123F40)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
@@ -579,7 +581,7 @@ function SendOfferPanel({
 
   if (phase === "idle") {
     return (
-      <div style={{ marginTop: "1.5rem" }}>
+      <div style={{ marginTop: compact ? 0 : "1.5rem" }}>
         <button
           onClick={() => setPhase("open")}
           style={{ padding: "0.625rem 1.5rem", borderRadius: 999, background: "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))", color: "var(--c-on-btn,#fff)", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer", boxShadow: "0 1px 0 rgba(255,255,255,0.15) inset, 0 8px 20px -8px rgba(18,51,50,0.5)", letterSpacing: "0.01em" }}
@@ -593,7 +595,7 @@ function SendOfferPanel({
   // Developer unit: simplified confirmation panel — no price input or terms
   if (isDeveloperUnit) {
     return (
-      <div style={{ marginTop: "1.25rem", background: "var(--c-soft,#F5F3EE)", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
+      <div style={{ marginTop: compact ? 0 : "1.25rem", flexBasis: compact ? "100%" : undefined, background: "var(--c-soft,#F5F3EE)", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
         <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--c-card,#fff)" }}>
           <span style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-ink,#123F40)" }}>{m.results.reserve}</span>
           <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-muted,#526563)", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
@@ -631,7 +633,7 @@ function SendOfferPanel({
 
   // Seller unit: standard offer form
   return (
-    <div style={{ marginTop: "1.25rem", background: "var(--c-soft,#F5F3EE)", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
+    <div style={{ marginTop: compact ? 0 : "1.25rem", flexBasis: compact ? "100%" : undefined, background: "var(--c-soft,#F5F3EE)", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)", overflow: "hidden" }}>
       <div style={{ padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(18,63,64,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--c-card,#fff)" }}>
         <span style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-ink,#123F40)" }}>{m.results.makeOffer}</span>
         <button onClick={() => { setPhase("idle"); setErrMsg(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--c-muted,#526563)", fontSize: "1rem", lineHeight: 1, padding: "0.125rem" }} aria-label={m.nav.closeMenu}>✕</button>
@@ -757,118 +759,6 @@ function DetailsLink({ href, tone = "var(--c-ink,#123F40)", children }: { href: 
   );
 }
 
-// ── Match card ────────────────────────────────────────────────────────────────
-
-function MatchCard({
-  outcome,
-  detail,
-  rank,
-  ej,
-  aj,
-  token,
-  onOfferSent,
-  onOpenLeverage,
-  mortgageMaxPrice,
-  hidden = [],
-}: {
-  outcome: MatchOutcome;
-  detail: AomDetail | undefined;
-  /** Other apartment types in the same project that fit the buyer */
-  /** Types in the same project that fail the buyer's requirements */
-  hidden?: MatchOutcome[];
-  rank: number;
-  ej: number;
-  aj: number;
-  token: string;
-  onOfferSent: () => void;
-  onOpenLeverage: (o: MatchOutcome) => void;
-  mortgageMaxPrice: number | null;
-}) {
-  const { m } = useI18n();
-  const attrs = parseAttributes(detail?.attributes);
-  const eil = detail?.eil ?? outcome.lowerBound;
-  const ail = detail?.ail ?? outcome.upperBound;
-  const elasticity = computeElasticity(
-    { ej, aj },
-    { eil, ail },
-    { lowerBound: outcome.lowerBound, upperBound: outcome.upperBound }
-  );
-
-  return (
-    <div className={`rs-card${outcome.valid ? "" : " off"}`}>
-      <div className="rs-in">
-        <div className="rs-top">
-          <div className="rs-id">
-            <span className="rs-eyebrow">{outcome.valid ? `${m.results.matchN} #${rank}` : m.results.notFeasible}</span>
-            <h2>{outcome.projectName ?? outcome.title}</h2>
-            {outcome.projectName && outcome.unitLabel && <span className="rs-pill">{outcome.unitLabel}</span>}
-            {detail?.description && <p className="rs-desc">{detail.description.replace(/^DESCRIPTION:\s*/i, "")}</p>}
-            {detail && detail.price > 0 && (
-              <div className="rs-price">
-                <b className="num">
-                  {detail.priceFrom && <small className="rs-from">{m.results.from}</small>}{" "}
-                  <Money amount={detail.price} />
-                </b>
-                {mortgageMaxPrice != null && (
-                  <span className={`rs-tag ${detail.price <= mortgageMaxPrice ? "ok" : "warn"}`}>
-                    {detail.price <= mortgageMaxPrice ? m.profile.mortgageInRange : m.profile.mortgageAboveRange}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-
-          {outcome.valid ? (
-            <div className="rs-sc" aria-label={`${m.results.matchQuality}: ${Math.round(outcome.zij)}`}>
-              <b>{Math.round(outcome.zij)}</b>
-              <small>{m.results.matchQuality}</small>
-            </div>
-          ) : (
-            <div className="rs-bad">
-              <b>{m.results.notFeasible}</b>
-              <small>{m.results.noOverlapRanges}</small>
-            </div>
-          )}
-        </div>
-
-        {Object.keys(attrs).length > 0 && (
-          <div className="rs-chips">
-            {Object.entries(attrs).map(([k, v]) => {
-              const attrKeys = m.attributes as unknown as Record<string, string | undefined>;
-              const label = translateAttrKey(k, attrKeys);
-              const text = k === "area" ? formatArea(v, m.attributes.sqmUnit) : (formatAttributeValue(v) || m.attributes.unknown);
-              if (!text || text === m.attributes.unknown) return null;
-              return <span key={k} className="rs-chip">{label}: {text}</span>;
-            })}
-          </div>
-        )}
-
-        {hidden.length > 0 && (
-          <p className="rs-note">
-            {m.results.hiddenTypesLabel}{" "}
-            {hidden.map((h) => `${h.unitLabel ?? h.title} (${(h.hardFilterFailReasons ?? []).map((r) => renderFailReason(r, m.results)).join(", ")})`).join(" · ")}
-          </p>
-        )}
-
-        <AlignmentBar outcome={outcome} ej={ej} aj={aj} aom={{ eil, ail }} elasticity={elasticity} />
-
-        <div className="rs-actions">
-          <DetailsLink href={`/aom/${outcome.aomId}`}>{m.results.viewDetails} →</DetailsLink>
-          {outcome.valid && (
-            <button type="button" className="rs-ghost" onClick={() => onOpenLeverage(outcome)}>
-              {m.results.groupDiscount}
-            </button>
-          )}
-        </div>
-
-        {outcome.valid && detail && (
-          <SendOfferPanel outcome={outcome} detail={detail} token={token} onOfferSent={onOfferSent} ownerType={detail?.ownerType ?? "developer"} />
-        )}
-      </div>
-    </div>
-  );
-}
-
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 interface RateLimitInfo {
@@ -975,7 +865,6 @@ export default function ResultsPage() {
   // non-fitting types of that project hidden; projects with no fit stay "near".
   const { groups: projectCards, near: nearMatches } = groupByProject(fullMatches, allNearMatches);
   const projectCount = new Set(ranked.map((r) => r.projectId ?? r.aomId)).size;
-  let validRank = 0;
   const heroItems: HeroItem[] = projectCards.map(({ key, best }) => {
     const d = aomDetails[best.aomId];
     return {
@@ -1002,7 +891,25 @@ export default function ResultsPage() {
         <LeverageModal outcome={leverageTarget} token={token} onClose={() => setLeverageTarget(null)} />
       )}
 
-      {heroItems.length > 0 && <ResultsHero items={heroItems} ej={ej} aj={aj} summary={summaryText} kicker={m.results.kicker} title={m.results.title} />}
+      {heroItems.length > 0 && (
+        <ResultsHero
+          items={heroItems} ej={ej} aj={aj} summary={summaryText} kicker={m.results.kicker} title={m.results.title}
+          renderOffer={(key) => {
+            const c = projectCards.find((x) => x.key === key);
+            const d = c ? aomDetails[c.best.aomId] : undefined;
+            return c && d ? <SendOfferPanel compact outcome={c.best} detail={d} token={token} onOfferSent={() => setToast(true)} ownerType={d.ownerType ?? "developer"} /> : null;
+          }}
+          onGroup={(key) => { const c = projectCards.find((x) => x.key === key); if (c) setLeverageTarget(c.best); }}
+          renderRange={(key) => {
+            const c = projectCards.find((x) => x.key === key);
+            if (!c) return null;
+            const d = aomDetails[c.best.aomId];
+            const eil = d?.eil ?? c.best.lowerBound, ail = d?.ail ?? c.best.upperBound;
+            const el = computeElasticity({ ej, aj }, { eil, ail }, { lowerBound: c.best.lowerBound, upperBound: c.best.upperBound });
+            return <AlignmentBar outcome={c.best} ej={ej} aj={aj} aom={{ eil, ail }} elasticity={el} />;
+          }}
+        />
+      )}
 
       {/* Page intro (no matches to feature) */}
       {heroItems.length === 0 && <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "3rem 1.5rem 0" }}>
@@ -1019,8 +926,7 @@ export default function ResultsPage() {
 
       {/* Content */}
       <main className="rs-page">
-        <div className="rs-grid">
-        <aside className="rs-aside">
+        <div className="rs-trio">
 
         {/* Buyer profile card */}
         <div className="rs-panel">
@@ -1148,29 +1054,7 @@ export default function ResultsPage() {
           )}
         </div>
 
-        </aside>
-        <div className="rs-col">
-        {/* Full match cards */}
-        {projectCards.map(({ key, best: outcome, hidden }) => {
-          validRank++;
-          const detail = aomDetails[outcome.aomId];
-          return (
-            <div key={key} id={`match-${key}`} style={{ scrollMarginTop: "5rem" }}>
-            <MatchCard
-              outcome={outcome}
-              detail={detail}
-              hidden={hidden}
-              rank={validRank}
-              ej={ej}
-              aj={aj}
-              token={token}
-              onOfferSent={() => { setToast(true); }}
-              onOpenLeverage={setLeverageTarget}
-              mortgageMaxPrice={mortgageSavedData?.maxPrice ?? null}
-            />
-            </div>
-          );
-        })}
+        </div>
 
         {/* No full matches message */}
         {projectCards.length === 0 && (
@@ -1192,21 +1076,21 @@ export default function ResultsPage() {
             <div className="rs-sechead">
               {m.results.nearMatchTitle}
             </div>
-            {nearMatches.map((outcome) => {
-              const detail = aomDetails[outcome.aomId];
-              return (
-                <NearMatchCard
-                  key={outcome.aomId}
-                  outcome={outcome}
-                  detail={detail}
-                />
-              );
-            })}
+            <div className="rs-near">
+              {nearMatches.map((outcome) => {
+                const detail = aomDetails[outcome.aomId];
+                return (
+                  <NearMatchCard
+                    key={outcome.aomId}
+                    outcome={outcome}
+                    detail={detail}
+                  />
+                );
+              })}
+            </div>
           </>
         )}
 
-        </div>
-        </div>
 
         {/* Recommendations */}
         {fullMatches.length > 0 && recommendations.length > 0 && (
