@@ -60,8 +60,13 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - `/results` verified with real data, desktop 1440 + mobile 390, no console errors/overflow. Fixed: score badge and gradient fills that stayed light, "details" link contrast.
 - `docs/design-impl/results-shot.mjs` re-renders `/results` from a saved `matchResults` (sessionStorage), so no new interviews are needed.
 
+## Phase 2d — /results V2 hero
+- New `components/results/ResultsHero.tsx` + `results-hero.css` (scoped `.rh`): giant real Zij score (0–100, tooltip uses the existing hint), project name, unit label, price (`Money`, locale-aware) and up to 4 real attributes, a "how this score is built" panel (overlap + your/seller ranges from `ej/aj/eil/ail`), and a project rail that switches the hero.
+- Page logic untouched: offers, group discount, details, retake, mortgage filter, near matches stay in the existing per-project cards below (each now has anchor `#match-<key>`, linked from the hero's "Offer & details"). The old intro only renders when there are no matches.
+- Verified with real match data (he, desktop + mobile): no console errors, no overflow. English hero not re-screenshotted (locale persisted as Hebrew for the test account); copy for both languages is in the component.
+
 ## Phase 2 — still open
-- `/results` is a recolour of the existing layout, NOT the V2 results design (hero score card, factor bars, hover-synced imagery). That redesign needs a decision on how much to restructure real data cards.
+- (done in 2d) V2 results hero. Still open: hover-synced listing imagery (real listings carry no photo field, so the hero is type-led with a gold glow, not a picture).
 - `/interview` (full-screen avatar) and `/processing` with a transcript, `/aom/[id]` building/apartment pages with real data, 3D explorer, `/walk`: not visually verified.
 - TopNav still has 3 pre-existing eslint `set-state-in-effect` errors (unchanged).
 - Recolour ≠ redesign: layouts of offers/deal/groups are the original ones.

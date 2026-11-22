@@ -22,6 +22,7 @@ import { formatAttributeValue, parseAttributes, translateAttrKey, formatArea } f
 import { AlertCard } from "@/components/AlertCard";
 import type { MortgageSavedData } from "@/components/MortgageCalculator";
 import { groupByProject } from "@/lib/projectGroups";
+import ResultsHero, { type HeroItem } from "@/components/results/ResultsHero";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -1021,6 +1022,15 @@ export default function ResultsPage() {
   const { groups: projectCards, near: nearMatches } = groupByProject(fullMatches, allNearMatches);
   const projectCount = new Set(ranked.map((r) => r.projectId ?? r.aomId)).size;
   let validRank = 0;
+  const heroItems: HeroItem[] = projectCards.map(({ key, best }) => {
+    const d = aomDetails[best.aomId];
+    return {
+      key, aomId: best.aomId, name: best.projectName ?? best.title, unitLabel: best.unitLabel,
+      zij: best.zij, price: d?.price ?? 0, priceFrom: d?.priceFrom, attributes: d?.attributes,
+      eil: d?.eil ?? best.lowerBound, ail: d?.ail ?? best.upperBound, lowerBound: best.lowerBound, upperBound: best.upperBound,
+    };
+  });
+  const summaryText = m.results.summary.replace("{valid}", String(projectCards.length)).replace("{total}", String(projectCount));
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--c-soft,#F4F5F0)", fontFamily: "var(--font-inter, ui-sans-serif, sans-serif)" }}>
@@ -1038,8 +1048,10 @@ export default function ResultsPage() {
         <LeverageModal outcome={leverageTarget} token={token} onClose={() => setLeverageTarget(null)} />
       )}
 
-      {/* Page intro */}
-      <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "3rem 1.5rem 0" }}>
+      {heroItems.length > 0 && <ResultsHero items={heroItems} ej={ej} aj={aj} summary={summaryText} kicker={m.results.kicker} title={m.results.title} />}
+
+      {/* Page intro (no matches to feature) */}
+      {heroItems.length === 0 && <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "3rem 1.5rem 0" }}>
         <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "var(--c-ink,#123F40)", marginBottom: "0.625rem" }}>
           {m.results.kicker}
         </div>
@@ -1049,7 +1061,7 @@ export default function ResultsPage() {
         <p style={{ margin: 0, color: "var(--c-muted,#526563)", fontSize: "1rem", lineHeight: 1.5 }}>
           {m.results.summary.replace("{valid}", String(projectCards.length)).replace("{total}", String(projectCount))}
         </p>
-      </div>
+      </div>}
 
       {/* Content */}
       <main style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "1.75rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
@@ -1186,8 +1198,8 @@ export default function ResultsPage() {
           validRank++;
           const detail = aomDetails[outcome.aomId];
           return (
+            <div key={key} id={`match-${key}`} style={{ scrollMarginTop: "5rem" }}>
             <MatchCard
-              key={key}
               outcome={outcome}
               detail={detail}
               hidden={hidden}
@@ -1199,6 +1211,7 @@ export default function ResultsPage() {
               onOpenLeverage={setLeverageTarget}
               mortgageMaxPrice={mortgageSavedData?.maxPrice ?? null}
             />
+            </div>
           );
         })}
 
