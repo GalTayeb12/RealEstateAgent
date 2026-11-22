@@ -40,7 +40,7 @@ export default function DevPipeline({ offers, groups }: { offers: PipelineOffer[
     ...groups.map((g): Ev => ({
       id: "g" + g.id, at: +new Date(g.createdAt), tone: "teal",
       title: `${he ? "בקשת קבוצה" : "Group request"} · ${g.unitType.project.name} — ${g.unitType.unitLabel}`,
-      meta: `${g.memberCount} ${he ? "חברים" : "members"}`,
+      meta: `${g.memberCount} ${he ? "חברים" : g.memberCount === 1 ? "member" : "members"}`,
     })),
   ].sort((a, b) => b.at - a.at).slice(0, 8);
 

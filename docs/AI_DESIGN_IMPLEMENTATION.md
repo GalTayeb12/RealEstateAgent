@@ -98,3 +98,10 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - The prototype's "viewed / walked / advisor" buyer funnel needs analytics that are not tracked, so it is intentionally not built.
 - Stages are counted independently, so a stage can exceed the previous one when test data has a deposit without signatures (seen on the test account).
 - Verified: tsc clean, eslint clean on the new file, vitest passes, Playwright desktop 1440 and mobile 390 (he), no console errors, no horizontal overflow. English layout only checked via desktop run at `en` URL (account locale overrides to Hebrew).
+
+### Phase 3e — English verification of developer screens
+
+- `docs/design-impl/dev-en.mjs` forces English by blocking only the GET of `/api/profile` (so the account's saved Hebrew locale cannot override the cookie); it writes nothing. `overflow.mjs` lists elements wider than the viewport.
+- Checked in English (en/ltr) at 1440 and 390: `/dev/dashboard` projects, Reservations and Leverage groups tabs. No horizontal overflow, no real console errors (only the 404s from the blocked profile request).
+- Fixed: the available-value KPI showed ₪ in English while all other prices show USD (now converted with the shared rate); "1 members" in the timeline; the dashboard tab bar overflowed to 436px at 390px in English (now scrolls, no wrap).
+- Not covered: `/dev/properties/[unitTypeId]` (no unit-type link was reachable on the collapsed project cards), `/dev/admin/approvals` (needs admin), and the existing "1 buyers" string on the groups tab, which is not from this work. Project names stay Hebrew because they are user data.

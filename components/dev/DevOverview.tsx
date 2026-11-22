@@ -8,6 +8,7 @@ import { useState } from "react";
 import "./dev-overview.css";
 import { useI18n } from "@/components/LocaleProvider";
 import type { InventoryBuilding } from "@/components/DevInventory";
+import { ilsToUsd } from "@/lib/i18n/currency";
 
 interface UnitTypeLite { id: string; price: number; quantityTotal: number; quantityAvailable: number }
 export interface OverviewProject { id: string; name: string; unitTypes: UnitTypeLite[]; buildings?: InventoryBuilding[] }
@@ -49,7 +50,7 @@ export default function DevOverview({ projects, openOffers, pendingGroups }: { p
   const kpis: [string, string][] = [
     [String(total), he ? "דירות במלאי" : "Apartments"],
     [`${taken}%`, he ? "נמכרו / שמורות" : "Sold / reserved"],
-    [new Intl.NumberFormat(he ? "he-IL" : "en-US", { style: "currency", currency: "ILS", notation: "compact", maximumFractionDigits: 1 }).format(value), he ? "שווי פנוי" : "Available value"],
+    [new Intl.NumberFormat(he ? "he-IL" : "en-US", { style: "currency", currency: he ? "ILS" : "USD", notation: "compact", maximumFractionDigits: 1 }).format(he ? value : ilsToUsd(value)), he ? "שווי פנוי" : "Available value"],
     [String(openOffers), he ? "הצעות פתוחות" : "Open offers"],
     [String(pendingGroups), he ? "בקשות קבוצה" : "Group requests"],
   ];

@@ -432,7 +432,7 @@ export default function DevDashboardPage() {
         </div>
 
         {/* Tab nav */}
-        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", gap: 0 }}>
+        <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", gap: 0, overflowX: "auto", scrollbarWidth: "none" }}>
           {([
             ["projects",     m.dev.myProjects,   totalProjects],
             ["reservations", m.dev.reservations,  reservations.length],
@@ -442,7 +442,7 @@ export default function DevDashboardPage() {
               key={key}
               onClick={() => setTab(key)}
               style={{
-                padding: "0.75rem 1.25rem", border: "none", background: "none",
+                padding: "0.75rem 1.25rem", border: "none", background: "none", whiteSpace: "nowrap", flexShrink: 0,
                 fontSize: "0.9375rem", fontWeight: tab === key ? 600 : 400,
                 color: tab === key ? "var(--c-ink,#123F40)" : "var(--c-muted,#526563)",
                 borderBottom: tab === key ? "2px solid var(--c-ink,#123F40)" : "2px solid transparent",
