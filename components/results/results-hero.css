@@ -62,3 +62,4 @@ html[lang=he] .rh-note{letter-spacing:0;text-transform:none;font-size:12px}
 .rh-range summary::before{content:"+ ";color:var(--qp-accent)}.rh-range[open] summary::before{content:"− "}
 .rh-zij{margin:8px 0;font-size:12.5px;color:var(--qp-muted);line-height:1.6}
 .rh-range[open] .rh-bars{margin-top:10px}
+.rh-addr{margin:8px 0 0;font-size:14px;color:var(--qp-muted)}

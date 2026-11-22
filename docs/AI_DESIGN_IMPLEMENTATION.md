@@ -147,3 +147,9 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - New `lib/fitScore.ts` (+ `lib/__tests__/fitScore.test.ts`, 6 tests): a readable 0-100 "fit to your needs" computed from what the buyer stated and what the listing actually has: location 25, budget 25, rooms 20, verifiable must-haves 15 (balcony, parking, high floor), room to agree 15. Missing data is left out and weights renormalised, so unknown never counts as a miss; a known ground-floor dealbreaker halves the score.
 - `/results` ranks by fit (Zij breaks ties) and the hero headline, rail cards and "why it matches" bars use it. The Zij engine, `/api/match` and stored `MatchResult` rows are unchanged; Zij is still shown under "Negotiation range" with an explanation.
 - Weights are a first proposal and need product review. Must-haves like quiet, natural light and kindergarten proximity cannot be checked from listing data and are not scored.
+
+## Phase 2i — /aom reduced to the hero
+- `/aom/[id]` keeps only the hero (3D explorer or photo hero) plus the apartment-type tabs and any real media (video, 360° tour, photos, floor plan). Match-parameter, features and mortgage cards were removed (the same facts are on /results).
+- Explorer nav is now the standard dark nav (`--nav-bg`) instead of light frosted glass; on desktop the back pill sits in the nav row so it no longer covers the floor panel.
+- Top-down apartment view: room labels used `--qp-ink` (white in dark theme) on a white pill; now fixed dark text (`components/walk/ApartmentOverview.tsx`).
+- Project street address (`project.location`) is stored in `matchResults.aomDetails[*].address` and shown under the project name in the /results hero. Sessions stored before this change have no address until the buyer re-runs matching.

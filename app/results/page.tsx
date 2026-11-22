@@ -52,6 +52,8 @@ interface MatchOutcome {
 
 interface AomDetail {
   title: string;
+  /** Project street address (project.location); absent in results stored before this field existed */
+  address?: string;
   description: string;
   eil: number;
   ail: number;
@@ -877,7 +879,7 @@ export default function ResultsPage() {
   const heroItems: HeroItem[] = rankedCards.map(({ key, best, fit }) => {
     const d = aomDetails[best.aomId];
     return {
-      key, aomId: best.aomId, name: best.projectName ?? best.title, unitLabel: best.unitLabel,
+      key, aomId: best.aomId, name: best.projectName ?? best.title, address: d?.address, unitLabel: best.unitLabel,
       zij: best.zij, fit: fit.score, fitParts: fit.components,
       price: d?.price ?? 0, priceFrom: d?.priceFrom, attributes: d?.attributes,
       eil: d?.eil ?? best.lowerBound, ail: d?.ail ?? best.upperBound, lowerBound: best.lowerBound, upperBound: best.upperBound,

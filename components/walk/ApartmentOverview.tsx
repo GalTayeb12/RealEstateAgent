@@ -118,7 +118,7 @@ const CSS = `
 .ao-root canvas:active { cursor: grabbing; }
 .ao-label {
   display: flex; flex-direction: column; align-items: center; gap: 1px;
-  background: rgba(255,255,255,.86); color: var(--qp-ink, #1d1a14); border: 0; border-radius: 6px;
+  background: rgba(255,255,255,.86); color: #1d1a14; border: 0; border-radius: 6px;
   padding: 3px 9px; font: 500 11px/1.35 var(--font-heebo, system-ui, sans-serif); white-space: nowrap;
   box-shadow: 0 1px 4px rgba(0,0,0,.18); cursor: pointer; user-select: none;
   transition: background .15s, color .15s, padding .15s;

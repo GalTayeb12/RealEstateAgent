@@ -1011,9 +1011,9 @@ export default function BuildingExplorer({
           /* Nav floats over the photo as frosted glass */
           body > nav {
             position: fixed !important; inset-inline: 0; top: 0; width: 100%;
-            background: rgba(245,242,236,.42) !important;
+            background: var(--nav-bg, rgba(7,12,11,.94)) !important;
             backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
-            border-bottom-color: rgba(255,255,255,.28) !important;
+            border-bottom-color: var(--qp-border, rgba(255,255,255,.12)) !important;
           }
 
           @keyframes hn-panel-in {

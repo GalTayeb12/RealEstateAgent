@@ -20,6 +20,7 @@ export interface HeroItem {
   key: string;
   aomId: string;
   name: string;
+  address?: string;
   unitLabel?: string;
   /** Zij negotiation score (kept, shown under "Negotiation range") */
   zij: number;
@@ -114,6 +115,7 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
           <div className="rh-score" aria-label={`${he ? "התאמה לצרכים שלך" : "Fit to your needs"}: ${cur.fit}`}>{cur.fit}<small>%</small></div>
           <span className="rh-kick sub" title={he ? "עד כמה הנכס עונה על מה שביקשת: מיקום, תקציב, חדרים ודרישות חובה" : "How well the listing meets what you asked for: location, budget, rooms and must-haves"}>{he ? "התאמה לצרכים שלך" : "Fit to your needs"}{cur.unitLabel ? ` · ${cur.unitLabel}` : ""}</span>
           <h2>{cur.name}</h2>
+          {cur.address && <p className="rh-addr">{cur.address}</p>}
           <div className="rh-facts">
             {cur.price > 0 && <div><b className="num">{cur.priceFrom ? `${m.results.from} ` : ""}<Money amount={cur.price} /></b><span>{he ? "מחיר" : "Price"}</span></div>}
             {facts.map((f) => <div key={f.label}><b>{f.text}</b><span>{f.label}</span></div>)}

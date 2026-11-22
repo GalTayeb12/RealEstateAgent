@@ -24,6 +24,7 @@ type Phase =
   | "error";
 
 type AomDetail = {
+  address?: string;
   title: string;
   description: string;
   eil: number;
@@ -98,6 +99,7 @@ export default function ProcessingPage() {
           : (l.unitLabel ?? l.title ?? "");
         aomDetails[l.id] = {
           title,
+          address: l.project?.location ?? "",
           description: l.description ?? "",
           eil: l.eil,
           ail: l.ail,

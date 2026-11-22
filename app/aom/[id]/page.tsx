@@ -17,15 +17,14 @@ import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { TourScene } from "./VirtualTour";
-import { EstimatedPriceNote, Money } from "@/components/Money";
+import { Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import type { ExplorerBuilding } from "@/components/building/types";
 import { illustrativeImage } from "@/lib/illustrative";
 import "./aom-hero.css";
 import { useBuyerMinRooms } from "@/components/useBuyerMinRooms";
-import { formatArea, formatAttributeValue, parseAttributes, roomsOf, translateAttrKey } from "@/lib/attributes";
+import { parseAttributes, roomsOf } from "@/lib/attributes";
 import { unitFactsSummary } from "@/components/listing/UnitFactsFields";
-import { MortgageCalculator, MortgageSavedData } from "@/components/MortgageCalculator";
 
 const BuildingExplorer = dynamic(() => import("@/components/building/BuildingExplorer"), {
   ssr: false,
@@ -94,7 +93,7 @@ interface UnitDetail {
  * The 3D explorer pushes history entries while browsing floors/units, so a plain router.back() would only
  * step through those; we count the entries added since this page opened and go back past all of them.
  */
-function BackButton({ label }: { label: string }) {
+function BackButton({ label, inNav }: { label: string; inNav?: boolean }) {
   const router = useRouter();
   const base = useRef<number | null>(null);
   useEffect(() => { base.current = window.history.length; }, []);
@@ -105,7 +104,7 @@ function BackButton({ label }: { label: string }) {
     window.history.go(-(added + 1));
   }
   return (
-    <button type="button" className="av-backbtn" onClick={goBack}>
+    <button type="button" className={inNav ? "av-backbtn in-nav" : "av-backbtn"} onClick={goBack}>
       <span aria-hidden="true" className="av-arrow">←</span>{label}
     </button>
   );
@@ -121,22 +120,11 @@ export default function VprPage() {
   const [unit, setUnit] = useState<UnitDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [mortgageSavedData, setMortgageSavedData] = useState<MortgageSavedData | null>(null);
   // Buyer's minimum rooms: apartment-type tabs below it are dimmed, not hidden
   const minRooms = useBuyerMinRooms();
 
   // Lazy-loaded teaser video
   const [videoData, setVideoData] = useState<string | null>(null);
-
-  // Fetch saved mortgage settings for mini calculator pre-fill
-  useEffect(() => {
-    const t = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!t) return;
-    fetch("/api/buyer/mortgage-settings", { headers: { Authorization: `Bearer ${t}` } })
-      .then(r => r.ok ? r.json() : null)
-      .then((d: MortgageSavedData | null) => { if (d) setMortgageSavedData(d); })
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -182,7 +170,6 @@ export default function VprPage() {
     );
   }
 
-  const attrs = parseAttributes(unit.attributes);
   const panoramaImages = unit.images.filter(img => img.type === "panorama").sort((a, b) => a.order - b.order);
   const galleryImages  = unit.images.filter(img => img.type === "gallery").sort((a, b) => a.order - b.order);
   const floorplanImage = unit.images.find(img => img.type === "floorplan") ?? null;
@@ -208,7 +195,7 @@ export default function VprPage() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--qp-bg)", fontFamily: "var(--font-heebo, sans-serif)" }}>
 
-      <BackButton label={locale === "he" ? "חזרה" : "Back"} />
+      <BackButton label={locale === "he" ? "חזרה" : "Back"} inNav={hasExplorer} />
 
       {/* ── Photographic hero (V3) when there is no 3D building ─────────── */}
       {!hasExplorer && (
@@ -230,19 +217,6 @@ export default function VprPage() {
       )}
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "2.5rem 1.25rem 4rem" }}>
-
-        {/* ── Property header ─────────────────────────────────────────────── */}
-        <div style={{ marginBottom: "2rem", display: hasExplorer ? undefined : "none" }}>
-          <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "0.75rem", fontWeight: 500, letterSpacing: "0.08em", color: "var(--qp-ink)", marginBottom: "0.5rem" }}>
-            {unit.project.name} · {unit.project.location}
-          </div>
-          <h1 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "2.25rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 0.5rem", lineHeight: 1.15, letterSpacing: "0" }}>
-            {asProject ? unit.project.name : unit.unitLabel}
-          </h1>
-          {!asProject && unit.description && (
-            <p style={{ margin: 0, fontSize: "1rem", color: "var(--qp-muted)", lineHeight: 1.6, maxWidth: "40rem" }}>{unit.description}</p>
-          )}
-        </div>
 
         {/* ── Apartment-type tabs (developer project with > 1 type) ────────── */}
         {asProject && (
@@ -281,9 +255,6 @@ export default function VprPage() {
                 );
               })}
             </nav>
-            {unit.description && (
-              <p style={{ margin: "0 0 2rem", fontSize: "1rem", color: "var(--qp-muted)", lineHeight: 1.6, maxWidth: "40rem" }}>{unit.description}</p>
-            )}
           </>
         )}
 
@@ -344,62 +315,6 @@ export default function VprPage() {
               style={{ width: "100%", borderRadius: 14, border: "1px solid rgba(18,63,64,0.08)" }}
             />
           </section>
-        )}
-
-        {/* ── Details card ─────────────────────────────────────────────────── */}
-        <div style={{ background: "var(--qp-surface)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.10)", overflow: "hidden", marginBottom: "1.25rem" }}>
-          <div style={{ height: 1, background: "linear-gradient(90deg, transparent, var(--qp-accent), transparent)", opacity: 0.7 }} />
-          <div style={{ padding: "1.75rem" }}>
-            <h3 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 1.25rem", letterSpacing: "0" }}>
-              {m.unitView.matchParams}
-            </h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "1rem" }}>
-              {unit.price > 0 && (
-                <div>
-                  <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>{m.unitView.listedPrice}</div>
-                  <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", fontFamily: "var(--font-heebo, monospace)" }}>{unit.priceFrom ? `${m.results.from} ` : ""}<Money amount={unit.price} /><EstimatedPriceNote /></div>
-                </div>
-              )}
-              <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>{m.unitView.sellerMin}</div>
-                <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", fontFamily: "var(--font-heebo, monospace)" }}>{unit.eil}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>{m.unitView.sellerTarget}</div>
-                <div style={{ fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", fontFamily: "var(--font-heebo, monospace)" }}>{unit.ail}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: "0.6875rem", fontWeight: 600, color: "var(--qp-muted)", marginBottom: "0.25rem" }}>{m.unitView.availability}</div>
-                <div style={{ fontSize: "1rem", fontWeight: 600, color: "var(--qp-ink)" }}>{m.unitView.unitsOf.replace("{a}", String(unit.quantityAvailable)).replace("{t}", String(unit.quantityTotal))}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Attributes card ──────────────────────────────────────────────── */}
-        {Object.keys(attrs).length > 0 && (
-          <div style={{ background: "var(--qp-surface)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.04)", padding: "1.75rem" }}>
-            <h3 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 500, color: "var(--qp-ink)", margin: "0 0 1rem", letterSpacing: "0" }}>
-              {m.unitView.features}
-            </h3>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-              {Object.entries(attrs).map(([k, v]) => {
-                const text = k === "area" ? formatArea(v, m.attributes.sqmUnit) : formatAttributeValue(v);
-                if (!text) return null;
-                const label = translateAttrKey(k, m.attributes as unknown as Record<string, string | undefined>);
-                return (
-                  <span key={k} style={{ fontSize: "0.8125rem", background: "var(--qp-soft)", color: "var(--qp-ink)", borderRadius: 8, padding: "0.3125rem 0.75rem", border: "1px solid var(--qp-border)", fontWeight: 500 }}>
-                    {label}: {text}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── Mini mortgage calculator ──────────────────────────────────────── */}
-        {unit.price > 0 && (
-          <MortgageCalculator mini price={unit.price} savedData={mortgageSavedData} />
         )}
       </div>
     </div>
