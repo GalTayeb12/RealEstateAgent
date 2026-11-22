@@ -117,3 +117,9 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - Listings have no photos, so the backdrop is an illustrative render from `/buildings/yarkon-v2/room-*.webp` picked deterministically per listing, and the hero says so ("Images are illustrative renderings"). Scores stay on the real 0-100 agreement scale (shown as "/100", not "%").
 - Not in the real hero (prototype-only, no real data): "tune weights" sliders, per-criterion light/location/quiet bars, the axonometric plan thumbnail.
 - Still the older recoloured layout BELOW the hero: profile block, alerts, mortgage link, per-project match cards, "close to a match", services.
+
+### Phase 2f — /results below the hero restyled to Concept C V3
+
+- `components/results/results-sections.css` (imported by `app/results/page.tsx`). Layout: match cards in the main column, with the profile, alerts and mortgage row in a sticky side column (below the cards on mobile); services and group-buying CTA full width.
+- Match cards: glass panels with a hairline gold top edge, serif title, outlined unit pill, large mono score, chip row, thinner alignment bar; near-match cards use the same shell. Logic (offers, leverage, mortgage badge, hidden types) is unchanged; offer panel internals (`SendOfferPanel`) keep their earlier recolour.
+- Checked he/en at 1440 and he at 390: no console errors (en shows only the blocked-profile 404s), no horizontal overflow.

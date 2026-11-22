@@ -23,6 +23,7 @@ import { AlertCard } from "@/components/AlertCard";
 import type { MortgageSavedData } from "@/components/MortgageCalculator";
 import { groupByProject } from "@/lib/projectGroups";
 import ResultsHero, { type HeroItem } from "@/components/results/ResultsHero";
+import "@/components/results/results-sections.css";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -451,7 +452,7 @@ function AlignmentBar({
       </div>
 
       <div style={{ position: "relative" }}>
-        <div style={{ position: "relative", height: "1.5rem", background: "var(--c-soft,#EFEDE6)", borderRadius: 7, overflow: "hidden" }}>
+        <div style={{ position: "relative", height: "0.75rem", background: "var(--c-soft,#EFEDE6)", borderRadius: 99, overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(eil), width: `${ail - eil}%`, background: BAR.seller.color, opacity: BAR.seller.opacity }} />
           <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(aj), width: `${ej - aj}%`, background: BAR.buyer.color, opacity: BAR.buyer.opacity }} />
           {valid && <div style={{ position: "absolute", top: 0, bottom: 0, left: pct(lowerBound), width: `${upperBound - lowerBound}%`, background: BAR.overlap.color, opacity: BAR.overlap.opacity }} />}
@@ -460,7 +461,7 @@ function AlignmentBar({
         {showElasticity && (
           <div
             title={`${m.results.suggestedMarker}: ${elasticity!.suggestedScore}`}
-            style={{ position: "absolute", top: "1.5rem", left: pct(elasticity!.suggestedScore), transform: "translateX(-50%)", marginTop: 3, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "7px solid var(--c-ink,#123F40)" }}
+            style={{ position: "absolute", top: "0.75rem", left: pct(elasticity!.suggestedScore), transform: "translateX(-50%)", marginTop: 3, width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderTop: "7px solid var(--c-ink,#123F40)" }}
           />
         )}
       </div>
@@ -714,45 +715,22 @@ function NearMatchCard({
   const failReasons = outcome.hardFilterFailReasons ?? [];
 
   return (
-    <div style={{ background: "var(--c-soft,#FAFAF8)", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(117,96,57,0.2)", opacity: 0.85 }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-gold,#C89B3C), var(--c-gold,#756039))" }} />
-      <div style={{ padding: "1.5rem 1.75rem" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
-          <div>
-            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.25rem", fontWeight: 600, color: "var(--c-ink,#123F40)", margin: 0, lineHeight: 1.2 }}>
-              {outcome.title}
-            </h2>
-            {detail?.description && (
-              <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "var(--c-muted,#526563)", lineHeight: 1.5 }}>
-                {detail.description.replace(/^DESCRIPTION:\s*/i, "")}
-              </p>
-            )}
-            {detail && detail.price > 0 && (
-              <p style={{ margin: "0.5rem 0 0", fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", fontVariantNumeric: "tabular-nums" }}>
-                <Money amount={detail.price} />
-              </p>
-            )}
-          </div>
-          <div style={{ flexShrink: 0, background: "var(--c-warn-bg,#FEF3E2)", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center" }}>
-            <div style={{ fontSize: "0.625rem", color: "var(--c-gold,#756039)", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)" }}>
-              {m.results.nearMatchTitle}
-            </div>
+    <div className="rs-card near">
+      <div className="rs-in">
+        <div className="rs-top">
+          <div className="rs-id">
+            <span className="rs-eyebrow">{m.results.nearMatchTitle}</span>
+            <h2>{outcome.title}</h2>
+            {detail?.description && <p className="rs-desc">{detail.description.replace(/^DESCRIPTION:\s*/i, "")}</p>}
+            {detail && detail.price > 0 && <div className="rs-price"><b className="num"><Money amount={detail.price} /></b></div>}
           </div>
         </div>
-        {/* Fail reason chips */}
         {failReasons.length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "0.875rem" }}>
-            {failReasons.map((reason, i) => (
-              <span
-                key={i}
-                style={{ fontSize: "0.75rem", background: "var(--c-warn-bg,#FEF3E2)", color: "var(--c-gold,#756039)", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid #E8D3A5", fontWeight: 500 }}
-              >
-                {renderFailReason(reason, m.results)}
-              </span>
-            ))}
+          <div className="rs-chips">
+            {failReasons.map((reason, i) => <span key={i} className="rs-chip warn">{renderFailReason(reason, m.results)}</span>)}
           </div>
         )}
-        <div style={{ marginTop: "1rem" }}>
+        <div className="rs-actions">
           <DetailsLink href={`/aom/${outcome.aomId}`} tone="var(--c-gold,#756039)">{m.results.viewDetails} →</DetailsLink>
         </div>
       </div>
@@ -817,77 +795,56 @@ function MatchCard({
   );
 
   return (
-    <div style={{ background: "var(--c-card,#FFFFFF)", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(18,63,64,0.08)", boxShadow: outcome.valid ? "0 2px 4px rgba(18,63,64,0.04), 0 24px 48px -20px rgba(18,51,50,0.14)" : "0 1px 3px rgba(18,63,64,0.04)", opacity: outcome.valid ? 1 : 0.6 }}>
-      <div style={{ height: 4, background: outcome.valid ? "linear-gradient(90deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))" : "var(--c-soft,#E0DDD7)" }} />
-      <div style={{ padding: "1.75rem" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
-          <div>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: outcome.valid ? "var(--c-ink,#123F40)" : "var(--c-muted,#526563)", marginBottom: "0.375rem" }}>
-              {outcome.valid ? `${m.results.matchN} #${rank}` : m.results.notFeasible}
-            </div>
-            <h2 style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1.375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", margin: 0, lineHeight: 1.2, letterSpacing: "0" }}>
-              {outcome.projectName ?? outcome.title}
-            </h2>
-            {outcome.projectName && outcome.unitLabel && (
-              <span style={{ display: "inline-block", marginTop: "0.5rem", fontSize: "0.8125rem", fontWeight: 700, color: "var(--c-on-btn,#fff)", background: "var(--c-btn,#123F40)", borderRadius: 999, padding: "0.2rem 0.75rem" }}>
-                {outcome.unitLabel}
-              </span>
-            )}
-            {detail?.description && <p style={{ margin: "0.375rem 0 0", fontSize: "0.9375rem", color: "var(--c-muted,#526563)", lineHeight: 1.5 }}>{detail.description.replace(/^DESCRIPTION:\s*/i, "")}</p>}
+    <div className={`rs-card${outcome.valid ? "" : " off"}`}>
+      <div className="rs-in">
+        <div className="rs-top">
+          <div className="rs-id">
+            <span className="rs-eyebrow">{outcome.valid ? `${m.results.matchN} #${rank}` : m.results.notFeasible}</span>
+            <h2>{outcome.projectName ?? outcome.title}</h2>
+            {outcome.projectName && outcome.unitLabel && <span className="rs-pill">{outcome.unitLabel}</span>}
+            {detail?.description && <p className="rs-desc">{detail.description.replace(/^DESCRIPTION:\s*/i, "")}</p>}
             {detail && detail.price > 0 && (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
-                <p style={{ margin: 0, fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", fontVariantNumeric: "tabular-nums" }}>
-                  {detail.priceFrom ? `${m.results.from} ` : ""}
+              <div className="rs-price">
+                <b className="num">
+                  {detail.priceFrom && <small className="rs-from">{m.results.from}</small>}{" "}
                   <Money amount={detail.price} />
-                </p>
+                </b>
                 {mortgageMaxPrice != null && (
-                  detail.price <= mortgageMaxPrice ? (
-                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: 999, background: "var(--c-soft,#E9EEEA)", color: "var(--c-ok,#246046)", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.04em" }}>
-                      {m.profile.mortgageInRange}
-                    </span>
-                  ) : (
-                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: 999, background: "var(--c-warn-bg,#FFF8E6)", color: "var(--c-gold,#756039)", fontSize: "0.6875rem", fontWeight: 700, letterSpacing: "0.04em" }}>
-                      {m.profile.mortgageAboveRange}
-                    </span>
-                  )
+                  <span className={`rs-tag ${detail.price <= mortgageMaxPrice ? "ok" : "warn"}`}>
+                    {detail.price <= mortgageMaxPrice ? m.profile.mortgageInRange : m.profile.mortgageAboveRange}
+                  </span>
                 )}
               </div>
             )}
           </div>
 
-          <div style={{ flexShrink: 0, textAlign: "right" }}>
-            {outcome.valid ? (
-              <div style={{ background: "linear-gradient(155deg, var(--c-soft,#EEF4F3), var(--c-soft,#E1EBE9))", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center", minWidth: 72 }}>
-                <div style={{ fontSize: "0.625rem", color: "var(--c-ink,#123F40)", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)" }}>{m.results.matchQuality}</div>
-                <div style={{ fontSize: "1.375rem", fontWeight: 700, color: "var(--c-ink,#123332)", lineHeight: 1.1, fontFamily: "var(--font-heebo, sans-serif)", fontVariantNumeric: "tabular-nums" }}>{Math.round(outcome.zij)}</div>
-              </div>
-            ) : (
-              <div style={{ background: "var(--c-err-bg,#FBECEA)", borderRadius: 12, padding: "0.625rem 1rem" }}>
-                <div style={{ fontSize: "0.75rem", color: "var(--c-err,#9E3434)", fontWeight: 600 }}>{m.results.notFeasible}</div>
-                <div style={{ fontSize: "0.6875rem", color: "var(--c-err,#9E3434)", marginTop: "0.125rem", opacity: 0.75 }}>{m.results.noOverlapRanges}</div>
-              </div>
-            )}
-          </div>
+          {outcome.valid ? (
+            <div className="rs-sc" aria-label={`${m.results.matchQuality}: ${Math.round(outcome.zij)}`}>
+              <b>{Math.round(outcome.zij)}</b>
+              <small>{m.results.matchQuality}</small>
+            </div>
+          ) : (
+            <div className="rs-bad">
+              <b>{m.results.notFeasible}</b>
+              <small>{m.results.noOverlapRanges}</small>
+            </div>
+          )}
         </div>
 
         {Object.keys(attrs).length > 0 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.375rem", marginTop: "1rem" }}>
+          <div className="rs-chips">
             {Object.entries(attrs).map(([k, v]) => {
               const attrKeys = m.attributes as unknown as Record<string, string | undefined>;
               const label = translateAttrKey(k, attrKeys);
               const text = k === "area" ? formatArea(v, m.attributes.sqmUnit) : (formatAttributeValue(v) || m.attributes.unknown);
               if (!text || text === m.attributes.unknown) return null;
-              return (
-                <span key={k} style={{ fontSize: "0.75rem", background: "var(--c-soft,#E9EEEA)", color: "var(--c-ink,#123F40)", borderRadius: 8, padding: "0.2rem 0.625rem", border: "1px solid var(--c-line,#D4DED8)", fontWeight: 500 }}>
-                  {label}: {text}
-                </span>
-              );
+              return <span key={k} className="rs-chip">{label}: {text}</span>;
             })}
           </div>
         )}
 
         {hidden.length > 0 && (
-          <p style={{ margin: "0.625rem 0 0", fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>
+          <p className="rs-note">
             {m.results.hiddenTypesLabel}{" "}
             {hidden.map((h) => `${h.unitLabel ?? h.title} (${(h.hardFilterFailReasons ?? []).map((r) => renderFailReason(r, m.results)).join(", ")})`).join(" · ")}
           </p>
@@ -895,13 +852,10 @@ function MatchCard({
 
         <AlignmentBar outcome={outcome} ej={ej} aj={aj} aom={{ eil, ail }} elasticity={elasticity} />
 
-        <div style={{ marginTop: "1rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+        <div className="rs-actions">
           <DetailsLink href={`/aom/${outcome.aomId}`}>{m.results.viewDetails} →</DetailsLink>
           {outcome.valid && (
-            <button
-              onClick={() => onOpenLeverage(outcome)}
-              style={{ background: "none", border: "1px solid var(--c-gold,#756039)", borderRadius: 999, padding: "0.3rem 0.875rem", fontSize: "0.8125rem", fontWeight: 600, color: "var(--c-gold,#756039)", cursor: "pointer" }}
-            >
+            <button type="button" className="rs-ghost" onClick={() => onOpenLeverage(outcome)}>
               {m.results.groupDiscount}
             </button>
           )}
@@ -1064,12 +1018,13 @@ export default function ResultsPage() {
       </div>}
 
       {/* Content */}
-      <main style={{ position: "relative", zIndex: 1, maxWidth: "75rem", margin: "0 auto", padding: "1.75rem 1.5rem 5rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      <main className="rs-page">
+        <div className="rs-grid">
+        <aside className="rs-aside">
 
         {/* Buyer profile card */}
-        <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 2px 4px rgba(18,63,64,0.03), 0 16px 36px -16px rgba(18,51,50,0.10)", overflow: "hidden" }}>
-          <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-gold,#756039), var(--c-gold,#756039))" }} />
-          <div style={{ padding: "1.75rem" }}>
+        <div className="rs-panel">
+          <div>
             <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "1.25rem" }}>{m.results.yourProfile}</div>
             <div className="hn-results-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem 2.5rem" }}>
               {[[m.results.type, prefs.property_type], [m.results.location, prefs.location], [m.results.bedrooms, prefs.bedrooms != null ? `${prefs.bedrooms}+` : "—"], [m.results.timeline, prefs.timeline]].map(([label, value]) => (
@@ -1155,7 +1110,7 @@ export default function ResultsPage() {
         {token && <AlertCard token={token} />}
 
         {/* Mortgage budget row */}
-        <div style={{ background: "var(--c-card,#fff)", borderRadius: 16, border: "1px solid rgba(18,63,64,0.08)", padding: "0.875rem 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+        <div className="rs-panel row">
           {mortgageSavedData?.maxPrice ? (
             <>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -1193,6 +1148,8 @@ export default function ResultsPage() {
           )}
         </div>
 
+        </aside>
+        <div className="rs-col">
         {/* Full match cards */}
         {projectCards.map(({ key, best: outcome, hidden }) => {
           validRank++;
@@ -1217,7 +1174,7 @@ export default function ResultsPage() {
 
         {/* No full matches message */}
         {projectCards.length === 0 && (
-          <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", padding: "1.75rem", boxShadow: "0 1px 3px rgba(18,63,64,0.04)" }}>
+          <div className="rs-panel">
             <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "1rem", fontWeight: 600, color: "var(--c-ink,#123F40)", marginBottom: "0.4rem" }}>
               {m.results.noFullMatchesTitle}
             </div>
@@ -1232,7 +1189,7 @@ export default function ResultsPage() {
         {/* Near match cards */}
         {nearMatches.length > 0 && (
           <>
-            <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-gold,#756039)", paddingTop: "0.5rem" }}>
+            <div className="rs-sechead">
               {m.results.nearMatchTitle}
             </div>
             {nearMatches.map((outcome) => {
@@ -1248,9 +1205,12 @@ export default function ResultsPage() {
           </>
         )}
 
+        </div>
+        </div>
+
         {/* Recommendations */}
         {fullMatches.length > 0 && recommendations.length > 0 && (
-          <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", padding: "1.75rem" }}>
+          <div className="rs-panel rs-wide">
             <div style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--c-muted,#526563)", marginBottom: "1.25rem" }}>
               {m.results.nextSteps}
             </div>
@@ -1273,9 +1233,8 @@ export default function ResultsPage() {
 
         {/* Leverage groups CTA */}
         {fullMatches.length > 0 && (
-          <div style={{ background: "var(--c-card,#fff)", borderRadius: 20, border: "1px solid rgba(18,63,64,0.08)", boxShadow: "0 1px 3px rgba(18,63,64,0.04)", overflow: "hidden" }}>
-            <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-gold,#756039), var(--c-gold,#756039))" }} />
-            <div style={{ padding: "1.5rem 1.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.25rem", flexWrap: "wrap" }}>
+          <div className="rs-panel rs-wide">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1.25rem", flexWrap: "wrap" }}>
               <div>
                 <div style={{ fontWeight: 600, color: "var(--c-ink,#123F40)", fontSize: "1rem", marginBottom: "0.3rem", letterSpacing: "0" }}>{m.results.groupCtaTitle}</div>
                 <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--c-muted,#526563)", lineHeight: 1.5 }}>
