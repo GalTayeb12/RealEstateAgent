@@ -55,8 +55,13 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - Verified rendered (desktop 1440 + mobile 390, no console errors, no overflow): `/buyer/offers`, `/profile`, `/buyer/leverage-groups`, `/deal/<id>`, `/results` (empty state only).
 - Authenticated screenshots are kept local (they show the test account email); only home screenshots are committed.
 
+## Phase 2c — results with real match data
+- The live interview is a LiveAvatar voice/video session (mic + paid avatar), so it cannot be driven headlessly. With approval, `docs/design-impl/interview-sim.mjs` posted a short scripted Hebrew transcript through the real `/api/transcript` on the test buyer, then `/processing` ran the real characterize + match pipeline (16 s) and landed on `/results` with 4 matches + 3 near-matches. (This created transcript/profile rows for that test account in the shared DB.)
+- `/results` verified with real data, desktop 1440 + mobile 390, no console errors/overflow. Fixed: score badge and gradient fills that stayed light, "details" link contrast.
+- `docs/design-impl/results-shot.mjs` re-renders `/results` from a saved `matchResults` (sessionStorage), so no new interviews are needed.
+
 ## Phase 2 — still open
-- `/results` with real match data (the test account has no interview session, so only the empty state was seen) — a full restyle toward the C V2 results design (cinematic hero card, score, factor bars) is NOT done; currently it is a token recolour.
+- `/results` is a recolour of the existing layout, NOT the V2 results design (hero score card, factor bars, hover-synced imagery). That redesign needs a decision on how much to restructure real data cards.
 - `/interview` (full-screen avatar) and `/processing` with a transcript, `/aom/[id]` building/apartment pages with real data, 3D explorer, `/walk`: not visually verified.
 - TopNav still has 3 pre-existing eslint `set-state-in-effect` errors (unchanged).
 - Recolour ≠ redesign: layouts of offers/deal/groups are the original ones.

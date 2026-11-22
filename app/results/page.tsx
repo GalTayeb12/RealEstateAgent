@@ -560,7 +560,7 @@ function SendOfferPanel({
 
   if (phase === "sent") {
     return (
-      <div style={{ marginTop: "1.25rem", padding: "1rem 1.125rem", background: "linear-gradient(135deg, var(--c-soft,#EEF4F3), #E4EEEC)", borderRadius: 12, border: "1px solid var(--c-line,#B8D4D3)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      <div style={{ marginTop: "1.25rem", padding: "1rem 1.125rem", background: "linear-gradient(135deg, var(--c-soft,#EEF4F3), var(--c-soft,#E4EEEC))", borderRadius: 12, border: "1px solid var(--c-line,#B8D4D3)", display: "flex", alignItems: "center", gap: "0.75rem" }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--c-ink,#123F40)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="20 6 9 17 4 12" />
         </svg>
@@ -714,7 +714,7 @@ function NearMatchCard({
 
   return (
     <div style={{ background: "var(--c-soft,#FAFAF8)", borderRadius: 20, overflow: "hidden", border: "1px solid rgba(117,96,57,0.2)", opacity: 0.85 }}>
-      <div style={{ height: 4, background: "linear-gradient(90deg, #C89B3C, var(--c-gold,#756039))" }} />
+      <div style={{ height: 4, background: "linear-gradient(90deg, var(--c-gold,#C89B3C), var(--c-gold,#756039))" }} />
       <div style={{ padding: "1.5rem 1.75rem" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem" }}>
           <div>
@@ -752,7 +752,7 @@ function NearMatchCard({
           </div>
         )}
         <div style={{ marginTop: "1rem" }}>
-          <DetailsLink href={`/aom/${outcome.aomId}`} tone="#756039">{m.results.viewDetails} →</DetailsLink>
+          <DetailsLink href={`/aom/${outcome.aomId}`} tone="var(--c-gold,#756039)">{m.results.viewDetails} →</DetailsLink>
         </div>
       </div>
     </div>
@@ -760,7 +760,7 @@ function NearMatchCard({
 }
 
 /** "לפרטי הנכס": an outlined pill that fills on hover, instead of a bare text link. */
-function DetailsLink({ href, tone = "#123F40", children }: { href: string; tone?: string; children: React.ReactNode }) {
+function DetailsLink({ href, tone = "var(--c-ink,#123F40)", children }: { href: string; tone?: string; children: React.ReactNode }) {
   const [on, setOn] = useState(false);
   return (
     <Link
@@ -856,7 +856,7 @@ function MatchCard({
 
           <div style={{ flexShrink: 0, textAlign: "right" }}>
             {outcome.valid ? (
-              <div style={{ background: "linear-gradient(155deg, var(--c-soft,#EEF4F3), #E1EBE9)", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center", minWidth: 72 }}>
+              <div style={{ background: "linear-gradient(155deg, var(--c-soft,#EEF4F3), var(--c-soft,#E1EBE9))", borderRadius: 12, padding: "0.625rem 1rem", textAlign: "center", minWidth: 72 }}>
                 <div style={{ fontSize: "0.625rem", color: "var(--c-ink,#123F40)", letterSpacing: "0.08em", textTransform: "uppercase", fontWeight: 600, fontFamily: "var(--font-heebo, sans-serif)" }}>{m.results.matchQuality}</div>
                 <div style={{ fontSize: "1.375rem", fontWeight: 700, color: "var(--c-ink,#123332)", lineHeight: 1.1, fontFamily: "var(--font-heebo, sans-serif)", fontVariantNumeric: "tabular-nums" }}>{Math.round(outcome.zij)}</div>
               </div>
