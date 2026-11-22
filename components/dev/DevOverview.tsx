@@ -10,7 +10,7 @@ import { useI18n } from "@/components/LocaleProvider";
 import type { InventoryBuilding } from "@/components/DevInventory";
 import { ilsToUsd } from "@/lib/i18n/currency";
 
-interface UnitTypeLite { id: string; price: number; quantityTotal: number; quantityAvailable: number }
+interface UnitTypeLite { id: string; unitLabel?: string; price: number; quantityTotal: number; quantityAvailable: number }
 export interface OverviewProject { id: string; name: string; unitTypes: UnitTypeLite[]; buildings?: InventoryBuilding[] }
 
 const COLORS = { available: "#5FB3BE", reserved: "#C9A46A", sold: "#7A8087" } as const;
@@ -20,7 +20,8 @@ const norm = (s: string): St => (s === "reserved" || s === "sold" ? s : "availab
 export default function DevOverview({ projects, openOffers, pendingGroups }: { projects: OverviewProject[]; openOffers: number; pendingGroups: number }) {
   const { locale, m } = useI18n();
   const he = locale === "he";
-  const mapProjects = projects.filter((p) => (p.buildings ?? []).some((b) => b.units.length > 0));
+  // Every project is selectable: ones with a 3D building show the floor map, the rest show one row per apartment type.
+  const mapProjects = projects;
   const [sel, setSel] = useState(0);
   const proj = mapProjects[Math.min(sel, Math.max(0, mapProjects.length - 1))];
 
@@ -72,6 +73,26 @@ export default function DevOverview({ projects, openOffers, pendingGroups }: { p
             )}
             <div className="dov-legend">{(Object.keys(COLORS) as St[]).map((s) => <span key={s}><i style={{ background: COLORS[s] }} />{names[s]}</span>)}</div>
           </div>
+          {!(proj.buildings ?? []).some((b) => b.units.length > 0) && (
+            <div className="dov-bld">
+              <div className="dov-bname">{proj.name}</div>
+              <div className="dov-floors" dir="ltr">
+                {proj.unitTypes.map((t) => {
+                  const sold = Math.max(0, t.quantityTotal - t.quantityAvailable);
+                  const dots: St[] = [...Array(t.quantityAvailable).fill("available"), ...Array(sold).fill("sold")];
+                  return (
+                    <div className="dov-floor" key={t.id}>
+                      <span className="dov-fl" style={{ width: "auto", minWidth: 96, textAlign: "start" }}>{t.unitLabel ?? ""}</span>
+                      <div className="dov-units">
+                        {dots.map((st, i) => <i key={i} className="dov-dot" style={{ background: COLORS[st], boxShadow: `0 0 10px ${COLORS[st]}66` }} title={names[st]} aria-label={names[st]} />)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="dov-note">{he ? "לפרויקט אין מודל בניין, לכן המפה מציגה כמויות לפי סוג דירה ולא לפי קומה." : "This project has no building model, so the map shows quantities per apartment type, not per floor."}</p>
+            </div>
+          )}
           {(proj.buildings ?? []).filter((b) => b.units.length > 0).map((b) => {
             const floors = Array.from(new Set(b.units.map((u) => u.floor))).sort((x, y) => y - x);
             return (
