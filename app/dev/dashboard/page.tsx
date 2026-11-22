@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import DevOverview from "@/components/dev/DevOverview";
+import DevPipeline from "@/components/dev/DevPipeline";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
@@ -484,6 +485,7 @@ export default function DevDashboardPage() {
             </div>
 
             {projects.length > 0 && <DevOverview projects={projects} openOffers={reservations.length} pendingGroups={pendingGroups} />}
+            {projects.length > 0 && <DevPipeline offers={reservations} groups={groups} />}
 
             {/* New project form */}
             {showProjectForm && (

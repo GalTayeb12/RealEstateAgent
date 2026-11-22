@@ -91,3 +91,10 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 
 - `/dev/admin/approvals` → Developer approvals tab: status strip with live counts (pending / approved / rejected / all) that doubles as a filter, defaulting to Pending, oldest pending first. No API or approve/reject logic changed.
 - Verified: tsc clean, eslint error count unchanged (4, pre-existing). NOT visually verified: needs an admin account, which has not been provided.
+
+### Phase 3d — Deal funnel + activity timeline (developer)
+
+- `components/dev/DevPipeline.tsx` + `dev-pipeline.css`, below the inventory map on `/dev/dashboard`. Real data only: funnel = offers made → signed by developer → signed by buyer → deposit paid; timeline = latest 8 offers and group requests.
+- The prototype's "viewed / walked / advisor" buyer funnel needs analytics that are not tracked, so it is intentionally not built.
+- Stages are counted independently, so a stage can exceed the previous one when test data has a deposit without signatures (seen on the test account).
+- Verified: tsc clean, eslint clean on the new file, vitest passes, Playwright desktop 1440 and mobile 390 (he), no console errors, no horizontal overflow. English layout only checked via desktop run at `en` URL (account locale overrides to Hebrew).
