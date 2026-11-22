@@ -458,6 +458,7 @@ function ApprovalsTab({ token }: { token: string }) {
   const [loading, setLoading] = useState(true);
   const [forbidden, setForbidden] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
 
   async function load() {
     if (!token) return;
@@ -500,9 +501,32 @@ function ApprovalsTab({ token }: { token: string }) {
   if (loading) return <p style={{ color: "var(--c-muted,#526563)" }}>Loading…</p>;
   if (profiles.length === 0) return <p style={{ color: "var(--c-muted,#526563)" }}>No developer accounts found.</p>;
 
+  // Queue view: per-status counts (from the real profiles) + a filter, pending first.
+  const counts = { pending: 0, approved: 0, rejected: 0 };
+  for (const p of profiles) {
+    if (p.crnStatus === "approved") counts.approved++;
+    else if (p.crnStatus === "rejected") counts.rejected++;
+    else counts.pending++;
+  }
+  const shown = (filter === "all" ? profiles : profiles.filter(p => (p.crnStatus === "approved" || p.crnStatus === "rejected" ? p.crnStatus : "pending") === filter))
+    .slice().sort((a, b) => Number(b.crnStatus === "pending") - Number(a.crnStatus === "pending") || +new Date(a.user.createdAt) - +new Date(b.user.createdAt));
+  const chips: ["pending" | "approved" | "rejected" | "all", string, number][] = [
+    ["pending", "Pending review", counts.pending], ["approved", "Approved", counts.approved], ["rejected", "Rejected", counts.rejected], ["all", "All", profiles.length],
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      {profiles.map(p => {
+      <div role="group" aria-label="Filter by status" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(8.5rem, 1fr))", border: "1px solid var(--c-line,#D4DED8)", borderRadius: "0.875rem", background: "var(--c-card,#fff)", overflow: "hidden" }}>
+        {chips.map(([key, label, n]) => (
+          <button key={key} type="button" aria-pressed={filter === key} onClick={() => setFilter(key)}
+            style={{ padding: "0.875rem 1.125rem", textAlign: "start", border: "none", borderInlineEnd: "1px solid var(--c-line,#E9EEEA)", background: filter === key ? "var(--c-soft,#E9EEEA)" : "transparent", cursor: "pointer", display: "grid", gap: "0.25rem", font: "inherit" }}>
+            <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontSize: "1.5rem", fontWeight: 600, color: key === "pending" && n > 0 ? "var(--c-gold,#756039)" : "var(--c-ink,#123F40)", lineHeight: 1 }}>{n}</span>
+            <span style={{ fontSize: "0.75rem", color: "var(--c-muted,#526563)" }}>{label}</span>
+          </button>
+        ))}
+      </div>
+      {shown.length === 0 && <p style={{ color: "var(--c-muted,#526563)", margin: 0 }}>{filter === "pending" ? "No developers waiting for review." : "Nothing in this view."}</p>}
+      {shown.map(p => {
         const st = STATUS_STYLE[p.crnStatus] ?? STATUS_STYLE.pending;
         return (
           <div key={p.id} style={{ background: "var(--c-card,#fff)", borderRadius: "0.875rem", border: "1px solid var(--c-line,#D4DED8)", overflow: "hidden" }}>

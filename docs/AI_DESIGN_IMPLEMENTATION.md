@@ -86,3 +86,8 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - Verified: tsc clean, vitest 271/271, Playwright mobile 390 (no console errors, no horizontal overflow), desktop screenshot checked. No new lint errors (the two on the dashboard page predate this change).
 - Not built: approvals queue layout, funnel, timeline. Admin approvals needs an admin account.
 - Still unverified: English on developer screens and `/results`, 3D explorer, `/aom/[id]`, `/interview`, `/walk`.
+
+### Phase 3c — Approvals queue (admin)
+
+- `/dev/admin/approvals` → Developer approvals tab: status strip with live counts (pending / approved / rejected / all) that doubles as a filter, defaulting to Pending, oldest pending first. No API or approve/reject logic changed.
+- Verified: tsc clean, eslint error count unchanged (4, pre-existing). NOT visually verified: needs an admin account, which has not been provided.
