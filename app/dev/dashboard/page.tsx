@@ -484,7 +484,7 @@ export default function DevDashboardPage() {
               </div>
             </div>
 
-            {projects.length > 0 && <DevOverview projects={projects} openOffers={reservations.length} pendingGroups={pendingGroups} />}
+            {projects.length > 0 && <DevOverview projects={projects} offerProjects={reservations.map(r => r.unitType.project.name)} groupProjects={groups.filter(g => g.status === "pending").map(g => g.unitType.project.name)} />}
             {projects.length > 0 && <DevPipeline offers={reservations} groups={groups} />}
 
             {/* New project form */}

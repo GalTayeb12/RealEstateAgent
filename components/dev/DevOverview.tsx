@@ -17,18 +17,22 @@ const COLORS = { available: "#5FB3BE", reserved: "#C9A46A", sold: "#7A8087" } as
 type St = keyof typeof COLORS;
 const norm = (s: string): St => (s === "reserved" || s === "sold" ? s : "available");
 
-export default function DevOverview({ projects, openOffers, pendingGroups }: { projects: OverviewProject[]; openOffers: number; pendingGroups: number }) {
+/** One entry per open offer / group request, keyed by project name so the KPIs can follow the project filter. */
+export default function DevOverview({ projects, offerProjects, groupProjects }: { projects: OverviewProject[]; offerProjects: string[]; groupProjects: string[] }) {
   const { locale, m } = useI18n();
   const he = locale === "he";
-  // Every project is selectable: ones with a 3D building show the floor map, the rest show one row per apartment type.
-  const mapProjects = projects;
-  const [sel, setSel] = useState(0);
-  const proj = mapProjects[Math.min(sel, Math.max(0, mapProjects.length - 1))];
+  // Main filter: "all projects together" (default) or one project. It drives the KPIs and the map.
+  // Projects with a 3D building show the floor map, the rest show one row per apartment type.
+  const [sel, setSel] = useState<string>("all");
+  const scope = sel === "all" ? projects : projects.filter((p) => p.id === sel);
+  const scopeNames = new Set(scope.map((p) => p.name));
+  const openOffers = offerProjects.filter((n) => scopeNames.has(n)).length;
+  const pendingGroups = groupProjects.filter((n) => scopeNames.has(n)).length;
 
   // KPIs: per-apartment statuses when buildings exist, otherwise unit-type quantities.
   const counts = { available: 0, reserved: 0, sold: 0 };
   let value = 0;
-  for (const p of projects) {
+  for (const p of scope) {
     const units = (p.buildings ?? []).flatMap((b) => b.units);
     if (units.length > 0) {
       const typePrice = new Map(p.unitTypes.map((t) => [t.id, t.price]));
@@ -58,21 +62,24 @@ export default function DevOverview({ projects, openOffers, pendingGroups }: { p
 
   return (
     <section className="dov" aria-label={he ? "סקירת מלאי" : "Inventory overview"}>
+      {projects.length > 1 && (
+        <div className="dov-tabs dov-filter" role="group" aria-label={he ? "סינון לפי פרויקט" : "Filter by project"}>
+          <button type="button" aria-pressed={sel === "all"} onClick={() => setSel("all")}>{he ? "כל הפרויקטים" : "All projects"}</button>
+          {projects.map((p) => <button key={p.id} type="button" aria-pressed={sel === p.id} onClick={() => setSel(p.id)}>{p.name}</button>)}
+        </div>
+      )}
       <div className="dov-kpis">
         {kpis.map(([v, l]) => <div key={l} className="dov-kpi"><b className="num">{v}</b><small>{l}</small></div>)}
       </div>
 
-      {proj && (
+      {scope.length > 0 && (
         <div className="dov-map">
           <div className="dov-maphead">
             <h3>{he ? "מפת מלאי" : "Inventory map"}</h3>
-            {mapProjects.length > 1 && (
-              <div className="dov-tabs" role="group" aria-label={he ? "בחירת פרויקט" : "Choose a project"}>
-                {mapProjects.map((p, i) => <button key={p.id} type="button" aria-pressed={i === sel} onClick={() => setSel(i)}>{p.name}</button>)}
-              </div>
-            )}
             <div className="dov-legend">{(Object.keys(COLORS) as St[]).map((s) => <span key={s}><i style={{ background: COLORS[s] }} />{names[s]}</span>)}</div>
           </div>
+          {scope.map((proj) => (
+            <div key={proj.id}>
           {!(proj.buildings ?? []).some((b) => b.units.length > 0) && (
             <div className="dov-bld">
               <div className="dov-bname">{proj.name}</div>
@@ -114,6 +121,8 @@ export default function DevOverview({ projects, openOffers, pendingGroups }: { p
               </div>
             );
           })}
+            </div>
+          ))}
         </div>
       )}
     </section>

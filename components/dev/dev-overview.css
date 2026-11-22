@@ -23,3 +23,5 @@
 .dov-dot{width:14px;height:14px;border-radius:50%;display:inline-block;opacity:.92}
 @media(max-width:800px){.dov-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dov-kpi{border-bottom:1px solid var(--qp-border)}.dov-kpi:nth-child(2n){border-inline-end:0}.dov-kpi:last-child{grid-column:1/-1;border-bottom:0}}
 .dov-note{margin:10px 0 0;font-size:12.5px;color:var(--qp-muted)}
+.dov-filter{margin-bottom:16px}
+.dov-map>div+div{margin-top:28px}
