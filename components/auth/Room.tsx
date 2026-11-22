@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import LanguageToggle from "@/components/LanguageToggle";
 import "@/components/quiet/quiet.css";
+import "@/components/theme/cinematic.css";
 
 const KNOWN = {
   "Invalid credentials": "invalid",
@@ -28,11 +29,11 @@ export function AuthRoom({
   aside?: ReactNode;
 }) {
   return (
-    <main className="qp-auth">
+    <main className="qp-auth cin">
       {/* Left: image panel */}
       <div className="qp-auth__side">
         <div className="qp-auth__side-brand">
-          <Logo href="/" height={22} />
+          <Logo variant="light" href="/" height={22} />
         </div>
         <Image
           src="/images/auth-side.jpg"
@@ -49,7 +50,7 @@ export function AuthRoom({
           {/* Top bar: logo (mobile) + lang toggle + aside link */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
             <span className="qp-auth__mobile-logo">
-              <Logo href="/" height={20} />
+              <Logo variant="light" href="/" height={20} />
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginInlineStart: "auto" }}>
               {aside}

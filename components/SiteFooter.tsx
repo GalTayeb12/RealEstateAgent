@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import "@/components/theme/cinematic.css";
+import { isCinematicPath } from "@/lib/theme";
 import { useI18n } from "@/components/LocaleProvider";
 
 const HIDE_FOOTER = new Set(["/", "/interview", "/processing", "/design-system"]);
@@ -16,6 +18,7 @@ export default function SiteFooter() {
   if (HIDE_FOOTER.has(pathname)) return null;
   return (
     <footer
+      className={isCinematicPath(pathname) ? "cin" : undefined}
       style={{
         borderTop: "1px solid var(--qp-border)",
         background: "var(--qp-bg)",
@@ -35,7 +38,7 @@ export default function SiteFooter() {
           gap: "0.5rem",
         }}
       >
-        <span style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
+        <span dir="ltr" style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
           © 2026 Haveniq
         </span>
 

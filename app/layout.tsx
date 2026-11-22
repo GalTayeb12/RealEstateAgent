@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Heebo } from "next/font/google";
+import { Cormorant_Garamond, Heebo, Frank_Ruhl_Libre, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import "@/components/quiet/quiet.css";
 import TopNav from "@/components/TopNav";
@@ -23,6 +23,10 @@ const heebo = Heebo({
   variable: "--font-heebo",
   display: "swap",
 });
+
+/** Concept C display serif + numeric mono (cinematic screens and homepage) */
+const serif = Frank_Ruhl_Libre({ subsets: ["hebrew", "latin"], weight: ["300", "400", "500"], variable: "--hv-serif", display: "swap" });
+const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400"], variable: "--hv-mono", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getRequestLocale();
@@ -69,7 +73,7 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={dirFor(locale)}
-      className={`${cormorant.variable} ${heebo.variable} h-full antialiased`}
+      className={`${cormorant.variable} ${heebo.variable} ${serif.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
         <LocaleProvider initialLocale={locale}>

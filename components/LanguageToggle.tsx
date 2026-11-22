@@ -30,7 +30,7 @@ export default function LanguageToggle() {
             style={{
               border: "none",
               background: active ? "var(--qp-ink)" : "transparent",
-              color: active ? "#fff" : "var(--qp-ink)",
+              color: active ? "var(--qp-bg)" : "var(--qp-ink)",
               fontWeight: 600,
               fontSize: "0.75rem",
               padding: "0.4rem 0.75rem",

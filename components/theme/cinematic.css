@@ -1,0 +1,33 @@
+/* Concept C — cinematic theme for application screens.
+   Opt in by adding the `cin` class to a screen wrapper. It re-points the existing
+   --qp-* design tokens, so every component built on them (buttons, fields, badges,
+   notices) follows without per-component edits. Same palette as the homepage (.hv). */
+.cin{
+  --qp-bg:#070C0B; --qp-surface:#0D1514; --qp-soft:#121C1A;
+  --qp-ink:#EFE9DC; --qp-muted:#9BABA6;
+  --qp-primary:#C9A46A; --qp-primary-hover:#E2C795; --qp-primary-active:#B38B4D; --qp-on-primary:#120D05;
+  --qp-accent:#C9A46A; --qp-accent-text:#E2C795; --qp-gold:#C9A46A; --qp-gold-text:#E2C795;
+  --qp-border:rgba(239,233,220,.14); --qp-input:#6C7D78; --qp-focus:#E2C795;
+  --qp-disabled-bg:#1A2523; --qp-disabled-text:#6C7D78;
+  --qp-success:#8FE0B8; --qp-success-bg:rgba(95,211,154,.12);
+  --qp-warning:#E2C795; --qp-warning-bg:rgba(201,164,106,.14);
+  --qp-error:#FFB4A8; --qp-error-bg:rgba(255,120,100,.12);
+  --qp-info:#9CCBE0; --qp-info-bg:rgba(95,179,190,.12);
+  --qp-shadow:0 8px 24px rgba(0,0,0,.35); --qp-shadow-lg:0 16px 40px rgba(0,0,0,.45);
+  --cin-serif:var(--hv-serif),"Frank Ruhl Libre",serif;
+  background:var(--qp-bg); color:var(--qp-ink); color-scheme:dark;
+}
+.cin .qp-h1,.cin .qp-h2,.cin .qp-h3,.cin h1,.cin h2{font-family:var(--cin-serif);font-weight:300}
+.cin .qp-btn{border-radius:99px}
+.cin .qp-btn--primary{font-weight:500}
+.cin .qp-btn--outline{border-color:rgba(239,233,220,.38)}
+.cin .qp-btn--outline:hover:not(:disabled){background:var(--qp-ink);color:#070C0B}
+.cin .qp-field input,.cin .qp-field select,.cin .qp-field textarea{border-color:rgba(239,233,220,.22);background:rgba(239,233,220,.04)}
+.cin .qp-field input:focus-visible{border-color:var(--qp-focus)}
+.cin .qp-notice--danger{border-color:rgba(255,120,100,.4)}
+.cin a{text-underline-offset:3px}
+/* auth: photo side keeps the cinematic crop and fades into the form column */
+.cin.qp-auth .qp-auth__side::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 55%,var(--qp-bg)),linear-gradient(rgba(4,8,8,.55),transparent 28%)}
+[dir=rtl] .cin.qp-auth .qp-auth__side::after{background:linear-gradient(270deg,transparent 55%,var(--qp-bg)),linear-gradient(rgba(4,8,8,.55),transparent 28%)}
+.cin.qp-auth .qp-auth__side img{filter:saturate(.92) brightness(.9)}
+.cin.qp-auth{min-height:calc(100svh - 53px)}

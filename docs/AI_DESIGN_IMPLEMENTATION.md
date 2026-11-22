@@ -4,7 +4,7 @@ Branch: `implement/concept-c` (from `design-exploration`, which holds the approv
 Nothing pushed or merged.
 
 ## Current phase
-Phase One (homepage + design foundation) — **done, awaiting approval**. Phases Two (buyer) and Three (developer) not started.
+Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared cinematic theme + auth screens. Remaining Phase 2 screens are login-gated and blocked on a test account (see Known issues). Phase Three not started.
 
 ## Completed
 - Production homepage `/` now implements the approved Concept C V3: cinematic hero (native scroll, gentle parallax), intelligent matching, simplified apartment editorial (one render, caption only), developer platform preview, closing CTA, footer.
@@ -39,3 +39,14 @@ Phase One (homepage + design foundation) — **done, awaiting approval**. Phases
 1. Approve Phase One.
 2. Phase Two: buyer shell (TopNav restyle), `/interview`, `/results`, property/building pages, dashboard, offers.
 3. Phase Three: developer screens. Requires a safe test account for authenticated pages.
+
+## Phase 2a — shared cinematic theme + auth screens
+- `components/theme/cinematic.css`: opt-in `.cin` class that re-points the existing `--qp-*` tokens to the Concept C palette (dark, gold primary), so existing buttons/fields/badges/notices follow without per-component rewrites. This is the single mechanism for the remaining screens (no second design system).
+- `lib/theme.ts` (`isCinematicPath`) lists cinematic routes; `SiteFooter` follows it. Auth routes (`/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`, `/dev/register|pending|rejected`, `/seller/register`) are live via `AuthRoom` (`qp-auth cin`) — serves buyers, developers and sellers.
+- Fonts (Frank Ruhl Libre, IBM Plex Mono) moved from `app/page.tsx` to root layout so all screens share them.
+- `LanguageToggle` active state now uses tokens (works on light and dark).
+- Verified: login (en), dev register (he), login mobile — no console errors, no overflow; vitest 271/271; eslint clean on changed files.
+- Pre-existing, untouched: eslint `set-state-in-effect` errors in `components/TopNav.tsx`.
+
+## Phase 2 — remaining (blocked on test account)
+`/interview`, `/processing` (with a transcript), `/results`, `/aom/[id]`, `/buyer/offers`, `/buyer/leverage-groups`, `/profile`, `/deal/[offerId]`, TopNav for signed-in buyers. These redirect to `/login` without a session, so they cannot be rendered or verified. `/results` and `/buyer/offers` use ~220 / ~100 hard-coded colours and need real restyling, not just tokens.
