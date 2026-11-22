@@ -77,3 +77,12 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - NOT verified: `/dev/admin/approvals` (needs an admin account; recoloured mechanically only), the 3D building/stage viewers with real data, `/dev/pending`, English locale on developer screens, new-project flow.
 - The floor-plan preview keeps its own light drawing surface (it is an SVG drawing), which reads as a deliberate paper plan on the dark page.
 - Recolour, not restructure: the V2 developer prototype's KPI strip / inventory map / approvals queue layouts are NOT built; developer screens keep their current functional layouts.
+
+## Phase 3b — V2 developer layouts (real data)
+
+- `components/dev/DevOverview.tsx` + `dev-overview.css`, shown at the top of `/dev/dashboard`.
+- KPI strip: apartments, sold/reserved %, available value (compact ILS), open offers, group requests. Computed from per-apartment statuses when buildings exist, otherwise from unit-type quantities.
+- Inventory map: floor rows with one status dot per apartment, project tabs and legend. Read-only; editing stays in the inventory tables.
+- Verified: tsc clean, vitest 271/271, Playwright mobile 390 (no console errors, no horizontal overflow), desktop screenshot checked. No new lint errors (the two on the dashboard page predate this change).
+- Not built: approvals queue layout, funnel, timeline. Admin approvals needs an admin account.
+- Still unverified: English on developer screens and `/results`, 3D explorer, `/aom/[id]`, `/interview`, `/walk`.

@@ -1,0 +1,24 @@
+/* Developer overview (KPI strip + inventory map). Tokens come from the active theme (dark under .cin). */
+.dov{display:grid;gap:clamp(16px,2vw,28px);margin-bottom:1.75rem}
+.dov-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--qp-border);border-radius:16px;background:var(--qp-surface);overflow:hidden}
+.dov-kpi{padding:18px 20px;display:grid;gap:6px;border-inline-end:1px solid var(--qp-border);min-width:0}
+.dov-kpi:last-child{border-inline-end:0}
+.dov-kpi b{font-family:var(--hv-mono),monospace;font-weight:200;font-size:clamp(22px,2.6vw,38px);line-height:1.1;color:var(--qp-ink);overflow-wrap:anywhere}
+.dov-kpi small{font-size:12px;color:var(--qp-muted)}
+.dov-map{border:1px solid var(--qp-border);border-radius:16px;background:var(--qp-surface);padding:20px}
+.dov-maphead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.dov-maphead h3{margin:0;font-size:13px;font-weight:600;color:var(--qp-ink);margin-inline-end:auto}
+.dov-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.dov-tabs button{min-height:34px;padding:0 14px;border-radius:99px;border:1px solid var(--qp-border);background:transparent;color:var(--qp-muted);font:inherit;font-size:12.5px;cursor:pointer;transition:background .25s,color .25s}
+.dov-tabs button[aria-pressed=true]{background:var(--qp-ink);color:var(--qp-bg);border-color:var(--qp-ink)}
+.dov-legend{display:flex;gap:14px;font-size:12px;color:var(--qp-muted)}
+.dov-legend span{display:inline-flex;align-items:center;gap:6px}
+.dov-legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dov-bld{display:grid;gap:10px}.dov-bld+.dov-bld{margin-top:18px;padding-top:18px;border-top:1px solid var(--qp-border)}
+.dov-bname{font-size:12.5px;color:var(--qp-muted)}
+.dov-floors{display:grid;gap:6px;max-width:520px}
+.dov-floor{display:grid;grid-template-columns:28px 1fr;align-items:center;gap:10px}
+.dov-fl{font-size:11px;color:var(--qp-muted);text-align:end}
+.dov-units{display:flex;gap:10px;flex-wrap:wrap}
+.dov-dot{width:14px;height:14px;border-radius:50%;display:inline-block;opacity:.92}
+@media(max-width:800px){.dov-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.dov-kpi{border-bottom:1px solid var(--qp-border)}.dov-kpi:nth-child(2n){border-inline-end:0}.dov-kpi:last-child{grid-column:1/-1;border-bottom:0}}
