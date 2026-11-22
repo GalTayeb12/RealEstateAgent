@@ -70,3 +70,8 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - `/interview` (full-screen avatar) and `/processing` with a transcript, `/aom/[id]` building/apartment pages with real data, 3D explorer, `/walk`: not visually verified.
 - TopNav still has 3 pre-existing eslint `set-state-in-effect` errors (unchanged).
 - Recolour ≠ redesign: layouts of offers/deal/groups are the original ones.
+
+## Phase 3 — developer experience (started; blocked on a developer test account)
+- Checked: the buyer test account gets 401s on `/dev/dashboard`, so developer screens cannot be rendered or verified yet. Not restyling blind.
+- Scope found: `app/dev/dashboard` (936 lines, ~127 hard-coded colours), `app/dev/admin/approvals` (788, ~148), `app/dev/properties/[unitTypeId]` (579, token-based), `components/DevInventory.tsx`, `components/dev/plan/*`, `components/dev/stage/*` (token-based). Auth screens (`/dev/login`, `/dev/register`, `/dev/pending`, `/dev/rejected`) are already cinematic.
+- Plan once an account exists: add `/dev` to `CINEMATIC_PREFIX`, run `docs/design-impl/tokenize.py` on the hard-coded files, then screenshot each screen (he/en, 1440/390) and fix contrast; keep tables/forms dense and readable (V2 developer prototype as reference: KPI strip, inventory map, approvals queue). Admin approvals needs an admin account.
