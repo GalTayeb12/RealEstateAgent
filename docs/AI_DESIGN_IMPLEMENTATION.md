@@ -110,3 +110,10 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 
 - "Start interview" now sends guests (no `token`) to `/login` instead of `/interview`; signed-in users still go to `/interview` and unlock audio. Login already routes buyers on to the interview. Checked as a guest with `docs/design-impl/cta-guest.mjs`.
 - Apartment section uses `docs/design/section-03-apartment.png` (isometric plan with transparent background), optimised to `public/images/section-03-apartment.webp` (2000px, ~340 KB, from 4.7 MB). Shown contained (no cropping) with a soft glow; caption changed to "Top view · sample apartment". The old room-living render is no longer used on the homepage.
+
+### Phase 2e — /results hero rebuilt to match Concept C V3
+
+- Feedback: the earlier hero did not look like the approved `/design-lab/c2/results`. `components/results/ResultsHero.tsx` + `results-hero.css` now follow it: full-bleed photographic backdrop that crossfades per selected match, serif headline, 01/04 counter, big score, glass "why it matches" panel, and a rail of cards with thumbnails, score and price. Keyboard arrows switch matches.
+- Listings have no photos, so the backdrop is an illustrative render from `/buildings/yarkon-v2/room-*.webp` picked deterministically per listing, and the hero says so ("Images are illustrative renderings"). Scores stay on the real 0-100 agreement scale (shown as "/100", not "%").
+- Not in the real hero (prototype-only, no real data): "tune weights" sliders, per-criterion light/location/quiet bars, the axonometric plan thumbnail.
+- Still the older recoloured layout BELOW the hero: profile block, alerts, mortgage link, per-project match cards, "close to a match", services.

@@ -1,13 +1,14 @@
 "use client";
 /**
- * Hero for /results (Concept C V2 results design), driven entirely by the real match data.
- * Shows the selected project's match score, price, key facts and what drives the match;
- * a rail below switches between projects. Offers, group buying and details stay in the
- * per-project cards on the page (anchor targets `#match-<key>`), so no transactional
- * behaviour lives here.
+ * /results hero — Concept C V3 results design on real match data.
+ * Full-bleed photographic stage: big match score, the selected listing, why it matches, and a rail of
+ * the other matches. Listings carry no photos, so the backdrop is an illustrative render picked
+ * deterministically per listing (labelled as such). Offers, group buying and details live in the
+ * per-project cards below the hero (anchor targets `#match-<key>`), so no transactional behaviour is here.
  */
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import "./results-hero.css";
 import { Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
@@ -29,6 +30,14 @@ export interface HeroItem {
   upperBound: number;
 }
 
+const ROOMS = ["living", "balcony", "kitchen", "bedroom", "bath"].map((r) => `/buildings/yarkon-v2/room-${r}.webp`);
+const pickImage = (key: string) => {
+  let h = 0;
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0;
+  return ROOMS[h % ROOMS.length];
+};
+const two = (n: number) => String(n).padStart(2, "0");
+
 export default function ResultsHero({ items, ej, aj, summary, kicker, title }: {
   items: HeroItem[]; ej: number; aj: number; summary: string; kicker: string; title: string;
 }) {
@@ -36,10 +45,11 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title }: {
   const he = locale === "he";
   const [sel, setSel] = useState(0);
   if (items.length === 0) return null;
-  const cur = items[Math.min(sel, items.length - 1)];
+  const idx = Math.min(sel, items.length - 1);
+  const cur = items[idx];
   const attrs = parseAttributes(cur.attributes);
   const attrKeys = m.attributes as unknown as Record<string, string | undefined>;
-  const facts = Object.entries(attrs).slice(0, 4).map(([k, v]) => {
+  const facts = Object.entries(attrs).slice(0, 3).map(([k, v]) => {
     const text = k === "area" ? formatArea(v, m.attributes.sqmUnit) : formatAttributeValue(v);
     return { label: translateAttrKey(k, attrKeys), text };
   }).filter((f) => f.text && f.text !== m.attributes.unknown);
@@ -51,16 +61,34 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title }: {
     [he ? "המוכר מקבל" : "Seller accepts", cur.eil],
   ];
   const overlap = Math.max(0, Math.round(cur.upperBound - cur.lowerBound));
+  const onKey = (e: KeyboardEvent) => {
+    const next = e.key === "ArrowRight" ? (he ? -1 : 1) : e.key === "ArrowLeft" ? (he ? 1 : -1) : 0;
+    if (next) setSel((s) => Math.max(0, Math.min(items.length - 1, Math.min(s, items.length - 1) + next)));
+  };
+
   return (
-    <section className="rh" aria-label={title}>
-      <div className="rh-in">
+    <section className="rh" aria-label={title} onKeyDown={onKey}>
+      <div className="rh-bgs" aria-hidden="true">
+        {items.map((it, i) => (
+          <Image key={it.key} className={i === idx ? "on" : ""} src={pickImage(it.key)} alt="" fill sizes="100vw" priority={i === 0} />
+        ))}
+      </div>
+      <div className="rh-shade" aria-hidden="true" />
+
+      <div className="rh-hd">
         <div>
-          <div className="rh-kick">{kicker}</div>
+          <span className="rh-kick">{kicker}</span>
+          <h1>{he ? "הבית שמרגיש כמו שאמרת." : "The home that feels like you said."}</h1>
           <p className="rh-count">{summary}</p>
+        </div>
+        <span className="rh-ctr" aria-hidden="true"><b>{two(idx + 1)}</b> / {two(items.length)}</span>
+      </div>
+
+      <div className="rh-main">
+        <div key={cur.key} className="rh-cur">
           <div className="rh-score" aria-label={`${m.results.matchQuality}: ${Math.round(cur.zij)}`}>{Math.round(cur.zij)}<small>/100</small></div>
-          <div className="rh-label" title={m.results.matchQualityHint}>{m.results.matchQuality}</div>
+          <span className="rh-kick sub" title={m.results.matchQualityHint}>{m.results.matchQuality}{cur.unitLabel ? ` · ${cur.unitLabel}` : ""}</span>
           <h2>{cur.name}</h2>
-          {cur.unitLabel && <span className="rh-unit">{cur.unitLabel}</span>}
           <div className="rh-facts">
             {cur.price > 0 && <div><b className="num">{cur.priceFrom ? `${m.results.from} ` : ""}<Money amount={cur.price} /></b><span>{he ? "מחיר" : "Price"}</span></div>}
             {facts.map((f) => <div key={f.label}><b>{f.text}</b><span>{f.label}</span></div>)}
@@ -71,25 +99,28 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title }: {
           </div>
         </div>
         <aside className="rh-side" aria-live="polite">
-          <h3>{he ? "איך נבנה הציון" : "How this score is built"}</h3>
+          <span className="rh-kick">{he ? "למה זו התאמה" : "Why it matches"}</span>
+          <div className="rh-bars">
+            {bars.map(([n, v]) => <div className="rh-bar" key={n}><span>{n}</span><span><i style={{ ["--w" as string]: pct(v) }} /></span><b>{Math.round(v)}</b></div>)}
+          </div>
           <ul className="rh-why">
             <li>{he ? `טווח ההסכמה שלכם והמוכר חופפים ב-${overlap} נקודות` : `Your range and the seller's overlap by ${overlap} points`}</li>
             <li>{he ? `ציון ההסכמה המוצע: ${Math.round(cur.zij)} מתוך 100` : `Proposed agreement score: ${Math.round(cur.zij)} of 100`}</li>
           </ul>
-          <div className="rh-bars">
-            {bars.map(([n, v]) => <div className="rh-bar" key={n}><span>{n}</span><span><i style={{ ["--w" as string]: pct(v) }} /></span><b>{Math.round(v)}</b></div>)}
-          </div>
         </aside>
       </div>
+
       {items.length > 1 && (
         <div className="rh-rail" role="group" aria-label={he ? "בחירת פרויקט" : "Choose a project"}>
           {items.map((it, i) => (
-            <button key={it.key} type="button" className="rh-card" aria-pressed={i === sel} onClick={() => setSel(i)}>
-              <b>{it.name}</b><small>{it.unitLabel ?? ""}</small><em>{Math.round(it.zij)}</em>
+            <button key={it.key} type="button" className="rh-card" aria-pressed={i === idx} onClick={() => setSel(i)}>
+              <Image src={pickImage(it.key)} alt="" width={192} height={168} sizes="96px" />
+              <span><b>{it.name}</b><em>{Math.round(it.zij)}</em>{it.price > 0 && <small className="num"><Money amount={it.price} /></small>}</span>
             </button>
           ))}
         </div>
       )}
+      <p className="rh-note">{he ? "התמונות להמחשה בלבד · הדמיות" : "Images are illustrative renderings"}</p>
     </section>
   );
 }
