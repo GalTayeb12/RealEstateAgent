@@ -141,3 +141,9 @@ Phase One — done and approved. **Phase Two (buyer) milestone 2a done**: shared
 - Below the hero: profile (+ interview quota/retake), alerts and mortgage row, near matches, services, group-buying CTA.
 - `/aom/[id]`: fixed "Back" pill on every variant. It returns past any history entries the 3D explorer pushed (floor/unit selection), falling back to `/results`.
 - Matching maths untouched. Finding recorded: Zij = 2·pfij − eil − ej, which (when the seller's ail ≥ ej, as in all current listings) equals ej − eil. It can never exceed ej (74 here) and ranks listings only by the seller's minimum; location/rooms/budget are pass/fail filters, not part of the score. See chat for details.
+
+### Phase 2h — Fit score on /results (user request: realistic scores)
+
+- New `lib/fitScore.ts` (+ `lib/__tests__/fitScore.test.ts`, 6 tests): a readable 0-100 "fit to your needs" computed from what the buyer stated and what the listing actually has: location 25, budget 25, rooms 20, verifiable must-haves 15 (balcony, parking, high floor), room to agree 15. Missing data is left out and weights renormalised, so unknown never counts as a miss; a known ground-floor dealbreaker halves the score.
+- `/results` ranks by fit (Zij breaks ties) and the hero headline, rail cards and "why it matches" bars use it. The Zij engine, `/api/match` and stored `MatchResult` rows are unchanged; Zij is still shown under "Negotiation range" with an explanation.
+- Weights are a first proposal and need product review. Must-haves like quiet, natural light and kindergarten proximity cannot be checked from listing data and are not scored.

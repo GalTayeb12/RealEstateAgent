@@ -22,6 +22,7 @@ import { AlertCard } from "@/components/AlertCard";
 import type { MortgageSavedData } from "@/components/MortgageCalculator";
 import { groupByProject } from "@/lib/projectGroups";
 import ResultsHero, { type HeroItem } from "@/components/results/ResultsHero";
+import { computeFit } from "@/lib/fitScore";
 import "@/components/results/results-sections.css";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -865,11 +866,20 @@ export default function ResultsPage() {
   // non-fitting types of that project hidden; projects with no fit stay "near".
   const { groups: projectCards, near: nearMatches } = groupByProject(fullMatches, allNearMatches);
   const projectCount = new Set(ranked.map((r) => r.projectId ?? r.aomId)).size;
-  const heroItems: HeroItem[] = projectCards.map(({ key, best }) => {
+  // Fit score (lib/fitScore.ts): readable 0-100 fit to what the buyer asked for; Zij stays as the negotiation score.
+  const fitOf = (best: MatchOutcome) => {
+    const d = aomDetails[best.aomId];
+    return computeFit({ prefs, outcome: best, ej, aj, price: d?.price, attributes: d?.attributes, unitLabel: best.unitLabel });
+  };
+  const rankedCards = projectCards
+    .map((c) => ({ ...c, fit: fitOf(c.best) }))
+    .sort((a, b) => b.fit.score - a.fit.score || b.best.zij - a.best.zij);
+  const heroItems: HeroItem[] = rankedCards.map(({ key, best, fit }) => {
     const d = aomDetails[best.aomId];
     return {
       key, aomId: best.aomId, name: best.projectName ?? best.title, unitLabel: best.unitLabel,
-      zij: best.zij, price: d?.price ?? 0, priceFrom: d?.priceFrom, attributes: d?.attributes,
+      zij: best.zij, fit: fit.score, fitParts: fit.components,
+      price: d?.price ?? 0, priceFrom: d?.priceFrom, attributes: d?.attributes,
       eil: d?.eil ?? best.lowerBound, ail: d?.ail ?? best.upperBound, lowerBound: best.lowerBound, upperBound: best.upperBound,
     };
   });

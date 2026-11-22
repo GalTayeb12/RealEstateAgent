@@ -13,6 +13,7 @@ import "./results-hero.css";
 import { Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
 import { illustrativeImage } from "@/lib/illustrative";
+import type { FitComponent, FitId } from "@/lib/fitScore";
 import { parseAttributes, formatAttributeValue, translateAttrKey, formatArea } from "@/lib/attributes";
 
 export interface HeroItem {
@@ -20,7 +21,11 @@ export interface HeroItem {
   aomId: string;
   name: string;
   unitLabel?: string;
+  /** Zij negotiation score (kept, shown under "Negotiation range") */
   zij: number;
+  /** Fit to the buyer's stated needs, 0-100 (lib/fitScore.ts); the headline score */
+  fit: number;
+  fitParts: FitComponent[];
   price: number;
   priceFrom?: boolean;
   attributes?: Record<string, unknown>;
@@ -32,6 +37,10 @@ export interface HeroItem {
 }
 
 const pickImage = illustrativeImage;
+const FIT_LABEL: Record<FitId, [string, string]> = {
+  location: ["מיקום", "Location"], budget: ["תקציב", "Budget"], rooms: ["חדרים", "Rooms"], musts: ["חייב שיהיה", "Must-haves"], agree: ["סיכוי להסכמה", "Room to agree"],
+};
+const MUST_LABEL: Record<string, [string, string]> = { balcony: ["מרפסת", "balcony"], parking: ["חניה", "parking"], highFloor: ["קומה גבוהה", "high floor"] };
 const two = (n: number) => String(n).padStart(2, "0");
 
 export default function ResultsHero({ items, ej, aj, summary, kicker, title, renderOffer, onGroup, renderRange }: {
@@ -56,6 +65,20 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
     return { label: translateAttrKey(k, attrKeys), text };
   }).filter((f) => f.text && f.text !== m.attributes.unknown);
   const pct = (v: number) => `${Math.max(0, Math.min(100, Math.round(v)))}%`;
+  const idx2 = he ? 0 : 1;
+  const fitBars: [string, number][] = cur.fitParts.map((c) => [FIT_LABEL[c.id][idx2], c.score]);
+  const why: string[] = [];
+  for (const c of cur.fitParts) {
+    if (c.id === "location") why.push(c.note === "ok" ? (he ? "המיקום תואם את האזור שביקשת" : "Location matches the area you asked for") : (he ? "מחוץ לאזור שביקשת" : "Outside the area you asked for"));
+    if (c.id === "budget") why.push(c.note === "ok" ? (he ? "המחיר בתוך התקציב" : "Price is within your budget") : (he ? "המחיר מעל התקציב" : "Price is above your budget"));
+    if (c.id === "rooms") why.push(c.note === "ok" ? (he ? "מספר החדרים מתאים" : "Room count fits") : (he ? "פחות חדרים ממה שביקשת" : "Fewer rooms than you asked for"));
+    if (c.id === "musts" && c.musts) {
+      const nm = (k: string) => MUST_LABEL[k]?.[idx2] ?? k;
+      if (c.musts.met.length) why.push((he ? "יש: " : "Has: ") + c.musts.met.map(nm).join(", "));
+      if (c.musts.unknown.length) why.push((he ? "לא מצוין במודעה: " : "Not listed: ") + c.musts.unknown.map(nm).join(", "));
+      if (c.musts.unmet.length) why.push((he ? "חסר: " : "Missing: ") + c.musts.unmet.map(nm).join(", "));
+    }
+  }
   const bars: [string, number][] = [
     [he ? "הציון שלך" : "Your ideal", ej],
     [he ? "המינימום שלך" : "Your minimum", aj],
@@ -88,8 +111,8 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
 
       <div className="rh-main">
         <div key={cur.key} className="rh-cur">
-          <div className="rh-score" aria-label={`${m.results.matchQuality}: ${Math.round(cur.zij)}`}>{Math.round(cur.zij)}<small>/100</small></div>
-          <span className="rh-kick sub" title={m.results.matchQualityHint}>{m.results.matchQuality}{cur.unitLabel ? ` · ${cur.unitLabel}` : ""}</span>
+          <div className="rh-score" aria-label={`${he ? "התאמה לצרכים שלך" : "Fit to your needs"}: ${cur.fit}`}>{cur.fit}<small>%</small></div>
+          <span className="rh-kick sub" title={he ? "עד כמה הנכס עונה על מה שביקשת: מיקום, תקציב, חדרים ודרישות חובה" : "How well the listing meets what you asked for: location, budget, rooms and must-haves"}>{he ? "התאמה לצרכים שלך" : "Fit to your needs"}{cur.unitLabel ? ` · ${cur.unitLabel}` : ""}</span>
           <h2>{cur.name}</h2>
           <div className="rh-facts">
             {cur.price > 0 && <div><b className="num">{cur.priceFrom ? `${m.results.from} ` : ""}<Money amount={cur.price} /></b><span>{he ? "מחיר" : "Price"}</span></div>}
@@ -104,15 +127,19 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
         <aside className="rh-side" aria-live="polite">
           <span className="rh-kick">{he ? "למה זו התאמה" : "Why it matches"}</span>
           <div className="rh-bars">
-            {bars.map(([n, v]) => <div className="rh-bar" key={n}><span>{n}</span><span><i style={{ ["--w" as string]: pct(v) }} /></span><b>{Math.round(v)}</b></div>)}
+            {fitBars.map(([n, v]) => <div className="rh-bar" key={n}><span>{n}</span><span><i style={{ ["--w" as string]: pct(v) }} /></span><b>{Math.round(v)}</b></div>)}
           </div>
           <ul className="rh-why">
-            <li>{he ? `טווח ההסכמה שלכם והמוכר חופפים ב-${overlap} נקודות` : `Your range and the seller's overlap by ${overlap} points`}</li>
-            <li>{he ? `ציון ההסכמה המוצע: ${Math.round(cur.zij)} מתוך 100` : `Proposed agreement score: ${Math.round(cur.zij)} of 100`}</li>
+            {why.map((w) => <li key={w}>{w}</li>)}
           </ul>
           {renderRange && (
             <details className="rh-range">
               <summary>{he ? "טווח המשא ומתן" : "Negotiation range"}</summary>
+              <p className="rh-zij">{he ? `ציון המשא ומתן (Zij): ${Math.round(cur.zij)}. הוא מודד כמה מרווח יש בין הטווחים שלך ושל המוכר, ואינו ציון התאמה.` : `Negotiation score (Zij): ${Math.round(cur.zij)}. It measures the margin between your range and the seller's, not how well the listing fits.`}</p>
+              <div className="rh-bars">
+                {bars.map(([n, v]) => <div className="rh-bar" key={n}><span>{n}</span><span><i style={{ ["--w" as string]: pct(v) }} /></span><b>{Math.round(v)}</b></div>)}
+              </div>
+              <p className="rh-zij">{he ? `טווחי ההסכמה חופפים ב-${overlap} נקודות.` : `The ranges overlap by ${overlap} points.`}</p>
               {renderRange(cur.key)}
             </details>
           )}
@@ -124,7 +151,7 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
           {items.map((it, i) => (
             <button key={it.key} type="button" className="rh-card" aria-pressed={i === idx} onClick={() => setSel(i)}>
               <Image src={pickImage(it.key)} alt="" width={192} height={168} sizes="96px" />
-              <span><b>{it.name}</b><em>{Math.round(it.zij)}</em>{it.price > 0 && <small className="num"><Money amount={it.price} /></small>}</span>
+              <span><b>{it.name}</b><em>{it.fit}%</em>{it.price > 0 && <small className="num"><Money amount={it.price} /></small>}</span>
             </button>
           ))}
         </div>
