@@ -27,7 +27,11 @@ export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("Authorization");
 
   if (!secret) {
-    console.warn("[CRON] CRON_SECRET not set — cron endpoint is unprotected!");
+    // Fail closed in production; allow unauthenticated runs only in local development.
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 503 });
+    }
+    console.warn("[CRON] CRON_SECRET not set — allowed in development only");
   } else if (authHeader !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

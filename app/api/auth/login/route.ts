@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, signToken } from "@/lib/auth";
@@ -6,6 +7,8 @@ import { zodError } from "@/lib/validation";
 import { setSessionCookie } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "login", 10, 60000);
+  if (limited) return limited;
   try {
     const body = await req.json();
     const parsed = loginSchema.safeParse(body);

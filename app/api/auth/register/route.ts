@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
@@ -8,6 +9,8 @@ import { zodError } from "@/lib/validation";
 import { getRequestLocale } from "@/lib/i18n/request";
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "register", 10, 3600000);
+  if (limited) return limited;
   try {
     const body = await req.json();
     const parsed = registerBuyerSchema.safeParse(body);

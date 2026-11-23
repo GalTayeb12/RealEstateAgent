@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rateLimit";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createVerificationToken } from "@/lib/tokens";
@@ -9,6 +10,8 @@ import { zodError } from "@/lib/validation";
 const GENERIC_OK = { ok: true, message: "If that account exists and is unverified, a new link has been sent." };
 
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, "resend", 5, 3600000);
+  if (limited) return limited;
   try {
     const body = await req.json();
     const parsed = resendVerificationSchema.safeParse(body);

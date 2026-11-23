@@ -7,10 +7,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getChain, verifyChain, ChainName } from "@/lib/ledger";
 import { ledgerQuerySchema } from "@/lib/validation/admin";
 import { zodError } from "@/lib/validation";
+import { requireAdmin } from "@/lib/adminAuth";
 
 const VALID_CHAINS: ChainName[] = ["buyer", "seller", "aom_rating"];
 
 export async function GET(req: NextRequest) {
+  // The chains hold buyer profiles and ratings: admin only.
+  const guard = requireAdmin(req);
+  if (!guard.ok) return guard.response;
   const { searchParams } = new URL(req.url);
   const parsedQuery = ledgerQuerySchema.safeParse({ chain: searchParams.get("chain") ?? undefined });
   if (!parsedQuery.success) return zodError(parsedQuery.error);
