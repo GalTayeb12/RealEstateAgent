@@ -42,7 +42,12 @@ export function currentRole(): string | null {
  * Browsers that signed in before cookies existed still hold the JWT in localStorage. Hand it to the server once so it
  * becomes the httpOnly cookie, then replace it with the marker so scripts no longer hold a usable token.
  */
-export async function migrateLegacyToken(): Promise<void> {
+let migration: Promise<void> | null = null;
+export function migrateLegacyToken(): Promise<void> {
+  return (migration ??= doMigrate());
+}
+
+async function doMigrate(): Promise<void> {
   try {
     const t = localStorage.getItem("token");
     if (!t || t === SESSION_MARKER || !t.includes(".")) return;

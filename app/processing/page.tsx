@@ -12,7 +12,7 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { parseAttributes } from "@/lib/attributes";
+import { runMatch, type CharacterizationResult } from "@/lib/matchFlow";
 import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 import { useI18n } from "@/components/LocaleProvider";
 
@@ -23,37 +23,6 @@ type Phase =
   | "done"
   | "error";
 
-type AomDetail = {
-  address?: string;
-  title: string;
-  description: string;
-  eil: number;
-  ail: number;
-  price: number;
-  priceFrom?: boolean;
-  developerId: string;
-  ownerType: string;
-  attributes: Record<string, unknown>;
-};
-
-type CharacterizationResult = {
-  buyer_preferences: {
-    property_type: string;
-    location: string;
-    bedrooms: number | null;
-    bathrooms: number | null;
-    must_haves: string[];
-    dealbreakers: string[];
-    timeline: string;
-    additional_notes: string;
-  };
-  expected_score_ej: number;
-  min_acceptance_score_aj: number;
-  behavioral_insights: string;
-  intent_signals: string;
-  psychometric_scores?: Record<string, number>;
-};
-
 export default function ProcessingPage() {
   const router = useRouter();
   const { unlock } = useAudioUnlock();
@@ -62,68 +31,16 @@ export default function ProcessingPage() {
   const [phase, setPhase] = useState<Phase>("waiting");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const runMatchFlow = useCallback(async (
-    characterization: CharacterizationResult,
-    token: string
-  ) => {
-    const authHeader = { Authorization: `Bearer ${token}` };
-
+  const runMatchFlow = useCallback(async (characterization: CharacterizationResult) => {
     setPhase("matching");
-    const [matchRes, aomRes] = await Promise.all([
-      fetch("/api/match", {
-        method: "POST",
-        headers: { ...authHeader, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          buyerProfile: {
-            expectedScore: characterization.expected_score_ej,
-            minAcceptanceScore: characterization.min_acceptance_score_aj,
-          },
-        }),
-      }),
-      fetch("/api/aom", { headers: authHeader }),
-    ]);
-
-    if (!matchRes.ok) {
-      const { error } = await matchRes.json().catch(() => ({ error: matchRes.statusText }));
-      throw new Error(`Matching failed: ${error}`);
-    }
-
-    const { ranked } = await matchRes.json();
-
-    const aomDetails: Record<string, AomDetail> = {};
-    if (aomRes.ok) {
-      const { listings } = await aomRes.json();
-      for (const l of listings) {
-        const title = l.project?.name && l.unitLabel
-          ? `${l.project.name} — ${l.unitLabel}`
-          : (l.unitLabel ?? l.title ?? "");
-        aomDetails[l.id] = {
-          title,
-          address: l.project?.location ?? "",
-          description: l.description ?? "",
-          eil: l.eil,
-          ail: l.ail,
-          price: l.price ?? 0,
-          priceFrom: Boolean(l.priceFrom),
-          developerId: l.seller?.id ?? "",
-          ownerType: (l.ownerType as string) ?? "developer",
-          attributes: parseAttributes(l.attributes),
-        };
-      }
-    }
-
+    await runMatch(characterization);
     setPhase("done");
-    sessionStorage.setItem(
-      "matchResults",
-      JSON.stringify({ ranked, characterization, aomDetails })
-    );
     localStorage.removeItem("transcriptId");
     router.push("/results");
   }, [router]);
 
   const runFlow = useCallback(async (transcriptId: string) => {
-    const token = localStorage.getItem("token") ?? "";
-    const authHeader = { Authorization: `Bearer ${token}` };
+    const authHeader = { Authorization: `Bearer ${localStorage.getItem("token") ?? ""}` };
 
     try {
       setPhase("characterizing");
@@ -138,7 +55,7 @@ export default function ProcessingPage() {
       }
       const characterization: CharacterizationResult = await charRes.json();
 
-      await runMatchFlow(characterization, token);
+      await runMatchFlow(characterization);
     } catch (err) {
       setErrorMsg((err as Error).message);
       setPhase("error");
@@ -159,7 +76,7 @@ export default function ProcessingPage() {
       .then((r) => (r.ok ? r.json() : null))
       .then((profile: CharacterizationResult | null) => {
         if (profile) {
-          runMatchFlow(profile, token);
+          runMatchFlow(profile).catch((err) => { setErrorMsg((err as Error).message); setPhase("error"); });
         } else {
           setPhase("waiting");
         }

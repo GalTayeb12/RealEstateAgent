@@ -1,0 +1,13 @@
+import { chromium } from "playwright";
+const S = "C:/Users/gal-t/AppData/Local/Temp/claude/1f22e010b3fa3d98/d9e97e04-ba2b-44df-9af8-e40780b5f214/scratchpad/";
+const b = await chromium.launch();
+const c = await b.newContext({ storageState: S + "buyer-state.json" });
+const p = await c.newPage();
+await p.goto("http://localhost:3001/results");
+await p.evaluate(() => sessionStorage.clear());
+p.on("response", r => { if (r.url().includes("/api/")) console.log(r.status(), r.url()); });
+await p.reload();
+await p.waitForTimeout(6000);
+const r = await p.evaluate(() => ({ cached: !!sessionStorage.getItem("matchResults"), h1: document.querySelector("h1")?.textContent, body: document.body.innerText.slice(0, 200) }));
+console.log(JSON.stringify(r));
+await b.close();

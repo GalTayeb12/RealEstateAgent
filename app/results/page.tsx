@@ -23,6 +23,7 @@ import type { MortgageSavedData } from "@/components/MortgageCalculator";
 import { groupByProject } from "@/lib/projectGroups";
 import ResultsHero, { type HeroItem } from "@/components/results/ResultsHero";
 import { computeFit } from "@/lib/fitScore";
+import { loadMatchResults } from "@/lib/matchFlow";
 import "@/components/results/results-sections.css";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -801,9 +802,10 @@ export default function ResultsPage() {
   useEffect(() => {
     const t = localStorage.getItem("token") ?? "";
     setToken(t);
-    const raw = sessionStorage.getItem("matchResults");
-    if (!raw) { setMissing(true); return; }
-    try { setData(JSON.parse(raw)); } catch { setMissing(true); }
+    // sessionStorage cache first; otherwise rebuild from the buyer profile saved on the server.
+    loadMatchResults()
+      .then((payload) => { if (payload) setData(payload as unknown as StoredResults); else setMissing(true); })
+      .catch(() => setMissing(true));
 
     if (t) {
       // Fetch recommendations
