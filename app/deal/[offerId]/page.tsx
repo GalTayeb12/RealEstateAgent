@@ -539,7 +539,10 @@ export default function DealRoomPage() {
     }
   }, [offerId, router, m]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const startId = setTimeout(load, 0);
+    return () => clearTimeout(startId);
+  }, [load]);
 
   // ── Actions ─────────────────────────────────────────────────────────────
 
@@ -674,7 +677,8 @@ export default function DealRoomPage() {
   const isBuyer       = role === "buyer";
   const mySig         = isBuyer ? buyerSig     : developerSig;
   const otherSig      = isBuyer ? developerSig : buyerSig;
-  const otherLabel    = isBuyer ? m.nav.roleDeveloper : m.nav.roleBuyer;
+  const isSellerDeal  = offer.unitType.ownerType === "seller";
+  const otherLabel    = isBuyer ? (isSellerDeal ? m.nav.roleSeller : m.nav.roleDeveloper) : m.nav.roleBuyer;
 
   const signAction = step3 === "upcoming" ? undefined : (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.625rem" }}>
@@ -683,7 +687,7 @@ export default function DealRoomPage() {
       <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", flexWrap: "wrap" }}>
         {mySig ? (
           <span style={{ fontSize: "0.8125rem", color: "var(--c-ink,#123F40)", fontWeight: 600 }}>
-            ✓ {isBuyer ? m.offers.signedByBuyer : m.offers.signedByDev}: <em>{mySig.typedName}</em> · {fmtDate(mySig.signedAt, locale)}
+            ✓ {isBuyer ? m.offers.signedByBuyer : role === "seller" ? m.offers.signedBySeller : m.offers.signedByDev}: <em>{mySig.typedName}</em> · {fmtDate(mySig.signedAt, locale)}
           </span>
         ) : (
           <button
@@ -703,7 +707,7 @@ export default function DealRoomPage() {
       <div style={{ fontSize: "0.8125rem", color: "var(--c-muted,#526563)" }}>
         {otherSig
           ? <span style={{ color: "var(--c-ink,#123F40)", fontWeight: 600 }}>✓ {otherLabel}: <em>{otherSig.typedName}</em> · {fmtDate(otherSig.signedAt, locale)}</span>
-          : <span>{m.offers.awaitingDev}</span>
+          : <span>{m.offers.awaitingSig.replace("{party}", otherLabel)}</span>
         }
       </div>
 

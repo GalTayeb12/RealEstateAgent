@@ -9,7 +9,7 @@
  *   4. Language
  *   5. Privacy (download data, delete account)
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
 import { useAudioUnlock } from "@/components/AudioUnlockProvider";
@@ -68,7 +68,11 @@ export default function ProfilePage() {
   const { m } = useI18n();
   const { unlock } = useAudioUnlock();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [token, setToken] = useState("");
+  const token = useSyncExternalStore(
+    () => () => {},
+    () => localStorage.getItem("token") ?? "",
+    () => "",
+  );
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [prefs, setPrefs] = useState<BuyerPrefs | null>(null);
@@ -85,7 +89,6 @@ export default function ProfilePage() {
   const load = useCallback(async () => {
     const t = localStorage.getItem("token") ?? "";
     if (!t) { router.push("/login"); return; }
-    setToken(t);
     try {
       const res = await fetch("/api/profile", { headers: { Authorization: `Bearer ${t}` } });
       if (res.status === 401) { router.push("/login"); return; }
@@ -118,7 +121,10 @@ export default function ProfilePage() {
     }
   }, [router]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const startId = setTimeout(load, 0);
+    return () => clearTimeout(startId);
+  }, [load]);
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(false), 3500);
@@ -261,17 +267,17 @@ export default function ProfilePage() {
             <section>
               <SectionLabel label={m.profile.sectionPersonal} />
               <div style={{ ...glass, padding: "1.25rem 1.35rem" }}>
-                <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.email}</label>
-                <input value={profile.email} readOnly style={{ ...field, background: "var(--qp-soft)", color: "var(--qp-muted)" }} />
+                <label htmlFor="profile-email" style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.email}</label>
+                <input id="profile-email" value={profile.email} readOnly style={{ ...field, background: "var(--qp-soft)", color: "var(--qp-muted)" }} />
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.85rem", marginTop: "0.9rem" }} className="hn-profile-grid">
                   <div>
-                    <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.name}</label>
-                    <input value={name} onChange={(e) => setName(e.target.value)} style={field} />
+                    <label htmlFor="profile-name" style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.name}</label>
+                    <input id="profile-name" value={name} onChange={(e) => setName(e.target.value)} style={field} />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.phone}</label>
-                    <input value={phone} onChange={(e) => setPhone(e.target.value)} style={field} />
+                    <label htmlFor="profile-phone" style={{ display: "block", fontSize: "0.875rem", color: "var(--qp-muted)", marginBottom: "0.35rem" }}>{m.profile.phone}</label>
+                    <input id="profile-phone" value={phone} onChange={(e) => setPhone(e.target.value)} style={field} />
                   </div>
                 </div>
 

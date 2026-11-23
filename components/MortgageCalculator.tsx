@@ -15,7 +15,7 @@
  *                    when the user clicks "Save my data"
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useId } from "react";
 import { useI18n } from "@/components/LocaleProvider";
 import {
   computeSpitzer,
@@ -97,11 +97,12 @@ interface SliderRowProps {
 }
 
 function SliderRow({ label, value, min, max, step, onChange, formatValue, inputSuffix }: SliderRowProps) {
+  const id = useId();
   const display = formatValue ? formatValue(value) : String(value);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.3125rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <label style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C" }}>
+        <label htmlFor={id} style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)" }}>
           {label}
         </label>
         <span style={{ fontFamily: "var(--font-heebo, sans-serif)", fontSize: "0.9375rem", fontWeight: 600, color: "var(--c-ink,#123F40)", fontVariantNumeric: "tabular-nums" }}>
@@ -109,6 +110,7 @@ function SliderRow({ label, value, min, max, step, onChange, formatValue, inputS
         </span>
       </div>
       <input
+        id={id}
         type="range"
         min={min}
         max={max}
@@ -215,10 +217,10 @@ export function MortgageCalculator({
           {/* Rate input */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
             <div>
-              <label style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.4rem" }}>
+              <label htmlFor="mc-rate-a" style={{ display: "block", fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>
                 {mm.rate}
               </label>
-              <input
+              <input id="mc-rate-a"
                 type="number"
                 min={0.1} max={20} step={0.1}
                 value={annualRate}
@@ -351,10 +353,10 @@ export function MortgageCalculator({
                   formatValue={fmtPrice}
                 />
                 <div>
-                  <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.4rem" }}>
+                  <label htmlFor="mc-reverse-payment" style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>
                     {mm.reverseDesiredPayment}
                   </label>
-                  <input
+                  <input id="mc-reverse-payment"
                     type="number"
                     min={1000} step={500}
                     value={desiredPayment}
@@ -370,10 +372,10 @@ export function MortgageCalculator({
 
             {/* Rate */}
             <div>
-              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.4rem" }}>
+              <label htmlFor="mc-rate-b" style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>
                 {mm.rate}
               </label>
-              <input
+              <input id="mc-rate-b"
                 type="number"
                 min={0.1} max={20} step={0.1}
                 value={annualRate}
@@ -401,7 +403,7 @@ export function MortgageCalculator({
 
             {/* Buyer type */}
             <div>
-              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.4rem" }}>
+              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>
                 {mm.buyerType}
               </label>
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -428,10 +430,10 @@ export function MortgageCalculator({
 
             {/* Income (optional) */}
             <div>
-              <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "#55534C", marginBottom: "0.4rem" }}>
+              <label htmlFor="mc-income" style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--qp-muted)", marginBottom: "0.4rem" }}>
                 {mm.income}
               </label>
-              <input
+              <input id="mc-income"
                 type="number"
                 min={1000} step={500}
                 value={income}

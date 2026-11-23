@@ -589,6 +589,7 @@ export default function ApartmentWalk({ experience }: { experience: ProjectExper
           dpr={mobile ? [1, 1.5] : dpr}
           gl={{ antialias: mobile, powerPreference: "high-performance", toneMapping: mobile ? THREE.AgXToneMapping : THREE.NoToneMapping }}
           camera={{ fov: 70, near: 0.05, far: 200, position: [data.spawn[0], EYE, -data.spawn[1]] }}
+          role="img"
           aria-label={T.title}
         >
           <PerformanceMonitor onDecline={() => setDpr(1)} onIncline={() => setDpr(1.5)} />

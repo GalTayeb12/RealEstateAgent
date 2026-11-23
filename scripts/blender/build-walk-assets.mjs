@@ -83,7 +83,7 @@ for (const g of ["A", "B"]) {
 }
 const probes = {};
 for (const f of fs.readdirSync(SRC_DIR)) {
-  const m = f.match(/^probe_(\w+)\.png$/);
+  const m = f.match(/^probe_(.+)\.png$/);  // twin room ids carry a "-N" suffix (living-1)
   if (!m) continue;
   await sharp(path.join(SRC_DIR, f)).webp({ quality: 85 }).toFile(path.join(OUT, `probe-${m[1]}.webp`));
   probes[m[1]] = meta[`probe_${m[1]}`].scale;

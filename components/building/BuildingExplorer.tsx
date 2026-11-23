@@ -718,7 +718,7 @@ export default function BuildingExplorer({
   const { m, locale } = useI18n();
   const isRtl = locale === "he";
 
-  const [webgl, setWebgl] = useState<boolean | null>(null);
+  const [webgl] = useState<boolean | null>(() => hasWebGL());
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -729,19 +729,21 @@ export default function BuildingExplorer({
   const [hoveredUnitId, setHoveredUnitId] = useState<string | null>(null);
 
   // Phase 3 state
-  const [unitData, setUnitData] = useState<UnitCardData | null>(null);
+  const [unitDataRaw, setUnitData] = useState<UnitCardData | null>(null);
+  // Unit data only applies while a unit is selected (derived, not cleared in an effect).
+  const unitData = selectedUnitId ? unitDataRaw : null;
   const [unitDataLoading, setUnitDataLoading] = useState(false);
 
-  useEffect(() => { setWebgl(hasWebGL()); }, []);
 
   // ── Unit data fetch ──
   useEffect(() => {
-    if (!selectedUnitId) { setUnitData(null); return; }
-    setUnitDataLoading(true);
+    if (!selectedUnitId) return;
+    const loadingId = setTimeout(() => setUnitDataLoading(true), 0);
     fetch(`/api/buildings/unit/${selectedUnitId}`)
       .then((r) => r.json())
       .then((d) => { setUnitData(d.unit ?? null); setUnitDataLoading(false); })
       .catch(() => setUnitDataLoading(false));
+    return () => clearTimeout(loadingId);
   }, [selectedUnitId]);
 
   // ── URL state: browser back / forward ──
@@ -811,12 +813,14 @@ export default function BuildingExplorer({
       const maxFloor = Math.max(...building.units.map((u) => u.floor), 1);
       const next = selectedFloor.floor + delta;
       if (next < 1 || next > maxFloor) return;
-      const hasUnits = building.units.some((u) => u.floor === next);
-      if (!hasUnits) {
-        handleFloorNav(delta > 0 ? delta + 1 : delta - 1);
-        return;
+      // Skip floors without units in the same direction (same order as before).
+      let target = next;
+      const step = delta > 0 ? 1 : -1;
+      while (target >= 1 && target <= maxFloor && !building.units.some((u) => u.floor === target)) {
+        target += step;
       }
-      setSelectedFloor({ buildingId: selectedFloor.buildingId, floor: next });
+      if (target < 1 || target > maxFloor) return;
+      setSelectedFloor({ buildingId: selectedFloor.buildingId, floor: target });
       setSelectedUnitId(null);
       setUnitData(null);
       const url = new URL(window.location.href);
@@ -839,7 +843,6 @@ export default function BuildingExplorer({
       url.searchParams.set("unit", selectedUnitId);
     } else {
       url.searchParams.delete("unit");
-      setUnitData(null);
     }
     window.history.pushState(null, "", url.toString());
   }, [selectedUnitId]);
@@ -849,11 +852,10 @@ export default function BuildingExplorer({
   }, []);
 
   // ── Photo stage: an image modelUrl on a building, or ?photo=/path for previews ──
-  const [photoOverride, setPhotoOverride] = useState<string | null>(null);
-  useEffect(() => {
+  const [photoOverride] = useState<string | null>(() => {
     const p = new URLSearchParams(window.location.search).get("photo");
-    setPhotoOverride(p && p.startsWith("/") && !p.startsWith("//") && PHOTO_RE.test(p) ? p : null);
-  }, []);
+    return p && p.startsWith("/") && !p.startsWith("//") && PHOTO_RE.test(p) ? p : null;
+  });
   // ?mode=3d switches to the real-time immersive (drone) stage.
   // Client-only component (dynamic, ssr: false), so window is available here.
   const [immersive] = useState(() => new URLSearchParams(window.location.search).get("mode") === "3d");

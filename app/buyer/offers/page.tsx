@@ -470,7 +470,7 @@ function OfferCard({
                   });
                   if (!res.ok) {
                     const data = await res.json().catch(() => ({}));
-                    onToast(data.error ?? "Could not release the reservation");
+                    onToast(data.error ?? m.offers.somethingWrong);
                     return;
                   }
                   onUpdated(offer.id, { status: "cancelled" });
@@ -557,7 +557,10 @@ export default function BuyerOffersPage() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    const startId = setTimeout(load, 0);
+    return () => clearTimeout(startId);
+  }, [load]);
 
   function handleUpdated(id: string, patch: Partial<Offer>) {
     setOffers(prev => prev.map(o => o.id === id ? { ...o, ...patch, updatedAt: new Date().toISOString() } : o));

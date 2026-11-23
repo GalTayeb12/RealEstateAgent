@@ -118,16 +118,25 @@ export default function TopNav() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [narrow, setNarrow]           = useState(false);
 
-  // Read user from localStorage on every route change; close mobile menu.
-  useEffect(() => {
+  // Close menus on route change (state reset during render, not in an effect).
+  const [menuPath, setMenuPath] = useState(pathname);
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
     setMenuOpen(false);
     setAccountOpen(false);
-    try {
-      const raw = localStorage.getItem("user");
-      setUser(raw ? JSON.parse(raw) : null);
-    } catch {
-      setUser(null);
-    }
+  }
+
+  // Read user from localStorage on every route change.
+  useEffect(() => {
+    const readId = setTimeout(() => {
+      try {
+        const raw = localStorage.getItem("user");
+        setUser(raw ? JSON.parse(raw) : null);
+      } catch {
+        setUser(null);
+      }
+    }, 0);
+    return () => clearTimeout(readId);
   }, [pathname]);
 
   useEffect(() => {
@@ -170,6 +179,7 @@ export default function TopNav() {
 
   // Fetch offer count for buyer on every route change.
   useEffect(() => {
+    const offersId = setTimeout(() => {
     try {
       const raw = localStorage.getItem("user");
       const u: NavUser | null = raw ? JSON.parse(raw) : null;
@@ -181,10 +191,13 @@ export default function TopNav() {
         .then(d => setOffersCount((d.offers ?? []).length))
         .catch(() => {});
     } catch { /* ignore */ }
+    }, 0);
+    return () => clearTimeout(offersId);
   }, [pathname]);
 
   // Fetch unread notification count for buyer on every route change.
   useEffect(() => {
+    const notifId = setTimeout(() => {
     try {
       const raw = localStorage.getItem("user");
       const u: NavUser | null = raw ? JSON.parse(raw) : null;
@@ -196,6 +209,8 @@ export default function TopNav() {
         .then(d => { if (d) { setNotifCount(d.unreadCount ?? 0); setNotifications(d.notifications ?? []); } })
         .catch(() => {});
     } catch { /* ignore */ }
+    }, 0);
+    return () => clearTimeout(notifId);
   }, [pathname]);
 
   // Close notification panel on outside click.
@@ -266,7 +281,8 @@ export default function TopNav() {
         padding: "0 1.5rem",
         height: "3.25rem",
         display: "grid",
-        gridTemplateColumns: "1fr auto 1fr",
+        gridTemplateColumns: narrow ? "auto 1fr auto" : "1fr auto 1fr",
+        gap: narrow ? "0.5rem" : undefined,
         alignItems: "center",
       }}>
         {/* Col 1: Logo */}

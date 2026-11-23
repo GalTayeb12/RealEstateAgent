@@ -17,13 +17,26 @@
 
 import { Html, useGLTF, Environment, OrbitControls, PerformanceMonitor, Sky } from "@react-three/drei";
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { BuildingEnvironment } from "./BuildingEnvironment";
 import type { ExplorerBuilding, FloorSelection, HoverInfo } from "./types";
 import { statusHex } from "@/lib/statusColors";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 // ── Floor / scene metadata (matches pipeline meta.json) ──────────────────────
+/** Places the orbit camera at the start view. Mutates the camera it is given (called from an effect). */
+function placeInitialCamera(camera: THREE.Camera, sceneWidth: number, maxHeight: number) {
+  const dist = Math.max(sceneWidth * 0.82, maxHeight * 2.2);
+  const cam = camera as THREE.PerspectiveCamera;
+  cam.fov = 48;
+  cam.near = 0.5;
+  cam.far = 1500;
+  cam.updateProjectionMatrix();
+  camera.position.set(sceneWidth * 0.06, 3.5, -dist);
+  camera.lookAt(0, maxHeight * 0.62, 0);
+}
+
 export interface FloorMeta {
   floor: number;
   isLobby: boolean;
@@ -280,9 +293,9 @@ function UnitBlock({
   isSelected: boolean;
   isHovered: boolean;
   statusLabel?: string;
-  onEnter: (e: THREE.Event) => void;
-  onLeave: (e: THREE.Event) => void;
-  onClick: (e: THREE.Event) => void;
+  onEnter: (e: ThreeEvent<PointerEvent>) => void;
+  onLeave: (e: ThreeEvent<PointerEvent>) => void;
+  onClick: (e: ThreeEvent<PointerEvent>) => void;
 }) {
   const alpha = opacity ?? 0.92;
   const [w, , d] = size;
@@ -548,9 +561,9 @@ function FloorOpenView({
             isSelected={isThisSelected}
             isHovered={unit.id === hoveredUnitId && !isDimmed}
             statusLabel={sl}
-            onEnter={(e: any) => { e.stopPropagation(); onUnitEnter(unit.id); }}
-            onLeave={(e: any) => { e.stopPropagation(); onUnitLeave(); }}
-            onClick={(e: any) => { e.stopPropagation(); onUnitClick(unit.id); }}
+            onEnter={(e) => { e.stopPropagation(); onUnitEnter(unit.id); }}
+            onLeave={(e) => { e.stopPropagation(); onUnitLeave(); }}
+            onClick={(e) => { e.stopPropagation(); onUnitClick(unit.id); }}
           />
         );
       })}
@@ -591,7 +604,7 @@ function SceneContent({
   onUnitHover: (unitId: string | null) => void;
 }) {
   const { camera } = useThree();
-  const orbitRef = useRef<any>(null);
+  const orbitRef = useRef<OrbitControlsImpl | null>(null);
   const [quality, setQuality] = useState<"high" | "low">("high");
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
@@ -600,7 +613,8 @@ function SceneContent({
   // ── Clip plane (reveals floor at actual Y position) ──
   // THREE.Plane(normal (0,-1,0), constant K): clips points where -y+K < 0, i.e. y > K.
   // K = large ⟹ nothing clipped; K = topY ⟹ everything above floor ceiling clipped.
-  const clipPlaneRef  = useRef(new THREE.Plane(new THREE.Vector3(0, -1, 0), 9999));
+  const [clipPlane] = useState(() => new THREE.Plane(new THREE.Vector3(0, -1, 0), 9999));
+  const clipPlaneRef  = useRef(clipPlane);
   const targetClipY   = useRef(9999);
   const reducedMotion = useRef(false);
 
@@ -610,14 +624,7 @@ function SceneContent({
 
   // ── Initial camera setup ──
   useEffect(() => {
-    const dist = Math.max(sceneWidth * 0.82, maxHeight * 2.2);
-    const cam = camera as THREE.PerspectiveCamera;
-    cam.fov = 48;
-    cam.near = 0.5;
-    cam.far = 1500;
-    cam.updateProjectionMatrix();
-    camera.position.set(sceneWidth * 0.06, 3.5, -dist);
-    camera.lookAt(0, maxHeight * 0.62, 0);
+    placeInitialCamera(camera, sceneWidth, maxHeight);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -729,7 +736,7 @@ function SceneContent({
       <BakedModel
         url={glbUrl}
         opacity={selectedFloor ? 0.35 : 1.0}
-        clipPlane={selectedFloor ? clipPlaneRef.current : null}
+        clipPlane={selectedFloor ? clipPlane : null}
       />
 
       {/* Per-building, per-floor: hit boxes + status overlays + floor open view */}
@@ -847,11 +854,8 @@ export default function BuildingGLBScene({
   onUnitHover: (unitId: string | null) => void;
 }) {
   const [meta,     setMeta]     = useState<SceneMeta | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile] = useState(() => window.matchMedia("(max-width: 767px)").matches);
 
-  useEffect(() => {
-    setIsMobile(window.matchMedia("(max-width: 767px)").matches);
-  }, []);
 
   useEffect(() => {
     fetch(metaUrl)

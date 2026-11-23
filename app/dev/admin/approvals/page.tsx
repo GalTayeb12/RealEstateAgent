@@ -182,8 +182,10 @@ function UserTable({ token }: { token: string }) {
     setLoading(false);
   }, [token, q, role, page]);
 
-  useEffect(() => { load(); }, [load]);
-  useEffect(() => { setPage(1); }, [q, role]);
+  useEffect(() => {
+    const startId = setTimeout(load, 0);
+    return () => clearTimeout(startId);
+  }, [load]);
 
   const totalPages = Math.ceil(total / limit);
 
@@ -200,13 +202,15 @@ function UserTable({ token }: { token: string }) {
         <input
           type="text"
           placeholder={L.searchEmail}
+          aria-label={L.searchEmail}
           value={q}
-          onChange={e => setQ(e.target.value)}
+          onChange={e => { setQ(e.target.value); setPage(1); }}
           style={{ padding: "0.4375rem 0.75rem", border: "1px solid var(--c-line,#D4DED8)", borderRadius: "0.375rem", fontSize: "0.875rem", outline: "none", minWidth: "13rem" }}
         />
         <select
+          aria-label={L.allRoles}
           value={role}
-          onChange={e => setRole(e.target.value)}
+          onChange={e => { setRole(e.target.value); setPage(1); }}
           style={{ padding: "0.4375rem 0.75rem", border: "1px solid var(--c-line,#D4DED8)", borderRadius: "0.375rem", fontSize: "0.875rem", outline: "none", fontFamily: "inherit" }}
         >
           <option value="">{L.allRoles}</option>
@@ -482,7 +486,11 @@ function ApprovalsTab({ token }: { token: string }) {
     setLoading(false);
   }
 
-  useEffect(() => { if (token) load(); }, [token]);
+  useEffect(() => {
+    if (!token) return;
+    const startId = setTimeout(load, 0);
+    return () => clearTimeout(startId);
+  }, [token]);
 
   function updateResearch(profileId: string, newRaw: string) {
     setProfiles(ps => ps.map(p => p.id === profileId ? { ...p, webResearchSummary: newRaw } : p));
@@ -731,35 +739,39 @@ export default function AdminApprovalsPage() {
   const [tab, setTab] = useState<"overview" | "approvals">("overview");
 
   useEffect(() => {
-    const t = localStorage.getItem("token") ?? "";
-
-    if (!t) {
-      router.push("/login");
-      return;
-    }
-
-    // Role comes from the stored profile (the JWT is an httpOnly cookie). Display/redirect only; the API enforces admin.
-    const role = currentRole();
-
-    if (!role) {
-      // Malformed token — treat as unauthenticated
-      router.push("/login");
-      return;
-    }
-
-    if (role === "admin") {
-      setToken(t);
-      setAuthStatus("ok");
-      return;
-    }
-
-    // Valid token but wrong role — redirect to the right place
-    if (role === "developer") {
-      router.push("/dev/dashboard");
-    } else {
-      // buyer or anything else
-      router.push("/results");
-    }
+    // Deferred so the auth decision is not made synchronously inside the effect body.
+    const startId = setTimeout(() => {
+      const t = localStorage.getItem("token") ?? "";
+
+      if (!t) {
+        router.push("/login");
+        return;
+      }
+
+      // Role comes from the stored profile (the JWT is an httpOnly cookie). Display/redirect only; the API enforces admin.
+      const role = currentRole();
+
+      if (!role) {
+        // Malformed token — treat as unauthenticated
+        router.push("/login");
+        return;
+      }
+
+      if (role === "admin") {
+        setToken(t);
+        setAuthStatus("ok");
+        return;
+      }
+
+      // Valid token but wrong role — redirect to the right place
+      if (role === "developer") {
+        router.push("/dev/dashboard");
+      } else {
+        // buyer or anything else
+        router.push("/results");
+      }
+    }, 0);
+    return () => clearTimeout(startId);
   }, [router]);
 
   // Render nothing until auth is confirmed — prevents any flash of admin content

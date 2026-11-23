@@ -10,7 +10,7 @@
  * Creating a group automatically makes the creator the first member.
  * Joining increments the live member count (tracked in LeverageGroupMember).
  */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 
@@ -174,7 +174,7 @@ function GroupCard({ group }: { group: LeverageGroup }) {
           <MemberPill count={group.memberCount} />
           {/* Discount requested 
           <div>
-            <span style={{ fontSize: "0.6875rem", color: "var(--c-muted,#526563)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>Discount requested </span>
+            <span style={{ fontSize: "0.6875rem", color: "var(--c-muted,#526563)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{m.groups.requestedDiscount} </span>
             <span style={{ fontFamily: "var(--font-jetbrains, monospace)", fontWeight: 600, fontSize: "0.9375rem" }}>{group.requestedDiscountPercent}%</span>
           </div>*/}
           {group.requestedTerms && (
@@ -670,7 +670,11 @@ export default function BuyerLeverageGroupsPage() {
   const [myGroups, setMyGroups] = useState<LeverageGroup[]>([]);
   const [openGroups, setOpenGroups] = useState<LeverageGroup[]>([]);
   const [matchedUnits, setMatchedUnits] = useState<MatchedUnit[]>([]);
-  const [token, setToken] = useState("");
+  const token = useSyncExternalStore(
+    () => () => {},
+    () => localStorage.getItem("token") ?? "",
+    () => "",
+  );
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
@@ -697,26 +701,29 @@ export default function BuyerLeverageGroupsPage() {
   }, []);
 
   useEffect(() => {
-    const t = localStorage.getItem("token") ?? "";
-    setToken(t);
+    // Deferred so the state updates do not run synchronously inside the effect body.
+    const startId = setTimeout(() => {
+      const t = localStorage.getItem("token") ?? "";
 
-    try {
-      const raw = sessionStorage.getItem("matchResults");
-      if (raw) {
-        const data = JSON.parse(raw);
-        setMatchedUnits(
-          (data.ranked as MatchedUnit[]).map((r: MatchedUnit) => ({
-            aomId: r.aomId,
-            title: r.title,
-            valid: r.valid,
-          })),
-        );
+      try {
+        const raw = sessionStorage.getItem("matchResults");
+        if (raw) {
+          const data = JSON.parse(raw);
+          setMatchedUnits(
+            (data.ranked as MatchedUnit[]).map((r: MatchedUnit) => ({
+              aomId: r.aomId,
+              title: r.title,
+              valid: r.valid,
+            })),
+          );
+        }
+      } catch {
+        /* absent session — fine */
       }
-    } catch {
-      /* absent session — fine */
-    }
 
-    loadAll(t);
+      loadAll(t);
+    }, 0);
+    return () => clearTimeout(startId);
   }, [loadAll]);
 
   function handleCreated() {

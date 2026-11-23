@@ -27,44 +27,36 @@ export default function PresenterBot({
   danaNameLabel,
   danaSubtitleLabel,
 }: PresenterBotProps) {
-  const [messages, setMessages] = useState<BotMessage[]>([]);
-  const spokenRef = useRef(new Set<string>());
+  const [messages, setMessages] = useState<BotMessage[]>(() => {
+    const first = profiles.find((p) => p.id === profileId);
+    return first ? [{ text: first.bot.intro, isUser: false }] : [];
+  });
+  const [spoken, setSpoken] = useState<Set<string>>(() => new Set());
+  const [prevProfileId, setPrevProfileId] = useState(profileId);
+  const [prevRoomId, setPrevRoomId] = useState(activeRoomId);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const prevProfileRef = useRef(profileId);
 
-  // Profile change: reset
-  useEffect(() => {
-    if (profileId !== prevProfileRef.current) {
-      prevProfileRef.current = profileId;
-      spokenRef.current = new Set();
-      const profile = profiles.find((p) => p.id === profileId);
-      if (profile) {
-        setMessages([{ text: profile.bot.intro, isUser: false }]);
+  // Profile change: start a fresh conversation. State is adjusted during render
+  // (React's pattern for resetting on a prop change), not inside an effect.
+  if (profileId !== prevProfileId) {
+    setPrevProfileId(profileId);
+    setSpoken(new Set());
+    const next = profiles.find((p) => p.id === profileId);
+    setMessages(next ? [{ text: next.bot.intro, isUser: false }] : []);
+  }
+
+  // Room change: the bot announces each room once per profile.
+  if (activeRoomId !== prevRoomId) {
+    setPrevRoomId(activeRoomId);
+    if (activeRoomId && !spoken.has(activeRoomId)) {
+      setSpoken(new Set([...spoken, activeRoomId]));
+      const current = profiles.find((p) => p.id === profileId);
+      const text = current?.bot[activeRoomId];
+      if (text) {
+        setMessages((prev) => [...prev, { text, roomId: activeRoomId, isUser: false }]);
       }
     }
-  }, [profileId, profiles]);
-
-  // Initial intro
-  useEffect(() => {
-    const profile = profiles.find((p) => p.id === profileId);
-    if (profile && messages.length === 0) {
-      setMessages([{ text: profile.bot.intro, isUser: false }]);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Room change: add bot message
-  useEffect(() => {
-    if (!activeRoomId) return;
-    if (spokenRef.current.has(activeRoomId)) return;
-    spokenRef.current.add(activeRoomId);
-
-    const profile = profiles.find((p) => p.id === profileId);
-    const text = profile?.bot[activeRoomId];
-    if (text) {
-      setMessages((prev) => [...prev, { text, roomId: activeRoomId, isUser: false }]);
-    }
-  }, [activeRoomId, profileId, profiles]);
+  }
 
   // Auto scroll
   useEffect(() => {

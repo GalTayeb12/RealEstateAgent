@@ -211,11 +211,17 @@ export default function InterviewPage() {
   // ── Cinematic bootstrap (runs once on mount) ──────────────────────────────
 
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setPrefersReduced(reduced);
+    // Preference reads are deferred so the state updates are not made synchronously in the effect.
+    const prefId = setTimeout(() => {
+      setPrefersReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+      setIsMuted(localStorage.getItem("interview-muted") === "1");
+    }, 0);
+    return () => clearTimeout(prefId);
+  }, []);
 
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const muted = localStorage.getItem("interview-muted") === "1";
-    setIsMuted(muted);
 
     // navigator.userActivation.hasBeenActive is true when the user arrived via
     // client-side navigation (they clicked a button on the previous page).
@@ -225,8 +231,8 @@ export default function InterviewPage() {
     const hasActivation = ua?.hasBeenActive ?? false;
 
     if (!hasActivation) {
-      setTapNeeded(true);
-      return; // timer starts on tap
+      const tapId = setTimeout(() => setTapNeeded(true), 0);
+      return () => clearTimeout(tapId); // timer starts on tap
     }
 
     // Client-side navigation: unlock the shared AudioContext (may already be
@@ -262,13 +268,12 @@ export default function InterviewPage() {
   //  never fires. It only appears on direct-URL entry / refresh if the user somehow
   //  reached the live phase without the tap-to-enter gesture.)
   useEffect(() => {
-    if (avatarSpeaking) {
-      const ctx = getCtx();
-      if (!ctx || ctx.state !== "running") {
-        console.log("[interview] avatar speaking, ctx not running → show enable button");
-        setNeedsSound(true);
-      }
-    }
+    if (!avatarSpeaking) return;
+    const ctx = getCtx();
+    if (ctx && ctx.state === "running") return;
+    console.log("[interview] avatar speaking, ctx not running → show enable button");
+    const soundId = setTimeout(() => setNeedsSound(true), 0);
+    return () => clearTimeout(soundId);
   }, [avatarSpeaking, getCtx]);
 
   // ── Audio helpers ─────────────────────────────────────────────────────────
@@ -917,8 +922,10 @@ export default function InterviewPage() {
     router.push("/processing");
   }, [copy.emptyTranscript, router]);
 
-  endConversationRef.current = endConversation;
-  triggerAgentEndRef.current = triggerAgentEnd;
+  useEffect(() => {
+    endConversationRef.current = endConversation;
+    triggerAgentEndRef.current = triggerAgentEnd;
+  });
 
   // ── Derived display state ─────────────────────────────────────────────────
 

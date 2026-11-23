@@ -94,7 +94,7 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
                     <div className="dov-floor dov-typerow" key={t.id}>
                       <span className="dov-fl">{t.unitLabel ?? ""}</span>
                       <div className="dov-units">
-                        {dots.map((st, i) => <i key={i} className="dov-dot" style={{ background: COLORS[st], boxShadow: `0 0 10px ${COLORS[st]}66` }} title={names[st]} aria-label={names[st]} />)}
+                        {dots.map((st, i) => <i key={i} role="img" className="dov-dot" style={{ background: COLORS[st], boxShadow: `0 0 10px ${COLORS[st]}66` }} title={names[st]} aria-label={names[st]} />)}
                       </div>
                     </div>
                   );
@@ -115,7 +115,7 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
                       <div className="dov-units">
                         {b.units.filter((u) => u.floor === f).sort((a, c) => a.positionIndex - c.positionIndex).map((u) => {
                           const st = norm(u.status);
-                          return <i key={u.id} className="dov-dot" style={{ background: COLORS[st], boxShadow: `0 0 10px ${COLORS[st]}66` }} title={`${u.unitNumber} · ${names[st]}`} aria-label={`${u.unitNumber} · ${names[st]}`} />;
+                          return <i key={u.id} role="img" className="dov-dot" style={{ background: COLORS[st], boxShadow: `0 0 10px ${COLORS[st]}66` }} title={`${u.unitNumber} · ${names[st]}`} aria-label={`${u.unitNumber} · ${names[st]}`} />;
                         })}
                       </div>
                     </div>

@@ -11,7 +11,7 @@
  *   - "My offers" nav link with unread-update badge
  */
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { EstimatedPriceNote, Money } from "@/components/Money";
 import { useI18n } from "@/components/LocaleProvider";
@@ -176,8 +176,7 @@ function LeverageModal({
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const fetchAll = useCallback(async () => {
     try {
       const [openRes, myRes] = await Promise.all([
         fetch("/api/buyer/leverage-groups?available=true", { headers: { Authorization: `Bearer ${token}` } }),
@@ -198,7 +197,15 @@ function LeverageModal({
     setLoading(false);
   }, [token, outcome.title]);
 
-  useEffect(() => { load(); }, [load]);
+  const load = useCallback(() => {
+    setLoading(true);
+    return fetchAll();
+  }, [fetchAll]);
+
+  useEffect(() => {
+    const startId = setTimeout(fetchAll, 0);
+    return () => clearTimeout(startId);
+  }, [fetchAll]);
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -787,7 +794,11 @@ export default function ResultsPage() {
   const { m } = useI18n();
   const { unlock } = useAudioUnlock();
   const [data, setData] = useState<StoredResults | null>(null);
-  const [token, setToken] = useState("");
+  const token = useSyncExternalStore(
+    () => () => {},
+    () => localStorage.getItem("token") ?? "",
+    () => "",
+  );
   const [missing, setMissing] = useState(false);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [toast, setToast] = useState(false);
@@ -801,7 +812,6 @@ export default function ResultsPage() {
 
   useEffect(() => {
     const t = localStorage.getItem("token") ?? "";
-    setToken(t);
     // sessionStorage cache first; otherwise rebuild from the buyer profile saved on the server.
     loadMatchResults()
       .then((payload) => { if (payload) setData(payload as unknown as StoredResults); else setMissing(true); })

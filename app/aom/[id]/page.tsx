@@ -252,7 +252,7 @@ export default function VprPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.75rem" }}>
               {galleryImages.map(img => (
                 <div key={img.id} style={{ borderRadius: "0.625rem", overflow: "hidden", border: "1px solid rgba(18,63,64,0.08)", aspectRatio: "4/3", background: "var(--qp-soft)" }}>
-                  <img src={img.imageData} alt={img.label || "Property photo"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <img src={img.imageData} alt={img.label || (locale === "he" ? "תמונת הנכס" : "Property photo")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 </div>
               ))}
             </div>

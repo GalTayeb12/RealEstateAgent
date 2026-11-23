@@ -65,12 +65,13 @@ export default function ProcessingPage() {
   useEffect(() => {
     const tid = localStorage.getItem("transcriptId");
     if (tid) {
-      runFlow(tid);
-      return;
+      // Deferred so the state update is not made synchronously inside the effect.
+      const startId = setTimeout(() => runFlow(tid), 0);
+      return () => clearTimeout(startId);
     }
 
     const token = localStorage.getItem("token") ?? "";
-    if (!token) { setPhase("waiting"); return; }
+    if (!token) return;
 
     fetch("/api/buyer/profile", { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : null))

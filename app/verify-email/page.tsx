@@ -18,7 +18,7 @@ export default function VerifyEmailPage() {
   const [resendState, setResendState] = useState<"idle" | "sending" | "sent">("idle");
 
   useEffect(() => {
-    if (!token) { setStatus("invalid"); return; }
+    if (!token) return;
 
     fetch("/api/auth/verify-email", {
       method: "POST",
@@ -46,7 +46,9 @@ export default function VerifyEmailPage() {
     setResendState("sent");
   }
 
-  if (status === "verifying") {
+  const shown: Status = token ? status : "invalid";
+
+  if (shown === "verifying") {
     return (
       <AuthRoom>
         <div style={{ textAlign: "center", color: "var(--qp-muted)", display: "grid", gap: "1rem" }}>
@@ -58,7 +60,7 @@ export default function VerifyEmailPage() {
     );
   }
 
-  if (status === "success") {
+  if (shown === "success") {
     return (
       <AuthRoom>
         <div style={{ textAlign: "center", display: "grid", gap: "1rem" }}>
@@ -73,7 +75,7 @@ export default function VerifyEmailPage() {
     );
   }
 
-  if (status === "already_used") {
+  if (shown === "already_used") {
     return (
       <AuthRoom>
         <div style={{ textAlign: "center", display: "grid", gap: "1rem" }}>
@@ -89,7 +91,7 @@ export default function VerifyEmailPage() {
   }
 
   // expired or invalid — show resend form
-  const isExpired = status === "expired";
+  const isExpired = shown === "expired";
   return (
     <AuthRoom>
       <div style={{ textAlign: "center", display: "grid", gap: "1rem" }}>

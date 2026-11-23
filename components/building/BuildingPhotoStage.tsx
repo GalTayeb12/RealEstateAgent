@@ -158,17 +158,14 @@ export default function BuildingPhotoStage({
   const [pageTypeId] = useState(() => (typeof window === "undefined" ? undefined : window.location.pathname.split("/").filter(Boolean).pop()));
   const [experience, setExperience] = useState<ProjectExperience | null>(null);
   const [active, setActive] = useState<Active | null>(null);
-  const [debug, setDebug] = useState(false);
+  const [debug] = useState(() => new URLSearchParams(window.location.search).get("debug") === "1");
 
-  useEffect(() => {
-    setDebug(new URLSearchParams(window.location.search).get("debug") === "1");
-  }, []);
 
   // Fly-in sequence: 0 idle, 1 dolly to floor, 2 window, 3 push through glass, 4 room fades in, 5 arrived
   const [step, setStep] = useState(0);
   const [cam, setCam] = useState<Cam | null>(null);
   const [follow, setFollow] = useState(false);
-  const [followCam, setFollowCam] = useState<Cam | null>(null);
+
   const [station, setStation] = useState(0);
   // Floor picker: the zoomed floor, and the apartment chosen on it
   const [picking, setPicking] = useState<Active | null>(null);
@@ -193,7 +190,6 @@ export default function BuildingPhotoStage({
     timers.current = [];
   }, []);
   useEffect(() => clearTimers, [clearTimers]);
-  useEffect(() => { if (step === 0) setStation(0); }, [step]);
   useEffect(() => {
     if (step === 0 && videoRef.current) {
       const v = videoRef.current;
@@ -207,6 +203,7 @@ export default function BuildingPhotoStage({
     if (prevSelected.current && !selectedFloor && step > 0) {
       clearTimers();
       setStep(0);
+      setStation(0);
     }
     prevSelected.current = selectedFloor;
   }, [selectedFloor, step, clearTimers]);
@@ -276,6 +273,8 @@ export default function BuildingPhotoStage({
   const lit: Active | null = selectedFloor
     ? { buildingId: selectedFloor.buildingId, floor: selectedFloor.floor }
     : active;
+  const [followCam, setFollowCam] = useState<Cam | null>(null);
+  const [viewTick, setViewTick] = useState(0);
   const litBuilding = lit ? sorted.find((b) => b.id === lit.buildingId) ?? null : null;
   const litIndex = litBuilding ? sorted.indexOf(litBuilding) : -1;
   const litBox = litIndex >= 0 ? meta.buildings[litIndex] : null;
@@ -307,19 +306,23 @@ export default function BuildingPhotoStage({
     const s = Math.min(Math.max((ratio * st.width) / (box.w * fr.width), minS), maxS);
     return { dx: st.left + st.width / 2 - px, dy: st.top + st.height / 2 - py, s, ox: cx * 100, oy: cy * 100 };
   };
-
-  // Slider drives the camera along the tower.
+  // Slider drives the camera along the tower. Computed after render (camFor reads layout),
+  // and deferred so the state update is not made synchronously inside the effect.
   useEffect(() => {
-    if (!follow || step > 0 || !lit || selectedFloor) { setFollowCam(null); return; }
-    setFollowCam(camFor(lit.buildingId, lit.floor, 0.62, 1.35, 2.4));
+    if (!follow || step > 0 || !lit || selectedFloor) {
+      const offId = setTimeout(() => setFollowCam(null), 0);
+      return () => clearTimeout(offId);
+    }
+    const camId = setTimeout(() => setFollowCam(camFor(lit.buildingId, lit.floor, 0.62, 1.35, 2.4)), 0);
+    return () => clearTimeout(camId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [follow, lit?.buildingId, lit?.floor, step, selectedFloor, meta]);
+  }, [follow, lit?.buildingId, lit?.floor, step, selectedFloor, meta, viewTick]);
+
   useEffect(() => {
     if (!follow) return;
-    const onResize = () => { if (lit) setFollowCam(camFor(lit.buildingId, lit.floor, 0.62, 1.35, 2.4)); };
+    const onResize = () => setViewTick((t) => t + 1);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [follow, lit?.buildingId, lit?.floor]);
 
   const finishEnter = useCallback(() => {

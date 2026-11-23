@@ -6,6 +6,7 @@ import TopNav from "@/components/TopNav";
 import SessionMigrator from "@/components/SessionMigrator";
 import ThemeScope from "@/components/theme/ThemeScope";
 import SiteFooter from "@/components/SiteFooter";
+import CookieNotice from "@/components/CookieNotice";
 import { LocaleProvider } from "@/components/LocaleProvider";
 import { AudioUnlockProvider } from "@/components/AudioUnlockProvider";
 import { dirFor } from "@/lib/i18n/locale";
@@ -84,6 +85,7 @@ export default async function RootLayout({
             <TopNav />
             <ThemeScope>{children}</ThemeScope>
             <SiteFooter />
+            <CookieNotice />
           </AudioUnlockProvider>
         </LocaleProvider>
       </body>

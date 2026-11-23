@@ -44,9 +44,10 @@ function run(cmd: string, args: string[], label: string) {
   const t0 = Date.now();
   try {
     execFileSync(cmd, args, { stdio: "inherit" });
-  } catch (e: any) {
-    console.error(`\n✗ ${label} failed (exit ${e.status})`);
-    process.exit(e.status ?? 1);
+  } catch (e: unknown) {
+    const status = (e as { status?: number | null }).status;
+    console.error(`\n✗ ${label} failed (exit ${status})`);
+    process.exit(status ?? 1);
   }
   console.log(`  ✓ done in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }

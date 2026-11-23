@@ -14,6 +14,7 @@ import { layoutTowers } from "./layout";
 import { BuildingEnvironment } from "./BuildingEnvironment";
 import type { ExplorerBuilding, FloorSelection, HoverInfo } from "./types";
 import type { TowerLayout, FloorLayout } from "./layout";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 
 // ─── Geometry constants ───────────────────────────────────────────────────────
 const DEPTH    = 1.18;   // building front-to-back depth
@@ -413,7 +414,7 @@ function Scene({
   onFloorClick?: (buildingId: string, floor: number) => void;
 }) {
   const { camera } = useThree();
-  const orbitRef = useRef<any>(null);
+  const orbitRef = useRef<OrbitControlsImpl | null>(null);
   const { towers, maxHeight } = useMemo(() => layoutTowers(buildings), [buildings]);
   const dist   = Math.max(10, maxHeight * 1.55, towers.length * 6.5);
   const target = useMemo<[number, number, number]>(() => [0, maxHeight * 0.38, 0], [maxHeight]);
@@ -592,13 +593,10 @@ export default function BuildingCanvas(props: {
   const dist = Math.max(10, maxHeight * 1.55, towers.length * 6.5);
 
   const [quality,  setQuality]  = useState<"high" | "low">("high");
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile] = useState(() => window.matchMedia("(max-width: 767px)").matches);
   const [hoveredFloor,      setHoveredFloor]      = useState<number | null>(null);
   const [hoveredBuildingId, setHoveredBuildingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    setIsMobile(window.matchMedia("(max-width: 767px)").matches);
-  }, []);
 
   const handleFloorHover = useCallback(
     (info: HoverInfo | null, floor: number | null, bid: string | null) => {

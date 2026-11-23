@@ -1,16 +1,18 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 import { AuthRoom } from "@/components/auth/Room";
 
 export default function DevPendingPage() {
   const { m } = useI18n();
-  const [email, setEmail] = useState("");
+  const email = useSyncExternalStore(
+    () => () => {},
+    () => sessionStorage.getItem("dev_pending_email") ?? "",
+    () => "",
+  );
 
   useEffect(() => {
-    setEmail(sessionStorage.getItem("dev_pending_email") ?? "");
-
     let stopped = false;
     async function poll() {
       const token = localStorage.getItem("token") ?? "";

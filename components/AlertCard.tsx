@@ -102,6 +102,7 @@ export function AlertCard({ token }: { token: string }) {
             onClick={toggle}
             disabled={saving}
             aria-pressed={pref.active}
+            aria-label={ma.title}
             style={{
               width: "2.75rem",
               height: "1.5rem",

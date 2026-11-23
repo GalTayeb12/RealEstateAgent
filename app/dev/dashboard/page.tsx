@@ -161,7 +161,9 @@ export default function DevDashboardPage() {
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab");
-    if (requested === "reservations" || requested === "groups") setTab(requested);
+    if (requested !== "reservations" && requested !== "groups") return;
+    const startId = setTimeout(() => setTab(requested), 0);
+    return () => clearTimeout(startId);
   }, []);
   const [projects, setProjects] = useState<Project[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -230,9 +232,12 @@ export default function DevDashboardPage() {
   }, [router, token, loadProjects, loadReservations, loadGroups]);
 
   useEffect(() => {
-    if (tab === "projects")      loadProjects();
-    if (tab === "reservations")  loadReservations();
-    if (tab === "groups")        loadGroups();
+    const startId = setTimeout(() => {
+      if (tab === "projects")      loadProjects();
+      if (tab === "reservations")  loadReservations();
+      if (tab === "groups")        loadGroups();
+    }, 0);
+    return () => clearTimeout(startId);
   }, [tab, loadProjects, loadReservations, loadGroups]);
 
   // ── Project CRUD ────────────────────────────────────────────────────────────
@@ -757,7 +762,7 @@ export default function DevDashboardPage() {
                           href={`/deal/${reservation.id}`}
                           style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, var(--c-btn-hover,#0C3031), var(--c-btn-hover,#123332))", color: "var(--c-on-btn,#fff)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
                         >
-                          View Deal Room →
+                          {m.offers.viewDealRoom}
                         </Link>
                         {!isComplete && (
                           <button

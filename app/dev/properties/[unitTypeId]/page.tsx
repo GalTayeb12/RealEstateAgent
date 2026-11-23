@@ -163,7 +163,8 @@ export default function UnitTypeEditPage() {
   }, [unitTypeId, router]);
 
   useEffect(() => {
-    load();
+    const startId = setTimeout(load, 0);
+    return () => clearTimeout(startId);
   }, [load]);
 
   function setField(k: keyof typeof form) {

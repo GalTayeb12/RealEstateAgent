@@ -73,6 +73,19 @@ const OFFER_STATUS: Record<string, { label: string; bg: string; color: string }>
   rejected:  { label: "Rejected",  bg: "var(--qp-error-bg)", color: "var(--qp-error)" },
 };
 
+function factLabel(m: ReturnType<typeof useI18n>["m"], k: string, v: unknown): string {
+  const n = String(v);
+  if (k === "rooms") return m.dev.factsRooms.replace("{n}", n);
+  if (k === "area") return m.dev.factsArea.replace("{n}", n);
+  if (k === "balconySqm") return m.dev.factsBalcony.replace("{n}", n);
+  if (k === "bathrooms") return m.sellerDash.bathrooms.replace("{n}", n);
+  return `${k} ${n}`;
+}
+
+function localizeMap(map: Record<string, { label: string; bg: string; color: string }>, labels: Record<string, string>) {
+  return Object.fromEntries(Object.entries(map).map(([k, v]) => [k, { ...v, label: labels[k] ?? v.label }]));
+}
+
 // ── Reusable sub-components ───────────────────────────────────────────────────
 
 function StatusBadge({ status, map }: { status: string; map: Record<string, { label: string; bg: string; color: string }> }) {
@@ -189,7 +202,7 @@ function UnitTypeForm({
         />
       </div>
       <div style={{ display: "flex", gap: "0.625rem", justifyContent: "flex-end", marginTop: "1rem" }}>
-        <ActionButton onClick={onCancel} variant="ghost">Cancel</ActionButton>
+        <ActionButton onClick={onCancel} variant="ghost">{m.sellerDash.cancel}</ActionButton>
         <ActionButton onClick={onSubmit} variant="primary">{isEdit ? m.dev.saveChanges : m.dev.createUnitType}</ActionButton>
       </div>
     </div>
@@ -208,7 +221,7 @@ const blankUnitTypeForm: UnitTypeFormState = {
 
 export default function SellerDashboardPage() {
   const router = useRouter();
-  const { locale } = useI18n();
+  const { locale, m } = useI18n();
   const [profile, setProfile] = useState<SellerProfile | null>(null);
   const [tab, setTab] = useState<Tab>("projects");
   const [projects, setProjects] = useState<Project[]>([]);
@@ -259,8 +272,11 @@ export default function SellerDashboardPage() {
   }, [router, token, loadProjects, loadOffers]);
 
   useEffect(() => {
-    if (tab === "projects") loadProjects();
-    if (tab === "offers")   loadOffers();
+    const startId = setTimeout(() => {
+      if (tab === "projects") loadProjects();
+      if (tab === "offers")   loadOffers();
+    }, 0);
+    return () => clearTimeout(startId);
   }, [tab, loadProjects, loadOffers]);
 
   // ── Project CRUD ────────────────────────────────────────────────────────────
@@ -274,13 +290,13 @@ export default function SellerDashboardPage() {
   }
 
   async function submitProjectForm() {
-    if (!projectForm.name.trim()) { alert("Project name is required"); return; }
+    if (!projectForm.name.trim()) { alert(m.sellerDash.projectNameRequired); return; }
     const res = await fetch("/api/seller/projects", {
       method: "POST",
       headers: { ...auth(), "Content-Type": "application/json" },
       body: JSON.stringify(projectForm),
     });
-    if (!res.ok) { const d = await res.json(); alert(d.error ?? "Save failed"); return; }
+    if (!res.ok) { const d = await res.json(); alert(d.error ?? m.sellerDash.saveFailed); return; }
     const { project } = await res.json();
     setShowProjectForm(false);
     setProjectForm(blankProjectForm);
@@ -324,13 +340,13 @@ export default function SellerDashboardPage() {
       body: JSON.stringify(body),
     });
 
-    if (!res.ok) { const d = await res.json(); alert(d.error ?? "Save failed"); return; }
+    if (!res.ok) { const d = await res.json(); alert(d.error ?? m.sellerDash.saveFailed); return; }
     cancelUnitTypeForm();
     loadProjects();
   }
 
   async function deactivateUnitType(id: string) {
-    if (!confirm("Deactivate this listing?")) return;
+    if (!confirm(m.sellerDash.deactivateListingConfirm)) return;
     await fetch(`/api/seller/unit-types/${id}`, { method: "DELETE", headers: auth() });
     loadProjects();
   }
@@ -392,7 +408,7 @@ export default function SellerDashboardPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <span style={{ fontSize: "0.75rem", color: "var(--qp-muted)" }}>{profile.phone}</span>
             <span style={{ fontSize: "0.6875rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", padding: "0.2rem 0.625rem", borderRadius: "999px", background: "var(--qp-soft)", color: "var(--qp-ink)" }}>
-              Seller
+              {m.nav.roleSeller}
             </span>
           </div>
         </div>
@@ -400,8 +416,8 @@ export default function SellerDashboardPage() {
         {/* Tab nav */}
         <div style={{ maxWidth: "75rem", margin: "0 auto", padding: "0 1.5rem", display: "flex", gap: 0 }}>
           {([
-            ["projects", "My Projects",     totalProjects],
-            ["offers",   "Incoming Offers", pendingOffers > 0 ? pendingOffers : offers.length],
+            ["projects", m.sellerDash.tabProjects, totalProjects],
+            ["offers", m.sellerDash.tabOffers, pendingOffers > 0 ? pendingOffers : offers.length],
           ] as const).map(([key, label, count]) => (
             <button
               key={key}
@@ -438,40 +454,40 @@ export default function SellerDashboardPage() {
         {tab === "projects" && (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-              <SectionHeading>My Projects</SectionHeading>
+              <SectionHeading>{m.sellerDash.tabProjects}</SectionHeading>
               <button
                 onClick={() => { setShowProjectForm(true); setProjectForm(blankProjectForm); }}
                 style={{ padding: "0.5rem 1.125rem", borderRadius: "0.5rem", background: "var(--qp-ink)", color: "var(--qp-surface)", border: "none", fontSize: "0.875rem", fontWeight: 600, cursor: "pointer" }}
               >
-                + New listing
+                {m.sellerDash.newListing}
               </button>
             </div>
 
             {showProjectForm && (
               <div style={{ background: "var(--qp-surface)", borderRadius: "0.875rem", border: "1px solid var(--qp-border)", borderTop: "3px solid var(--qp-accent-text)", padding: "1.5rem", marginBottom: "1.25rem" }}>
-                <h3 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", margin: "0 0 1rem" }}>New project</h3>
+                <h3 style={{ fontFamily: "var(--font-heebo, serif)", fontSize: "1.125rem", fontWeight: 600, color: "var(--qp-ink)", margin: "0 0 1rem" }}>{m.sellerDash.newProject}</h3>
                 <div className="hn-dev-proj-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div style={{ gridColumn: "1 / -1" }}>
-                    <FormField label="Project name">
-                      <input style={inputStyle} value={projectForm.name} onChange={e => setProjectForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. My Property" />
+                    <FormField label={m.sellerDash.projectName}>
+                      <input style={inputStyle} value={projectForm.name} onChange={e => setProjectForm(f => ({ ...f, name: e.target.value }))} placeholder={m.sellerDash.projectNamePh} />
                     </FormField>
                   </div>
-                  <FormField label="Location / address">
-                    <input style={inputStyle} value={projectForm.location} onChange={e => setProjectForm(f => ({ ...f, location: e.target.value }))} placeholder="e.g. 12 High Street, London" />
+                  <FormField label={m.sellerDash.locationLabel}>
+                    <input style={inputStyle} value={projectForm.location} onChange={e => setProjectForm(f => ({ ...f, location: e.target.value }))} placeholder={m.sellerDash.locationPh} />
                   </FormField>
-                  <FormField label="Description">
-                    <input style={inputStyle} value={projectForm.description} onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))} placeholder="Short description" />
+                  <FormField label={m.sellerDash.description}>
+                    <input style={inputStyle} value={projectForm.description} onChange={e => setProjectForm(f => ({ ...f, description: e.target.value }))} placeholder={m.sellerDash.descriptionPh} />
                   </FormField>
                 </div>
                 <div style={{ display: "flex", gap: "0.625rem", justifyContent: "flex-end", marginTop: "1rem" }}>
-                  <ActionButton onClick={() => { setShowProjectForm(false); setProjectForm(blankProjectForm); }} variant="ghost">Cancel</ActionButton>
-                  <ActionButton onClick={submitProjectForm} variant="primary">Create project</ActionButton>
+                  <ActionButton onClick={() => { setShowProjectForm(false); setProjectForm(blankProjectForm); }} variant="ghost">{m.sellerDash.cancel}</ActionButton>
+                  <ActionButton onClick={submitProjectForm} variant="primary">{m.sellerDash.createProject}</ActionButton>
                 </div>
               </div>
             )}
 
             {projects.length === 0 && !showProjectForm && (
-              <p style={{ color: "var(--qp-muted)", textAlign: "center", padding: "3rem 0" }}>No listings yet — create your first listing above.</p>
+              <p style={{ color: "var(--qp-muted)", textAlign: "center", padding: "3rem 0" }}>{m.sellerDash.noListings}</p>
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -495,8 +511,8 @@ export default function SellerDashboardPage() {
                         )}
                         <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
                           {project.unitTypes.length === 0
-                            ? "No unit types yet"
-                            : `${project.unitTypes.length} unit type${project.unitTypes.length !== 1 ? "s" : ""}${availableCount > 0 ? ` · ${availableCount} available` : ""}`
+                            ? m.sellerDash.noUnitTypes
+                            : `${project.unitTypes.length === 1 ? m.sellerDash.unitTypeOne : m.sellerDash.unitTypes.replace("{n}", String(project.unitTypes.length))} ${availableCount === 1 ? m.sellerDash.availableOne : availableCount > 1 ? m.sellerDash.available.replace("{n}", String(availableCount)) : ""}`
                           }
                         </p>
                       </div>
@@ -509,7 +525,7 @@ export default function SellerDashboardPage() {
                     {isExpanded && (
                       <div style={{ borderTop: "1px solid var(--qp-soft)" }}>
                         {project.unitTypes.length === 0 ? (
-                          <p style={{ padding: "1rem 1.375rem", fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>No unit types yet — add one below.</p>
+                          <p style={{ padding: "1rem 1.375rem", fontSize: "0.875rem", color: "var(--qp-muted)", margin: 0 }}>{m.sellerDash.noUnitTypesAdd}</p>
                         ) : (
                           <div>
                             {project.unitTypes.map((ut, idx) => {
@@ -534,24 +550,24 @@ export default function SellerDashboardPage() {
                                       )}
                                       {ut.quantityTotal > 0 && (
                                         <span style={{ fontSize: "0.8125rem", color: "var(--qp-muted)" }}>
-                                          {ut.quantityAvailable}/{ut.quantityTotal} avail.
+                                          {m.sellerDash.unitAvail.replace("{a}", String(ut.quantityAvailable)).replace("{t}", String(ut.quantityTotal))}
                                         </span>
                                       )}
-                                      <StatusBadge status={ut.aomStatus} map={AOM_STATUS} />
+                                      <StatusBadge status={ut.aomStatus} map={localizeMap(AOM_STATUS, m.sellerDash.aomStatus)} />
                                     </div>
                                     {ut.description && (
                                       <p style={{ margin: "0.25rem 0 0", fontSize: "0.8125rem", color: "var(--qp-muted)" }}>{ut.description}</p>
                                     )}
                                     <div style={{ display: "flex", gap: "1.25rem", marginTop: "0.375rem", fontFamily: "var(--font-heebo, monospace)", fontSize: "0.75rem", color: "var(--qp-muted)" }}>
-                                      <span>Min. match <strong style={{ color: "var(--qp-ink)" }}>{ut.eil}</strong></span>
-                                      <span>Target match <strong style={{ color: "var(--qp-ink)" }}>{ut.ail}</strong></span>
+                                      <span>{m.sellerDash.minMatch} <strong style={{ color: "var(--qp-ink)" }}>{ut.eil}</strong></span>
+                                      <span>{m.sellerDash.targetMatch} <strong style={{ color: "var(--qp-ink)" }}>{ut.ail}</strong></span>
                                       {Object.entries(attrs).slice(0, 3).map(([k, v]) => (
-                                        <span key={k}>{k} <strong style={{ color: "var(--qp-ink)" }}>{String(v)}</strong></span>
+                                        <span key={k}>{factLabel(m, k, v)}</span>
                                       ))}
                                     </div>
                                   </div>
                                   <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
-                                    <ActionButton onClick={() => deactivateUnitType(ut.id)} variant="danger">Deactivate</ActionButton>
+                                    <ActionButton onClick={() => deactivateUnitType(ut.id)} variant="danger">{m.sellerDash.deactivate}</ActionButton>
                                   </div>
                                 </div>
                               );
@@ -577,7 +593,7 @@ export default function SellerDashboardPage() {
                               onClick={() => startAddUnitType(project.id)}
                               style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)", background: "none", border: "1px dashed var(--qp-border)", borderRadius: "0.4rem", padding: "0.4rem 0.875rem", cursor: "pointer" }}
                             >
-                              + Add unit type
+                              {m.sellerDash.addUnitType}
                             </button>
                           </div>
                         )}
@@ -593,8 +609,8 @@ export default function SellerDashboardPage() {
         {/* ── INCOMING OFFERS ── */}
         {tab === "offers" && (
           <div>
-            <SectionHeading>Incoming Offers</SectionHeading>
-            {offers.length === 0 && <p style={{ color: "var(--qp-muted)", textAlign: "center", padding: "3rem 0" }}>No offers received yet.</p>}
+            <SectionHeading>{m.sellerDash.tabOffers}</SectionHeading>
+            {offers.length === 0 && <p style={{ color: "var(--qp-muted)", textAlign: "center", padding: "3rem 0" }}>{m.sellerDash.noOffers}</p>}
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {offers.map(offer => {
                 const canAct = offer.status === "pending";
@@ -613,22 +629,22 @@ export default function SellerDashboardPage() {
                                 <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="var(--qp-ink)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                                   <polyline points="1.5 6 4.5 9 10.5 3"/>
                                 </svg>
-                                Deal complete
+                                {m.offers.dealComplete}
                               </span>
                             ) : (
-                              <StatusBadge status={offer.status} map={OFFER_STATUS} />
+                              <StatusBadge status={offer.status} map={localizeMap(OFFER_STATUS, m.sellerDash.offerStatus)} />
                             )}
                           </div>
                           <p style={{ margin: "0.25rem 0 0", fontSize: "0.875rem", color: "var(--qp-muted)" }}>
-                            From <strong style={{ color: "var(--qp-ink)" }}>{offer.buyer.email}</strong>
+                            {m.sellerDash.from} <strong style={{ color: "var(--qp-ink)" }}>{offer.buyer.email}</strong>
                           </p>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>Offered price</div>
+                          <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>{m.sellerDash.offeredPrice}</div>
                           <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "var(--qp-ink)" }}><Money amount={offer.offeredPrice} /><EstimatedPriceNote /></div>
                           {offer.matchScore != null && (
                             <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)", marginTop: "0.25rem" }}>
-                              Match score: <strong style={{ color: "var(--qp-ink)" }}>{offer.matchScore.toFixed(1)}</strong>
+                              {m.sellerDash.matchScore} <strong style={{ color: "var(--qp-ink)" }}>{offer.matchScore.toFixed(1)}</strong>
                             </div>
                           )}
                         </div>
@@ -663,7 +679,7 @@ export default function SellerDashboardPage() {
 
                       {awaitingBuyer && (
                         <div style={{ marginTop: "1rem", padding: "0.625rem 0.875rem", background: "var(--qp-soft)", borderRadius: "0.5rem", border: "1px solid var(--qp-border)", fontSize: "0.8125rem", color: "var(--qp-ink)", fontWeight: 500 }}>
-                          Awaiting buyer&apos;s response to your counter…
+                          {m.sellerDash.awaitingBuyerCounter}
                         </div>
                       )}
 
@@ -673,21 +689,21 @@ export default function SellerDashboardPage() {
                             href={`/deal/${offer.id}`}
                             style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", padding: "0.5rem 1.125rem", borderRadius: 999, background: "linear-gradient(155deg, var(--qp-primary-hover), var(--qp-primary-active))", color: "var(--qp-surface)", fontSize: "0.8125rem", fontWeight: 600, textDecoration: "none" }}
                           >
-                            {dealComplete ? "View signed contract →" : "View Deal Room →"}
+                            {dealComplete ? m.sellerDash.viewContract : m.sellerDash.viewDealRoom}
                           </Link>
                         </div>
                       )}
 
                       {canAct && (
                         <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", flexWrap: "wrap", alignItems: "center" }}>
-                          <ActionButton onClick={() => respondOffer(offer.id, "accept")} variant="primary">Accept</ActionButton>
-                          <ActionButton onClick={() => respondOffer(offer.id, "reject")} variant="danger">Reject</ActionButton>
+                          <ActionButton onClick={() => respondOffer(offer.id, "accept")} variant="primary">{m.sellerDash.accept}</ActionButton>
+                          <ActionButton onClick={() => respondOffer(offer.id, "reject")} variant="danger">{m.sellerDash.reject}</ActionButton>
                           {(offer.roundNumber ?? 0) < 2 && (
                             <ActionButton
                               onClick={() => { setCounteringOfferId(counteringOfferId === offer.id ? null : offer.id); setOfferCounter({ counterPrice: "", counterTerms: "", counterExplanation: "" }); }}
                               variant="ghost"
                             >
-                              {counteringOfferId === offer.id ? "Cancel counter" : "Counter"}
+                              {counteringOfferId === offer.id ? m.sellerDash.cancelCounter : m.sellerDash.counter}
                             </ActionButton>
                           )}
                         </div>
@@ -696,27 +712,27 @@ export default function SellerDashboardPage() {
 
                     {counteringOfferId === offer.id && (offer.roundNumber ?? 0) < 2 && (
                       <div style={{ borderTop: "1px solid var(--qp-soft)", padding: "1.125rem 1.375rem", background: "var(--qp-surface)", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-accent-text)" }}>Counter offer</div>
+                        <div style={{ fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--qp-accent-text)" }}>{m.sellerDash.counterOffer}</div>
                         <div className="hn-dev-counter-grid" style={{ display: "grid", gridTemplateColumns: "8rem 1fr", gap: "0.75rem" }}>
-                          <FormField label="מחיר נגד (₪) / Counter (ILS)">
+                          <FormField label={m.sellerDash.counterPriceLabel}>
                             <input type="number" step={1000} value={offerCounter.counterPrice} onChange={e => setOfferCounter(f => ({ ...f, counterPrice: e.target.value }))}
                               style={{ ...inputStyle, fontFamily: "var(--font-heebo, monospace)" }} />
                           </FormField>
-                          <FormField label="Counter terms">
+                          <FormField label={m.sellerDash.counterTerms}>
                             <input value={offerCounter.counterTerms} onChange={e => setOfferCounter(f => ({ ...f, counterTerms: e.target.value }))}
-                              placeholder="State your counter terms…" style={inputStyle} />
+                              placeholder={m.sellerDash.counterTermsPh} style={inputStyle} />
                           </FormField>
                         </div>
-                        <FormField label="Explanation (required — shown to buyer)">
+                        <FormField label={m.sellerDash.explanationLabel}>
                           <input
                             value={offerCounter.counterExplanation}
                             onChange={e => setOfferCounter(f => ({ ...f, counterExplanation: e.target.value }))}
-                            placeholder="e.g. The property was recently renovated"
+                            placeholder={m.sellerDash.counterExplanationPh}
                             style={inputStyle}
                           />
                         </FormField>
                         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                          <ActionButton onClick={() => respondOffer(offer.id, "counter")} variant="primary">Send counter</ActionButton>
+                          <ActionButton onClick={() => respondOffer(offer.id, "counter")} variant="primary">{m.sellerDash.sendCounter}</ActionButton>
                         </div>
                       </div>
                     )}
