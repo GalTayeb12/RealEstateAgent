@@ -70,21 +70,21 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
   const fitBars: [string, number][] = cur.fitParts.map((c) => [FIT_LABEL[c.id][idx2], c.score]);
   const why: string[] = [];
   for (const c of cur.fitParts) {
-    if (c.id === "location") why.push(c.note === "ok" ? (he ? "המיקום תואם את האזור שביקשת" : "Location matches the area you asked for") : (he ? "מחוץ לאזור שביקשת" : "Outside the area you asked for"));
-    if (c.id === "budget") why.push(c.note === "ok" ? (he ? "המחיר בתוך התקציב" : "Price is within your budget") : (he ? "המחיר מעל התקציב" : "Price is above your budget"));
-    if (c.id === "rooms") why.push(c.note === "ok" ? (he ? "מספר החדרים מתאים" : "Room count fits") : (he ? "פחות חדרים ממה שביקשת" : "Fewer rooms than you asked for"));
+    if (c.id === "location") why.push(c.note === "ok" ? (m.resultsHero.locationMatchesTheAreaYou) : (m.resultsHero.outsideTheAreaYouAsked));
+    if (c.id === "budget") why.push(c.note === "ok" ? (m.resultsHero.priceIsWithinYourBudget) : (m.resultsHero.priceIsAboveYourBudget));
+    if (c.id === "rooms") why.push(c.note === "ok" ? (m.resultsHero.roomCountFits) : (m.resultsHero.fewerRoomsThanYouAsked));
     if (c.id === "musts" && c.musts) {
       const nm = (k: string) => MUST_LABEL[k]?.[idx2] ?? k;
-      if (c.musts.met.length) why.push((he ? "יש: " : "Has: ") + c.musts.met.map(nm).join(", "));
-      if (c.musts.unknown.length) why.push((he ? "לא מצוין במודעה: " : "Not listed: ") + c.musts.unknown.map(nm).join(", "));
-      if (c.musts.unmet.length) why.push((he ? "חסר: " : "Missing: ") + c.musts.unmet.map(nm).join(", "));
+      if (c.musts.met.length) why.push((m.resultsHero.has) + c.musts.met.map(nm).join(", "));
+      if (c.musts.unknown.length) why.push((m.resultsHero.notListed) + c.musts.unknown.map(nm).join(", "));
+      if (c.musts.unmet.length) why.push((m.resultsHero.missing) + c.musts.unmet.map(nm).join(", "));
     }
   }
   const bars: [string, number][] = [
-    [he ? "הציון שלך" : "Your ideal", ej],
-    [he ? "המינימום שלך" : "Your minimum", aj],
-    [he ? "המוכר מבקש" : "Seller asks", cur.ail],
-    [he ? "המוכר מקבל" : "Seller accepts", cur.eil],
+    [m.resultsHero.yourIdeal, ej],
+    [m.resultsHero.yourMinimum, aj],
+    [m.resultsHero.sellerAsks, cur.ail],
+    [m.resultsHero.sellerAccepts, cur.eil],
   ];
   const overlap = Math.max(0, Math.round(cur.upperBound - cur.lowerBound));
   const onKey = (e: KeyboardEvent) => {
@@ -104,7 +104,7 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
       <div className="rh-hd">
         <div>
           <span className="rh-kick">{kicker}</span>
-          <h1>{he ? "הבית שמרגיש כמו שאמרת." : "The home that feels like you said."}</h1>
+          <h1>{m.resultsHero.theHomeThatFeelsLike}</h1>
           <p className="rh-count">{summary}</p>
         </div>
         <span className="rh-ctr" aria-hidden="true"><b>{two(idx + 1)}</b> / {two(items.length)}</span>
@@ -112,12 +112,12 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
 
       <div className="rh-main">
         <div key={cur.key} className="rh-cur">
-          <div className="rh-score" aria-label={`${he ? "התאמה לצרכים שלך" : "Fit to your needs"}: ${cur.fit}`}>{cur.fit}<small>%</small></div>
-          <span className="rh-kick sub" title={he ? "עד כמה הנכס עונה על מה שביקשת: מיקום, תקציב, חדרים ודרישות חובה" : "How well the listing meets what you asked for: location, budget, rooms and must-haves"}>{he ? "התאמה לצרכים שלך" : "Fit to your needs"}{cur.unitLabel ? ` · ${cur.unitLabel}` : ""}</span>
+          <div className="rh-score" aria-label={`${m.resultsHero.fitToYourNeeds}: ${cur.fit}`}>{cur.fit}<small>%</small></div>
+          <span className="rh-kick sub" title={m.resultsHero.howWellTheListingMeets}>{m.resultsHero.fitToYourNeeds}{cur.unitLabel ? ` · ${cur.unitLabel}` : ""}</span>
           <h2>{cur.name}</h2>
           {cur.address && <p className="rh-addr">{cur.address}</p>}
           <div className="rh-facts">
-            {cur.price > 0 && <div><b className="num">{cur.priceFrom ? `${m.results.from} ` : ""}<Money amount={cur.price} /></b><span>{he ? "מחיר" : "Price"}</span></div>}
+            {cur.price > 0 && <div><b className="num">{cur.priceFrom ? `${m.results.from} ` : ""}<Money amount={cur.price} /></b><span>{m.resultsHero.price}</span></div>}
             {facts.map((f) => <div key={f.label}><b>{f.text}</b><span>{f.label}</span></div>)}
           </div>
           <div className="rh-act">
@@ -127,7 +127,7 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
           </div>
         </div>
         <aside className="rh-side" aria-live="polite">
-          <span className="rh-kick">{he ? "למה זו התאמה" : "Why it matches"}</span>
+          <span className="rh-kick">{m.resultsHero.whyItMatches}</span>
           <div className="rh-bars">
             {fitBars.map(([n, v]) => <div className="rh-bar" key={n}><span>{n}</span><span><i style={{ ["--w" as string]: pct(v) }} /></span><b>{Math.round(v)}</b></div>)}
           </div>
@@ -136,12 +136,12 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
           </ul>
           {renderRange && (
             <details className="rh-range">
-              <summary>{he ? "טווח המשא ומתן" : "Negotiation range"}</summary>
-              <p className="rh-zij">{he ? `ציון המשא ומתן (Zij): ${Math.round(cur.zij)}. הוא מודד כמה מרווח יש בין הטווחים שלך ושל המוכר, ואינו ציון התאמה.` : `Negotiation score (Zij): ${Math.round(cur.zij)}. It measures the margin between your range and the seller's, not how well the listing fits.`}</p>
+              <summary>{m.resultsHero.negotiationRange}</summary>
+              <p className="rh-zij">{m.resultsHero.zijNote(Math.round(cur.zij))}</p>
               <div className="rh-bars">
                 {bars.map(([n, v]) => <div className="rh-bar" key={n}><span>{n}</span><span><i style={{ ["--w" as string]: pct(v) }} /></span><b>{Math.round(v)}</b></div>)}
               </div>
-              <p className="rh-zij">{he ? `טווחי ההסכמה חופפים ב-${overlap} נקודות.` : `The ranges overlap by ${overlap} points.`}</p>
+              <p className="rh-zij">{m.resultsHero.overlapNote(overlap)}</p>
               {renderRange(cur.key)}
             </details>
           )}
@@ -149,7 +149,7 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
       </div>
 
       {items.length > 1 && (
-        <div className="rh-rail" role="group" aria-label={he ? "בחירת פרויקט" : "Choose a project"}>
+        <div className="rh-rail" role="group" aria-label={m.resultsHero.chooseAProject}>
           {items.map((it, i) => (
             <button key={it.key} type="button" className="rh-card" aria-pressed={i === idx} onClick={() => setSel(i)}>
               <Image src={pickImage(it.key)} alt="" width={192} height={168} sizes="96px" />
@@ -158,7 +158,7 @@ export default function ResultsHero({ items, ej, aj, summary, kicker, title, ren
           ))}
         </div>
       )}
-      <p className="rh-note">{he ? "התמונות להמחשה בלבד · הדמיות" : "Images are illustrative renderings"}</p>
+      <p className="rh-note">{m.resultsHero.imagesAreIllustrativeRenderings}</p>
     </section>
   );
 }

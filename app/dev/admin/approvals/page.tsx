@@ -85,69 +85,10 @@ interface AdminLeverageGroup {
   };
 }
 
-// ── Copy (he / en) ────────────────────────────────────────────────────────────
-// Server-generated text (AI research summaries, registry flags) is passed through as written.
-const TXT = {
-  he: {
-    totalUsers: "סה״כ משתמשים", usersSub: (b: number, d: number) => `${b} קונים · ${d} יזמים`,
-    totalOffers: "סה״כ הצעות", pendingN: (n: number) => `${n} ממתינות`,
-    activeGroups: "קבוצות פעילות", groupReqs: "בקשות רכישה קבוצתית",
-    activeListings: "נכסים פעילים", unitTypesLive: "סוגי דירות פעילים",
-    users: "משתמשים", searchEmail: "חיפוש לפי אימייל…", allRoles: "כל התפקידים", buyers: "קונים", developers: "יזמים", admins: "אדמינים",
-    loading: "טוען…", noUsers: "לא נמצאו משתמשים.", thEmail: "אימייל", thRole: "תפקיד", thCompany: "חברה", thRegistered: "נרשם",
-    score: "ציון", page: (p: number, n: number) => `עמוד ${p} מתוך ${n}`, prev: "→ הקודם", next: "הבא ←",
-    role: { buyer: "קונה", developer: "יזם", admin: "אדמין", seller: "מוכר" } as Record<string, string>,
-    status: { pending: "ממתין לבדיקה", approved: "אושר", rejected: "נדחה" } as Record<string, string>,
-    aiResearch: "מחקר רשת באמצעות AI (מידע תומך)", flagsN: (n: number) => (n === 1 ? "דגל אחד" : `${n} דגלים`), onlineFound: "נמצאה נוכחות ברשת",
-    runResearch: "הרץ מחקר", running: "רץ (כ־60 שניות)…", aiNote1: "מחקר AI — לא מאומת.", aiNote2: "אות עזר בלבד. אין להתייחס אליו כאל עובדה מוכחת.",
-    inProgress: "המחקר בעיצומו — נסו שוב בעוד רגע.", researchUnavailable: "המחקר אינו זמין.", onlinePresence: "נוכחות ברשת", found: "נמצא", notFound: "לא נמצא", flagsConcerns: "דגלים / חששות",
-    registryLookup: "בדיקת רשם החברות", activeMatched: "פעילה ותואמת", runLookup: "הרץ בדיקה", lookingUp: "בודק…",
-    unofficial: "לא רשמי — מיטב המאמץ.", regSource: "נתונים מ־data.gov.il (משרד המשפטים, מתעדכן מדי יום). עלולים לפגר אחר שינויים בפועל.",
-    notRun: "בדיקת הרשם טרם הורצה.", regUnavail: "בדיקת הרשם אינה זמינה — לא ניתן להגיע ל־data.gov.il.", foundInRegistry: "נמצאה ברשם", yes: "כן", no: "לא", statusL: "סטטוס",
-    registeredName: "שם רשום", englishName: "שם באנגלית", entityType: "סוג תאגיד", incorporated: "תאריך התאגדות",
-    noIssues: "לא נמצאו בעיות — ח.פ. תואם לחברה פעילה עם שם עקבי.",
-    accessDenied: "הגישה נדחתה", needAdmin: "דף זה דורש חשבון אדמין.", noDevs: "לא נמצאו חשבונות יזמים.", filterStatus: "סינון לפי סטטוס", all: "הכול",
-    nobodyWaiting: "אין יזמים שממתינים לבדיקה.", nothingView: "אין מה להציג בתצוגה זו.", crn: "ח.פ.", contact: "איש קשר", phone: "טלפון", emailL: "אימייל",
-    registeredOn: "נרשם", baseline: "ציון בסיס", approve: "אשר", reject: "דחה",
-    groupBuying: "עניין ברכישה קבוצתית", openN: (n: number) => `${n} פתוחות`, approach: "יש לפנות ליזם כשלקבוצה יש מספיק חברים",
-    thListing: "נכס", thMembers: "חברים", thStatus: "סטטוס", thCreated: "נוצרה", noGroups: "אין עדיין בקשות קבוצה.", ready: "מוכנה לפנייה",
-    group: { pending: "פתוחה", countered: "הצעה נגדית", accepted: "התקבלה", rejected: "סגורה" } as Record<string, string>,
-    failedStats: "טעינת הנתונים נכשלה — ודאו שאתם מחוברים כאדמין.",
-    haveniqAdmin: "Haveniq — ניהול", adminDash: "לוח ניהול", adminOnly: "לאדמינים בלבד.", tabOverview: "סקירה", tabApprovals: "אישורי יזמים",
-    dateLocale: "he-IL",
-  },
-  en: {
-    totalUsers: "Total users", usersSub: (b: number, d: number) => `${b} buyers · ${d} devs`,
-    totalOffers: "Total offers", pendingN: (n: number) => `${n} pending`,
-    activeGroups: "Active groups", groupReqs: "Leverage group requests",
-    activeListings: "Active listings", unitTypesLive: "Unit types live",
-    users: "Users", searchEmail: "Search by email…", allRoles: "All roles", buyers: "Buyers", developers: "Developers", admins: "Admins",
-    loading: "Loading…", noUsers: "No users found.", thEmail: "Email", thRole: "Role", thCompany: "Company", thRegistered: "Registered",
-    score: "Score", page: (p: number, n: number) => `Page ${p} of ${n}`, prev: "← Prev", next: "Next →",
-    role: { buyer: "buyer", developer: "developer", admin: "admin", seller: "seller" } as Record<string, string>,
-    status: { pending: "Pending review", approved: "Approved", rejected: "Rejected" } as Record<string, string>,
-    aiResearch: "AI web research (supporting info)", flagsN: (n: number) => `${n} flag${n > 1 ? "s" : ""}`, onlineFound: "Online presence found",
-    runResearch: "Run research", running: "Running (~60s)…", aiNote1: "AI research — not verified.", aiNote2: "Auxiliary signal only. Do not treat as ground truth.",
-    inProgress: "Research in progress — check back in a moment.", researchUnavailable: "Research unavailable.", onlinePresence: "Online presence", found: "Found", notFound: "Not found", flagsConcerns: "Flags / concerns",
-    registryLookup: "Companies registry lookup", activeMatched: "Active & matched", runLookup: "Run lookup", lookingUp: "Looking up…",
-    unofficial: "Unofficial — best-effort.", regSource: "Data from data.gov.il (Ministry of Justice, updated daily). May lag real-world changes.",
-    notRun: "Registry lookup not yet run.", regUnavail: "Registry lookup unavailable — could not reach data.gov.il.", foundInRegistry: "Found in registry", yes: "Yes", no: "No", statusL: "Status",
-    registeredName: "Registered name", englishName: "English name", entityType: "Entity type", incorporated: "Incorporated",
-    noIssues: "No issues found — CRN matches an active company with consistent name.",
-    accessDenied: "Access denied", needAdmin: "This page requires an admin account.", noDevs: "No developer accounts found.", filterStatus: "Filter by status", all: "All",
-    nobodyWaiting: "No developers waiting for review.", nothingView: "Nothing in this view.", crn: "CRN", contact: "Contact", phone: "Phone", emailL: "Email",
-    registeredOn: "Registered", baseline: "Baseline score", approve: "Approve", reject: "Reject",
-    groupBuying: "Group buying interest", openN: (n: number) => `${n} open`, approach: "Approach the developer when a group has enough members",
-    thListing: "Listing", thMembers: "Members", thStatus: "Status", thCreated: "Created", noGroups: "No group requests yet.", ready: "Ready to approach",
-    group: { pending: "Open", countered: "Countered", accepted: "Accepted", rejected: "Closed" } as Record<string, string>,
-    failedStats: "Failed to load stats — make sure you're logged in as admin.",
-    haveniqAdmin: "Haveniq — Admin", adminDash: "Admin dashboard", adminOnly: "Admin only — requires role: admin.", tabOverview: "Overview", tabApprovals: "Developer approvals",
-    dateLocale: "en-GB",
-  },
-};
+// Copy (he/en) lives in lib/i18n/messages.ts under `admin`. Server-generated text (AI research summaries, registry
+// flags) is passed through as written.
 function useT() {
-  const { locale } = useI18n();
-  return TXT[locale === "he" ? "he" : "en"];
+  return useI18n().m.admin;
 }
 
 // ── Shared styles ──────────────────────────────────────────────────────────────

@@ -56,18 +56,18 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
   const taken = total ? Math.round(((counts.reserved + counts.sold) / total) * 100) : 0;
   const names: Record<St, string> = { available: m.dev.statusAvailable, reserved: m.dev.statusReserved, sold: m.dev.statusSold };
   const kpis: [string, string][] = [
-    [String(total), he ? "דירות במלאי" : "Apartments"],
-    [`${taken}%`, he ? "נמכרו / שמורות" : "Sold / reserved"],
-    [new Intl.NumberFormat(he ? "he-IL" : "en-US", { style: "currency", currency: he ? "ILS" : "USD", notation: "compact", maximumFractionDigits: 1 }).format(he ? value : ilsToUsd(value)), he ? "שווי פנוי" : "Available value"],
-    [String(openOffers), he ? "הצעות פתוחות" : "Open offers"],
-    [String(pendingGroups), he ? "בקשות קבוצה" : "Group requests"],
+    [String(total), m.devOverview.apartments],
+    [`${taken}%`, m.devOverview.soldReserved],
+    [new Intl.NumberFormat(m.devOverview.numberLocale, { style: "currency", currency: m.devOverview.currencyCode, notation: "compact", maximumFractionDigits: 1 }).format(he ? value : ilsToUsd(value)), m.devOverview.availableValue],
+    [String(openOffers), m.devOverview.openOffers],
+    [String(pendingGroups), m.devOverview.groupRequests],
   ];
 
   return (
-    <section className="dov" aria-label={he ? "סקירת מלאי" : "Inventory overview"}>
+    <section className="dov" aria-label={m.devOverview.inventoryOverview}>
       {projects.length > 1 && (
-        <div className="dov-tabs dov-filter" role="group" aria-label={he ? "סינון לפי פרויקט" : "Filter by project"}>
-          <button type="button" aria-pressed={sel === "all"} onClick={() => setSel("all")}>{he ? "כל הפרויקטים" : "All projects"}</button>
+        <div className="dov-tabs dov-filter" role="group" aria-label={m.devOverview.filterByProject}>
+          <button type="button" aria-pressed={sel === "all"} onClick={() => setSel("all")}>{m.devOverview.allProjects}</button>
           {projects.map((p) => <button key={p.id} type="button" aria-pressed={sel === p.id} onClick={() => setSel(p.id)}>{p.name}</button>)}
         </div>
       )}
@@ -78,7 +78,7 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
       {mapProj && (
         <div className="dov-map">
           <div className="dov-maphead">
-            <h3>{he ? "מפת מלאי" : "Inventory map"}</h3>
+            <h3>{m.devOverview.inventoryMap}</h3>
             <div className="dov-legend">{(Object.keys(COLORS) as St[]).map((s) => <span key={s}><i style={{ background: COLORS[s] }} />{names[s]}</span>)}</div>
           </div>
           {[mapProj].filter(Boolean).map((proj) => (
@@ -100,7 +100,7 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
                   );
                 })}
               </div>
-              <p className="dov-note">{he ? "לפרויקט אין מודל בניין, לכן המפה מציגה כמויות לפי סוג דירה ולא לפי קומה." : "This project has no building model, so the map shows quantities per apartment type, not per floor."}</p>
+              <p className="dov-note">{m.devOverview.thisProjectHasNoBuilding}</p>
             </div>
           )}
           {(proj.buildings ?? []).filter((b) => b.units.length > 0).map((b) => {
@@ -127,7 +127,7 @@ export default function DevOverview({ projects, offerProjects, groupProjects }: 
             </div>
           ))}
           {sel === "all" && scope.length > 1 && (
-            <div className="dov-tabs dov-mini" role="group" aria-label={he ? "מעבר בין פרויקטים במפה" : "Switch project on the map"}>
+            <div className="dov-tabs dov-mini" role="group" aria-label={m.devOverview.switchProjectOnTheMap}>
               {scope.map((p) => <button key={p.id} type="button" aria-pressed={p.id === mapProj?.id} onClick={() => setMapId(p.id)}>{p.name}</button>)}
             </div>
           )}
