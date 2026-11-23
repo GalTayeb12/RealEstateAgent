@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { hashPassword, signToken } from "@/lib/auth";
+import { hashPassword } from "@/lib/auth";
 import { createVerificationToken } from "@/lib/tokens";
 import { emailVerificationLink } from "@/lib/email";
 import { registerBuyerSchema } from "@/lib/validation/auth";
@@ -40,10 +40,10 @@ export async function POST(req: NextRequest) {
       .then((verifyToken) => emailVerificationLink({ to: user.email, token: verifyToken }))
       .catch((err) => console.error("[register] verification email failed:", err));
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role });
+    // No token here: sign-in requires a verified email, so registering must not hand out a working session.
 
     return NextResponse.json(
-      { token, user: { id: user.id, email: user.email, role: user.role } },
+      { user: { id: user.id, email: user.email, role: user.role } },
       { status: 201 }
     );
   } catch (err) {

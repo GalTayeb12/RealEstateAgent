@@ -2,17 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { buyerMinRooms } from "@/lib/attributes";
-
-/** Role claim of the JWT (display only — the API still checks it), or null. */
-function tokenRole(token: string): string | null {
-  try {
-    const part = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    const role = JSON.parse(atob(part)).role;
-    return typeof role === "string" ? role : null;
-  } catch {
-    return null;
-  }
-}
+import { currentRole } from "@/lib/clientSession";
 
 /**
  * Minimum rooms the signed-in buyer asked for, or null (signed out, not a
@@ -23,7 +13,7 @@ export function useBuyerMinRooms(): number | null {
   const [minRooms, setMinRooms] = useState<number | null>(null);
   useEffect(() => {
     const t = localStorage.getItem("token");
-    if (!t || tokenRole(t) !== "buyer") return;
+    if (!t || currentRole() !== "buyer") return;
     let cancelled = false;
     fetch("/api/buyer/profile", { headers: { Authorization: `Bearer ${t}` } })
       .then((r) => (r.ok ? r.json() : null))

@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Heebo, Frank_Ruhl_Libre, IBM_Plex_Mono } from "next
 import "./globals.css";
 import "@/components/quiet/quiet.css";
 import TopNav from "@/components/TopNav";
+import SessionMigrator from "@/components/SessionMigrator";
 import ThemeScope from "@/components/theme/ThemeScope";
 import SiteFooter from "@/components/SiteFooter";
 import { LocaleProvider } from "@/components/LocaleProvider";
@@ -79,6 +80,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
         <LocaleProvider initialLocale={locale}>
           <AudioUnlockProvider>
+            <SessionMigrator />
             <TopNav />
             <ThemeScope>{children}</ThemeScope>
             <SiteFooter />

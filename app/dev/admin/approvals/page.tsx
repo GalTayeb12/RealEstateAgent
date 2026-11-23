@@ -18,6 +18,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/components/LocaleProvider";
+import { currentRole } from "@/lib/clientSession";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -781,17 +782,6 @@ function OverviewTab({ token }: { token: string }) {
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 
-/** Decode JWT payload without verifying signature — used only for client-side UX redirect.
- *  Real security is enforced by the API routes via requireAdmin(). */
-function decodeJwtRole(token: string): string | null {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return typeof payload?.role === "string" ? payload.role : null;
-  } catch {
-    return null;
-  }
-}
-
 export default function AdminApprovalsPage() {
   const router = useRouter();
   const L = useT();
@@ -807,7 +797,8 @@ export default function AdminApprovalsPage() {
       return;
     }
 
-    const role = decodeJwtRole(t);
+    // Role comes from the stored profile (the JWT is an httpOnly cookie). Display/redirect only; the API enforces admin.
+    const role = currentRole();
 
     if (!role) {
       // Malformed token — treat as unauthenticated

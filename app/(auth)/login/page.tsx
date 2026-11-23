@@ -7,6 +7,7 @@ import { parseLocale } from "@/lib/i18n/locale";
 import { TextField, Button } from "@/components/quiet";
 import { AuthAside, AuthRoom, translateAuthError } from "@/components/auth/Room";
 import { useAudioUnlock } from "@/components/AudioUnlockProvider";
+import { SESSION_MARKER } from "@/lib/session";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,14 +40,13 @@ export default function LoginPage() {
         return;
       }
       if (!res.ok) throw new Error(data.error ?? "Login failed");
-      localStorage.setItem("token", data.token);
+      // The JWT is an httpOnly cookie set by the server; the page keeps only a non-secret marker.
+      localStorage.setItem("token", SESSION_MARKER);
       localStorage.setItem("user", JSON.stringify(data.user));
       await setLocale(parseLocale(data.user.locale), { persistRemote: false });
 
       if (data.user.role === "developer") {
-        const meRes = await fetch("/api/dev/me", {
-          headers: { Authorization: `Bearer ${data.token}` },
-        });
+        const meRes = await fetch("/api/dev/me");
         const me = await meRes.json();
         if (me.crnStatus === "approved") {
           router.push("/dev/dashboard");

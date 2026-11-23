@@ -23,6 +23,7 @@ import { useI18n } from "@/components/LocaleProvider";
 import LanguageToggle from "@/components/LanguageToggle";
 import { isCinematicPath } from "@/lib/theme";
 import { Logo } from "@/components/Logo";
+import { signOutRemote } from "@/lib/clientSession";
 
 // Marketing homepage has its own sticky nav (with the language toggle inside it).
 const HOME_PATH = "/";
@@ -225,6 +226,7 @@ export default function TopNav() {
   }
 
   function signOut() {
+    void signOutRemote();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("offersLastViewedAt");

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword, signToken } from "@/lib/auth";
 import { loginSchema } from "@/lib/validation/auth";
 import { zodError } from "@/lib/validation";
+import { setSessionCookie } from "@/lib/session";
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,10 +37,12 @@ export async function POST(req: NextRequest) {
 
     const token = signToken({ userId: user.id, email: user.email, role: user.role });
 
-    return NextResponse.json({
-      token,
+    // The JWT goes only into an httpOnly cookie (lib/session.ts); the page never sees it.
+    const res = NextResponse.json({
       user: { id: user.id, email: user.email, role: user.role, name: user.name, locale: user.locale },
     });
+    setSessionCookie(res, token);
+    return res;
   } catch (err) {
     console.error("[login]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
