@@ -1,0 +1,132 @@
+{
+  "type": "model",
+  "id": "kitchen-base-run-01",
+  "version": 1,
+  "name": {
+    "he": "ארונות מטבח תחתונים",
+    "en": "Kitchen base cabinets"
+  },
+  "category": "kitchen-cabinet",
+  "styles": [
+    "modern-minimalist",
+    "contemporary",
+    "quiet-luxury"
+  ],
+  "rooms": [
+    "kitchen"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 2.4,
+    "d": 0.6,
+    "h": 0.9
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "base-run",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "אורך",
+          "en": "Run length"
+        },
+        "unit": "m",
+        "min": 1.2,
+        "max": 4.8,
+        "step": 0.1,
+        "default": 2.4,
+        "drives": "w"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "fronts",
+      "label": {
+        "he": "חזיתות",
+        "en": "Fronts"
+      },
+      "allowed": [
+        "paint",
+        "wood",
+        "cabinet",
+        "microcement"
+      ],
+      "default": {
+        "id": "paint-limewash",
+        "version": 1
+      }
+    },
+    {
+      "id": "carcass",
+      "label": {
+        "he": "גוף",
+        "en": "Carcass"
+      },
+      "allowed": [
+        "paint",
+        "wood",
+        "cabinet"
+      ],
+      "default": {
+        "id": "paint-limewash",
+        "version": 1
+      }
+    },
+    {
+      "id": "countertop",
+      "label": {
+        "he": "משטח עבודה",
+        "en": "Countertop"
+      },
+      "allowed": [
+        "stone",
+        "marble",
+        "quartz",
+        "microcement"
+      ],
+      "default": {
+        "id": "travertine-cream",
+        "version": 1
+      }
+    },
+    {
+      "id": "handle",
+      "label": {
+        "he": "ידיות",
+        "en": "Handles"
+      },
+      "allowed": [
+        "metal"
+      ]
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.9,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "kitchen-base-run-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  }
+}

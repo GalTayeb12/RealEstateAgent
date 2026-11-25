@@ -31,6 +31,8 @@ export const ROOM_KINDS = [
   "balcony", "entry", "corridor", "laundry", "storage", "any",
 ] as const;
 
+export const GENERATOR_KINDS = ["base-run", "wall-run", "wardrobe", "shelving", "bed"] as const;
+
 export const CAPABILITIES = ["move", "rotate", "material", "variant", "modular", "parametric", "duplicate", "remove"] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
@@ -112,6 +114,8 @@ const SizingModular = z.strictObject({
 
 const SizingParametric = z.strictObject({
   mode: z.literal("parametric"),
+  /** Built-in geometry generator (lib/studio/catalog/generators). Without one the asset must ship a GLB and is only resized through its parameters' declared dimensions. */
+  generator: z.enum(GENERATOR_KINDS).optional(),
   params: z
     .array(
       z.strictObject({
@@ -132,7 +136,7 @@ const SizingParametric = z.strictObject({
 export const Sizing = z.discriminatedUnion("mode", [SizingFixed, SizingVariants, SizingModular, SizingParametric]);
 export type Sizing = z.infer<typeof Sizing>;
 
-export const ModelManifest = z.strictObject({
+const ModelManifestBase = z.strictObject({
   type: z.literal("model"),
   id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
   version: z.number().int().positive(),
@@ -153,14 +157,20 @@ export const ModelManifest = z.strictObject({
   placement: Placement,
   capabilities: z.array(z.enum(CAPABILITIES)).min(1),
   assets: z.strictObject({
-    glb: z.string().min(1),
+    /** Absent for generator-built items (their geometry is created at runtime). */
+    glb: z.string().min(1).optional(),
     preview: z.string().min(1),
     decal: z.string().optional(),
     lods: z.array(z.string()).optional(),
   }),
   license: License,
 });
-export type ModelManifest = z.infer<typeof ModelManifest>;
+export const ModelManifest = ModelManifestBase.superRefine((m, ctx) => {
+  const generated = m.sizing.mode === "parametric" && !!m.sizing.generator;
+  if (!generated && !m.assets.glb) ctx.addIssue({ code: "custom", path: ["assets", "glb"], message: "a model without a generator needs a GLB" });
+  if (generated && m.assets.glb) ctx.addIssue({ code: "custom", path: ["assets", "glb"], message: "a generator-built model has no GLB" });
+});
+export type ModelManifest = z.infer<typeof ModelManifestBase>;
 
 export const MaterialManifest = z.strictObject({
   type: z.literal("material"),

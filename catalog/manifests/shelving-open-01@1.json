@@ -1,0 +1,120 @@
+{
+  "type": "model",
+  "id": "shelving-open-01",
+  "version": 1,
+  "name": {
+    "he": "כוננית פתוחה",
+    "en": "Open bookcase"
+  },
+  "category": "shelving",
+  "styles": [
+    "scandinavian",
+    "japandi",
+    "contemporary",
+    "modern-minimalist"
+  ],
+  "rooms": [
+    "living",
+    "office",
+    "bedroom"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 1.2,
+    "d": 0.35,
+    "h": 2.0
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "shelving",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 0.6,
+        "max": 3.0,
+        "step": 0.1,
+        "default": 1.2,
+        "drives": "w"
+      },
+      {
+        "id": "height",
+        "label": {
+          "he": "גובה",
+          "en": "Height"
+        },
+        "unit": "m",
+        "min": 1.0,
+        "max": 2.6,
+        "step": 0.1,
+        "default": 2.0,
+        "drives": "h"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "frame",
+      "label": {
+        "he": "מסגרת ומדפים",
+        "en": "Frame and shelves"
+      },
+      "allowed": [
+        "wood",
+        "paint",
+        "cabinet"
+      ],
+      "default": {
+        "id": "floor-flat-oak",
+        "version": 1
+      }
+    },
+    {
+      "id": "back",
+      "label": {
+        "he": "גב",
+        "en": "Back panel"
+      },
+      "allowed": [
+        "paint",
+        "wood",
+        "cabinet"
+      ],
+      "default": {
+        "id": "paint-limewash",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.5,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "shelving-open-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  }
+}

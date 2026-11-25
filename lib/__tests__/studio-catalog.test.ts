@@ -53,7 +53,8 @@ describe("catalog manifests (catalog/manifests)", () => {
   it("every published model's GLB exists", () => {
     for (const { json } of raw.filter((r) => r.json.type === "model")) {
       const m = ModelManifest.parse(json);
-      expect(existsSync(path.join(root, "public/studio/catalog", m.assets.glb)), m.id).toBe(true);
+      if (m.assets.glb) expect(existsSync(path.join(root, "public/studio/catalog", m.assets.glb)), m.id).toBe(true);
+      else expect(m.sizing.mode === "parametric" && !!m.sizing.generator, `${m.id} has neither a GLB nor a generator`).toBe(true);
     }
   });
 

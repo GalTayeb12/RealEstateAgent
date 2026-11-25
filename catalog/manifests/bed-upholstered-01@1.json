@@ -1,0 +1,132 @@
+{
+  "type": "model",
+  "id": "bed-upholstered-01",
+  "version": 1,
+  "name": {
+    "he": "מיטה מרופדת",
+    "en": "Upholstered bed"
+  },
+  "category": "bed",
+  "styles": [
+    "quiet-luxury",
+    "contemporary",
+    "organic-modern",
+    "scandinavian"
+  ],
+  "rooms": [
+    "bedroom",
+    "master"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 1.6,
+    "d": 2.15,
+    "h": 1.2
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "bed",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 0.9,
+        "max": 2.0,
+        "step": 0.1,
+        "default": 1.6,
+        "drives": "w"
+      },
+      {
+        "id": "headboard",
+        "label": {
+          "he": "גובה ראש המיטה",
+          "en": "Headboard height"
+        },
+        "unit": "m",
+        "min": 0.9,
+        "max": 1.4,
+        "step": 0.1,
+        "default": 1.2,
+        "drives": "h"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "upholstery",
+      "label": {
+        "he": "ריפוד ראש המיטה",
+        "en": "Headboard upholstery"
+      },
+      "allowed": [
+        "fabric",
+        "leather"
+      ],
+      "default": {
+        "id": "fabric-textured-stone",
+        "version": 1
+      }
+    },
+    {
+      "id": "frame",
+      "label": {
+        "he": "מסגרת",
+        "en": "Frame"
+      },
+      "allowed": [
+        "wood",
+        "paint",
+        "cabinet"
+      ],
+      "default": {
+        "id": "floor-flat-oak",
+        "version": 1
+      }
+    },
+    {
+      "id": "linen",
+      "label": {
+        "he": "מצעים",
+        "en": "Bedding"
+      },
+      "allowed": [
+        "fabric"
+      ],
+      "default": {
+        "id": "fabric-textured-stone",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.6,
+      "back": 0,
+      "sides": 0.5
+    },
+    "againstWall": true
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "bed-upholstered-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  }
+}

@@ -10,6 +10,8 @@
  *   - the GLB exists and its real bounding box matches manifest.dims within 1 cm
  *     (modular/parametric assets: the default configuration is checked in M8)
  *   - every material slot target exists in the GLB
+ *   - generator-built items (no GLB): real size within 1 cm at min/default/max parameters, bevelled edges,
+ *     3 mm gaps between fronts, a handle on every front, every slot backed by geometry
  *   - triangle budget (hero <= 120k, default <= 60k) and file size (<= 1.5 MB hero)
  */
 import fs from "node:fs";
@@ -19,6 +21,7 @@ import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { getBounds } from "@gltf-transform/functions";
 import { MeshoptDecoder } from "meshoptimizer";
 import { MaterialManifest, ModelManifest } from "../../../lib/studio/schema/catalog";
+import { verifyGenerated } from "../../../lib/studio/catalog/generators/verify";
 
 const ROOT = path.resolve(import.meta.dirname, "../../..");
 const dir = path.join(ROOT, "catalog/manifests");
@@ -44,6 +47,13 @@ for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json")).sort()) {
   if (m.license.spdx === "CC-BY-4.0" && !m.license.attributionText) problems.push(`${f}: CC-BY needs attributionText`);
   if (m.type === "material") { materials.push(m); continue; }
 
+  if (!m.assets.glb) {
+    // generator-built: geometry is created at runtime, so the gates run on the generated parts at min / default / max sizes
+    for (const issue of verifyGenerated(m)) problems.push(`${f}: ${issue}`);
+    if (!process.argv.includes("--skip-previews") && !fs.existsSync(path.join(pub, m.assets.preview))) problems.push(`${f}: missing preview ${m.assets.preview}`);
+    models.push(m);
+    continue;
+  }
   const glb = path.join(pub, m.assets.glb);
   if (!fs.existsSync(glb)) { problems.push(`${f}: missing GLB ${m.assets.glb}`); continue; }
   const doc = await io.read(glb);

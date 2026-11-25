@@ -1,0 +1,130 @@
+{
+  "type": "model",
+  "id": "wardrobe-hinged-01",
+  "version": 1,
+  "name": {
+    "he": "ארון בגדים עם דלתות",
+    "en": "Hinged wardrobe"
+  },
+  "category": "wardrobe",
+  "styles": [
+    "modern-minimalist",
+    "scandinavian",
+    "contemporary",
+    "japandi"
+  ],
+  "rooms": [
+    "bedroom",
+    "master"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 2.0,
+    "d": 0.6,
+    "h": 2.4
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "wardrobe",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 0.8,
+        "max": 3.6,
+        "step": 0.1,
+        "default": 2.0,
+        "drives": "w"
+      },
+      {
+        "id": "height",
+        "label": {
+          "he": "גובה",
+          "en": "Height"
+        },
+        "unit": "m",
+        "min": 2.0,
+        "max": 2.6,
+        "step": 0.1,
+        "default": 2.4,
+        "drives": "h"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "fronts",
+      "label": {
+        "he": "חזיתות",
+        "en": "Fronts"
+      },
+      "allowed": [
+        "paint",
+        "wood",
+        "cabinet",
+        "microcement"
+      ],
+      "default": {
+        "id": "paint-limewash",
+        "version": 1
+      }
+    },
+    {
+      "id": "carcass",
+      "label": {
+        "he": "גוף",
+        "en": "Carcass"
+      },
+      "allowed": [
+        "paint",
+        "wood",
+        "cabinet"
+      ],
+      "default": {
+        "id": "paint-limewash",
+        "version": 1
+      }
+    },
+    {
+      "id": "handle",
+      "label": {
+        "he": "ידיות",
+        "en": "Handles"
+      },
+      "allowed": [
+        "metal"
+      ]
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.7,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "wardrobe-hinged-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  }
+}

@@ -110,6 +110,15 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
       ray.setFromCamera(new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1), camera);
       return ray.intersectObjects(scene.children, true).filter((h) => !(h.object as THREE.Line).isLine).slice(0, 6).map((h) => `${h.object.name || h.object.type}<${h.object.parent?.name ?? ""}> ${h.distance.toFixed(2)}`);
     };
+    // world-space bounds of a rendered item in plan axes (x east, y north, z up), for geometry-vs-size tests
+    (window as unknown as { __studioBounds: (id: string) => number[] | null }).__studioBounds = (id) => {
+      const o = scene.getObjectByName(`item:${id}`);
+      if (!o) return null;
+      const b = new THREE.Box3();
+      o.updateWorldMatrix(true, true);
+      o.traverse((c) => { const m = c as THREE.Mesh; if (m.isMesh && m.name !== "ao-decal") b.union(new THREE.Box3().setFromObject(m)); });
+      return [b.min.x, -b.max.z, b.min.y, b.max.x, -b.min.z, b.max.y];
+    };
     (window as unknown as { __studioScreen: (x: number, y: number, z: number) => { x: number; y: number } }).__studioScreen = (x, y, z) => {
       const r = dom.getBoundingClientRect();
       const v = new THREE.Vector3(x, z, -y).project(camera);

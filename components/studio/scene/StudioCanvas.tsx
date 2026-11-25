@@ -77,8 +77,9 @@ function ThumbCamera({ id }: { id: string }) {
     const dist = Math.hypot(w, d, h) * 1.75 + 0.3;
     const p = [c[0] + front[0] * dist * 0.78 + right[0] * dist * 0.5, c[1] + front[1] * dist * 0.78 + right[1] * dist * 0.5];
     camera.fov = 32; camera.near = 0.05; camera.far = 80; camera.updateProjectionMatrix();
-    camera.position.set(p[0], t.z + h * 0.55 + dist * 0.32, -p[1]);
-    camera.lookAt(c[0], t.z + h * 0.48, -c[1]);
+    const lift = t.z + m.placement.elevation;
+    camera.position.set(p[0], lift + h * 0.55 + dist * 0.32, -p[1]);
+    camera.lookAt(c[0], lift + h * 0.48, -c[1]);
     scene.background = new THREE.Color("#ece7df");
     scene.backgroundIntensity = 1;
   });

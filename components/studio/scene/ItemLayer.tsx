@@ -10,12 +10,14 @@ import { useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { EXPOSURE } from "@/components/walk/ApartmentWalk";
+import { generate, type GeneratorId } from "@/lib/studio/catalog/generators";
 import { resolveSize } from "@/lib/studio/catalog/sizing";
 import { roomAt, type WalkConfig, type WalkData } from "@/lib/experience/types";
 import type { ModelManifest } from "@/lib/studio/schema/catalog";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { useStudio } from "../store";
 import { useDesign } from "./DesignInteraction";
+import { buildGenerated } from "./generated";
 import { applyMaterial } from "./materials";
 
 const CATALOG_BASE = "/studio/catalog";
@@ -97,19 +99,45 @@ function assembleModules(scene: THREE.Object3D, sizing: Modular, ids: string[]) 
   return root;
 }
 
-function Item({ node, walk, data, envs, listeners }: {
+type ItemProps = {
   node: ItemNode; walk: WalkConfig; data: WalkData;
   envs: Record<string, THREE.Texture>; listeners: Set<() => void>;
-}) {
+};
+
+/** Item backed by a GLB (fixed, variant or modular). */
+function GlbItem(props: ItemProps) {
   const catalog = useStudio((s) => s.catalog)!;
-  const showDecal = useStudio((s) => s.lighting.ao);
-  const manifest = catalog.model(node.catalog)!;
+  const manifest = catalog.model(props.node.catalog)!;
   const { scene } = useGLTF(`${CATALOG_BASE}/${manifest.assets.glb}`, false, true);
-  const modKey = manifest.sizing.mode === "modular" ? (node.modules ?? manifest.sizing.defaultConfig ?? []).join(",") : "";
+  const modKey = manifest.sizing.mode === "modular" ? (props.node.modules ?? manifest.sizing.defaultConfig ?? []).join(",") : "";
   const obj = useMemo(
     () => (manifest.sizing.mode === "modular" ? assembleModules(scene, manifest.sizing, modKey.split(",").filter(Boolean)) : cloneItem(scene)),
     [scene, manifest, modKey],
   );
+  return <ItemBody {...props} obj={obj} />;
+}
+
+/** Item whose geometry is generated from its parameters (kitchen runs, wardrobes, shelving, beds): real dimensions, no scaling. */
+function GeneratedItem(props: ItemProps) {
+  const catalog = useStudio((s) => s.catalog)!;
+  const manifest = catalog.model(props.node.catalog)!;
+  const gen = manifest.sizing.mode === "parametric" ? (manifest.sizing.generator as GeneratorId) : undefined;
+  const dims = resolveSize(manifest, props.node);
+  const key = `${gen}|${dims.w.toFixed(3)}|${dims.d.toFixed(3)}|${dims.h.toFixed(3)}|${JSON.stringify(props.node.params ?? {})}`;
+  const obj = useMemo(() => buildGenerated(generate(gen!, dims, props.node.params ?? {})), [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => obj.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.geometry.dispose(); (m.material as THREE.Material).dispose(); } }), [obj]);
+  return <ItemBody {...props} obj={obj} />;
+}
+
+function Item(props: ItemProps) {
+  const manifest = useStudio((s) => s.catalog)!.model(props.node.catalog)!;
+  return manifest.assets.glb ? <GlbItem {...props} /> : <GeneratedItem {...props} />;
+}
+
+function ItemBody({ node, walk, data, envs, listeners, obj }: ItemProps & { obj: THREE.Object3D }) {
+  const catalog = useStudio((s) => s.catalog)!;
+  const showDecal = useStudio((s) => s.lighting.ao);
+  const manifest = catalog.model(node.catalog)!;
   const dims = resolveSize(manifest, node);
   const design = useDesign();
   const drag = useStudio((s) => (s.drag && s.drag.id === node.id ? s.drag : null));
@@ -156,7 +184,7 @@ function Item({ node, walk, data, envs, listeners }: {
       onClick={(e) => { if (design) e.stopPropagation(); }}>
       <primitive object={obj} />
       {decal && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -manifest.placement.elevation + 0.004, -dims.d / 2]} renderOrder={1}>
+        <mesh name="ao-decal" rotation={[-Math.PI / 2, 0, 0]} position={[0, -manifest.placement.elevation + 0.004, -dims.d / 2]} renderOrder={1}>
           <planeGeometry args={[dims.w + 0.6, dims.d + 0.6]} />
           <meshBasicMaterial map={aoTex()} transparent depthWrite={false} opacity={0.8} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
         </mesh>
