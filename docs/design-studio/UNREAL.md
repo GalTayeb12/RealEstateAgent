@@ -30,3 +30,17 @@ Visual: owner prefers UE in side-by-side pairs on 4 cameras. Performance: >=45 f
 - **Import result** for `yarkon-twin-shell`: 186 StaticMesh, 42 MaterialInstanceConstant, 11 Texture2D, headless, ~10 s. Surface materials keep their identity with characters sanitised: `S|surface:floor:living` -> `S_surface_floor_living` (so the bridge maps surface ids by replacing `| :` with `_`; ids with `_` or `-` stay unambiguous in this catalog, add a test when the bridge is written).
 - Run: `MSYS_NO_PATHCONV=1` is required in Git Bash (it rewrites `/Game/...`); use the absolute `.uproject` path; script `scripts/studio/ue/import_glb.py` (env `HAV_GLB`, `HAV_DEST`).
 - Still open in E1: modular-sofa nodes and UV-in-metres behaviour on import, textured slot materials via a master material, and whether imported default materials are usable for Lumen as is.
+
+## E2 status (2026-11-25) - level builds, first GPU render still BLACK (unresolved)
+Done and reproducible:
+- `ue-variant.mjs` cooked all four catalog items; `import_glb.py` (env `HAV_GLB="a;b"`, `HAV_ROOT`) imported them: sofa-modular-01 -> 43 StaticMesh named `<module>_<part>` (modules identifiable; geometry is in module-local space), drums 1 mesh each, armchair 1 mesh + 6 textures.
+- `DefaultEngine.ini.template` (copy to `C:\HaveniqUE\HaveniqUltra\Config\DefaultEngine.ini`): Lumen GI + reflections, Virtual Shadow Maps, mesh distance fields, no static lighting, software Lumen (HWRT off for now).
+- `build_level.py` (run with `-ExecutePythonScript`, `-nullrhi` is fine) builds `/Game/Maps/Living`: shell meshes at the origin, items placed with the plan->UE mapping (X=x*100, Y=-y*100, Z=z*100, yaw=-rot), modular sofa laid out left to right in the sofa's local frame, sun from the bake direction, SkyAtmosphere + real-time SkyLight, manual-exposure post volume, PlayerStart at the Three.js `hero` camera. 220 actors. Env `HAV_ITEM_YAW` calibrates the imported items' front direction; `HAV_EXPOSURE` sets manual EV.
+- GPU launch works (`UnrealEditor.exe <uproject> /Game/Maps/Living -game -windowed ...`; first launch compiled shaders for a long time, later launches are fast; VRAM ~1.5 GB at idle).
+
+Unresolved: `HighResShot` in `-game` produced an all-black PNG twice (after setting EV 2 for an 8 lux sun and a `r.HighResScreenshotDelay`). Hypotheses to test next, cheapest first:
+1. The capture reads an unrendered buffer: use `r.HighResScreenshotDelay` larger, or capture from a Python-driven editor session (`unreal.AutomationLibrary.take_high_res_screenshot`) or Movie Render Queue instead of the console command.
+2. Sun lux is physically tiny for the manual exposure: use real units (sun ~ 100000 lux with EV ~ 14) or leave auto-exposure on.
+3. Imported shell/materials render black (glTF default material imported as unlit/translucent, or backface culling inverted by the Y-flip): check by spawning a plain cube with a default material in the level.
+4. Streaming/stuck on a loading frame: watch the window with `-log` on screen once.
+Per-step timing so far: setup + import + level ~ 1 session; debugging the first frame is the current cost driver.
