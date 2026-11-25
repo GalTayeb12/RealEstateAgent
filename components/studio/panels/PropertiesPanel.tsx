@@ -16,6 +16,7 @@ import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { moduleLabel } from "@/lib/studio/i18n";
 import { useStudio } from "../store";
 import { useT } from "../useT";
+import { ProposalPanel } from "./ArchitecturePanels";
 import { Swatches } from "./Swatches";
 
 type Modular = Extract<ModelManifest["sizing"], { mode: "modular" }>;
@@ -28,6 +29,7 @@ export default function PropertiesPanel() {
   if (!selection || !doc) return null;
   if (selection.startsWith("surface:")) return <SurfacePanel id={selection} t={t} locale={locale} />;
   const node = doc.nodes[selection];
+  if (node && (node.kind === "partitionProposal" || node.kind === "openingProposal")) return <ProposalPanel node={node} />;
   if (!node || node.kind !== "item") return null;
   return <ItemPanel node={node} t={t} locale={locale} />;
 }

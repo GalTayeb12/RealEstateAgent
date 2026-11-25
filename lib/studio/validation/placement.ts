@@ -10,13 +10,17 @@ import { resolveSize, SizingError } from "../catalog/sizing";
 import type { CatalogLookup, ModelManifest } from "../schema/catalog";
 import type { DesignDocument } from "../schema/document";
 import type { ItemNode } from "../schema/nodes";
+import { openingProposalRect, partitionRect } from "./architecture";
 import { distToBoundary, footprint, insidePolygon, overlapDepth, pointInPolygon, polygonDistance, segmentRect, type Poly, type Vec } from "./geom2d";
 
 export type Issue = {
   severity: "error" | "advisory";
   code:
     | "unknown-asset" | "bad-size" | "out-of-room" | "overlap" | "wall-collision" | "blocks-opening"
-    | "door-swing" | "clearance" | "narrow-passage" | "not-against-wall";
+    | "door-swing" | "clearance" | "narrow-passage" | "not-against-wall"
+    // architectural proposals (validation/architecture.ts)
+    | "partition-length" | "hits-wall" | "hits-item" | "protected-wall" | "no-wall" | "outside-wall" | "opening-width"
+    | "unverified" | "structural-check";
   nodeId: string;
   otherId?: string;
   message: string;
@@ -77,11 +81,21 @@ export function validateDocument(doc: DesignDocument, baseline: Baseline, catalo
 
   const rooms = Object.values(baseline.rooms);
   const wallRects = Object.values(baseline.walls).map((w) => ({ id: w.id, poly: segmentRect(w.a, w.b, w.thickness), a: w.a, b: w.b }));
+  // proposed partitions behave like walls for furniture (a piece cannot stand inside a concept wall)
+  for (const n of Object.values(doc.nodes)) {
+    if (n.kind === "partitionProposal") wallRects.push({ id: n.id, poly: partitionRect(n), a: n.a, b: n.b });
+  }
   const doors = Object.values(baseline.openings).filter((x) => x.kind === "door" || x.kind === "entry");
   const openingZones = Object.values(baseline.openings).map((op) => {
     const w = baseline.walls[op.wallId];
     return { op, w, poly: w ? openingRect(w.a, w.b, w.thickness, op.center, op.width) : [] as Poly };
   });
+  // proposed openings keep their doorway free as well
+  for (const n of Object.values(doc.nodes)) {
+    if (n.kind !== "openingProposal") continue;
+    const poly = openingProposalRect(baseline, n);
+    if (poly) openingZones.push({ op: { id: n.id, kind: "door", head: 2.1 } as never, w: baseline.walls[n.wallId], poly });
+  }
 
   for (const p of placed) {
     const pl = p.manifest.placement;

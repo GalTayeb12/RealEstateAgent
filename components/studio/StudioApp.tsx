@@ -13,6 +13,7 @@ import type { WalkData } from "@/lib/experience/types";
 import { roomAt, type ProjectExperience } from "@/lib/experience/types";
 import type { Baseline } from "@/lib/studio/baseline/fromTwin";
 import { MaterialManifest, ModelManifest } from "@/lib/studio/schema/catalog";
+import { ArchitectureMenu, KitchenPanel } from "./panels/ArchitecturePanels";
 import CatalogDrawer from "./panels/CatalogDrawer";
 import DesignMenu from "./panels/DesignMenu";
 import { reloadFromServer, usePersistence } from "./persist/usePersistence";
@@ -52,6 +53,9 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const lastError = useStudio((s) => s.lastError);
   const selection = useStudio((s) => s.selection);
   const catalogOpen = useStudio((s) => s.catalogOpen);
+  const tool = useStudio((s) => s.tool);
+  const kitchenOpen = useStudio((s) => s.kitchenOpen);
+  const hasConcept = useStudio((s) => !!s.doc && Object.values(s.doc.nodes).some((n) => n.kind === "partitionProposal" || n.kind === "openingProposal"));
   const design = useStudio((s) => s.design);
   const readOnly = design?.mode === "shared-view";
   usePersistence({ baselineId: experience.slug, sharedToken });
@@ -123,18 +127,19 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       if (mod && e.code === "KeyD") { e.preventDefault(); s.duplicateSelected(); }
       else if (e.code === "Delete" || e.code === "Backspace") { if (s.selection && !s.selection.startsWith("surface:")) { e.preventDefault(); s.removeSelected(); } }
       else if (e.code === "KeyR") s.rotateSelected(e.shiftKey ? -1 : 1);
-      else if (e.code === "Escape") { if (s.catalogOpen) s.setCatalogOpen(false); else s.select(null); }
+      else if (e.code === "Escape") { if (s.tool) s.setTool(null); else if (s.kitchenOpen) s.setKitchenOpen(false); else if (s.catalogOpen) s.setCatalogOpen(false); else s.select(null); }
     };
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, []);
 
   const err = lastError ? (/^[A-Za-z.-]+$/.test(lastError) ? t(lastError) : lastError) : null;
-  const hint = mode === "plan" ? (mobile ? t("hintPlanTouch") : t("hintPlan")) : mobile ? t("hintTouch") : mode === "design" ? t("hintDesign") : t("hintWalk");
+  const toolHint = tool ? (tool.kind === "opening" ? t("toolOpening") : tool.a ? t("toolPartition2") : t("toolPartition1")) : null;
+  const hint = toolHint ?? (mode === "plan" ? (mobile ? t("hintPlanTouch") : t("hintPlan")) : mobile ? t("hintTouch") : mode === "design" ? t("hintDesign") : t("hintWalk"));
   const title = experience.title[locale];
 
   return (
-    <div ref={wrap} className="st-root" data-mode={mode} data-sheet={(editing && (selection || catalogOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
+    <div ref={wrap} className="st-root" data-mode={mode} data-sheet={(editing && (selection || catalogOpen || kitchenOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
       <div className="st-stage">
       {boot && ready && (
         <StudioCanvas
@@ -162,6 +167,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         <button type="button" onClick={() => useStudio.getState().undo()} disabled={!canUndo || readOnly}>{t("undo")}</button>
         <button type="button" onClick={() => useStudio.getState().redo()} disabled={!canRedo || readOnly}>{t("redo")}</button>
         <button type="button" disabled={readOnly} onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
+        {editing && !readOnly && <ArchitectureMenu />}
         <DesignMenu />
         <select aria-label={t("quality")} value={quality} onChange={(e) => useStudio.getState().setQuality(e.target.value as typeof quality)}>
           <option value="auto">{t("quality")}: {t("auto")}</option>
@@ -174,11 +180,13 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       {mode === "plan" && <PlanToolbar />}
       {editing && <PropertiesPanel />}
       {editing && <CatalogDrawer />}
+      {editing && <KitchenPanel />}
 
+      {hasConcept && <p className="st-ui st-banner st-banner--concept">{t("conceptBanner")}</p>}
       {design?.mode === "shared-view" && <p className="st-ui st-banner">{t("sharedView")}</p>}
       {design?.mode === "shared-edit" && <p className="st-ui st-banner">{t("sharedEdit")}</p>}
       {err && <p className="st-ui st-toast" role="status">{err}</p>}
-      {!locked && boot && !selection && <p className="st-ui st-hint">{hint}</p>}
+      {!locked && boot && (tool || !selection) && <p className="st-ui st-hint">{hint}</p>}
       {mobile && stickUi && (
         <div className="st-stick" style={{ left: stickUi.ox, top: stickUi.oy }} aria-hidden>
           <span style={{ transform: `translate(${stickUi.x * 40}px, ${stickUi.y * 40}px)` }} />

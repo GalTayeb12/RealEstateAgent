@@ -21,7 +21,9 @@ import { threeCamera } from "@/lib/studio/plan/view";
 import { useStudio, type Tier } from "../store";
 import { ItemLayer } from "./ItemLayer";
 import { ShellLayer } from "./ShellLayer";
+import { ArchTool } from "./ArchTool";
 import { DesignProvider, SelectionBox } from "./DesignInteraction";
+import { ProposalLayer } from "./ProposalLayer";
 
 /**
  * The bake's sun (twin_build.py: Euler XYZ 55°, 0, -35°) travels along
@@ -151,6 +153,8 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
           <ItemLayer walk={walk} data={data} />
         </Suspense>
         <SelectionBox />
+        <ProposalLayer />
+        <ArchTool />
       </DesignProvider>
       <Sun tier={tier} />
       {thumb ? <ThumbCamera id={thumb.id} /> : planning ? <PlanRig /> : <Walker walk={walk} data={data} input={input} reduce={reduce} onRoom={onRoom} onPose={onPose} />}

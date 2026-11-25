@@ -17,6 +17,7 @@ export type Command =
   | { type: "setVariant"; id: string; variantId: string }
   | { type: "setModules"; id: string; modules: string[] }
   | { type: "setParams"; id: string; params: Record<string, number> }
+  | { type: "setProposal"; id: string; patch: ProposalPatch }
   | { type: "setSlotMaterial"; id: string; slot: string; material: { id: string; version: number } | null }
   | { type: "setSurfaceMaterial"; surfaceId: string; material: { id: string; version: number } | null }
   | { type: "replace"; id: string; catalog: { id: string; version: number } }
@@ -25,6 +26,18 @@ export type Command =
   | { type: "setNode"; node: DesignNode }
   | { type: "restoreSnapshot"; nodes: Record<string, DesignNode>; overrides: Record<string, SurfaceOverride> }
   | { type: "batch"; label?: string; commands: Command[] };
+
+/** Editable fields of an architectural proposal (partition: a, b, thickness, height, note; opening: at, width, note). */
+export const ProposalPatchSchema = z.strictObject({
+  a: z.tuple([z.number().finite(), z.number().finite()]).optional(),
+  b: z.tuple([z.number().finite(), z.number().finite()]).optional(),
+  thickness: z.number().finite().optional(),
+  height: z.number().finite().positive().optional(),
+  at: z.number().finite().optional(),
+  width: z.number().finite().positive().optional(),
+  note: z.string().max(280).optional(),
+});
+export type ProposalPatch = z.infer<typeof ProposalPatchSchema>;
 
 const id = z.string().min(1);
 const num = z.number().finite();
@@ -39,6 +52,7 @@ export const CommandSchema: z.ZodType<Command> = z.lazy(() =>
     z.strictObject({ type: z.literal("setVariant"), id, variantId: id }),
     z.strictObject({ type: z.literal("setModules"), id, modules: z.array(id).min(1) }),
     z.strictObject({ type: z.literal("setParams"), id, params: z.record(z.string(), num) }),
+    z.strictObject({ type: z.literal("setProposal"), id, patch: ProposalPatchSchema }),
     z.strictObject({ type: z.literal("setSlotMaterial"), id, slot: id, material: MaterialRefSchema.nullable() }),
     z.strictObject({ type: z.literal("setSurfaceMaterial"), surfaceId: id, material: MaterialRefSchema.nullable() }),
     z.strictObject({ type: z.literal("replace"), id, catalog: CatalogRefSchema }),
@@ -55,7 +69,7 @@ export const CommandSchema: z.ZodType<Command> = z.lazy(() =>
 
 /** Commands a client or the AI may send (internal inverse commands excluded). */
 export const PUBLIC_COMMAND_TYPES = [
-  "add", "remove", "duplicate", "move", "rotate", "setVariant", "setModules", "setParams",
+  "add", "remove", "duplicate", "move", "rotate", "setVariant", "setModules", "setParams", "setProposal",
   "setSlotMaterial", "setSurfaceMaterial", "replace", "restoreBaseline", "batch",
 ] as const;
 

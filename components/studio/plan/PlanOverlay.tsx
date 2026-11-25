@@ -8,6 +8,7 @@
 import { useMemo } from "react";
 import { resolveSize } from "@/lib/studio/catalog/sizing";
 import { bboxOf, footprint } from "@/lib/studio/validation/geom2d";
+import { openingProposalCenter, openingProposalRect, partitionRect } from "@/lib/studio/validation/architecture";
 import { doorSwings, footprintClearances, roomEdges, roomLabels, totalArea } from "@/lib/studio/plan/measure";
 import { project, type PlanView, type Viewport } from "@/lib/studio/plan/view";
 import { useStudio } from "../store";
@@ -31,6 +32,8 @@ export default function PlanOverlay() {
   const swings = useMemo(() => (baseline ? doorSwings(baseline) : []), [baseline]);
   const edges = useMemo(() => (baseline ? Object.values(baseline.rooms).flatMap((r) => roomEdges(r).map((e) => ({ ...e, room: r.id }))) : []), [baseline]);
   const totals = useMemo(() => (baseline ? totalArea(baseline) : null), [baseline]);
+
+  const proposals = useMemo(() => Object.values(doc?.nodes ?? {}).filter((n) => n.kind === "partitionProposal" || n.kind === "openingProposal"), [doc]);
 
   const sel = useMemo(() => {
     const n = selection && doc ? doc.nodes[selection] : null;
@@ -96,6 +99,30 @@ export default function PlanOverlay() {
             {showDims && <tspan x={x} dy="1.25em" className="pl-area">{l.area} m²</tspan>}
           </text>
         );
+      })}
+      {proposals.map((n) => {
+        if (n.kind === "partitionProposal") {
+          const c = P(plan, vp, (n.a[0] + n.b[0]) / 2, (n.a[1] + n.b[1]) / 2);
+          return (
+            <g key={n.id}>
+              <polygon className="pl-concept" points={partitionRect(n).map(([x, y]) => P(plan, vp, x, y).join(",")).join(" ")} />
+              <text x={c[0]} y={c[1] - 8} textAnchor="middle" className="pl-concept-tag">{t("conceptBadge")} · {fmt(Math.hypot(n.b[0] - n.a[0], n.b[1] - n.a[1]))}</text>
+            </g>
+          );
+        }
+        if (n.kind === "openingProposal") {
+          const rect = openingProposalRect(baseline, n), c0 = openingProposalCenter(baseline, n);
+          if (!rect || !c0) return null;
+          const cc = P(plan, vp, c0[0], c0[1]);
+          const a = P(plan, vp, (rect[0][0] + rect[3][0]) / 2, (rect[0][1] + rect[3][1]) / 2), b = P(plan, vp, (rect[1][0] + rect[2][0]) / 2, (rect[1][1] + rect[2][1]) / 2);
+          return (
+            <g key={n.id}>
+              <line className="pl-concept-open" x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} />
+              <text x={cc[0]} y={cc[1] - 8} textAnchor="middle" className="pl-concept-tag">{t("conceptBadge")} · {fmt(n.width)}</text>
+            </g>
+          );
+        }
+        return null;
       })}
       {selUi}
       {showDims && totals && (

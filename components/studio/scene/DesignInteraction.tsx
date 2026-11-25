@@ -74,7 +74,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
 
   const onItemDown = useCallback((id: string, e: ThreeEvent<PointerEvent>) => {
     const st = useStudio.getState();
-    if (!isEditing(st.mode)) return;
+    if (!isEditing(st.mode) || st.tool) return;
     const ne = e.nativeEvent;
     if (ne.pointerType === "mouse" && ne.button !== 0) return; // the right button looks around
     e.stopPropagation();
@@ -93,7 +93,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
 
   const onShellClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     const st = useStudio.getState();
-    if (!isEditing(st.mode)) return;
+    if (!isEditing(st.mode) || st.tool) return;
     e.stopPropagation();
     if (performance.now() < gesture.suppressClickUntil) return;
     const mat = (e.object as THREE.Mesh).material as THREE.Material | undefined;

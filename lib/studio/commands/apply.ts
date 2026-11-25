@@ -159,6 +159,22 @@ export function apply(doc: DesignDocument, cmd: Command, ctx: ApplyContext): App
       checkItem(ctx, next);
       return { doc: setNode(doc, next), inverse: { type: "setNode", node: n } };
     }
+    case "setProposal": {
+      const n = need(doc, cmd.id);
+      assertUnlocked(n);
+      const p = cmd.patch;
+      let next: DesignNode;
+      if (n.kind === "partitionProposal") {
+        if (p.at !== undefined || p.width !== undefined) throw new CommandError("bad-proposal", "A partition has no opening fields.");
+        next = { ...n, ...(p.a ? { a: p.a } : {}), ...(p.b ? { b: p.b } : {}), ...(p.thickness !== undefined ? { thickness: p.thickness } : {}), ...(p.height !== undefined ? { height: p.height } : {}), ...(p.note !== undefined ? { note: p.note } : {}) };
+        if (next.thickness < 0.05 || next.thickness > 0.4) throw new CommandError("bad-proposal", "Partition thickness must be 5-40 cm.");
+      } else if (n.kind === "openingProposal") {
+        if (p.a || p.b || p.thickness !== undefined || p.height !== undefined) throw new CommandError("bad-proposal", "An opening has no partition fields.");
+        next = { ...n, ...(p.at !== undefined ? { at: p.at } : {}), ...(p.width !== undefined ? { width: p.width } : {}), ...(p.note !== undefined ? { note: p.note } : {}) };
+      } else throw new CommandError("unsupported", `"${n.id}" is a ${n.kind}, not a proposal.`);
+      checkProposal(ctx, next);
+      return { doc: setNode(doc, next), inverse: { type: "setNode", node: n } };
+    }
     case "setSlotMaterial": {
       const n = needItem(doc, cmd.id);
       assertUnlocked(n);

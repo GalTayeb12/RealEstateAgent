@@ -11,16 +11,18 @@ import type { Baseline } from "@/lib/studio/baseline/fromTwin";
 import { apply, CommandError } from "@/lib/studio/commands/apply";
 import { History } from "@/lib/studio/commands/history";
 import type { Command } from "@/lib/studio/commands/types";
-import { previewNode, type Preview } from "@/lib/studio/design/preview";
+import { previewNode, previewProposal, type Preview } from "@/lib/studio/design/preview";
 import { findFreeSpot, makeItem } from "@/lib/studio/design/spot";
 import { rotateBy, snapAngle } from "@/lib/studio/design/snap";
 import type { PlanView, ViewKind, Viewport } from "@/lib/studio/plan/view";
 import { catalogFrom, type CatalogLookup, type MaterialManifest, type ModelManifest } from "@/lib/studio/schema/catalog";
 import { emptyDocument, type BaselineRef, type DesignDocument } from "@/lib/studio/schema/document";
 import { newNodeId } from "@/lib/studio/schema/ids";
-import type { ItemNode } from "@/lib/studio/schema/nodes";
+import type { DesignNode, ItemNode } from "@/lib/studio/schema/nodes";
 
 export type Mode = "walk" | "design" | "plan";
+/** Active drawing tool for architectural proposals (partition: first point once placed; opening: pick a wall). */
+export type ArchTool = { kind: "partition"; a: [number, number] | null } | { kind: "opening" };
 /** Design and Plan both edit the document (same selection, drag, panels); Walk only looks. */
 export const isEditing = (m: Mode) => m === "design" || m === "plan";
 export type Quality = "auto" | "low" | "medium" | "high";
@@ -59,6 +61,10 @@ interface StudioState {
   pose: Pose | null;
   design: DesignState | null;
   catalogOpen: boolean;
+  tool: ArchTool | null;
+  /** Transient preview of the proposal being drawn (never in the document). */
+  ghost: { node: DesignNode; ok: boolean } | null;
+  kitchenOpen: boolean;
   /** Floor planner camera (null until the first fit), the stage size in px, dimension overlay on/off. */
   plan: PlanView | null;
   viewport: Viewport;
@@ -75,6 +81,9 @@ interface StudioState {
   undo(): void;
   redo(): void;
   setMode(m: Mode): void;
+  setTool(t: ArchTool | null): void;
+  setGhost(g: { node: DesignNode; ok: boolean } | null): void;
+  setKitchenOpen(open: boolean): void;
   setPlan(p: PlanView | null): void;
   setPlanKind(kind: ViewKind): void;
   setViewport(v: Viewport): void;
@@ -118,7 +127,7 @@ export const useStudio = create<StudioState>((set, get) => {
   return {
     ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
-    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
+    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, tool: null, ghost: null, kitchenOpen: false, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
     catalogOpen: false, replaceFor: null, thumb: null,
 
     init({ baseline, ref, models, materials, mobile }) {
@@ -152,6 +161,11 @@ export const useStudio = create<StudioState>((set, get) => {
           const p = previewNode(next, node, baseline, catalog);
           if (!p.ok) return fail(`err.${p.errors[0].code}`);
         }
+        const prop = checkId ? next.nodes[checkId] : undefined;
+        if (prop && (prop.kind === "partitionProposal" || prop.kind === "openingProposal")) {
+          const p = previewProposal(next, prop, baseline, catalog);
+          if (!p.ok) return fail(`err.${p.errors[0].code}`);
+        }
       } catch (e) {
         if (e instanceof CommandError) return fail(e.message);
         throw e;
@@ -164,7 +178,10 @@ export const useStudio = create<StudioState>((set, get) => {
     setPlanKind: (kind) => set((st) => ({ plan: st.plan ? { ...st.plan, kind } : st.plan })),
     setViewport: (viewport) => set({ viewport }),
     setShowDims: (showDims) => set({ showDims }),
-    setMode: (mode) => set({ mode, ...(!isEditing(mode) ? { selection: null, drag: null, catalogOpen: false, replaceFor: null } : {}) }),
+    setTool: (tool) => set({ tool, ghost: null, ...(tool ? { selection: null, catalogOpen: false, kitchenOpen: false } : {}) }),
+    setGhost: (ghost) => set({ ghost }),
+    setKitchenOpen: (kitchenOpen) => set({ kitchenOpen, ...(kitchenOpen ? { tool: null, ghost: null, selection: null, catalogOpen: false } : {}) }),
+    setMode: (mode) => set({ mode, ...(!isEditing(mode) ? { selection: null, drag: null, catalogOpen: false, replaceFor: null, tool: null, ghost: null, kitchenOpen: false } : {}) }),
     setQuality: (quality) => set({ quality, ...(quality !== "auto" ? { tier: quality } : {}) }),
     setTier: (tier) => { if (get().quality === "auto") set({ tier }); },
     setLighting: (p) => set({ lighting: { ...get().lighting, ...p } }),
@@ -207,8 +224,9 @@ export const useStudio = create<StudioState>((set, get) => {
       return n ? get().commit({ type: "rotate", id: n.id, rot: rotateBy(n.transform.rot, steps) }, n.id) : false;
     },
     removeSelected() {
-      const n = itemOf(get().doc, get().selection);
-      if (!n) return false;
+      const sel = get().selection;
+      const n = itemOf(get().doc, sel) ?? (sel ? get().doc?.nodes[sel] : undefined);
+      if (!n || (n.kind !== "item" && n.kind !== "partitionProposal" && n.kind !== "openingProposal")) return false;
       const ok = get().dispatch({ type: "remove", id: n.id });
       if (ok) set({ selection: null });
       return ok;

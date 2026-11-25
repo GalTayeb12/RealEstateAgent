@@ -103,3 +103,20 @@
   .st-root[data-sheet] .st-plan { bottom: calc(50dvh + 12px); }
   .st-plan button { min-height: 40px; }
 }
+
+/* ── Architecture proposals (M9) ─────────────────────────────────── */
+.st-arch { position: relative; }
+.st-arch__list { position: absolute; bottom: calc(100% + 8px); inset-inline-start: 0; display: flex; flex-direction: column; min-width: 190px; padding: 6px; border-radius: 14px; background: rgba(20, 20, 22, .86); border: 1px solid rgba(255, 255, 255, .16); backdrop-filter: blur(12px); z-index: 5; }
+.st-arch__list button { background: none; border: 0; text-align: start; border-radius: 10px; padding: 9px 12px; }
+.st-arch__list button:hover:not(:disabled) { background: rgba(255, 255, 255, .1); }
+.st-warn { margin: 6px 0 0; padding: 8px 10px; border-radius: 10px; background: rgba(232, 182, 94, .16); color: #f2c45a; font-size: 12px; line-height: 1.4; }
+.st-concept { margin-inline-start: 8px; padding: 2px 8px; border-radius: 999px; background: rgba(232, 182, 94, .22); color: #f2c45a; font-size: 11px; font-weight: 600; }
+.st-banner--concept { top: 100px; background: rgba(232, 182, 94, .22); color: #f6d38a; border: 1px solid rgba(232, 182, 94, .5); font-weight: 500; backdrop-filter: blur(8px); }
+.st-layouts { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.st-layouts li { display: flex; gap: 12px; align-items: center; padding: 8px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
+.st-layouts li > div { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.st-lay-room { fill: rgba(255, 255, 255, .06); stroke: rgba(255, 255, 255, .35); }
+.st-lay-unit { fill: rgba(232, 182, 94, .55); stroke: #e8b65e; stroke-width: 1; }
+.pl-concept { fill: rgba(232, 182, 94, .22); stroke: #e8b65e; stroke-width: 1.5; stroke-dasharray: 5 3; }
+.pl-concept-open { stroke: #e8b65e; stroke-width: 4; stroke-linecap: butt; stroke-dasharray: 6 4; }
+.pl-concept-tag { fill: #f2c45a; font-size: 11px; font-weight: 600; paint-order: stroke; stroke: rgba(10, 10, 12, .8); stroke-width: 3px; }
