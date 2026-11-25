@@ -15,6 +15,7 @@ import * as THREE from "three";
 import { Apartment } from "@/components/walk/ApartmentWalk";
 import type { WalkConfig, WalkData } from "@/lib/experience/types";
 import { useStudio, type Tier } from "../store";
+import { useDesign } from "./DesignInteraction";
 import { applyMaterial } from "./materials";
 
 const STRIP_DIRECT = /RE_Direct\([^;]*\);/g;
@@ -58,14 +59,15 @@ function floorOverlayMaterial(lm: THREE.Texture, opacity: number, lo: number, hi
   return m;
 }
 
-export function ShellLayer({ walk, data, mobile, tier, uvScales }: {
-  walk: WalkConfig; data: WalkData; mobile: boolean; tier: Tier; uvScales: Record<string, number>;
+export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false }: {
+  walk: WalkConfig; data: WalkData; mobile: boolean; tier: Tier; uvScales: Record<string, number>; hidden?: boolean;
 }) {
   const { scene } = useGLTF(`${walk.base}/apartment.glb`, false, true);
   const overrides = useStudio((s) => s.doc?.overrides);
   const catalog = useStudio((s) => s.catalog);
   const lighting = useStudio((s) => s.lighting);
   const shadows = tier !== "low";
+  const design = useDesign();
 
   // 1. baked materials: no realtime direct light; walls and ceilings cast into the sun shadow map
   useEffect(() => {
@@ -128,5 +130,9 @@ export function ShellLayer({ walk, data, mobile, tier, uvScales }: {
     return () => { for (const m of added) m.removeFromParent(); overlayMat?.dispose(); };
   }, [scene, shadows, lighting.shadowOpacity, lighting.maskLo, lighting.maskHi]);
 
-  return <Apartment walk={walk} data={data} mobile={mobile} />;
+  return (
+    <group visible={!hidden} onClick={(e) => design?.onShellClick(e)}>
+      <Apartment walk={walk} data={data} mobile={mobile} />
+    </group>
+  );
 }

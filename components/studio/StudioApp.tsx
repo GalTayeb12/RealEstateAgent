@@ -1,27 +1,30 @@
 "use client";
 
 /**
- * /studio/[slug]: HAVENIQ Design Studio. M3 delivers the foundation (live
- * furniture on the baked shell, lighting, adaptive quality, undo/redo and
- * restore-original on one shared document). Design and Plan modes arrive in
- * M5/M7; the mode switch is already part of the shell.
+ * /studio/[slug]: HAVENIQ Design Studio. Walk mode explores the apartment;
+ * Design mode edits it in place (click a piece or surface, drag, rotate, add
+ * from the catalog, change materials and sizes) on one shared design document
+ * with undo/redo and "restore original". Plan mode arrives with M7.
  */
 import { useProgress } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
-import { useI18n } from "@/components/LocaleProvider";
 import type { WalkData } from "@/lib/experience/types";
 import { roomAt, type ProjectExperience } from "@/lib/experience/types";
 import type { Baseline } from "@/lib/studio/baseline/fromTwin";
 import { MaterialManifest, ModelManifest } from "@/lib/studio/schema/catalog";
+import CatalogDrawer from "./panels/CatalogDrawer";
+import PropertiesPanel from "./panels/PropertiesPanel";
 import { StudioCanvas } from "./scene/StudioCanvas";
 import { useStudio } from "./store";
+import { useT } from "./useT";
 import { useWalkInput } from "./useWalkInput";
 import "./studio.css";
+import "./studio-panels.css";
 
 type Boot = { data: WalkData; uvScales: Record<string, number> };
 
 export default function StudioApp({ experience }: { experience: ProjectExperience }) {
-  const { locale } = useI18n();
+  const { t, locale } = useT();
   const he = locale === "he";
   const { walk } = experience;
   const wrap = useRef<HTMLDivElement>(null);
@@ -35,7 +38,13 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
   const [failed, setFailed] = useState<string | null>(null);
   const [room, setRoom] = useState("");
   const ready = useStudio((s) => s.ready);
-  const { mode, setMode, canUndo, canRedo, undo, redo, dispatch, lastError, quality, setQuality } = useStudio();
+  const mode = useStudio((s) => s.mode);
+  const canUndo = useStudio((s) => s.canUndo);
+  const canRedo = useStudio((s) => s.canRedo);
+  const quality = useStudio((s) => s.quality);
+  const lastError = useStudio((s) => s.lastError);
+  const selection = useStudio((s) => s.selection);
+  const catalogOpen = useStudio((s) => s.catalogOpen);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,55 +76,68 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
     return () => { cancelled = true; };
   }, [walk, mobile, debug, input]);
 
-  // keyboard shortcuts: undo / redo
+  // keyboard: undo/redo everywhere; editing keys only in Design mode
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement)?.closest?.("input, textarea, select")) return;
-      if ((e.ctrlKey || e.metaKey) && e.code === "KeyZ") { e.preventDefault(); (e.shiftKey ? redo : undo)(); }
-      if ((e.ctrlKey || e.metaKey) && e.code === "KeyY") { e.preventDefault(); redo(); }
+      const s = useStudio.getState();
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.code === "KeyZ") { e.preventDefault(); (e.shiftKey ? s.redo : s.undo)(); return; }
+      if (mod && e.code === "KeyY") { e.preventDefault(); s.redo(); return; }
+      if (s.mode !== "design") return;
+      if (mod && e.code === "KeyD") { e.preventDefault(); s.duplicateSelected(); }
+      else if (e.code === "Delete" || e.code === "Backspace") { if (s.selection && !s.selection.startsWith("surface:")) { e.preventDefault(); s.removeSelected(); } }
+      else if (e.code === "KeyR") s.rotateSelected(e.shiftKey ? -1 : 1);
+      else if (e.code === "Escape") { if (s.catalogOpen) s.setCatalogOpen(false); else s.select(null); }
     };
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
-  }, [undo, redo]);
+  }, []);
 
-  const T = he
-    ? { title: experience.title.he, undo: "ביטול", redo: "שחזור", restore: "שחזור המצב המקורי", walk: "הליכה", design: "עיצוב", plan: "תוכנית", soon: "בקרוב", quality: "איכות", auto: "אוטומטי", lite: "Lite", standard: "Standard", high: "High", load: "טוענים את הסטודיו…" }
-    : { title: experience.title.en, undo: "Undo", redo: "Redo", restore: "Restore original", walk: "Walk", design: "Design", plan: "Plan", soon: "Soon", quality: "Quality", auto: "Auto", lite: "Lite", standard: "Standard", high: "High", load: "Loading the studio…" };
+  const err = lastError ? (lastError === "noSpace" || lastError.startsWith("err.") ? t(lastError) : lastError) : null;
+  const hint = mobile ? t("hintTouch") : mode === "design" ? t("hintDesign") : t("hintWalk");
+  const title = experience.title[locale];
 
   return (
-    <div ref={wrap} className="st-root" dir={he ? "rtl" : "ltr"} {...touch}>
+    <div ref={wrap} className="st-root" data-mode={mode} data-sheet={(mode === "design" && (selection || catalogOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
+      <div className="st-stage">
       {boot && ready && (
         <StudioCanvas
           walk={walk} data={boot.data} uvScales={boot.uvScales} input={input} reduce={reduce} mobile={mobile}
-          label={T.title} onRoom={setRoom} onPose={() => {}}
+          label={title} onRoom={setRoom} onPose={(x, y, yaw) => useStudio.getState().setPose({ x, y, yaw })}
         />
       )}
-      <Loader text={T.load} failed={failed} />
+      </div>
+      <Loader text={t("loading")} failed={failed} />
 
       <div className="st-ui st-top">
-        <strong className="st-title">{T.title}</strong>
-        <span className="st-room" aria-live="polite">{walk.rooms[room]?.name[he ? "he" : "en"]}</span>
+        <strong className="st-title">{title}</strong>
+        <span className="st-room" aria-live="polite">{walk.rooms[room]?.name[locale]}</span>
         <div className="st-modes" role="tablist" aria-label="mode">
-          <button role="tab" aria-selected={mode === "walk"} onClick={() => setMode("walk")}>{T.walk}</button>
-          <button role="tab" aria-selected={false} disabled title={T.soon}>{T.design}</button>
-          <button role="tab" aria-selected={false} disabled title={T.soon}>{T.plan}</button>
+          <button role="tab" aria-selected={mode === "walk"} onClick={() => useStudio.getState().setMode("walk")}>{t("walk")}</button>
+          <button role="tab" aria-selected={mode === "design"} onClick={() => useStudio.getState().setMode("design")}>{t("design")}</button>
+          <button role="tab" aria-selected={false} disabled title={t("soon")}>{t("plan")}</button>
         </div>
       </div>
 
       <div className="st-ui st-bar">
-        <button onClick={undo} disabled={!canUndo}>{T.undo}</button>
-        <button onClick={redo} disabled={!canRedo}>{T.redo}</button>
-        <button onClick={() => dispatch({ type: "restoreBaseline" })}>{T.restore}</button>
-        <select aria-label={T.quality} value={quality} onChange={(e) => setQuality(e.target.value as typeof quality)}>
-          <option value="auto">{T.quality}: {T.auto}</option>
-          <option value="low">{T.lite}</option>
-          <option value="medium">{T.standard}</option>
-          <option value="high">{T.high}</option>
+        {mode === "design" && <button type="button" className="st-primary" onClick={() => useStudio.getState().setCatalogOpen(true)}>＋ {t("add")}</button>}
+        <button type="button" onClick={() => useStudio.getState().undo()} disabled={!canUndo}>{t("undo")}</button>
+        <button type="button" onClick={() => useStudio.getState().redo()} disabled={!canRedo}>{t("redo")}</button>
+        <button type="button" onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
+        <select aria-label={t("quality")} value={quality} onChange={(e) => useStudio.getState().setQuality(e.target.value as typeof quality)}>
+          <option value="auto">{t("quality")}: {t("auto")}</option>
+          <option value="low">{t("lite")}</option>
+          <option value="medium">{t("standard")}</option>
+          <option value="high">{t("high")}</option>
         </select>
       </div>
 
-      {lastError && <p className="st-ui st-toast" role="status">{lastError}</p>}
-      {!locked && !mobile && boot && <p className="st-ui st-hint">{he ? "חיצים / WASD ללכת · לחצו וגררו כדי להסתכל" : "Arrows / WASD to walk · click & drag to look"}</p>}
+      {mode === "design" && <PropertiesPanel />}
+      {mode === "design" && <CatalogDrawer />}
+
+      {err && <p className="st-ui st-toast" role="status">{err}</p>}
+      {!locked && boot && !selection && <p className="st-ui st-hint">{hint}</p>}
       {mobile && stickUi && (
         <div className="st-stick" style={{ left: stickUi.ox, top: stickUi.oy }} aria-hidden>
           <span style={{ transform: `translate(${stickUi.x * 40}px, ${stickUi.y * 40}px)` }} />

@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable react-hooks/refs --
+/* eslint-disable react-hooks/refs, react-hooks/immutability --
    three.js lights and cameras are configured imperatively (r3f pattern). */
 
 /**
@@ -8,7 +8,7 @@
  * allows and only steps down when measured frame rate drops (and back up when
  * it recovers), unless the user pins a tier.
  */
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
 import { Bloom, EffectComposer, N8AO, SMAA, ToneMapping, Vignette } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
@@ -16,9 +16,11 @@ import * as THREE from "three";
 import { Suspense, useEffect, useRef } from "react";
 import { EYE, Walker, type Input } from "@/components/walk/ApartmentWalk";
 import type { WalkConfig, WalkData } from "@/lib/experience/types";
+import { resolveSize } from "@/lib/studio/catalog/sizing";
 import { useStudio, type Tier } from "../store";
 import { ItemLayer } from "./ItemLayer";
 import { ShellLayer } from "./ShellLayer";
+import { DesignProvider, SelectionBox } from "./DesignInteraction";
 
 /**
  * The bake's sun (twin_build.py: Euler XYZ 55°, 0, -35°) travels along
@@ -57,6 +59,31 @@ function Sun({ tier }: { tier: Tier }) {
   );
 }
 
+/** Frames one catalog item on a plain backdrop for its thumbnail (front-right, slightly above). */
+function ThumbCamera({ id }: { id: string }) {
+  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
+  const scene = useThree((s) => s.scene);
+  const node = useStudio((s) => s.doc?.nodes[id]);
+  const catalog = useStudio((s) => s.catalog);
+  useFrame(() => {
+    if (!node || node.kind !== "item" || !catalog) return;
+    const m = catalog.model(node.catalog);
+    if (!m) return;
+    const { w, d, h } = resolveSize(m, node);
+    const t = node.transform;
+    const front = [-Math.sin(t.rot), Math.cos(t.rot)], right = [Math.cos(t.rot), Math.sin(t.rot)];
+    const c = [t.x + (front[0] * d) / 2, t.y + (front[1] * d) / 2];
+    const dist = Math.hypot(w, d, h) * 1.75 + 0.3;
+    const p = [c[0] + front[0] * dist * 0.78 + right[0] * dist * 0.5, c[1] + front[1] * dist * 0.78 + right[1] * dist * 0.5];
+    camera.fov = 32; camera.near = 0.05; camera.far = 80; camera.updateProjectionMatrix();
+    camera.position.set(p[0], t.z + h * 0.55 + dist * 0.32, -p[1]);
+    camera.lookAt(c[0], t.z + h * 0.48, -c[1]);
+    scene.background = new THREE.Color("#ece7df");
+    scene.backgroundIntensity = 1;
+  });
+  return null;
+}
+
 function Tiering() {
   const quality = useStudio((s) => s.quality);
   const tier = useStudio((s) => s.tier);
@@ -76,6 +103,7 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
 }) {
   const tier = useStudio((s) => s.tier);
   const ao = useStudio((s) => s.lighting.ao);
+  const thumb = useStudio((s) => s.thumb);
   const composer = !mobile && tier === "high";
   const dpr: [number, number] = tier === "low" ? [1, 1] : tier === "medium" ? [1, 1.5] : [1, 2];
   return (
@@ -88,12 +116,15 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
       aria-label={label}
     >
       <Tiering />
-      <Suspense fallback={null}>
-        <ShellLayer walk={walk} data={data} mobile={mobile} tier={tier} uvScales={uvScales} />
-        <ItemLayer walk={walk} data={data} />
-      </Suspense>
+      <DesignProvider>
+        <Suspense fallback={null}>
+          <ShellLayer walk={walk} data={data} mobile={mobile} tier={tier} uvScales={uvScales} hidden={!!thumb} />
+          <ItemLayer walk={walk} data={data} />
+        </Suspense>
+        <SelectionBox />
+      </DesignProvider>
       <Sun tier={tier} />
-      <Walker walk={walk} data={data} input={input} reduce={reduce} onRoom={onRoom} onPose={onPose} />
+      {thumb ? <ThumbCamera id={thumb.id} /> : <Walker walk={walk} data={data} input={input} reduce={reduce} onRoom={onRoom} onPose={onPose} />}
       {/* two separately keyed composers: N8AO cannot share a multisampled composer, and
           removing an effect from a live composer leaves its depth buffers in a broken state */}
       {composer && ao && (

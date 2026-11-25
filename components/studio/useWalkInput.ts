@@ -6,6 +6,8 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Input } from "@/components/walk/ApartmentWalk";
+import { gesture } from "./gesture";
+import { useStudio } from "./store";
 
 const LOOK_SPIKE = 250; // px per mouse event above this is a pointer-lock glitch, not input
 
@@ -36,13 +38,18 @@ export function useWalkInput(wrap: React.RefObject<HTMLElement | null>, mobile: 
     let dragging = false;
     const onLock = () => setLocked(document.pointerLockElement === el.querySelector("canvas"));
     const move = (e: MouseEvent) => {
-      if (!(document.pointerLockElement || dragging)) return;
+      if (gesture.itemActive || !(document.pointerLockElement || dragging)) return;
       if (Math.abs(e.movementX) > LOOK_SPIKE || Math.abs(e.movementY) > LOOK_SPIKE) return;
       input.current.lookDX += e.movementX;
       input.current.lookDY += e.movementY;
     };
     const downM = (e: MouseEvent) => {
-      if ((e.target as HTMLElement).tagName !== "CANVAS") return;
+      if ((e.target as HTMLElement).tagName !== "CANVAS" || gesture.itemActive) return;
+      if (useStudio.getState().mode === "design") {
+        // design mode: the left button selects and drags pieces, the right button looks around (no pointer lock)
+        if (e.button === 2) dragging = true;
+        return;
+      }
       dragging = true;
       try { (el.querySelector("canvas")?.requestPointerLock?.() as unknown as Promise<void> | undefined)?.catch?.(() => {}); } catch { /* drag fallback */ }
     };
@@ -50,11 +57,14 @@ export function useWalkInput(wrap: React.RefObject<HTMLElement | null>, mobile: 
     document.addEventListener("pointerlockchange", onLock);
     window.addEventListener("mousemove", move);
     el.addEventListener("mousedown", downM);
+    const noMenu = (e: Event) => { if (useStudio.getState().mode === "design") e.preventDefault(); };
+    el.addEventListener("contextmenu", noMenu);
     window.addEventListener("mouseup", upM);
     return () => {
       document.removeEventListener("pointerlockchange", onLock);
       window.removeEventListener("mousemove", move);
       el.removeEventListener("mousedown", downM);
+      el.removeEventListener("contextmenu", noMenu);
       window.removeEventListener("mouseup", upM);
     };
   }, [mobile, wrap]);
@@ -62,7 +72,7 @@ export function useWalkInput(wrap: React.RefObject<HTMLElement | null>, mobile: 
   const touches = useRef(new Map<number, { kind: "stick" | "look"; x: number; y: number; ox: number; oy: number }>());
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     for (const t of Array.from(e.changedTouches)) {
-      if ((t.target as HTMLElement).closest(".st-ui")) continue;
+      if ((t.target as HTMLElement).closest(".st-ui") || gesture.itemActive) continue;
       const kind = t.clientX < window.innerWidth * 0.45 ? "stick" : "look";
       touches.current.set(t.identifier, { kind, x: t.clientX, y: t.clientY, ox: t.clientX, oy: t.clientY });
       if (kind === "stick") setStickUi({ ox: t.clientX, oy: t.clientY, x: 0, y: 0 });

@@ -15,6 +15,7 @@ import { roomAt, type WalkConfig, type WalkData } from "@/lib/experience/types";
 import type { ModelManifest } from "@/lib/studio/schema/catalog";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { useStudio } from "../store";
+import { useDesign } from "./DesignInteraction";
 import { applyMaterial } from "./materials";
 
 const CATALOG_BASE = "/studio/catalog";
@@ -110,7 +111,9 @@ function Item({ node, walk, data, envs, listeners }: {
     [scene, manifest, modKey],
   );
   const dims = resolveSize(manifest, node);
-  const t = node.transform;
+  const design = useDesign();
+  const drag = useStudio((s) => (s.drag && s.drag.id === node.id ? s.drag : null));
+  const t = drag ? { ...node.transform, x: drag.x, y: drag.y, rot: drag.rot } : node.transform;
   const room = roomAt(walk, data.rooms, t.x, t.y);
 
   // slot materials: textured when the asset's UVs are in metres, otherwise colour/roughness/metalness only
@@ -148,7 +151,9 @@ function Item({ node, walk, data, envs, listeners }: {
 
   const decal = showDecal && manifest.placement.layer === "furniture";
   return (
-    <group position={[t.x, t.z + manifest.placement.elevation, -t.y]} rotation={[0, t.rot, 0]} name={`item:${node.id}`} userData={{ itemId: node.id }}>
+    <group position={[t.x, t.z + manifest.placement.elevation, -t.y]} rotation={[0, t.rot, 0]} name={`item:${node.id}`} userData={{ itemId: node.id }}
+      onPointerDown={(e) => design?.onItemDown(node.id, e)}
+      onClick={(e) => { if (design) e.stopPropagation(); }}>
       <primitive object={obj} />
       {decal && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -manifest.placement.elevation + 0.004, -dims.d / 2]} renderOrder={1}>
