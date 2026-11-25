@@ -1,0 +1,24 @@
+/* Design Studio shell (M3). Deliberately small: M5 replaces this with the contextual UI. */
+.st-root { position: fixed; inset: 0; z-index: 1000; background: #0b0b0c; color: #f4efe6; touch-action: none; user-select: none; -webkit-user-select: none; overscroll-behavior: none; font-family: var(--font-heebo, system-ui, sans-serif); }
+.st-root canvas { display: block; cursor: grab; }
+.st-top { position: absolute; top: 14px; inset-inline: 16px; display: flex; gap: 14px; align-items: center; pointer-events: none; }
+.st-top > * { pointer-events: auto; }
+.st-title { font-weight: 600; font-size: 15px; text-shadow: 0 1px 8px rgba(0, 0, 0, .6); }
+.st-room { font-size: 13px; opacity: .85; text-shadow: 0 1px 8px rgba(0, 0, 0, .6); }
+.st-modes { margin-inline-start: auto; display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(20, 20, 22, .62); border: 1px solid rgba(255, 255, 255, .16); backdrop-filter: blur(10px); }
+.st-modes button { background: none; border: 0; color: inherit; padding: 6px 14px; border-radius: 999px; font-size: 13px; cursor: pointer; }
+.st-modes button[aria-selected="true"] { background: rgba(255, 255, 255, .16); }
+.st-modes button:disabled { opacity: .4; cursor: default; }
+.st-bar { position: absolute; bottom: 16px; inset-inline-start: 16px; display: flex; gap: 8px; }
+.st-bar button { background: rgba(20, 20, 22, .62); color: inherit; border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px; padding: 8px 16px; font-size: 13px; backdrop-filter: blur(10px); cursor: pointer; }
+.st-bar button:disabled { opacity: .4; cursor: default; }
+.st-bar button:not(:disabled):hover { background: rgba(40, 40, 44, .75); }
+.st-hint { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); margin: 0; padding: 6px 14px; border-radius: 999px; background: rgba(20, 20, 22, .5); font-size: 13px; white-space: nowrap; pointer-events: none; backdrop-filter: blur(6px); }
+.st-toast { position: absolute; top: 64px; left: 50%; transform: translateX(-50%); margin: 0; padding: 8px 16px; border-radius: 12px; background: rgba(120, 30, 30, .8); font-size: 13px; }
+.st-loading { position: absolute; inset: 0; display: grid; place-content: center; gap: 12px; text-align: center; background: #0b0b0c; z-index: 2; }
+.st-loading__bar { width: min(320px, 70vw); height: 3px; background: rgba(255, 255, 255, .12); border-radius: 3px; overflow: hidden; }
+.st-loading__bar span { display: block; height: 100%; background: #e8b65e; transition: width .3s ease; }
+.st-loading p { margin: 0; font-size: 14px; opacity: .8; }
+.st-stick { position: fixed; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .08); pointer-events: none; }
+.st-stick span { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px; border-radius: 50%; background: rgba(255, 255, 255, .55); }
+@media (prefers-reduced-motion: reduce) { .st-loading__bar span { transition: none; } }

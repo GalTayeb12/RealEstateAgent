@@ -30,12 +30,12 @@ import { type ProjectExperience, type Rect, type WalkConfig, type WalkData, room
 import { standFor } from "@/lib/experience/derive";
 
 export type { WalkData };
-const EYE = 1.6;
+export const EYE = 1.6;
 const RADIUS = 0.2;
 const WALK_SPEED = 1.35;   // m/s
 const RUN_SPEED = 2.6;
 const TURN_SPEED = 1.9;    // rad/s for arrow-key turning
-const EXPOSURE = 1.12;     // global scale on all baked light
+export const EXPOSURE = 1.12;     // global scale on all baked light
 // The 2700 K downlights + oak bounce leave a warm cast; a camera would white-balance it out.
 const WHITE_BALANCE = "vec3(0.93, 0.98, 1.10)";
 const LOOK_SENS = 0.0022;
@@ -52,7 +52,7 @@ function doorHolePlanes({ x: [x1, x2], top }: WalkConfig["doorHoles"][number]): 
 }
 
 /** Circle-vs-AABB push-out, a few relaxation passes. */
-function collide(p: { x: number; y: number }, boxes: Rect[]) {
+export function collide(p: { x: number; y: number }, boxes: Rect[]) {
   for (let pass = 0; pass < 3; pass++) {
     let moved = false;
     for (const [x1, y1, x2, y2] of boxes) {
@@ -80,7 +80,7 @@ function collide(p: { x: number; y: number }, boxes: Rect[]) {
 }
 
 // ─── shared input state (keyboard, mouse, touch) ────────────────────────────
-interface Input {
+export interface Input {
   keys: Set<string>;
   lookDX: number;
   lookDY: number;
@@ -89,7 +89,7 @@ interface Input {
 }
 
 /** Patch: drop image-based *diffuse* on lightmapped materials (the bake already holds it). */
-function bakedOnly(mat: THREE.MeshStandardMaterial) {
+export function bakedOnly(mat: THREE.MeshStandardMaterial) {
   mat.onBeforeCompile = (shader) => {
     shader.fragmentShader = shader.fragmentShader.replace(
       "#include <lights_fragment_maps>",
@@ -254,7 +254,7 @@ export function Apartment({ walk, data, mobile, overview = false }: { walk: Walk
 }
 
 // ─── first-person controller ────────────────────────────────────────────────
-function Walker({ walk, data, input, reduce, onRoom, onPose }: {
+export function Walker({ walk, data, input, reduce, onRoom, onPose }: {
   walk: WalkConfig; data: WalkData; input: React.RefObject<Input>; reduce: boolean;
   onRoom: (r: string) => void; onPose: (x: number, y: number, yaw: number) => void;
 }) {

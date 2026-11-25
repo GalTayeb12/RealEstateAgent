@@ -1,0 +1,79 @@
+{
+  "type": "model",
+  "version": 1,
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/models",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-25"
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "sizing": {
+    "mode": "fixed"
+  },
+  "id": "sofa-03",
+  "name": {
+    "he": "ספה תלת-מושבית",
+    "en": "Three-seat sofa"
+  },
+  "category": "sofa",
+  "styles": [
+    "contemporary",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living"
+  ],
+  "dims": {
+    "w": 2.731,
+    "d": 0.925,
+    "h": 1.118
+  },
+  "slots": [
+    {
+      "id": "upholstery",
+      "target": "sofa_03",
+      "label": {
+        "he": "ריפוד",
+        "en": "Upholstery"
+      },
+      "allowed": [
+        "fabric",
+        "leather"
+      ]
+    },
+    {
+      "id": "fringe",
+      "target": "sofa_03_fringe",
+      "label": {
+        "he": "פרנזים",
+        "en": "Fringe"
+      },
+      "allowed": [
+        "fabric"
+      ]
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.8,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  },
+  "assets": {
+    "glb": "sofa-03/1/model.glb",
+    "preview": "sofa-03/1/preview.webp"
+  },
+  "_note": "M3 test asset (Poly Haven CC0), not yet curated for the premium catalog"
+}

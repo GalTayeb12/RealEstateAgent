@@ -51,6 +51,8 @@ export type License = z.infer<typeof License>;
 
 export const MaterialSlot = z.strictObject({
   id: z.string().min(1),
+  /** Name of the GLB material this slot controls; defaults to the slot id. */
+  target: z.string().min(1).optional(),
   label: Bilingual,
   allowed: z.array(z.enum(MATERIAL_CATEGORIES)).min(1),
   default: z.strictObject({ id: z.string(), version: z.number().int().positive() }).optional(),

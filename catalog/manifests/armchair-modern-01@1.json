@@ -1,0 +1,80 @@
+{
+  "type": "model",
+  "version": 1,
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/models",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-25"
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "sizing": {
+    "mode": "fixed"
+  },
+  "id": "armchair-modern-01",
+  "name": {
+    "he": "כורסה מודרנית",
+    "en": "Modern armchair"
+  },
+  "category": "armchair",
+  "styles": [
+    "contemporary"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "dims": {
+    "w": 0.82,
+    "d": 0.987,
+    "h": 1.023
+  },
+  "slots": [
+    {
+      "id": "legs",
+      "target": "modern_arm_chair_01_legs",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "wood",
+        "metal"
+      ]
+    },
+    {
+      "id": "cushion",
+      "target": "modern_arm_chair_01_pillow",
+      "label": {
+        "he": "כרית",
+        "en": "Cushion"
+      },
+      "allowed": [
+        "fabric",
+        "leather"
+      ]
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.6,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "assets": {
+    "glb": "armchair-modern-01/1/model.glb",
+    "preview": "armchair-modern-01/1/preview.webp"
+  },
+  "_note": "M3 test asset (Poly Haven CC0), not yet curated for the premium catalog"
+}

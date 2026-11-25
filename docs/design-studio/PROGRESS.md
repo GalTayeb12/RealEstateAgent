@@ -9,7 +9,8 @@ Read this file first in every session; do not re-audit the repo.
 | M0 | done | worktree, docs, flag (lib/studio/flags.ts), bench (scripts/studio/bench.mjs) |
 | M1 | done | lib/studio core: 85 studio tests (362 total green), tsc + eslint clean |
 | M2 | done (gate caveat) | empty shell + surface materials + proof; irradiance-only confirmed, swap-without-rebake accuracy limited (see QUALITY_GATES) |
-| M3-M13 | pending | see MASTER_PLAN section 10 |
+| M3 | done (first pass) | /studio/[slug] behind flag; live item layer, sun + floor overlay, tiers, pipeline v0; evaluation in QUALITY_GATES |
+| M4-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
 - Viewer: `components/walk/ApartmentWalk.tsx` (r3f, lightmaps lm-A/lm-B on uv1, `bakedOnly()` patch, custom Walker, collision vs walk.json boxes). Route `app/walk/[slug]`.
@@ -53,6 +54,17 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - Not done from the M2 plan: `seed-design.json` from twin_furnish. M4 supplies the real living-room content, so the old rule-based furniture is not needed for the slice.
 - Tooling note: `npx tsx` fetches tsx from npm (it is not a project dependency; the repo's existing scripts do the same).
 
+## M3 summary
+- Route `/studio/[slug]`: `app/studio/[slug]/page.tsx` (server: `STUDIO_ENABLED` + role allowlist via `lib/studio/flags.ts`, 404 otherwise; verified for anonymous/buyer/seller/forged/wrong-secret tokens) -> `StudioClient` -> `components/studio/StudioApp.tsx`.
+- Store: `components/studio/store.ts` (zustand; one `DesignDocument`, all edits through `lib/studio/commands`, undo/redo/restore original, quality tier, lighting params). Debug handles `window.__studio` / `__studioInput` only with `?debug`.
+- Scene: `components/studio/scene/{StudioCanvas,ShellLayer,ItemLayer,materials}.tsx`. Shell = existing `Apartment` (from ApartmentWalk) + patches: realtime direct light stripped from baked materials, shell casts sun shadows, `S|<surfaceId>` material overrides, floor shadow overlay masked by lightmap luminance. Items = catalog GLBs lit by sun + room probe + AO decal.
+- `components/walk/ApartmentWalk.tsx`: ONLY six `export` keywords added (EYE, EXPOSURE, collide, Input, bakedOnly, Walker); no behaviour change. (Plan said "move shared code"; exporting is lower risk. Move later if wanted.)
+- Pipeline v0: `scripts/blender/studio_normalize.py` (collection -> normalized GLB: floor at 0, back at y=0, front +Y), `scripts/studio/ingest/optimize.mjs`, `scripts/studio/ingest/publish.mts` (gates: strict manifest, license, bbox within 1 cm, slot targets, budgets) -> `public/studio/catalog/index.json`. Manifests: `catalog/manifests/<id>@<v>.json`.
+- Test assets (Poly Haven CC0, NOT curated): sofa-03 (ornate, unusable for the art direction), armchair-modern-01, coffee-table-modern-01, side-table-01; flat-colour test materials. Raw GLBs in `assets-src/studio/items-raw/` (not in git). Optimized GLBs are committed under `public/studio/catalog/` (move to the storage driver / R2 in M6/M11).
+- Tooling: `scripts/studio/shots.mjs` (scene screenshots through the real command engine; needs `STUDIO_ENABLED=1` dev server and the same `JWT_SECRET`), `bench.mjs --studio`.
+- Dev server for the studio: `STUDIO_ENABLED=1 JWT_SECRET=studio-bench-dummy DATABASE_URL=postgresql://dummy:dummy@localhost:5432/studio_dev npx next dev -p 3001` (stop with PowerShell `Stop-Process` on the listener; restart after edits).
+- Open from M3: sun intensity is uncalibrated; only one daylight condition exists; no UI beyond a mode switch + undo/redo/restore (M5); draw calls above target (M13); i18n strings are inline in StudioApp (centralise in M5).
+
 ## Next steps
-1. M3: `/studio/[slug]` route behind `STUDIO_ENABLED`; extract the shared Walker + lightmap material code from ApartmentWalk without changing /walk; dynamic item layer (probe IBL, matched sun shadow, contact AO), quality tiers; bench the shell with `node scripts/studio/bench.mjs http://localhost:3001 /walk/yarkon-twin-shell`.
-2. Before M4 final visuals: run the final-quality shell bake.
+1. M4 (the premium living-room vertical slice): replace test assets with curated premium pieces. Start with ART_DIRECTION + references (none supplied yet), then: (a) final-quality shell bake (`node scripts/twin/build-walk.mjs yarkon yarkon-twin-shell --shell-only`, ~20 min), (b) real textured materials (ambientCG CC0: oak parquet, limewash/plaster, fluted oak, travertine) with tileSize, (c) an original modular sofa family modelled in Blender (modules from `lib/studio/schema/catalog.ts` Module), designer coffee table, armchairs, rug, lamps, plants, (d) calibrate sun intensity against the bake, (e) visual review per QUALITY_GATES.
+2. Decide the daylight strategy (single baked sun vs. extra bakes) before M4 final visuals.

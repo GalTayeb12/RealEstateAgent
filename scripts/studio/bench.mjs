@@ -7,14 +7,22 @@
 // phone measurements; label them accordingly in PROGRESS.md.
 import { chromium } from "@playwright/test";
 import { writeFileSync } from "node:fs";
+import jwt from "jsonwebtoken";
 
 const args = process.argv.slice(2);
 const flags = Object.fromEntries(args.filter((a) => a.startsWith("--")).map((a) => a.slice(2).split("=")));
 const pos = args.filter((a) => !a.startsWith("--"));
 const base = (pos[0] && pos[0].startsWith("http") ? pos[0] : "http://localhost:3001").replace(/\/$/, "");
 const paths = pos.filter((p) => p.startsWith("/"));
-if (!paths.length) paths.push("/walk/yarkon");
 const seconds = Number(flags.seconds ?? 8);
+// --studio: bench /studio/<slug> with the living-room test set (needs STUDIO_ENABLED=1 on the server and the same
+// JWT_SECRET here); --tier=low|medium|high pins the quality tier, --ao=0|1 toggles ambient occlusion.
+const STUDIO = "studio" in flags;
+const slug = flags.slug ?? "yarkon-twin-shell";
+const item = (id, catalog, x, y, rot) => ({ type: "add", node: { id, kind: "item", catalog: { id: catalog, version: 1 }, transform: { x, y, z: 0, rot }, slots: {}, locked: false } });
+const LIVING = [item("sofa", "sofa-03", 4.0, 4.5, Math.PI), item("table", "coffee-table-modern-01", 4.0, 2.9, 0),
+  item("chair", "armchair-modern-01", 6.6, 2.4, Math.PI / 2), item("side", "side-table-01", 6.1, 4.4, Math.PI)];
+if (!paths.length) paths.push(STUDIO ? `/studio/${slug}?debug` : "/walk/yarkon");
 
 const initScript = () => {
   const stats = { frames: 0, draws: 0, tris: 0, lastFrameDraws: 0, perFrame: [], t: [] };
@@ -55,12 +63,16 @@ const initScript = () => {
 const browser = await chromium.launch({
   channel: "msedge",
   headless: true,
-  args: ["--enable-gpu", "--use-angle=d3d11", "--ignore-gpu-blocklist", "--enable-unsafe-swiftshader"],
+  args: ["--enable-gpu", "--use-angle=d3d11", "--ignore-gpu-blocklist", "--enable-unsafe-swiftshader", ...(flags.uncapped ? ["--disable-gpu-vsync", "--disable-frame-rate-limit"] : [])],
 });
 
 const results = [];
 for (const p of paths) {
   const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  if (STUDIO) {
+    const token = jwt.sign({ userId: "bench", email: "bench@example.test", role: "admin" }, process.env.JWT_SECRET ?? "studio-bench-dummy", { expiresIn: "1h" });
+    await ctx.addCookies([{ name: "hq_session", value: token, domain: new URL(base).hostname, path: "/" }]);
+  }
   const page = await ctx.newPage();
   await page.addInitScript(initScript);
   const t0 = Date.now();
@@ -68,6 +80,18 @@ for (const p of paths) {
   await page.waitForSelector("canvas", { state: "attached", timeout: 120000 });
   await page.waitForLoadState("networkidle", { timeout: 120000 }).catch(() => {});
   const loadMs = Date.now() - t0;
+  if (STUDIO) {
+    await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
+    await page.waitForTimeout(3000);
+    await page.evaluate(({ cmds, tier, ao }) => {
+      const st = window.__studio.getState();
+      if (tier) st.setQuality(tier);
+      if (ao !== undefined) st.setLighting({ ao: ao === "1" });
+      for (const c of cmds) st.dispatch(c);
+      window.__studioInput.teleport = { x: 4.0, y: 0.4, yaw: 0 };
+    }, { cmds: LIVING, tier: flags.tier, ao: flags.ao });
+    await page.waitForTimeout(4000);
+  }
   await page.waitForTimeout(2000);
   const bytes = await page.evaluate(() => {
     const r = performance.getEntriesByType("resource");
@@ -97,7 +121,7 @@ for (const p of paths) {
       jsHeapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(0) : null,
     };
   });
-  results.push({ path: p, loadMs, transferredMB: +(bytes.total / 1048576).toFixed(1), glbMB: +(bytes.glb / 1048576).toFixed(1), ...m });
+  results.push({ path: p, tier: flags.tier ?? null, ao: flags.ao ?? null, loadMs, transferredMB: +(bytes.total / 1048576).toFixed(1), glbMB: +(bytes.glb / 1048576).toFixed(1), ...m });
   console.log(JSON.stringify(results[results.length - 1]));
   await ctx.close();
 }

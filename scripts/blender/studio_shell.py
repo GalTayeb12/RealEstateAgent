@@ -28,7 +28,7 @@ OUT_BLEND = globals().get("OUT_BLEND") or (argv[1] if len(argv) > 1 else None)
 P = TP.Plan.load(SRC)
 WALLS = {w.id: w for w in P.walls}
 ROOMS = set(P.rooms.keys())
-made = {}      # material name -> source material name
+made = {}      # material name -> {"base": source material name, "uvScale": texture repeats per metre of the source}
 assigned = {}  # surface id -> object count
 
 
@@ -41,13 +41,22 @@ def longest_id(rest, ids):
     return best
 
 
+def mat_scale(m):
+    """Same rule as apartment_bake.mat_scale: the Mapping node scale = texture repeats per metre."""
+    if m and m.use_nodes:
+        mp = next((n for n in m.node_tree.nodes if n.type == "MAPPING"), None)
+        if mp:
+            return float(mp.inputs["Scale"].default_value[0])
+    return 1.0
+
+
 def surf_mat(base, sid):
     name = f"S|{sid}"
     m = bpy.data.materials.get(name)
     if m is None:
         m = base.copy()
         m.name = name
-        made[name] = base.name
+        made[name] = {"base": base.name, "uvScale": mat_scale(base)}
     assigned[sid] = assigned.get(sid, 0) + 1
     return m
 

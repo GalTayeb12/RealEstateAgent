@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "floor-flat-ash",
+  "version": 1,
+  "name": {
+    "he": "אשוח בהיר (צבע בלבד)",
+    "en": "Light ash (flat colour)"
+  },
+  "category": "wood",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#d8c3a2",
+    "roughness": 0.55,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

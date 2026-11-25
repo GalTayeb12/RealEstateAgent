@@ -80,7 +80,13 @@ for (const step of run) {
       `import bpy; bpy.ops.wm.save_as_mainfile(filepath=${JSON.stringify(BLEND.replace(/\.blend$/, "_baked.blend"))})`,
       "--", JSON.stringify(cfg)], `bake (${PREVIEW ? "preview" : "final"})`);
   }
-  if (step === "pack")
+  if (step === "pack") {
     times.pack = sh(npx, ["tsx", "scripts/blender/build-walk-assets.mjs", path.join(SRC, "walk"), OUT, "--twin", SRC, ...(SHELL ? ["--shell"] : [])], "pack for the web");
+    if (SHELL) {
+      // Design Studio: per-surface uv scales + the semantic baseline the viewer and the command engine share
+      fs.copyFileSync(path.join(SRC, "surfaces.json"), path.join(OUT, "surfaces.json"));
+      times.baseline = sh(npx, ["tsx", "scripts/studio/export-baseline.mts", path.join(SRC, "twin.json"), path.join(OUT, "baseline.json"), slug], "export baseline");
+    }
+  }
 }
 console.log("\ntimes (s):", JSON.stringify(times));

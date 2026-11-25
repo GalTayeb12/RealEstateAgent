@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "paint-sage",
+  "version": 1,
+  "name": {
+    "he": "ירוק מרווה",
+    "en": "Sage"
+  },
+  "category": "paint",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#9aa38f",
+    "roughness": 0.9,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

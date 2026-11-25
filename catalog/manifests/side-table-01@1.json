@@ -1,0 +1,68 @@
+{
+  "type": "model",
+  "version": 1,
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/models",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-25"
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "sizing": {
+    "mode": "fixed"
+  },
+  "id": "side-table-01",
+  "name": {
+    "he": "שולחן צד",
+    "en": "Side table"
+  },
+  "category": "side-table",
+  "styles": [
+    "contemporary"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "dims": {
+    "w": 0.55,
+    "d": 0.45,
+    "h": 0.551
+  },
+  "slots": [
+    {
+      "id": "body",
+      "target": "side_table_01",
+      "label": {
+        "he": "גוף",
+        "en": "Body"
+      },
+      "allowed": [
+        "wood",
+        "metal"
+      ]
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "assets": {
+    "glb": "side-table-01/1/model.glb",
+    "preview": "side-table-01/1/preview.webp"
+  },
+  "_note": "M3 test asset (Poly Haven CC0), not yet curated for the premium catalog"
+}
