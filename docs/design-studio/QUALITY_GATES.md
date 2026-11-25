@@ -84,3 +84,16 @@ What is missing for M4 to pass (see PROGRESS.md next steps): final-quality shell
 
 ### M4 update (2026-11-25, after the Unreal detour)
 Added originals `rug-woven-01` and `floor-lamp-01` (`scripts/blender/studio_decor.py`); removed the Poly Haven test items `sofa-03`, `coffee-table-modern-01`, `side-table-01` from the catalog (art-direction fails). Hero scene (`results/m3/hero.png`): composition improved (rug grounds the seating group, lamp adds a vertical accent) but still sparse (no plants/decor), rug is a flat cool grey with an invisible weave, lighting still flat, grounding still weak. Composition gate: partial (was fail). Premium bar: still not met.
+
+### M4 materials pass (2026-11-25, final) - slice reaches "clean, composed contemporary"; premium bar still NOT fully met
+Done: final-quality shell bake (4096 px, 2048 spp, 927 s; same 34 `S|` materials, 0 unmapped); warm sand wool rug (graded ambientCG Fabric086, `wool-warm-sand`); pachira plant (decimated 20%, 34k tris), small potted plant, ceramic vase (Poly Haven CC0); stronger contact decal (opacity 0.8, larger falloff); Lite/Standard/High quality selector. Catalog: 9 models, 11 materials; publish gates pass.
+
+| Checklist item | Verdict | Notes |
+|---|---|---|
+| Grounding / contact shadows | partial (was fail) | clear soft shadow under plant, sofa legs and drums; still decal-based, not true AO |
+| Composition | pass for a vignette | seating group + rug + lamp + plants + vase; no wall art or curtains |
+| Silhouette, modular 4.0 m, material swaps, ghost shadows | pass (unchanged) | |
+| Upholstery detail | partial | weave + piping; no stitching/tufting |
+| Shell vs dynamic tone, exposure | partial | the cool grey sofa sits against warm oak and wool; the single baked sun still gives flat light; sun intensity still uncalibrated |
+| Daylight variants | not done | single baked sun |
+Remaining for "premium": calibrated sun and baked per-item AO, a warmer sofa colourway, stitching/tufting detail, wall art, more than one daylight condition. Not blocking M5.

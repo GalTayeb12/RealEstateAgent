@@ -35,7 +35,7 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
   const [failed, setFailed] = useState<string | null>(null);
   const [room, setRoom] = useState("");
   const ready = useStudio((s) => s.ready);
-  const { mode, setMode, canUndo, canRedo, undo, redo, dispatch, lastError } = useStudio();
+  const { mode, setMode, canUndo, canRedo, undo, redo, dispatch, lastError, quality, setQuality } = useStudio();
 
   useEffect(() => {
     let cancelled = false;
@@ -79,8 +79,8 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
   }, [undo, redo]);
 
   const T = he
-    ? { title: experience.title.he, undo: "ביטול", redo: "שחזור", restore: "שחזור המצב המקורי", walk: "הליכה", design: "עיצוב", plan: "תוכנית", soon: "בקרוב", load: "טוענים את הסטודיו…" }
-    : { title: experience.title.en, undo: "Undo", redo: "Redo", restore: "Restore original", walk: "Walk", design: "Design", plan: "Plan", soon: "Soon", load: "Loading the studio…" };
+    ? { title: experience.title.he, undo: "ביטול", redo: "שחזור", restore: "שחזור המצב המקורי", walk: "הליכה", design: "עיצוב", plan: "תוכנית", soon: "בקרוב", quality: "איכות", auto: "אוטומטי", lite: "Lite", standard: "Standard", high: "High", load: "טוענים את הסטודיו…" }
+    : { title: experience.title.en, undo: "Undo", redo: "Redo", restore: "Restore original", walk: "Walk", design: "Design", plan: "Plan", soon: "Soon", quality: "Quality", auto: "Auto", lite: "Lite", standard: "Standard", high: "High", load: "Loading the studio…" };
 
   return (
     <div ref={wrap} className="st-root" dir={he ? "rtl" : "ltr"} {...touch}>
@@ -106,6 +106,12 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
         <button onClick={undo} disabled={!canUndo}>{T.undo}</button>
         <button onClick={redo} disabled={!canRedo}>{T.redo}</button>
         <button onClick={() => dispatch({ type: "restoreBaseline" })}>{T.restore}</button>
+        <select aria-label={T.quality} value={quality} onChange={(e) => setQuality(e.target.value as typeof quality)}>
+          <option value="auto">{T.quality}: {T.auto}</option>
+          <option value="low">{T.lite}</option>
+          <option value="medium">{T.standard}</option>
+          <option value="high">{T.high}</option>
+        </select>
       </div>
 
       {lastError && <p className="st-ui st-toast" role="status">{lastError}</p>}

@@ -31,10 +31,11 @@ const meta = await sharp(color).metadata();
 const W = Math.min(MAX, meta.width);
 const H = Math.round((meta.height * W) / meta.width); // keep the source aspect (some sets are 2:1)
 const rs = (p) => sharp(p).resize(W, H, { fit: "fill" });
+// optional --tint=#rrggbb (greyscale + tint, e.g. warm wool from a neutral fabric)
 // optional colour grade of the albedo only (e.g. a less orange oak): --saturation=0.6 --brightness=1.1 --hue=0 --warm=0.04
 const SAT = Number(a.saturation ?? 1), BRI = Number(a.brightness ?? 1), HUE = Number(a.hue ?? 0);
 
-await rs(color).modulate({ saturation: SAT, brightness: BRI, hue: HUE }).webp({ quality: 86 }).toFile(path.join(out, "albedo.webp"));
+await (a.tint ? rs(color).tint(a.tint) : rs(color)).modulate({ saturation: SAT, brightness: BRI, hue: HUE }).webp({ quality: 86 }).toFile(path.join(out, "albedo.webp"));
 await rs(normal).webp({ quality: 92 }).toFile(path.join(out, "normal.webp"));
 const R = ao ? await rs(ao).greyscale().raw().toBuffer() : Buffer.alloc(W * H, 255);
 const G = await rs(rough).greyscale().raw().toBuffer();

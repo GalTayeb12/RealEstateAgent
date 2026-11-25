@@ -22,3 +22,5 @@
 .st-stick { position: fixed; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .08); pointer-events: none; }
 .st-stick span { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px; border-radius: 50%; background: rgba(255, 255, 255, .55); }
 @media (prefers-reduced-motion: reduce) { .st-loading__bar span { transition: none; } }
+
+.st-bar select { background: rgba(20, 20, 22, .62); color: inherit; border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px; padding: 8px 12px; font-size: 13px; backdrop-filter: blur(10px); }

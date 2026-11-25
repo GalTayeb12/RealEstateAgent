@@ -1,0 +1,34 @@
+{
+  "type": "material",
+  "id": "wool-warm-sand",
+  "version": 1,
+  "name": {
+    "he": "צמר חול חם",
+    "en": "Warm sand wool"
+  },
+  "category": "rug",
+  "styles": [
+    "japandi",
+    "organic-modern"
+  ],
+  "tileSize": [
+    0.7,
+    0.7
+  ],
+  "pbr": {
+    "baseColor": "#d2b998",
+    "roughness": 0.67,
+    "metalness": 0,
+    "maps": {
+      "albedo": "albedo.webp",
+      "normal": "normal.webp",
+      "orm": "orm.webp"
+    }
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://ambientcg.com/view?id=Fabric086",
+    "author": "ambientCG",
+    "retrievedAt": "2026-11-25"
+  }
+}

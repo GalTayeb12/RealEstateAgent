@@ -1,0 +1,56 @@
+{
+  "type": "model",
+  "id": "plant-potted-04",
+  "version": 1,
+  "name": {
+    "he": "עציץ קטן",
+    "en": "Small potted plant"
+  },
+  "category": "plant",
+  "styles": [
+    "organic-modern",
+    "japandi",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.17,
+    "d": 0.186,
+    "h": 0.268
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "surface",
+    "layer": "decor",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "plant-potted-04/1/model.glb",
+    "preview": "plant-potted-04/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/models",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-25"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "type": "model",
+  "id": "plant-pachira-01",
+  "version": 1,
+  "name": {
+    "he": "פכירה",
+    "en": "Money tree"
+  },
+  "category": "plant",
+  "styles": [
+    "organic-modern",
+    "japandi",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 1.112,
+    "d": 0.997,
+    "h": 1.904
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "plant-pachira-01/1/model.glb",
+    "preview": "plant-pachira-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/models",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-25"
+  }
+}

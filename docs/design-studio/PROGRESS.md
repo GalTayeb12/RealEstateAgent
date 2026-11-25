@@ -10,7 +10,7 @@ Read this file first in every session; do not re-audit the repo.
 | M1 | done | lib/studio core: 85 studio tests (362 total green), tsc + eslint clean |
 | M2 | done (gate caveat) | empty shell + surface materials + proof; irradiance-only confirmed, swap-without-rebake accuracy limited (see QUALITY_GATES) |
 | M3 | done (first pass) | /studio/[slug] behind flag; live item layer, sun + floor overlay, tiers, pipeline v0; evaluation in QUALITY_GATES |
-| M4 | PARTIAL | pipeline, textured materials, modular sofa (4.0 m verified), travertine drums done; premium art bar NOT met (see QUALITY_GATES M4) |
+| M4 | DONE (clean/composed; premium polish items listed in QUALITY_GATES) | pipeline, textured materials, modular sofa (4.0 m verified), travertine drums done; premium art bar NOT met (see QUALITY_GATES M4) |
 | E (Unreal) | E0, E1 done; E2 level builds, first render black | resume at UNREAL.md section E2 status (4 hypotheses) |
 | M5-M13 | pending | see MASTER_PLAN section 10 |
 

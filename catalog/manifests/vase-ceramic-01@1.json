@@ -1,0 +1,56 @@
+{
+  "type": "model",
+  "id": "vase-ceramic-01",
+  "version": 1,
+  "name": {
+    "he": "אגרטל קרמיקה",
+    "en": "Ceramic vase"
+  },
+  "category": "decor",
+  "styles": [
+    "organic-modern",
+    "japandi",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.204,
+    "d": 0.204,
+    "h": 0.4
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "surface",
+    "layer": "decor",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "vase-ceramic-01/1/model.glb",
+    "preview": "vase-ceramic-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/models",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-25"
+  }
+}

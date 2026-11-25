@@ -49,8 +49,9 @@ function aoTex() {
   c.width = c.height = 128;
   const g = c.getContext("2d")!;
   const grad = g.createRadialGradient(64, 64, 18, 64, 64, 64);
-  grad.addColorStop(0, "rgba(0,0,0,0.85)");
-  grad.addColorStop(0.55, "rgba(0,0,0,0.45)");
+  grad.addColorStop(0, "rgba(0,0,0,0.95)");
+  grad.addColorStop(0.45, "rgba(0,0,0,0.6)");
+  grad.addColorStop(0.75, "rgba(0,0,0,0.2)");
   grad.addColorStop(1, "rgba(0,0,0,0)");
   g.fillStyle = grad;
   g.fillRect(0, 0, 128, 128);
@@ -151,8 +152,8 @@ function Item({ node, walk, data, envs, listeners }: {
       <primitive object={obj} />
       {decal && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -manifest.placement.elevation + 0.004, -dims.d / 2]} renderOrder={1}>
-          <planeGeometry args={[dims.w + 0.35, dims.d + 0.35]} />
-          <meshBasicMaterial map={aoTex()} transparent depthWrite={false} opacity={0.55} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
+          <planeGeometry args={[dims.w + 0.6, dims.d + 0.6]} />
+          <meshBasicMaterial map={aoTex()} transparent depthWrite={false} opacity={0.8} polygonOffset polygonOffsetFactor={-1} polygonOffsetUnits={-1} />
         </mesh>
       )}
     </group>
