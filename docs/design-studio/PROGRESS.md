@@ -7,7 +7,8 @@ Read this file first in every session; do not re-audit the repo.
 | # | Status | Notes |
 |---|---|---|
 | M0 | done | worktree, docs, flag (lib/studio/flags.ts), bench (scripts/studio/bench.mjs) |
-| M1-M13 | pending | see MASTER_PLAN section 10 |
+| M1 | done | lib/studio core: 85 studio tests (362 total green), tsc + eslint clean |
+| M2-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
 - Viewer: `components/walk/ApartmentWalk.tsx` (r3f, lightmaps lm-A/lm-B on uv1, `bakedOnly()` patch, custom Walker, collision vs walk.json boxes). Route `app/walk/[slug]`.
@@ -32,6 +33,16 @@ Run: `node scripts/studio/bench.mjs http://localhost:3001 /walk/yarkon --seconds
 Notes: `/walk/yarkon-twin` has no route (no `public/projects/yarkon-twin/experience.json`), so it can only be benchmarked once a studio route or experience file exists. Mobile numbers: **not measured** (needs a physical device).
 Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current furnished Yarkon scene already sits at 1.33M, mostly duplicated plants/pebbles (group N). The empty shell bake (M2) must drop this.
 
+## M1 summary (what exists in lib/studio)
+- `schema/{ids,catalog,nodes,document}.ts`: zod schemas (strict; transforms have NO scale), ULID node ids, baseline id helpers, CatalogManifest (model + material; sizing = fixed | variants | modular | parametric), pinned `{id, version}` refs.
+- `baseline/fromTwin.ts`: twin -> Baseline entity map (rooms, walls, openings, surfaces; exterior/glazing = protected, rest unverified), deterministic `twinHash` (ignores source.file and <0.1 mm noise).
+- `commands/{types,apply,history}.ts`: pure `apply(doc, cmd, ctx) -> {doc, inverse}`; catalog-aware validation (unknown asset, slot, material category per surface type, size); batch is atomic and one undo step; `History` with cap.
+- `catalog/{modular,sizing}.ts`: module-chain validation + `solveForWidth` (2.4 / 3.2 / 4.0 m verified from real modules) + `resolveSize` per sizing mode.
+- `validation/{geom2d,placement}.ts`: errors (out-of-room, overlap with height test, wall collision, blocks doorway, unknown asset, bad size) vs advisories (door swing, front clearance, narrow passage, not against wall).
+- `migrations.ts`: chain mechanism (MIGRATIONS is empty while schema v1 is current).
+- Test fixtures: `lib/__tests__/studio-fixtures.ts` (modular sofa, table, rug, chair variants, parametric wardrobe, shelf, materials).
+- Known gaps (deliberate, later milestones): cabinetRun/countertop nodes (M8), partition/opening proposal validation against structure (M9), seed-design generation from twin_furnish (M2).
+
 ## Next steps
-1. M1: `lib/studio/schema` (zod document/nodes/commands/catalog), IDs, `baseline/fromTwin.ts`, apply/inverse/batch, 2D validation, migrations, modular sofa configuration solver; >=40 Vitest cases; twin golden test must stay green.
-2. Then M2 (empty-shell bake + irradiance proof) - needs headless Blender 5.3 (`blender -b`).
+1. M2: empty-shell bake. Add `--shell-only` to `scripts/twin/build-walk.mjs` (skip furnish; mesh names `S|<surfaceId>`; output `public/walk/yarkon-twin-shell/`). Check headless Blender 5.3 first (`scripts/twin/build-walk.mjs` header for the path). Irradiance proof: bake twice with different floor/wall albedo and compare lightmaps (script + numbers into QUALITY_GATES.md).
+2. Then M3 (/studio route + dynamic item layer).
