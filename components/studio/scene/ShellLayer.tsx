@@ -9,6 +9,7 @@
  *    the sun. It is masked by the lightmap's own brightness, so shadows that
  *    walls already baked in are never applied twice.
  */
+import { useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { useEffect } from "react";
 import * as THREE from "three";
@@ -59,6 +60,8 @@ function floorOverlayMaterial(lm: THREE.Texture, opacity: number, lo: number, hi
   return m;
 }
 
+const CUT_PLANE = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1.25); // keeps everything below y = 1.25 m
+
 export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false }: {
   walk: WalkConfig; data: WalkData; mobile: boolean; tier: Tier; uvScales: Record<string, number>; hidden?: boolean;
 }) {
@@ -68,6 +71,8 @@ export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false 
   const lighting = useStudio((s) => s.lighting);
   const shadows = tier !== "low";
   const design = useDesign();
+  const mode = useStudio((s) => s.mode);
+  const gl = useThree((s) => s.gl);
 
   // 1. baked materials: no realtime direct light; walls and ceilings cast into the sun shadow map
   useEffect(() => {
@@ -81,6 +86,25 @@ export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false 
       mesh.receiveShadow = false;
     });
   }, [scene, shadows]);
+
+  // 1b. plan mode: a cutaway. Ceilings are hidden and walls are clipped at 1.25 m so the rooms can be seen from above
+  useEffect(() => {
+    const cut = mode === "plan";
+    // eslint-disable-next-line react-hooks/immutability -- renderer flag, set imperatively (r3f pattern)
+    gl.localClippingEnabled = cut;
+    const seen = new Set<THREE.Material>();
+    scene.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const mat = mesh.material as THREE.Material;
+      mesh.userData.planHidden = cut && mat.name.startsWith("S|surface:ceiling:");
+      mesh.visible = !mesh.userData.planHidden;
+      if (seen.has(mat)) return;
+      seen.add(mat);
+      mat.clippingPlanes = cut && !mat.name.startsWith("S|surface:floor:") ? [CUT_PLANE] : null;
+      mat.needsUpdate = true;
+    });
+  }, [scene, mode, gl]);
 
   // 2. surface material overrides (S|<surfaceId>)
   useEffect(() => {

@@ -14,12 +14,15 @@ import type { Command } from "@/lib/studio/commands/types";
 import { previewNode, type Preview } from "@/lib/studio/design/preview";
 import { findFreeSpot, makeItem } from "@/lib/studio/design/spot";
 import { rotateBy, snapAngle } from "@/lib/studio/design/snap";
+import type { PlanView, ViewKind, Viewport } from "@/lib/studio/plan/view";
 import { catalogFrom, type CatalogLookup, type MaterialManifest, type ModelManifest } from "@/lib/studio/schema/catalog";
 import { emptyDocument, type BaselineRef, type DesignDocument } from "@/lib/studio/schema/document";
 import { newNodeId } from "@/lib/studio/schema/ids";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 
 export type Mode = "walk" | "design" | "plan";
+/** Design and Plan both edit the document (same selection, drag, panels); Walk only looks. */
+export const isEditing = (m: Mode) => m === "design" || m === "plan";
 export type Quality = "auto" | "low" | "medium" | "high";
 export type Tier = "low" | "medium" | "high";
 
@@ -56,6 +59,10 @@ interface StudioState {
   pose: Pose | null;
   design: DesignState | null;
   catalogOpen: boolean;
+  /** Floor planner camera (null until the first fit), the stage size in px, dimension overlay on/off. */
+  plan: PlanView | null;
+  viewport: Viewport;
+  showDims: boolean;
   /** Thumbnail rendering (scripts/studio/thumbs.mjs): frame this item on a neutral backdrop, without the shell. */
   thumb: { id: string } | null;
   /** When set, picking a catalog entry replaces this item instead of adding a new one. */
@@ -68,6 +75,10 @@ interface StudioState {
   undo(): void;
   redo(): void;
   setMode(m: Mode): void;
+  setPlan(p: PlanView | null): void;
+  setPlanKind(kind: ViewKind): void;
+  setViewport(v: Viewport): void;
+  setShowDims(on: boolean): void;
   setQuality(q: Quality): void;
   setTier(t: Tier): void;
   setLighting(p: Partial<Lighting>): void;
@@ -107,7 +118,7 @@ export const useStudio = create<StudioState>((set, get) => {
   return {
     ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
-    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null,
+    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
     catalogOpen: false, replaceFor: null, thumb: null,
 
     init({ baseline, ref, models, materials, mobile }) {
@@ -149,7 +160,11 @@ export const useStudio = create<StudioState>((set, get) => {
     },
     undo() { history?.undo(); if (history) { sync(); const sel = get().selection; if (sel && !sel.startsWith("surface:") && !itemOf(history.doc, sel)) set({ selection: null }); } },
     redo() { history?.redo(); if (history) sync(); },
-    setMode: (mode) => set({ mode, ...(mode !== "design" ? { selection: null, drag: null, catalogOpen: false, replaceFor: null } : {}) }),
+    setPlan: (plan) => set({ plan }),
+    setPlanKind: (kind) => set((st) => ({ plan: st.plan ? { ...st.plan, kind } : st.plan })),
+    setViewport: (viewport) => set({ viewport }),
+    setShowDims: (showDims) => set({ showDims }),
+    setMode: (mode) => set({ mode, ...(!isEditing(mode) ? { selection: null, drag: null, catalogOpen: false, replaceFor: null } : {}) }),
     setQuality: (quality) => set({ quality, ...(quality !== "auto" ? { tier: quality } : {}) }),
     setTier: (tier) => { if (get().quality === "auto") set({ tier }); },
     setLighting: (p) => set({ lighting: { ...get().lighting, ...p } }),

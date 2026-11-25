@@ -80,3 +80,26 @@
 .st-list { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
 .st-list li { display: flex; justify-content: space-between; gap: 8px; align-items: center; font-size: 13px; }
 .st-list small { display: block; opacity: .55; font-size: 11px; }
+
+/* ── Floor planner (M7) ─────────────────────────────────────────── */
+.st-plan { position: absolute; top: 64px; inset-inline-start: 16px; display: flex; align-items: center; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(20, 20, 22, .62); border: 1px solid rgba(255, 255, 255, .16); backdrop-filter: blur(10px); }
+.st-plan button { background: none; border: 0; color: inherit; padding: 6px 12px; border-radius: 999px; font-size: 13px; cursor: pointer; min-width: 32px; }
+.st-plan button[aria-pressed="true"] { background: rgba(255, 255, 255, .18); }
+.st-plan button:hover { background: rgba(255, 255, 255, .1); }
+.st-plan__sep { width: 1px; height: 18px; background: rgba(255, 255, 255, .2); }
+.pl-overlay { position: absolute; inset: 0; pointer-events: none; font-family: inherit; }
+.pl-room { fill: #fff; font-size: 13px; font-weight: 600; paint-order: stroke; stroke: rgba(10, 10, 12, .75); stroke-width: 3px; stroke-linejoin: round; }
+.pl-area, .pl-edge, .pl-total, .pl-size { font-weight: 500; paint-order: stroke; stroke: rgba(10, 10, 12, .75); stroke-width: 3px; stroke-linejoin: round; }
+.pl-area { fill: #e8b65e; font-size: 12px; }
+.pl-edge { fill: #cfd6de; font-size: 11px; }
+.pl-total { fill: #fff; font-size: 12px; }
+.pl-size { fill: #7bd88f; font-size: 12px; }
+.pl-swing { stroke: rgba(255, 255, 255, .55); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.pl-sel { fill: rgba(123, 216, 143, .16); stroke: #7bd88f; stroke-width: 1.5; }
+.pl-clear line { stroke: #e8b65e; stroke-width: 1; stroke-dasharray: 4 3; }
+.pl-clear text { fill: #e8b65e; font-size: 11px; font-weight: 600; paint-order: stroke; stroke: rgba(10, 10, 12, .8); stroke-width: 3px; }
+@media (max-width: 760px) {
+  .st-plan { top: auto; bottom: 16px; inset-inline-start: 12px; }
+  .st-root[data-sheet] .st-plan { bottom: calc(50dvh + 12px); }
+  .st-plan button { min-height: 40px; }
+}

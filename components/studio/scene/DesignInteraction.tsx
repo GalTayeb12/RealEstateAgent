@@ -14,7 +14,7 @@ import { previewNode, withTransform } from "@/lib/studio/design/preview";
 import { snapTo } from "@/lib/studio/design/snap";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { gesture } from "../gesture";
-import { useStudio } from "../store";
+import { isEditing, useStudio } from "../store";
 
 export type DesignApi = {
   onItemDown(id: string, e: ThreeEvent<PointerEvent>): void;
@@ -74,7 +74,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
 
   const onItemDown = useCallback((id: string, e: ThreeEvent<PointerEvent>) => {
     const st = useStudio.getState();
-    if (st.mode !== "design") return;
+    if (!isEditing(st.mode)) return;
     const ne = e.nativeEvent;
     if (ne.pointerType === "mouse" && ne.button !== 0) return; // the right button looks around
     e.stopPropagation();
@@ -93,7 +93,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
 
   const onShellClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     const st = useStudio.getState();
-    if (st.mode !== "design") return;
+    if (!isEditing(st.mode)) return;
     e.stopPropagation();
     if (performance.now() < gesture.suppressClickUntil) return;
     const mat = (e.object as THREE.Mesh).material as THREE.Material | undefined;
@@ -140,7 +140,7 @@ export function SelectionBox() {
   const geo = useMemo(() => (dims ? new THREE.EdgesGeometry(new THREE.BoxGeometry(dims.w, Math.max(dims.h, 0.05), dims.d)) : null), [dims]);
   useEffect(() => () => geo?.dispose(), [geo]);
 
-  if (mode !== "design" || !item || !manifest || !dims || !geo || !selection) return null;
+  if (!isEditing(mode) || !item || !manifest || !dims || !geo || !selection) return null;
   const dragging = drag && drag.id === item.id ? drag : null;
   const t = dragging ? { ...item.transform, x: dragging.x, y: dragging.y, rot: dragging.rot } : item.transform;
   const preview = dragging ? dragging.preview : doc && baseline && catalog ? previewNode(doc, item, baseline, catalog) : null;

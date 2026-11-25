@@ -14,7 +14,8 @@ Read this file first in every session; do not re-audit the repo.
 | E (Unreal) | E0, E1 done; E2 level builds, first render black | resume at UNREAL.md section E2 status (4 hypotheses) |
 | M5 | DONE (touch gestures beyond tap/drag and real-device test pending) | Design mode, panels, catalog, mobile layout, he/en; see M5 summary |
 | M6 | DONE except live-DB integration (needs a dev database) | file store + Prisma repo/migration, API, autosave, versions, share links, R2 driver; see M6 summary |
-| M7-M13 | pending | see MASTER_PLAN section 10 |
+| M7 | DONE | floor planner: top + isometric orthographic views, dimensions, areas, door swings, wall clearances; see M7 summary |
+| M8-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
 - Viewer: `components/walk/ApartmentWalk.tsx` (r3f, lightmaps lm-A/lm-B on uv1, `bakedOnly()` patch, custom Walker, collision vs walk.json boxes). Route `app/walk/[slug]`.
@@ -96,6 +97,14 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - Original assets (Blender, headless): `scripts/blender/studio_sofa.py` (modular sofa: arm-l/arm-r, seat-80/100/120, chaise; plump bevel+subdiv cushions, welt piping, tapered metal legs) and `studio_tables.py` (travertine drum coffee/side tables). Outputs go to `assets-src/studio/items-raw/`, then `optimize.mjs` -> `public/studio/catalog/<id>/1/model.glb`.
 - Harness: `scripts/studio/shots.mjs` scenes (hero, hero-close, sofa-24/34-chaise/40, finish, ...) with view tilt (`look`).
 
+## M7 summary (2026-11-26) - floor planner
+- **Pure math** (`lib/studio/plan/view.ts`): `PlanView {kind, cx, cy, ppm}`; `project/unproject` on the ground plane, `zoomAt` (cursor point stays fixed), `panBy`, `fitView`, `threeCamera`. Top view is a pure scale (north up); isometric uses the true 35.264 degree elevation, camera looking north-east.
+- **Measurements** (`lib/studio/plan/measure.ts`): room edge lengths, areas, label anchors that stay inside concave rooms, door swings (hinge/closed/open/arc, swinging into the room side), `rayDistance`, free distance from a footprint to the room walls. All from the baseline geometry, rounded to the centimetre (never from pixels).
+- **Scene**: Plan mode swaps the Walker for an orthographic `PlanRig` driven by the same store numbers as the SVG overlay, hides ceilings, clips walls at 1.25 m (cutaway, floor not clipped), turns the post-processing composer off and keeps `gl.toneMapping` in sync. Design interactions (select, drag, rotate, panels, catalog) work unchanged in Plan (`isEditing(mode)`), because the ray/plane maths is camera-agnostic.
+- **UI**: `PlanOverlay` (SVG: room names + areas, edge lengths, door swings, selected piece W x D and wall distances, interior/balcony totals), `PlanToolbar` (Top/Isometric, zoom, Fit, Dimensions), wheel zoom, drag pan, two-finger pinch/pan (`usePlanGestures`), he/en strings, mobile toolbar above the bottom sheet. Leaving Plan teleports the walker back to where they stood.
+- **Verification**: 18 new unit tests (project/unproject round trips in both views, zoom/pan invariants, fit containment, living room 36.28 m2 and its edge lengths, inward normals for either winding, door swing geometry, clearances in cm); full suite 437 passing; eslint + tsc clean; `scripts/studio/e2e-plan.mjs` passes on desktop/en, desktop/he and mobile-emulated (fit, labels, 820/340 cm edges, wheel/buttons zoom, pan, isometric, document unchanged across modes, selected piece size + clearances, rotate + undo in Plan, walker returns); `e2e-design.mjs` still passes. Shots: `results/m7/`.
+- Known gaps: pinch gestures are untested on a real device (emulated mobile only); edge labels of neighbouring rooms duplicate on shared walls; in isometric the clipped walls are open-topped (no cap).
+
 ## Next steps (updated 2026-11-25; owner chose to return to Three.js, Unreal paused at UNREAL.md E2 status)
 M4 now has rug + floor lamp; remaining M4 art: plants/decor, warmer rug material, stronger grounding, calibrated sun, final shell bake, then M5 (incl. dedicated mobile touch UI, tiers renamed Lite/Standard/High).
 Owner decisions since M4: reference images are NOT required (use ART_DIRECTION + an original HAVENIQ identity); rendering tiers Lite/Standard/High (Three.js) + optional Ultra (UE Pixel Streaming); universal devices incl. a dedicated mobile touch UI; asset sources extended (Fab, Megascans free, iMeshh, BlenderKit, Sketchfab, CGBookcase, ShareTextures, TextureCan) with per-asset license checks. All recorded in MASTER_PLAN section E.8.
@@ -103,4 +112,4 @@ Owner decisions since M4: reference images are NOT required (use ART_DIRECTION +
 1. **Ask the owner for the reference images** (none reached the session) and put them in `docs/design-studio/references/`; judge the art against them.
 2. Finish M4 art: rug (woven, UVs in metres), floor lamp + pendant, plants (calathea/pachira exist in the base blend but are ~75k verts: decimate first), decor (books, vase, throw), a curated contemporary armchair (replace the Poly Haven one or rework), stitching/seams, throw cushions; stronger contact grounding (per-item baked AO decals); calibrate sun intensity against the bake; decide the daylight strategy (single baked sun vs extra bakes); final-quality shell bake (`node scripts/twin/build-walk.mjs yarkon yarkon-twin-shell --shell-only`, about 20 min); then re-review against the QUALITY_GATES checklist.
 3. Remove `sofa-03` and the other Poly Haven test items from the published catalog once curated replacements exist.
-4. Then M5 (Design mode UX: click-to-select with three-mesh-bvh, contextual panel, catalog drawer, modular configurator UI, surface picker, validation hints, he/en strings in `lib/i18n/messages.ts`).
+4. (done in M5-M7; next is M8 parametric systems) M5 (Design mode UX: click-to-select with three-mesh-bvh, contextual panel, catalog drawer, modular configurator UI, surface picker, validation hints, he/en strings in `lib/i18n/messages.ts`).

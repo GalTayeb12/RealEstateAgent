@@ -7,7 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Input } from "@/components/walk/ApartmentWalk";
 import { gesture } from "./gesture";
-import { useStudio } from "./store";
+import { isEditing, useStudio } from "./store";
 
 const LOOK_SPIKE = 250; // px per mouse event above this is a pointer-lock glitch, not input
 
@@ -38,14 +38,14 @@ export function useWalkInput(wrap: React.RefObject<HTMLElement | null>, mobile: 
     let dragging = false;
     const onLock = () => setLocked(document.pointerLockElement === el.querySelector("canvas"));
     const move = (e: MouseEvent) => {
-      if (gesture.itemActive || !(document.pointerLockElement || dragging)) return;
+      if (gesture.itemActive || useStudio.getState().mode === "plan" || !(document.pointerLockElement || dragging)) return;
       if (Math.abs(e.movementX) > LOOK_SPIKE || Math.abs(e.movementY) > LOOK_SPIKE) return;
       input.current.lookDX += e.movementX;
       input.current.lookDY += e.movementY;
     };
     const downM = (e: MouseEvent) => {
       if ((e.target as HTMLElement).tagName !== "CANVAS" || gesture.itemActive) return;
-      if (useStudio.getState().mode === "design") {
+      if (isEditing(useStudio.getState().mode)) {
         // design mode: the left button selects and drags pieces, the right button looks around (no pointer lock)
         if (e.button === 2) dragging = true;
         return;
@@ -57,7 +57,7 @@ export function useWalkInput(wrap: React.RefObject<HTMLElement | null>, mobile: 
     document.addEventListener("pointerlockchange", onLock);
     window.addEventListener("mousemove", move);
     el.addEventListener("mousedown", downM);
-    const noMenu = (e: Event) => { if (useStudio.getState().mode === "design") e.preventDefault(); };
+    const noMenu = (e: Event) => { if (isEditing(useStudio.getState().mode)) e.preventDefault(); };
     el.addEventListener("contextmenu", noMenu);
     window.addEventListener("mouseup", upM);
     return () => {
@@ -72,7 +72,7 @@ export function useWalkInput(wrap: React.RefObject<HTMLElement | null>, mobile: 
   const touches = useRef(new Map<number, { kind: "stick" | "look"; x: number; y: number; ox: number; oy: number }>());
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     for (const t of Array.from(e.changedTouches)) {
-      if ((t.target as HTMLElement).closest(".st-ui") || gesture.itemActive) continue;
+      if ((t.target as HTMLElement).closest(".st-ui") || gesture.itemActive || useStudio.getState().mode === "plan") continue;
       const kind = t.clientX < window.innerWidth * 0.45 ? "stick" : "look";
       touches.current.set(t.identifier, { kind, x: t.clientX, y: t.clientY, ox: t.clientX, oy: t.clientY });
       if (kind === "stick") setStickUi({ ox: t.clientX, oy: t.clientY, x: 0, y: 0 });
@@ -104,5 +104,8 @@ export function useWalkInput(wrap: React.RefObject<HTMLElement | null>, mobile: 
     }
   }, []);
 
-  return { input, locked, stickUi, touch: { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel: onTouchEnd } };
+  /** Moves the walker (applied on the next frame). */
+  const teleport = useCallback((x: number, y: number, yaw?: number) => { input.current.teleport = { x, y, yaw }; }, []);
+
+  return { input, teleport, locked, stickUi, touch: { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel: onTouchEnd } };
 }

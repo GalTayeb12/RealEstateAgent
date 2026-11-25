@@ -9,7 +9,7 @@
  * it recovers), unless the user pins a tier.
  */
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { PerformanceMonitor } from "@react-three/drei";
+import { OrthographicCamera, PerformanceMonitor } from "@react-three/drei";
 import { Bloom, EffectComposer, N8AO, SMAA, ToneMapping, Vignette } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
 import * as THREE from "three";
@@ -17,6 +17,7 @@ import { Suspense, useEffect, useRef } from "react";
 import { EYE, Walker, type Input } from "@/components/walk/ApartmentWalk";
 import type { WalkConfig, WalkData } from "@/lib/experience/types";
 import { resolveSize } from "@/lib/studio/catalog/sizing";
+import { threeCamera } from "@/lib/studio/plan/view";
 import { useStudio, type Tier } from "../store";
 import { ItemLayer } from "./ItemLayer";
 import { ShellLayer } from "./ShellLayer";
@@ -84,6 +85,30 @@ function ThumbCamera({ id }: { id: string }) {
   return null;
 }
 
+/** Orthographic top / isometric camera driven by the store's plan view (the same numbers the SVG overlay uses). */
+function PlanRig() {
+  const ref = useRef<THREE.OrthographicCamera>(null);
+  useFrame(() => {
+    const cam = ref.current;
+    const { plan, viewport } = useStudio.getState();
+    if (!cam || !plan) return;
+    const c = threeCamera(plan, viewport);
+    cam.position.set(...c.position);
+    cam.up.set(...c.upVector);
+    cam.lookAt(c.target[0], c.target[1], c.target[2]);
+    cam.left = c.left; cam.right = c.right; cam.top = c.top; cam.bottom = c.bottom; cam.near = c.near; cam.far = c.far;
+    cam.updateProjectionMatrix();
+  });
+  return <OrthographicCamera ref={ref} makeDefault near={0.1} far={200} position={[7.5, 60, -3]} />;
+}
+
+/** The renderer's tone mapping is only read at creation, so keep it in step with whether the composer (which tone-maps itself) is active. */
+function ToneMappingSync({ composer }: { composer: boolean }) {
+  const gl = useThree((s) => s.gl);
+  useEffect(() => { gl.toneMapping = composer ? THREE.NoToneMapping : THREE.AgXToneMapping; }, [gl, composer]);
+  return null;
+}
+
 function Tiering() {
   const quality = useStudio((s) => s.quality);
   const tier = useStudio((s) => s.tier);
@@ -104,7 +129,9 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
   const tier = useStudio((s) => s.tier);
   const ao = useStudio((s) => s.lighting.ao);
   const thumb = useStudio((s) => s.thumb);
-  const composer = !mobile && tier === "high";
+  const mode = useStudio((s) => s.mode);
+  const planning = mode === "plan";
+  const composer = !mobile && tier === "high" && !planning;
   const dpr: [number, number] = tier === "low" ? [1, 1] : tier === "medium" ? [1, 1.5] : [1, 2];
   return (
     <Canvas
@@ -116,6 +143,7 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
       aria-label={label}
     >
       <Tiering />
+      <ToneMappingSync composer={composer} />
       <DesignProvider>
         <Suspense fallback={null}>
           <ShellLayer walk={walk} data={data} mobile={mobile} tier={tier} uvScales={uvScales} hidden={!!thumb} />
@@ -124,7 +152,7 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
         <SelectionBox />
       </DesignProvider>
       <Sun tier={tier} />
-      {thumb ? <ThumbCamera id={thumb.id} /> : <Walker walk={walk} data={data} input={input} reduce={reduce} onRoom={onRoom} onPose={onPose} />}
+      {thumb ? <ThumbCamera id={thumb.id} /> : planning ? <PlanRig /> : <Walker walk={walk} data={data} input={input} reduce={reduce} onRoom={onRoom} onPose={onPose} />}
       {/* two separately keyed composers: N8AO cannot share a multisampled composer, and
           removing an effect from a live composer leaves its depth buffers in a broken state */}
       {composer && ao && (

@@ -4,7 +4,8 @@
  * /studio/[slug]: HAVENIQ Design Studio. Walk mode explores the apartment;
  * Design mode edits it in place (click a piece or surface, drag, rotate, add
  * from the catalog, change materials and sizes) on one shared design document
- * with undo/redo and "restore original". Plan mode arrives with M7.
+ * with undo/redo and "restore original". Plan mode is the same document seen from above
+ * (top or isometric, orthographic) with dimensions, areas and door swings.
  */
 import { useProgress } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
@@ -17,7 +18,11 @@ import DesignMenu from "./panels/DesignMenu";
 import { reloadFromServer, usePersistence } from "./persist/usePersistence";
 import PropertiesPanel from "./panels/PropertiesPanel";
 import { StudioCanvas } from "./scene/StudioCanvas";
-import { useStudio } from "./store";
+import { fitView } from "@/lib/studio/plan/view";
+import PlanOverlay from "./plan/PlanOverlay";
+import PlanToolbar from "./plan/PlanToolbar";
+import { usePlanGestures } from "./plan/usePlanGestures";
+import { isEditing, useStudio } from "./store";
 import { useT } from "./useT";
 import { useWalkInput } from "./useWalkInput";
 import "./studio.css";
@@ -35,7 +40,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
     reduce: typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     debug: typeof window !== "undefined" && window.location.search.includes("debug"),
   }));
-  const { input, locked, stickUi, touch } = useWalkInput(wrap, mobile);
+  const { input, teleport, locked, stickUi, touch } = useWalkInput(wrap, mobile);
   const [boot, setBoot] = useState<Boot | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [room, setRoom] = useState("");
@@ -50,6 +55,31 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const design = useStudio((s) => s.design);
   const readOnly = design?.mode === "shared-view";
   usePersistence({ baselineId: experience.slug, sharedToken });
+  const editing = isEditing(mode);
+  usePlanGestures(wrap, mode === "plan");
+
+  // stage size feeds the plan projection (camera and SVG overlay use the same numbers)
+  useEffect(() => {
+    const el = wrap.current?.querySelector(".st-stage");
+    if (!el) return;
+    const sync = () => { const r = el.getBoundingClientRect(); if (r.width > 0) useStudio.getState().setViewport({ w: r.width, h: r.height }); };
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [boot]);
+
+  // entering Plan frames the whole apartment; leaving it puts the walker back where they stood
+  useEffect(() => {
+    const s = useStudio.getState();
+    if (mode === "plan" && s.baseline) {
+      let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+      for (const r of Object.values(s.baseline.rooms)) for (const [x, y] of r.polygon) { x1 = Math.min(x1, x); y1 = Math.min(y1, y); x2 = Math.max(x2, x); y2 = Math.max(y2, y); }
+      s.setPlan(fitView(s.plan?.kind ?? "top", [x1, y1, x2, y2], 1.25, s.viewport, 0.1));
+    } else if (mode !== "plan" && s.pose) {
+      teleport(s.pose.x, s.pose.y, s.pose.yaw);
+    }
+  }, [mode, teleport]);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,7 +119,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.code === "KeyZ") { e.preventDefault(); (e.shiftKey ? s.redo : s.undo)(); return; }
       if (mod && e.code === "KeyY") { e.preventDefault(); s.redo(); return; }
-      if (s.mode !== "design") return;
+      if (!isEditing(s.mode)) return;
       if (mod && e.code === "KeyD") { e.preventDefault(); s.duplicateSelected(); }
       else if (e.code === "Delete" || e.code === "Backspace") { if (s.selection && !s.selection.startsWith("surface:")) { e.preventDefault(); s.removeSelected(); } }
       else if (e.code === "KeyR") s.rotateSelected(e.shiftKey ? -1 : 1);
@@ -100,11 +130,11 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   }, []);
 
   const err = lastError ? (/^[A-Za-z.-]+$/.test(lastError) ? t(lastError) : lastError) : null;
-  const hint = mobile ? t("hintTouch") : mode === "design" ? t("hintDesign") : t("hintWalk");
+  const hint = mode === "plan" ? (mobile ? t("hintPlanTouch") : t("hintPlan")) : mobile ? t("hintTouch") : mode === "design" ? t("hintDesign") : t("hintWalk");
   const title = experience.title[locale];
 
   return (
-    <div ref={wrap} className="st-root" data-mode={mode} data-sheet={(mode === "design" && (selection || catalogOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
+    <div ref={wrap} className="st-root" data-mode={mode} data-sheet={(editing && (selection || catalogOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
       <div className="st-stage">
       {boot && ready && (
         <StudioCanvas
@@ -112,6 +142,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
           label={title} onRoom={setRoom} onPose={(x, y, yaw) => useStudio.getState().setPose({ x, y, yaw })}
         />
       )}
+      {mode === "plan" && <PlanOverlay />}
       </div>
       <Loader text={t("loading")} failed={failed} />
 
@@ -122,12 +153,12 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         <div className="st-modes" role="tablist" aria-label="mode">
           <button role="tab" aria-selected={mode === "walk"} onClick={() => useStudio.getState().setMode("walk")}>{t("walk")}</button>
           <button role="tab" aria-selected={mode === "design"} disabled={readOnly} onClick={() => useStudio.getState().setMode("design")}>{t("design")}</button>
-          <button role="tab" aria-selected={false} disabled title={t("soon")}>{t("plan")}</button>
+          <button role="tab" aria-selected={mode === "plan"} onClick={() => useStudio.getState().setMode("plan")}>{t("plan")}</button>
         </div>
       </div>
 
       <div className="st-ui st-bar">
-        {mode === "design" && <button type="button" className="st-primary" onClick={() => useStudio.getState().setCatalogOpen(true)}>＋ {t("add")}</button>}
+        {editing && !readOnly && <button type="button" className="st-primary" onClick={() => useStudio.getState().setCatalogOpen(true)}>＋ {t("add")}</button>}
         <button type="button" onClick={() => useStudio.getState().undo()} disabled={!canUndo || readOnly}>{t("undo")}</button>
         <button type="button" onClick={() => useStudio.getState().redo()} disabled={!canRedo || readOnly}>{t("redo")}</button>
         <button type="button" disabled={readOnly} onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
@@ -140,8 +171,9 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         </select>
       </div>
 
-      {mode === "design" && <PropertiesPanel />}
-      {mode === "design" && <CatalogDrawer />}
+      {mode === "plan" && <PlanToolbar />}
+      {editing && <PropertiesPanel />}
+      {editing && <CatalogDrawer />}
 
       {design?.mode === "shared-view" && <p className="st-ui st-banner">{t("sharedView")}</p>}
       {design?.mode === "shared-edit" && <p className="st-ui st-banner">{t("sharedEdit")}</p>}
