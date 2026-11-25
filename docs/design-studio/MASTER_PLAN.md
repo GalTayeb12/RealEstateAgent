@@ -1,5 +1,198 @@
 # HAVENIQ Design Studio — Architecture & Implementation Plan
 
+> **Current round (2026-11-25): evaluation E — Unreal Engine 5 hybrid feasibility.** This is an addition to the approved master plan (M0–M13 below), not a replacement. Status before E: M0–M3 done, M4 partial (branch `feature/design-studio`, head `dd92655`). After E is decided, work resumes at M4 → M13.
+
+# E. Unreal Engine 5 hybrid rendering — feasibility & proof of concept
+
+## E.0 Context
+The Three.js studio works end to end, but M2/M3/M4 documented real limits:
+- **Static GI:** the baked shell lighting does not respond to furniture or large material changes. Measured error: 37% median for an extreme swap.
+- **Furniture grounding:** contact shadows under furniture are weak.
+- **Daylight:** there is a single daylight condition.
+- **Reflections:** no real reflections.
+
+The question is whether UE5 (Lumen, hardware RT, Pixel Streaming) should become an "Ultra" rendering path, replace Three.js, or not be used. Nothing existing is removed. Unreal is not assumed to be the answer.
+
+## E.1 Local facts (measured, read-only)
+| Item | This machine | UE5 recommendation (official spec page, "UE 5.9 docs") |
+|---|---|---|
+| GPU | RTX 4070 **Laptop**, **8 GB** VRAM, driver 591.86 | DX12, ≥8 GB; Lumen needs RTX-2000+ ✓ |
+| CPU | Ryzen AI 9 HX 370, 12C/24T | quad-core 2.5 GHz+ ✓ |
+| RAM | 31 GB | 32 GB recommended (borderline ✓) |
+| Disk | 597 GB free on C: | not stated; budget ~120 GB (engine ~60, VS ~25, project/DDC ~30) |
+| Installed | Epic Games Launcher (no engine), **no Visual Studio** | VS 2026 for C++ development |
+
+8 GB VRAM is the binding constraint. Lumen with hardware RT, Virtual Shadow Maps, the NVENC stream encoder, and the editor together will be tight. The POC measures this rather than assuming it.
+
+## E.2 Findings (items 1–20, condensed)
+**Verified** = read on official Epic or GitHub pages during this research. **To verify** = from prior knowledge; confirmed in POC step E1 before relying on it.
+
+- **Lumen / HW ray tracing / Nanite / Virtual Shadow Maps (items 1–3):**
+  - Lumen gives fully dynamic GI and reflections. Moved furniture, new materials and any time of day re-light correctly with no bake. This fixes the M2 bounce-light limitation at its root.
+  - Lumen needs RTX-2000+ class hardware (verified).
+  - Nanite is unnecessary for a 6k-triangle shell plus a few furniture items. Leave it off in the POC.
+  - Virtual Shadow Maps give the furniture grounding Three.js lacks.
+- **Pixel Streaming 2 (items 4–5, verified):**
+  - The plugin ships with UE 5.5+. The Infrastructure repo marks UE **5.8 as Current** and 5.7 as Supported.
+  - Frontend packages: `@epicgames-ps/lib-pixelstreamingfrontend-ue5.8` plus a `-ui` package, labelled "unofficial, official coming soon".
+  - Signalling server: Cirrus, in `SignallingWebServer/` (Node). An SFU is available for multi-viewer.
+  - A React client component can host the player in the existing Next app.
+- **Bidirectional messaging (item 6):**
+  - C++ side (verified): `SendPlayerMessage` / `SendAllPlayerMessage` on `IPixelStreaming2Streamer`, plus registering a message handler.
+  - JavaScript side (to verify): `emitUIInteraction` and response listeners.
+  - Blueprint exposure in PS2 (to verify): if it is not exposed, a ~150-line C++ bridge is needed, and that means installing VS 2026.
+- **Runtime editing, materials, modular furniture (items 7–9):**
+  - Spawning, moving and removing actors and building `MaterialInstanceDynamic`s are standard runtime UE.
+  - One master material (albedo, normal and ORM texture parameters plus a tile-scale parameter) covers our catalog material contract unchanged.
+  - Modular sofa: UE spawns one static mesh per module at positions computed in TypeScript. No stretching, and no layout logic in UE.
+- **Asset import (items 10–11, 13):**
+  - glTF import in the editor (Interchange) handles our GLBs, `S|<surfaceId>` material names and metre-scaled UVs.
+  - Shell lightmaps and `uv1` are not used in UE; Lumen replaces them.
+  - **Runtime** GLB import is not official (not confirmed). The community plugin glTFRuntime would need a license review.
+  - **WebP textures are not a UE runtime format** (to verify). The POC therefore pre-imports assets at edit time. A production catalog would need a "cook for UE" step in the Blender/asset pipeline: PNG or KTX sources and a per-version pak or chunk.
+  - The Blender pipeline is reused as is. It already outputs metre-accurate, origin-normalized GLBs with named slots and modules.
+- **Shared state (item 12) — no duplicated business logic:**
+  - The Next app stays the single source of truth: `DesignDocument`, the command engine, validation, catalog and Plan Twin.
+  - UE is a **renderer of resolved scene patches**. It never validates.
+  - Edits made inside UE (a gizmo drag) come back as *proposed commands*, which `useStudio.dispatch` accepts or rejects.
+- **Local development (items 14–15):** UE 5.8 from the Epic Launcher, Pixel Streaming 2 plugin, Cirrus on Node 24 (already installed), VS 2026 only if C++ turns out to be needed. The project lives **outside the repo** at `C:\HaveniqUE\HaveniqUltra`. Only bridge code, editor Python scripts and docs go into git.
+- **Cloud scaling (item 16):**
+  - Pixel Streaming means **one GPU-backed UE process per concurrent user**, or 2–4 per large GPU.
+  - Estimate (unverified, to price before any cloud decision):
+    - an A10G-class instance costs ~$0.75–1.20 per hour;
+    - 5–10 Mbps of video egress costs ~$0.25–0.40 per hour;
+    - total **~$1–1.6 per user-hour**, plus TURN and orchestration.
+  - Managed providers (Arcware, PureWeb, Vagon, Eagle 3D) bundle this at similar or higher cost.
+  - Three.js costs about $0 per user (the client GPU does the work).
+- **Security (item 17):** gate Cirrus behind our JWT (verify the WebSocket on connect), issue per-session signalling tokens, run one UE instance per user (never shared, which isolates sessions), host our own TURN with short-lived credentials, and keep business logic and secrets out of the UE build.
+- **Licensing (item 18):**
+  - The Epic license pages returned 403 to automated fetching, so this is from prior knowledge and must be re-checked in a browser.
+  - Non-game commercial use moved in 2024 to a seat-based Unreal subscription (~$1,850 per seat per year) for organisations with **>$1M annual revenue**, and is free below that.
+  - Pixel-streamed apps carry no per-user royalty under the non-game terms.
+  - Asset licensing is unchanged: CC0 and originals only.
+- **Tooling (item 19):**
+  - Official: UE editor Python (`UnrealEditor-Cmd -run=pythonscript`) for imports and setup; the Remote Control API (HTTP/WebSocket) for scripted scene changes; the PixelStreamingInfrastructure repo.
+  - Community "Unreal MCP" servers exist but are unvetted, so they will **not** be installed.
+- **Complexity, cost and Claude usage (item 20):**
+  - POC: ~4–6 focused sessions, much of it GUI and compile time on your side.
+  - Production Ultra mode, if adopted: +8–12 sessions (cook pipeline, orchestration, auth, TURN, autoscaling) plus ongoing cloud operations.
+
+## E.3 Options and recommendation
+| | Full UE migration | **Hybrid: Three.js default + optional UE "Ultra"** | Three.js only (+ M12 path-traced stills / server re-bake) |
+|---|---|---|---|
+| Visual ceiling | highest | highest where it is offered | high for stills; real-time limited by baked GI |
+| Mobile and low-end | streaming only | Three.js native, Ultra streamed | native |
+| Cost per user | ~$1–1.6 per hour, always | only for Ultra sessions | ~0 |
+| Ops | heavy (GPU fleet) | heavy, but only for opt-in sessions | none |
+| Reuse of M0–M4 | low | full | full |
+
+**Recommendation: do not migrate. Run the gated POC for the hybrid.** If it passes the gates in E.5, add Ultra as an opt-in premium mode, for example in a sales office or for qualified leads. Otherwise continue with Three.js and invest in assets and composition plus M12.
+
+Note: UE does not fix the biggest current gap, which is sparse, uncurated assets and composition. That work (M4) is needed on either path.
+
+## E.4 Integration architecture
+```
+Next.js (source of truth)                                  UE 5.8 (renderer only)
+useStudio store ──apply/validate (lib/studio/commands)──►  scene patch  ──Pixel Streaming 2 data channel──►  Bridge (BP or small C++)
+   ▲                                                                                                          │ spawn / move / remove actors
+   └── dispatch(proposed command) ◄── {proposeCommand, pick, pose, ack, stats} ◄──────────────────────────────┘ MID materials, sun, camera
+```
+- **`lib/studio/bridge/protocol.ts`:** zod message schemas.
+  - web → UE: `hello{baselineId, rev}`, `scene.snapshot`, `scene.patch{rev, upserts[], removes[], surfaces{}}`, `camera.teleport`, `light.sun`.
+  - UE → web: `ready`, `ack{rev}`, `pick{itemId}`, `proposeCommand{cmd}`, `pose`, `stats{fps, gpuMs, vramMB}`.
+- **`lib/studio/bridge/resolve.ts`** (pure, tested) turns doc + catalog + baseline into a resolved scene. Upserts carry UE asset keys (`catalogId@version[/module]`), the transform converted plan metres → UE centimetres, module placements and slot/surface material keys. Patches are diffs against the last acknowledged revision.
+- **Shared module layout:** move the layout math from `ItemLayer.assembleModules` into a pure `layoutModules()` in `lib/studio/catalog/modular.ts`. Three.js and the UE bridge then share it; tests cover it.
+- **Coordinate mapping:** plan (x, y, z, rot) → UE (X = x·100, Y = −y·100, Z = z·100, yaw from rot). It lives in one tested function and is checked with an asymmetric test asset, because UE is left-handed.
+- **Test page:** `/studio/[slug]/ultra`, behind `STUDIO_ENABLED` and a role check, dev-only for now. A client component hosts the PS2 frontend player and subscribes to the store.
+
+## E.5 Proof-of-concept roadmap (local only, nothing purchased, no cloud)
+**Pre-registered pass gates.** These are fixed now and will not be loosened later.
+1. **Visual:** on 4 fixed cameras, UE is judged clearly better by you, in side-by-side pairs; my review alone is not enough.
+2. **Performance:** ≥45 fps at 1080p with Lumen hardware RT plus streaming on the RTX 4070 Laptop, and dedicated VRAM ≤7.0 GB. Measured with `stat unit` and `nvidia-smi` sampling.
+3. **Latency:** a command round trip (web dispatch → change visible in the stream) at p95 ≤150 ms locally; input-to-photon ≤100 ms locally.
+4. **Integration:** no validation logic in UE; the bridge is ≤ ~600 lines of TS plus the UE side.
+5. **Cost:** the measured per-session GPU and bandwidth figures fit a cost you accept.
+
+| Step | What | Who installs / approves | Done when |
+|---|---|---|---|
+| E0 | **Done by you:** UE **5.8.4** is installed at `C:\Program Files\Epic Games\UE_5.8`; `UnrealEditor.exe` and `UnrealEditor-Cmd.exe` are present. Plugins found in the engine: PixelStreaming2, Interchange (+ InterchangeEditor), PythonScriptPlugin, EditorScriptingUtilities, GeometryScripting, ModelingToolsEditorMode, DatasmithImporter, EnhancedInput, PCG, VariantManager, MovieRenderPipeline. Remaining: run a headless editor launch check (`UnrealEditor-Cmd -nullrhi` on a new project) and clone the PixelStreamingInfrastructure **UE5.8** branch to `C:\HaveniqUE\PSInfra`, reviewing it before any `npm install`. VS 2026 only if E1 proves C++ is necessary; I ask you first (large install, admin rights) | me (you only for VS, if needed) | headless editor opens the project |
+| E1 | Verify the to-verify items: PS2 Blueprint/JS messaging names, WebP import, glTF import of our GLBs. Record the answers in the docs | me | facts confirmed or the plan adjusted |
+| E2 | Project `C:\HaveniqUE\HaveniqUltra`, built by an editor Python script (`scripts/studio/ue/setup_project.py`, committed). Import `public/walk/yarkon-twin-shell/apartment.glb` and the 4 catalog GLBs (sofa modules, drums, armchair). Master material with the 5 textured catalog materials. Lumen hardware RT, Virtual Shadow Maps, sun = `SUN_DIR`, sky, exposure | me (scripts), you (open editor if needed) | screenshots at the 4 cameras |
+| E3 | First-person pawn, teleport to the cameras; Pixel Streaming 2 with local Cirrus; `/studio/yarkon-twin-shell/ultra` shows the stream | me | stream visible in the HAVENIQ page |
+| E4 | Bridge: `protocol.ts`, `resolve.ts` (+ vitest), store subscription; UE-side handlers for patch, teleport, pick and proposeCommand. Demonstrate move, remove, material swap, sofa 2.4 → 4.0 m, and a wall/floor swap | me | the scripted demo passes; nothing is validated in UE |
+| E5 | Measure both engines on the same scene, cameras and materials: fps, frame times, VRAM (`nvidia-smi`), round-trip latency, side-by-side PNGs in `docs/design-studio/results/ue-poc/` | me | numbers + pairs recorded in `QUALITY_GATES.md` |
+| E6 | Decision record in `MASTER_PLAN.md` and `PROGRESS.md` (adopt Ultra / do not adopt), commit, then **resume M4 → M13** | you decide | decision recorded |
+
+**Repo changes (all additive):**
+- `lib/studio/bridge/*`
+- `lib/studio/catalog/modular.ts` (`layoutModules`, used by `ItemLayer`)
+- `app/studio/[slug]/ultra/*`, `components/studio/ultra/*`
+- `scripts/studio/ue/*.py`, `scripts/studio/ue/measure.mjs`
+- docs
+
+`/walk` and the existing studio behaviour do not change.
+
+**Verification:**
+- `npx vitest run`: bridge and coordinate tests, plus every existing test still green.
+- A scripted Playwright run against `/ultra` that sends commands and waits for `ack`.
+- `nvidia-smi --query-gpu=memory.used --format=csv -lms 500` while each engine runs.
+- Identical camera list for both engines (from `scripts/studio/shots.mjs`).
+
+## E.6 Realistic cost implications
+- **POC:** $0 in purchases. ~120 GB of disk. About 4–6 Claude sessions, plus your time installing and occasionally clicking in the editor.
+- **Production Ultra, only if adopted:**
+  - roughly $1–1.6 per streamed user-hour (verify current GPU and egress prices first);
+  - TURN, orchestration and monitoring on top;
+  - an Unreal seat subscription only if the company is above Epic's revenue threshold (re-check the terms);
+  - Three.js users stay at ~$0.
+
+## E.8 Addendum (approved additions, 2026-11-25), folded into the roadmap
+1. **UE project plugins: enable only what the POC needs.** PixelStreaming2, Interchange/glTF, PythonScriptPlugin, EditorScriptingUtilities, EnhancedInput. MovieRenderPipeline only if offline stills are compared. Geometry Script, Modeling Tools, Datasmith, Visual Dataprep, PCG and Variant Manager stay off unless a concrete need appears. Each enabled plugin is recorded with its reason in `docs/design-studio/UNREAL.md` (new doc).
+2. **Universal devices (mandatory; extends M5/M7/M13).**
+   - Rendering tiers become **Lite / Standard / High** (Three.js; the current low/medium/high are renamed) plus **Ultra** (UE Pixel Streaming, optional, only when available).
+   - Automatic fallback: Ultra → High → Standard → Lite → **2D plan + image mode** when WebGL is unavailable or the context is lost. WebGL context-loss recovery and stream-loss recovery are both included.
+   - A **dedicated mobile touch UI** in M5: bottom-sheet catalog, tap-to-select, drag-to-place, two-finger rotate, pinch zoom, large touch targets. It is a separate layout, not a shrunken desktop one.
+   - Targets: Safari, Chrome, Edge and Firefox on Windows, macOS, iOS and Android. Playwright covers device emulation (labelled "emulated"); real-device numbers are labelled "measured" and need your phone.
+3. **Assets (M4/M11). Reference images are no longer required:** art direction follows `ART_DIRECTION.md` plus an original HAVENIQ identity.
+   - Sources, each license verified per asset:
+     - Poly Haven, ambientCG, CGBookcase, ShareTextures, TextureCan: CC0 first.
+     - Sketchfab: CC0 and CC-BY only.
+     - BlenderKit: CC0 only.
+     - Fab, free Megascans and iMeshh free: only if their terms allow interactive commercial web use with downloadable runtime files. Otherwise use them only server-side (Ultra/UE builds, never served as public GLBs) or not at all.
+   - Targets: first 30–50 curated assets, growing toward ~300 furniture assets and families and ~250 materials.
+   - Style list extended with Modern Mediterranean and Modern Classic.
+   - Pipeline stages: Discover → License → Download → Inspect → Normalize → Optimize → Validate → Register → Publish. Existing scripts cover Normalize through Publish.
+   - Tooling: gltf-transform and meshoptimizer are already installed. KTX2/Basis (`toktx`) and gltf-validator get evaluated in M11. MaterialX is skipped (our manifest PBR contract is enough).
+   - Each asset gets: thumbnails (Blender render), placement and collision metadata, stable ids, license metadata, and engine variants (web GLB; UE import set).
+4. **Performance (M13 + continuous).**
+   - Already in place: on-demand loading per placed item, so the full catalog is never loaded.
+   - Still to add: LODs, KTX2 textures, instancing of repeated items, adaptive shadows and dynamic resolution, disposal of unused GLBs and textures, caching headers.
+   - Targets: ~60 fps on capable desktops, 30 fps on mainstream mobile (measured on a real device), fast first load.
+   - Ultra measurements: latency, GPU and VRAM use per session, how many sessions one 8 GB GPU can serve, and a cost model. **No mandatory paid GPU infrastructure**: Ultra stays optional.
+5. **Continuity.** Everything committed so far (M0–M4 partial) is preserved. After E6 the order is: finish M4 → M5 (with the mobile UI) → M6 … M13. Each milestone ends with tests green, an independent verification, a commit and a PROGRESS.md checkpoint that gives the exact next step.
+
+## E.7 סיכום בעברית
+- **ההמלצה:** לא להגר את המערכת ל-Unreal. מריצים POC מקומי וממוקד לארכיטקטורה היברידית: Three.js נשאר ברירת המחדל לכולם, ו-Unreal מתווסף כמצב "Ultra" אופציונלי בהזרמה (Pixel Streaming), רק אם ה-POC עומד בשערים שנקבעו מראש.
+- **היתרון האמיתי של Unreal:** Lumen מחשב אור חוזר דינמי. הוא פותר מהשורש את המגבלה שמדדנו ב-M2 (החלפת חומרים ורהיטים בלי אפייה מחדש), ונותן צללי מגע, השתקפויות ושעות יום משתנות.
+- **החסרונות:**
+  - כל משתמש בהזרמה צורך GPU בענן, בערך 1–1.6 דולר לשעת משתמש (הערכה שיש לאמת).
+  - נדרשת תשתית שרתים.
+  - ה-VRAM במחשב שלך (8GB) גבולי.
+  - יש תלות בכלים שחלקם עדיין לא רשמיים, כמו חבילת ה-frontend.
+- **מקור האמת:** נשאר ב-Next. Unreal רק מציג "תיקוני סצנה" שמגיעים ממנוע הפקודות, ואינו מכפיל לוגיקה עסקית.
+- **הפער הגדול כרגע הוא בנכסים ובקומפוזיציה, לא במנוע.** את M4 צריך להשלים בכל מקרה.
+- **אחרי ההחלטה:** ממשיכים לפי התוכנית המקורית, M4 עד M13.
+- **תוספות שאושרו (E.8):**
+  - **Unreal 5.8.4:** זוהה מקומית עם Pixel Streaming 2 ושאר התוספים הנדרשים. Visual Studio יידרש רק אם יתברר שחייבים C++, ואז אשאל קודם.
+  - **ארבע רמות רינדור:** Lite, Standard ו-High ב-Three.js, ו-Ultra ב-Unreal כמצב אופציונלי. נוסף מעבר חלק בין הרמות, ומצב דו-ממדי למכשירים בלי WebGL.
+  - **ממשק מגע ייעודי למובייל:** נבנה כחלק מ-M5.
+  - **נכסים:** אין צורך בתמונות ייחוס. נכסים חינמיים ומאומתי-רישיון ממקורות רבים, עם עדיפות ל-CC0. נכסים מוגבלים לא יוגשו כ-GLB פתוח לציבור.
+  - **ביצועים:** נמדדים בפועל, לא מונחים.
+
+---
+
+# Master plan (approved; unchanged)
+
 ## Context
 HAVENIQ already ships a first-person apartment walkthrough (`/walk/[slug]`), built from Blender-baked GLBs and a semantic "plan twin" (`lib/twin/schema.ts`). The goal is to grow that into **HAVENIQ Design Studio**: one shared scene with three modes (Walkthrough, Design Studio, Floor Planner), a licensed catalog of real furniture and PBR materials, spatial validation, saved user designs and an AI designer. Existing pages, `/walk/*` assets and business logic stay as they are.
 

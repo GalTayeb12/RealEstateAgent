@@ -11,6 +11,7 @@ Read this file first in every session; do not re-audit the repo.
 | M2 | done (gate caveat) | empty shell + surface materials + proof; irradiance-only confirmed, swap-without-rebake accuracy limited (see QUALITY_GATES) |
 | M3 | done (first pass) | /studio/[slug] behind flag; live item layer, sun + floor overlay, tiers, pipeline v0; evaluation in QUALITY_GATES |
 | M4 | PARTIAL | pipeline, textured materials, modular sofa (4.0 m verified), travertine drums done; premium art bar NOT met (see QUALITY_GATES M4) |
+| E (Unreal) | E0 done, E1 partial | see UNREAL.md; POC E2-E6 not started |
 | M5-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
@@ -73,7 +74,9 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - Original assets (Blender, headless): `scripts/blender/studio_sofa.py` (modular sofa: arm-l/arm-r, seat-80/100/120, chaise; plump bevel+subdiv cushions, welt piping, tapered metal legs) and `studio_tables.py` (travertine drum coffee/side tables). Outputs go to `assets-src/studio/items-raw/`, then `optimize.mjs` -> `public/studio/catalog/<id>/1/model.glb`.
 - Harness: `scripts/studio/shots.mjs` scenes (hero, hero-close, sofa-24/34-chaise/40, finish, ...) with view tilt (`look`).
 
-## Next steps
+## Next steps (updated 2026-11-25, after the Unreal round)
+Owner decisions since M4: reference images are NOT required (use ART_DIRECTION + an original HAVENIQ identity); rendering tiers Lite/Standard/High (Three.js) + optional Ultra (UE Pixel Streaming); universal devices incl. a dedicated mobile touch UI; asset sources extended (Fab, Megascans free, iMeshh, BlenderKit, Sketchfab, CGBookcase, ShareTextures, TextureCan) with per-asset license checks. All recorded in MASTER_PLAN section E.8.
+0. Unreal: continue at E1/E2 per UNREAL.md (GLB import script, Lumen scene, local Pixel Streaming, bridge, measurements, decision). Keep it time-boxed; Three.js work must not wait on it.
 1. **Ask the owner for the reference images** (none reached the session) and put them in `docs/design-studio/references/`; judge the art against them.
 2. Finish M4 art: rug (woven, UVs in metres), floor lamp + pendant, plants (calathea/pachira exist in the base blend but are ~75k verts: decimate first), decor (books, vase, throw), a curated contemporary armchair (replace the Poly Haven one or rework), stitching/seams, throw cushions; stronger contact grounding (per-item baked AO decals); calibrate sun intensity against the bake; decide the daylight strategy (single baked sun vs extra bakes); final-quality shell bake (`node scripts/twin/build-walk.mjs yarkon yarkon-twin-shell --shell-only`, about 20 min); then re-review against the QUALITY_GATES checklist.
 3. Remove `sofa-03` and the other Poly Haven test items from the published catalog once curated replacements exist.

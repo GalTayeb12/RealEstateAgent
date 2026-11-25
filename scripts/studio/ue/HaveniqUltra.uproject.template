@@ -1,0 +1,12 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.8",
+  "Category": "",
+  "Description": "HAVENIQ Ultra rendering proof of concept (outside the repo)",
+  "Plugins": [
+    { "Name": "PythonScriptPlugin", "Enabled": true },
+    { "Name": "EditorScriptingUtilities", "Enabled": true },
+    { "Name": "PixelStreaming2", "Enabled": true },
+    { "Name": "EnhancedInput", "Enabled": true }
+  ]
+}
