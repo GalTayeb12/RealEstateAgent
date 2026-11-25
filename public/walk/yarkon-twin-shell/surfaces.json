@@ -1,0 +1,176 @@
+{
+ "materials": {
+  "S|surface:back:a": {
+   "base": "painted_plaster_wall",
+   "uvScale": 0.4000000059604645
+  },
+  "S|surface:back:b": {
+   "base": "painted_plaster_wall",
+   "uvScale": 0.4000000059604645
+  },
+  "S|surface:west:a": {
+   "base": "painted_plaster_wall",
+   "uvScale": 0.4000000059604645
+  },
+  "S|surface:west:b": {
+   "base": "painted_plaster_wall",
+   "uvScale": 0.4000000059604645
+  },
+  "S|surface:east:a": {
+   "base": "painted_plaster_wall",
+   "uvScale": 0.4000000059604645
+  },
+  "S|surface:east:b": {
+   "base": "painted_plaster_wall",
+   "uvScale": 0.4000000059604645
+  },
+  "S|surface:bed3-front:a": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:bed3-front:b": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:bed3-kitchen:a": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:bed3-kitchen:b": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:kitchen-corridor:a": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:kitchen-corridor:b": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:corridor-east:a": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:corridor-east:b": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:master-back:a": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:master-back:b": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:bed2-bath:a": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:bed2-bath:b": {
+   "base": "wall_white",
+   "uvScale": 1.0
+  },
+  "S|surface:floor:living": {
+   "base": "laminate_floor_02",
+   "uvScale": 0.3499999940395355
+  },
+  "S|surface:ceiling:living": {
+   "base": "ceiling_white",
+   "uvScale": 1.0
+  },
+  "S|surface:floor:kitchen": {
+   "base": "laminate_floor_02",
+   "uvScale": 0.3499999940395355
+  },
+  "S|surface:ceiling:kitchen": {
+   "base": "ceiling_white",
+   "uvScale": 1.0
+  },
+  "S|surface:floor:corridor": {
+   "base": "laminate_floor_02",
+   "uvScale": 0.3499999940395355
+  },
+  "S|surface:ceiling:corridor": {
+   "base": "ceiling_white",
+   "uvScale": 1.0
+  },
+  "S|surface:floor:bed3": {
+   "base": "laminate_floor_02",
+   "uvScale": 0.3499999940395355
+  },
+  "S|surface:ceiling:bed3": {
+   "base": "ceiling_white",
+   "uvScale": 1.0
+  },
+  "S|surface:floor:master": {
+   "base": "laminate_floor_02",
+   "uvScale": 0.3499999940395355
+  },
+  "S|surface:ceiling:master": {
+   "base": "ceiling_white",
+   "uvScale": 1.0
+  },
+  "S|surface:floor:bed2": {
+   "base": "laminate_floor_02",
+   "uvScale": 0.3499999940395355
+  },
+  "S|surface:ceiling:bed2": {
+   "base": "ceiling_white",
+   "uvScale": 1.0
+  },
+  "S|surface:floor:bath": {
+   "base": "bath_stone",
+   "uvScale": 1.0
+  },
+  "S|surface:ceiling:bath": {
+   "base": "ceiling_white",
+   "uvScale": 1.0
+  },
+  "S|surface:floor:balcony": {
+   "base": "grey_oak_veneer_01",
+   "uvScale": 0.5
+  },
+  "S|surface:ceiling:balcony": {
+   "base": "ceiling_white",
+   "uvScale": 1.0
+  }
+ },
+ "objectsPerSurface": {
+  "surface:back:a": 11,
+  "surface:back:b": 14,
+  "surface:west:a": 1,
+  "surface:west:b": 1,
+  "surface:east:a": 2,
+  "surface:east:b": 1,
+  "surface:bed3-front:a": 3,
+  "surface:bed3-front:b": 3,
+  "surface:bed3-kitchen:a": 1,
+  "surface:bed3-kitchen:b": 1,
+  "surface:kitchen-corridor:a": 1,
+  "surface:kitchen-corridor:b": 1,
+  "surface:corridor-east:a": 5,
+  "surface:corridor-east:b": 5,
+  "surface:master-back:a": 6,
+  "surface:master-back:b": 3,
+  "surface:bed2-bath:a": 1,
+  "surface:bed2-bath:b": 2,
+  "surface:floor:living": 1,
+  "surface:ceiling:living": 1,
+  "surface:floor:kitchen": 1,
+  "surface:ceiling:kitchen": 1,
+  "surface:floor:corridor": 1,
+  "surface:ceiling:corridor": 1,
+  "surface:floor:bed3": 1,
+  "surface:ceiling:bed3": 1,
+  "surface:floor:master": 1,
+  "surface:ceiling:master": 1,
+  "surface:floor:bed2": 1,
+  "surface:ceiling:bed2": 1,
+  "surface:floor:bath": 1,
+  "surface:ceiling:bath": 1,
+  "surface:floor:balcony": 1,
+  "surface:ceiling:balcony": 1
+ }
+}
