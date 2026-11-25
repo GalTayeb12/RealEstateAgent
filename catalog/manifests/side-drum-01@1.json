@@ -1,0 +1,74 @@
+{
+  "type": "model",
+  "id": "side-drum-01",
+  "version": 1,
+  "name": {
+    "he": "שולחן צד טרוורטין",
+    "en": "Travertine side drum"
+  },
+  "category": "side-table",
+  "styles": [
+    "organic-modern",
+    "quiet-luxury",
+    "japandi"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 0.45,
+    "d": 0.45,
+    "h": 0.46
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [
+    {
+      "id": "travertine",
+      "target": "travertine",
+      "label": {
+        "he": "אבן",
+        "en": "Stone"
+      },
+      "allowed": [
+        "stone",
+        "marble",
+        "wood"
+      ],
+      "default": {
+        "id": "travertine-cream",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "side-drum-01/1/model.glb",
+    "preview": "side-drum-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/travertine-drums",
+    "author": "HAVENIQ"
+  }
+}

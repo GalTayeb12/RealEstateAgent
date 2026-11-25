@@ -50,6 +50,20 @@ for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json")).sort()) {
   const scene = doc.getRoot().getDefaultScene() ?? doc.getRoot().listScenes()[0];
   const b = getBounds(scene);
   const size = { w: b.max[0] - b.min[0], h: b.max[1] - b.min[1], d: b.max[2] - b.min[2] }; // glTF y-up: depth along z
+  if (m.sizing.mode === "modular") {
+    // every module must exist as a top-level node whose real size matches the manifest within 1 cm
+    for (const mod of m.sizing.modules) {
+      const node = doc.getRoot().listNodes().find((n) => n.getName() === mod.node);
+      if (!node) { problems.push(`${f}: module node "${mod.node}" missing in the GLB`); continue; }
+      const mb = getBounds(node);
+      const w = mb.max[0] - mb.min[0], d = mb.max[2] - mb.min[2];
+      if (Math.abs(w - mod.width) > 0.015) problems.push(`${f}: module ${mod.id} is ${w.toFixed(3)} m wide in the GLB but ${mod.width} in the manifest`);
+      if (Math.abs(d - mod.depth) > 0.015) problems.push(`${f}: module ${mod.id} is ${d.toFixed(3)} m deep in the GLB but ${mod.depth} in the manifest`);
+      if (Math.abs(mb.min[1]) > 0.01) problems.push(`${f}: module ${mod.id} base is ${mb.min[1].toFixed(3)} m off the floor`);
+      if (Math.abs((mb.min[0] + mb.max[0]) / 2) > 0.02) problems.push(`${f}: module ${mod.id} is not centred left-right`);
+      if (Math.abs(mb.max[2]) > 0.02) problems.push(`${f}: module ${mod.id} back must be at z = 0`);
+    }
+  }
   if (m.sizing.mode === "fixed") {
     for (const k of ["w", "d", "h"] as const) {
       if (Math.abs(size[k] - m.dims[k]) > 0.01) problems.push(`${f}: ${k} is ${size[k].toFixed(3)} m in the GLB but ${m.dims[k]} in the manifest (>1 cm)`);

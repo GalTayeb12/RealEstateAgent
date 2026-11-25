@@ -12,6 +12,7 @@ import * as THREE from "three";
 import { EXPOSURE } from "@/components/walk/ApartmentWalk";
 import { resolveSize } from "@/lib/studio/catalog/sizing";
 import { roomAt, type WalkConfig, type WalkData } from "@/lib/experience/types";
+import type { ModelManifest } from "@/lib/studio/schema/catalog";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { useStudio } from "../store";
 import { applyMaterial } from "./materials";
@@ -58,9 +59,9 @@ function aoTex() {
   return aoTexture;
 }
 
-function cloneItem(scene: THREE.Object3D) {
+/** Clones a subtree with its own materials (shared via `cache`, so one slot edit reaches every clone). */
+function cloneItem(scene: THREE.Object3D, cache = new Map<THREE.Material, THREE.Material>()) {
   const root = scene.clone(true);
-  const cache = new Map<THREE.Material, THREE.Material>();
   root.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
@@ -73,6 +74,27 @@ function cloneItem(scene: THREE.Object3D) {
   return root;
 }
 
+type Modular = Extract<ModelManifest["sizing"], { mode: "modular" }>;
+
+/** Lays the configured modules out left to right, centred; every module's back stays on the same line. */
+function assembleModules(scene: THREE.Object3D, sizing: Modular, ids: string[]) {
+  const byId = new Map(sizing.modules.map((m) => [m.id, m]));
+  const total = ids.reduce((s, id) => s + (byId.get(id)?.width ?? 0), 0);
+  const cache = new Map<THREE.Material, THREE.Material>();
+  const root = new THREE.Group();
+  let x = -total / 2;
+  for (const id of ids) {
+    const mod = byId.get(id);
+    const src = mod && scene.getObjectByName(mod.node);
+    if (!mod || !src) continue;
+    const part = cloneItem(src, cache);
+    part.position.set(x + mod.width / 2, 0, 0);
+    root.add(part);
+    x += mod.width;
+  }
+  return root;
+}
+
 function Item({ node, walk, data, envs, listeners }: {
   node: ItemNode; walk: WalkConfig; data: WalkData;
   envs: Record<string, THREE.Texture>; listeners: Set<() => void>;
@@ -81,21 +103,25 @@ function Item({ node, walk, data, envs, listeners }: {
   const showDecal = useStudio((s) => s.lighting.ao);
   const manifest = catalog.model(node.catalog)!;
   const { scene } = useGLTF(`${CATALOG_BASE}/${manifest.assets.glb}`, false, true);
-  const obj = useMemo(() => cloneItem(scene), [scene]);
+  const modKey = manifest.sizing.mode === "modular" ? (node.modules ?? manifest.sizing.defaultConfig ?? []).join(",") : "";
+  const obj = useMemo(
+    () => (manifest.sizing.mode === "modular" ? assembleModules(scene, manifest.sizing, modKey.split(",").filter(Boolean)) : cloneItem(scene)),
+    [scene, manifest, modKey],
+  );
   const dims = resolveSize(manifest, node);
   const t = node.transform;
   const room = roomAt(walk, data.rooms, t.x, t.y);
 
-  // slot materials (flat colour only for items until per-slot UV scales exist)
+  // slot materials: textured when the asset's UVs are in metres, otherwise colour/roughness/metalness only
   useEffect(() => {
     for (const slot of manifest.slots) {
       const target = slot.target ?? slot.id;
-      const ref = node.slots[slot.id];
+      const ref = node.slots[slot.id] ?? slot.default;
       const mat = ref ? catalog.material(ref) ?? null : null;
       obj.traverse((o) => {
         const m = o as THREE.Mesh;
         if (m.isMesh && (m.material as THREE.Material).name === target) {
-          applyMaterial(m.material as THREE.MeshStandardMaterial, mat, { uvScale: null, base: CATALOG_BASE });
+          applyMaterial(m.material as THREE.MeshStandardMaterial, mat, { uvScale: manifest.uvUnits === "metres" ? 1 : null, base: CATALOG_BASE });
         }
       });
     }

@@ -1,0 +1,34 @@
+{
+  "type": "material",
+  "id": "fabric-textured-stone",
+  "version": 1,
+  "name": {
+    "he": "בד מרקם אבן",
+    "en": "Textured stone fabric"
+  },
+  "category": "fabric",
+  "styles": [
+    "contemporary",
+    "scandinavian"
+  ],
+  "tileSize": [
+    0.9,
+    0.9
+  ],
+  "pbr": {
+    "baseColor": "#a9aaae",
+    "roughness": 0.67,
+    "metalness": 0,
+    "maps": {
+      "albedo": "albedo.webp",
+      "normal": "normal.webp",
+      "orm": "orm.webp"
+    }
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://ambientcg.com/view?id=Fabric086",
+    "author": "ambientCG",
+    "retrievedAt": "2026-11-25"
+  }
+}

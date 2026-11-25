@@ -1,0 +1,34 @@
+{
+  "type": "material",
+  "id": "travertine-cream",
+  "version": 1,
+  "name": {
+    "he": "טרוורטין שמנת",
+    "en": "Cream travertine"
+  },
+  "category": "stone",
+  "styles": [
+    "organic-modern",
+    "quiet-luxury"
+  ],
+  "tileSize": [
+    1.2,
+    1.2
+  ],
+  "pbr": {
+    "baseColor": "#dfcbac",
+    "roughness": 0.04,
+    "metalness": 0,
+    "maps": {
+      "albedo": "albedo.webp",
+      "normal": "normal.webp",
+      "orm": "orm.webp"
+    }
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://ambientcg.com/view?id=Travertine009",
+    "author": "ambientCG",
+    "retrievedAt": "2026-11-25"
+  }
+}

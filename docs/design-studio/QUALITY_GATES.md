@@ -61,3 +61,23 @@ Bugs found and fixed during the pass: overlay `uv1` not declared (use `uv` on a 
 | Reference: /walk/yarkon (furnished, baked, vsync off) | 160 | 6.2 / 11.8 ms | 196 | 1.33M |
 
 With vsync on every tier sits at the 144 Hz display cap, so the RTX 4070 cannot discriminate tiers; meaningful tier decisions need a mid-range GPU or a physical phone. Budget status: draw calls above the 350 target on High/Medium (shadow pass doubles the shell's 186 meshes) - merge static shell meshes per material (M13); triangle budget met by a wide margin; GLB 2.1 MB for shell + 4 items (budget 8 MB mobile first load: transferred 4.5 MB).
+
+### M4 (partial) - living-room vertical slice: visual review checklist (2026-11-25)
+Shots: `results/m3/{hero,hero-close,sofa-24-close,sofa-34-chaise,sofa-40,finish*}.png`. Scene: PREVIEW shell bake, one baked sun, no reference images were supplied to the session. **The slice proves the pipeline end to end; the art is NOT yet at the premium bar and the M4 "done" condition is not met.**
+
+| Checklist item | Verdict | Notes |
+|---|---|---|
+| Modular sofa: legal configurations incl. 4.0 m, no stretching | **pass** | `arm-l + 3x seat-120 + arm-r` = 4.0 m rendered from real modules; every module's measured size is within 1.5 cm of its manifest (publish gate); `setModules` reconfigures live; chaise configuration renders |
+| Silhouette smoothness | pass | bevelled + subdivided cushions, travertine drums have soft pillowed edges; no visible faceting |
+| Texture scale | partial | parquet/plaster/microcement/travertine tile at catalogued real-world sizes and read plausibly; **not** verified against a 1 m checker |
+| Upholstery detail | partial | fine linen-like weave and welt piping are visible close up; no stitching, tufting, throw cushions or fabric folds, so it still reads CG-clean |
+| Grounding / contact shadows | **fail (weak)** | the AO decal and N8AO give only faint grounding; furniture looks lightly "placed" rather than seated in the room |
+| Shell vs dynamic tone match | partial | coherent by eye; no luminance measurement; the realtime sun intensity (2.2) is uncalibrated; direct sun barely reaches the floor in this room |
+| Exposure / white balance | partial | calm and neutral but flat and overcast-looking; no direct-sun drama |
+| Composition | **fail** | sparse: no rug, lamps, plants, decor, no curated styling; only 4 hero pieces |
+| Ghost shadows when moving/removing | pass | by construction (empty-shell bake + live layer), confirmed in screenshots |
+| Wall and floor material change | pass | textured floor/wall/microcement swaps apply to exactly the chosen surfaces; lighting carries through (accuracy limited as documented in the M2 proof) |
+
+Library status: 7 models (3 original, 4 Poly Haven test assets - `sofa-03` is ornate and must not ship), 10 materials (5 CC0 textured from ambientCG, 5 flat-colour test materials). Packed textures total about 3 MB.
+
+What is missing for M4 to pass (see PROGRESS.md next steps): final-quality shell bake, rug, floor/pendant lamps, plants and decor, curated armchair, stitching/seam detail, calibrated sun and baked contact decals, a daylight strategy beyond one baked sun, reference images from the owner.

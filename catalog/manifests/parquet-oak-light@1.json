@@ -1,0 +1,35 @@
+{
+  "type": "material",
+  "id": "parquet-oak-light",
+  "version": 1,
+  "name": {
+    "he": "פרקט אלון בהיר",
+    "en": "Light oak parquet"
+  },
+  "category": "parquet",
+  "styles": [
+    "japandi",
+    "scandinavian",
+    "modern-minimalist"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#aa8d75",
+    "roughness": 0.5,
+    "metalness": 0,
+    "maps": {
+      "albedo": "albedo.webp",
+      "normal": "normal.webp",
+      "orm": "orm.webp"
+    }
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://ambientcg.com/view?id=WoodFloor062",
+    "author": "ambientCG",
+    "retrievedAt": "2026-11-25"
+  }
+}

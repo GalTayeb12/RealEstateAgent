@@ -140,6 +140,12 @@ export const ModelManifest = z.strictObject({
   category: z.enum(ASSET_CATEGORIES),
   styles: z.array(z.enum(STYLES)).min(1),
   rooms: z.array(z.enum(ROOM_KINDS)).min(1),
+  /**
+   * What the GLB's UV coordinates mean. "metres": 1 UV unit = 1 m of surface, so slot materials can be
+   * tiled at their real-world tile size. "atlas": 0..1 unwrap (scanned / marketplace assets): slots take
+   * colour, roughness and metalness only.
+   */
+  uvUnits: z.enum(["metres", "atlas"]).default("atlas"),
   /** Real-world default size, metres. Modular/parametric assets override via sizing. */
   dims: Dims,
   sizing: Sizing,

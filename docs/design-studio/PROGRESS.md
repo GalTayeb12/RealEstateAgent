@@ -10,7 +10,8 @@ Read this file first in every session; do not re-audit the repo.
 | M1 | done | lib/studio core: 85 studio tests (362 total green), tsc + eslint clean |
 | M2 | done (gate caveat) | empty shell + surface materials + proof; irradiance-only confirmed, swap-without-rebake accuracy limited (see QUALITY_GATES) |
 | M3 | done (first pass) | /studio/[slug] behind flag; live item layer, sun + floor overlay, tiers, pipeline v0; evaluation in QUALITY_GATES |
-| M4-M13 | pending | see MASTER_PLAN section 10 |
+| M4 | PARTIAL | pipeline, textured materials, modular sofa (4.0 m verified), travertine drums done; premium art bar NOT met (see QUALITY_GATES M4) |
+| M5-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
 - Viewer: `components/walk/ApartmentWalk.tsx` (r3f, lightmaps lm-A/lm-B on uv1, `bakedOnly()` patch, custom Walker, collision vs walk.json boxes). Route `app/walk/[slug]`.
@@ -65,6 +66,15 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - Dev server for the studio: `STUDIO_ENABLED=1 JWT_SECRET=studio-bench-dummy DATABASE_URL=postgresql://dummy:dummy@localhost:5432/studio_dev npx next dev -p 3001` (stop with PowerShell `Stop-Process` on the listener; restart after edits).
 - Open from M3: sun intensity is uncalibrated; only one daylight condition exists; no UI beyond a mode switch + undo/redo/restore (M5); draw calls above target (M13); i18n strings are inline in StudioApp (centralise in M5).
 
+## M4 summary (partial)
+- Materials pipeline: `scripts/studio/ingest/material.mjs` (downloaded PBR set -> albedo/normal/ORM WebP + manifest; aspect kept; optional colour grade `--saturation --brightness --hue`). Five ambientCG CC0 materials packed: parquet-oak-light (graded), plaster-limewash-soft (graded), travertine-cream, fabric-textured-stone, microcement-light. Raw downloads: `assets-src/studio/materials-raw/<id>/` (zip + extracted images only, not in git).
+- Schema: `ModelManifest.uvUnits` ("metres" | "atlas"). Items authored in metres take real textures through slots; atlas assets take colour/roughness/metalness only. Slot `default` materials are applied.
+- Modular rendering: `ItemLayer` assembles modules by configuration (`assembleModules`); `publish.mts` verifies each module node's size within 1.5 cm.
+- Original assets (Blender, headless): `scripts/blender/studio_sofa.py` (modular sofa: arm-l/arm-r, seat-80/100/120, chaise; plump bevel+subdiv cushions, welt piping, tapered metal legs) and `studio_tables.py` (travertine drum coffee/side tables). Outputs go to `assets-src/studio/items-raw/`, then `optimize.mjs` -> `public/studio/catalog/<id>/1/model.glb`.
+- Harness: `scripts/studio/shots.mjs` scenes (hero, hero-close, sofa-24/34-chaise/40, finish, ...) with view tilt (`look`).
+
 ## Next steps
-1. M4 (the premium living-room vertical slice): replace test assets with curated premium pieces. Start with ART_DIRECTION + references (none supplied yet), then: (a) final-quality shell bake (`node scripts/twin/build-walk.mjs yarkon yarkon-twin-shell --shell-only`, ~20 min), (b) real textured materials (ambientCG CC0: oak parquet, limewash/plaster, fluted oak, travertine) with tileSize, (c) an original modular sofa family modelled in Blender (modules from `lib/studio/schema/catalog.ts` Module), designer coffee table, armchairs, rug, lamps, plants, (d) calibrate sun intensity against the bake, (e) visual review per QUALITY_GATES.
-2. Decide the daylight strategy (single baked sun vs. extra bakes) before M4 final visuals.
+1. **Ask the owner for the reference images** (none reached the session) and put them in `docs/design-studio/references/`; judge the art against them.
+2. Finish M4 art: rug (woven, UVs in metres), floor lamp + pendant, plants (calathea/pachira exist in the base blend but are ~75k verts: decimate first), decor (books, vase, throw), a curated contemporary armchair (replace the Poly Haven one or rework), stitching/seams, throw cushions; stronger contact grounding (per-item baked AO decals); calibrate sun intensity against the bake; decide the daylight strategy (single baked sun vs extra bakes); final-quality shell bake (`node scripts/twin/build-walk.mjs yarkon yarkon-twin-shell --shell-only`, about 20 min); then re-review against the QUALITY_GATES checklist.
+3. Remove `sofa-03` and the other Poly Haven test items from the published catalog once curated replacements exist.
+4. Then M5 (Design mode UX: click-to-select with three-mesh-bvh, contextual panel, catalog drawer, modular configurator UI, surface picker, validation hints, he/en strings in `lib/i18n/messages.ts`).

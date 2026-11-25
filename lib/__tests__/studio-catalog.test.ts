@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { MaterialManifest, ModelManifest } from "../studio/schema/catalog";
+import { reachableWidths, solveForWidth, validateConfig } from "../studio/catalog/modular";
 
 const root = path.join(__dirname, "../..");
 const dir = path.join(root, "catalog/manifests");
@@ -53,6 +54,31 @@ describe("catalog manifests (catalog/manifests)", () => {
     for (const { json } of raw.filter((r) => r.json.type === "model")) {
       const m = ModelManifest.parse(json);
       expect(existsSync(path.join(root, "public/studio/catalog", m.assets.glb)), m.id).toBe(true);
+    }
+  });
+
+  it("the published modular sofa has a valid default and legal 2.4 / 3.4 / 4.0 m configurations", () => {
+    const m = ModelManifest.parse(raw.find((r) => r.json.id === "sofa-modular-01")!.json);
+    expect(m.sizing.mode).toBe("modular");
+    if (m.sizing.mode !== "modular") return;
+    expect(validateConfig(m.sizing, m.sizing.defaultConfig!)).toEqual([]);
+    for (const target of [2.4, 3.4, 4.0]) {
+      const sols = solveForWidth(m.sizing, target, { tol: 0.005, limit: 50 });
+      expect(sols.length, `${target} m`).toBeGreaterThan(0);
+      for (const sol of sols) expect(validateConfig(m.sizing, sol.modules)).toEqual([]);
+    }
+    expect(reachableWidths(m.sizing, { min: 1.5, max: 5 })).toContain(4);
+    // the 4 m sofa is real modules end to end: both arms present, no module appears at a different width than catalogued
+    const four = solveForWidth(m.sizing, 4.0, { tol: 0.005, limit: 50 }).find((x) => x.modules[0] === "arm-l" && x.modules.at(-1) === "arm-r")!;
+    expect(four).toBeDefined();
+  });
+
+  it("every textured material points at maps that exist", () => {
+    for (const { json } of raw.filter((r) => r.json.type === "material")) {
+      const mat = MaterialManifest.parse(json);
+      for (const file of Object.values(mat.pbr.maps)) {
+        if (file) expect(existsSync(path.join(root, "public/studio/catalog", mat.id, String(mat.version), file)), `${mat.id}/${file}`).toBe(true);
+      }
     }
   });
 });

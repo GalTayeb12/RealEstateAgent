@@ -1,0 +1,148 @@
+{
+  "type": "model",
+  "id": "sofa-modular-01",
+  "version": 1,
+  "name": {
+    "he": "ספה מודולרית",
+    "en": "Modular sofa"
+  },
+  "category": "sofa",
+  "styles": [
+    "organic-modern",
+    "contemporary",
+    "quiet-luxury"
+  ],
+  "rooms": [
+    "living"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 2.4,
+    "d": 0.95,
+    "h": 0.8
+  },
+  "sizing": {
+    "mode": "modular",
+    "maxModules": 8,
+    "modules": [
+      {
+        "id": "arm-l",
+        "kind": "arm",
+        "width": 0.2,
+        "depth": 0.95,
+        "left": null,
+        "right": "seat",
+        "node": "arm-l"
+      },
+      {
+        "id": "arm-r",
+        "kind": "arm",
+        "width": 0.2,
+        "depth": 0.95,
+        "left": "seat",
+        "right": null,
+        "node": "arm-r"
+      },
+      {
+        "id": "seat-80",
+        "kind": "seat",
+        "width": 0.8,
+        "depth": 0.95,
+        "left": "seat",
+        "right": "seat",
+        "node": "seat-80"
+      },
+      {
+        "id": "seat-100",
+        "kind": "seat",
+        "width": 1,
+        "depth": 0.95,
+        "left": "seat",
+        "right": "seat",
+        "node": "seat-100"
+      },
+      {
+        "id": "seat-120",
+        "kind": "seat",
+        "width": 1.2,
+        "depth": 0.95,
+        "left": "seat",
+        "right": "seat",
+        "node": "seat-120"
+      },
+      {
+        "id": "chaise",
+        "kind": "chaise",
+        "width": 1,
+        "depth": 1.6,
+        "left": "seat",
+        "right": null,
+        "node": "chaise"
+      }
+    ],
+    "defaultConfig": [
+      "arm-l",
+      "seat-100",
+      "seat-100",
+      "arm-r"
+    ]
+  },
+  "slots": [
+    {
+      "id": "upholstery",
+      "target": "sofa_upholstery",
+      "label": {
+        "he": "ריפוד",
+        "en": "Upholstery"
+      },
+      "allowed": [
+        "fabric",
+        "leather"
+      ],
+      "default": {
+        "id": "fabric-textured-stone",
+        "version": 1
+      }
+    },
+    {
+      "id": "legs",
+      "target": "sofa_legs",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "metal",
+        "wood"
+      ]
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.8,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "modular",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "sofa-modular-01/1/model.glb",
+    "preview": "sofa-modular-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/sofa-modular-01",
+    "author": "HAVENIQ"
+  }
+}

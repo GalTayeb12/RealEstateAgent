@@ -1,0 +1,35 @@
+{
+  "type": "material",
+  "id": "plaster-limewash-soft",
+  "version": 1,
+  "name": {
+    "he": "טיח ליים-וואש רך",
+    "en": "Soft limewash plaster"
+  },
+  "category": "wallcovering",
+  "styles": [
+    "organic-modern",
+    "japandi",
+    "quiet-luxury"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#ede6e1",
+    "roughness": 0.79,
+    "metalness": 0,
+    "maps": {
+      "albedo": "albedo.webp",
+      "normal": "normal.webp",
+      "orm": "orm.webp"
+    }
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://ambientcg.com/view?id=Plaster001",
+    "author": "ambientCG",
+    "retrievedAt": "2026-11-25"
+  }
+}

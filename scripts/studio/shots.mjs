@@ -39,7 +39,30 @@ const STRIP = [
   item("chair", "armchair-modern-01", 4.6, 0.45, 3 * PI / 4),
   item("table", "coffee-table-modern-01", 2.9, 0.5, 0.4),
 ];
+const surf = (surfaceId, id) => ({ type: "setSurfaceMaterial", surfaceId, material: { id, version: 1 } });
+const FINISH = [
+  surf("surface:floor:living", "parquet-oak-light"),
+  surf("surface:back:b", "plaster-limewash-soft"), surf("surface:bed3-front:a", "plaster-limewash-soft"),
+  surf("surface:corridor-east:b", "plaster-limewash-soft"), surf("surface:west:a", "microcement-light"),
+];
+const SOFA = (modules) => [item("sofa", "sofa-modular-01", 4.0, 4.5, PI, { modules }), ...FINISH];
+const HERO = [
+  item("sofa", "sofa-modular-01", 4.2, 4.5, PI, { modules: ["arm-l", "seat-120", "seat-120", "arm-r"] }),
+  item("coffee", "coffee-drum-01", 4.2, 2.2, 0),
+  item("side", "side-drum-01", 6.15, 3.9, 0),
+  item("chair", "armchair-modern-01", 6.6, 2.5, PI / 2),
+  ...FINISH,
+];
 const SCENES = {
+  hero: { cmds: HERO, cam: [3.4, 0.7, -0.12], look: [30] },
+  "hero-close": { cmds: HERO, cam: [3.9, 1.5, -0.1], look: [75] },
+  "sofa-24": { cmds: SOFA(["arm-l", "seat-100", "seat-100", "arm-r"]), cam: [4.0, 0.9, 0.0] },
+  "sofa-24-close": { cmds: SOFA(["arm-l", "seat-100", "seat-100", "arm-r"]), cam: [3.4, 3.0, -0.45], look: [90, 90] },
+  "sofa-34-chaise": { cmds: SOFA(["arm-l", "seat-100", "seat-120", "chaise"]), cam: [4.0, 0.9, 0.0] },
+  "sofa-40": { cmds: SOFA(["arm-l", "seat-120", "seat-120", "seat-120", "arm-r"]), cam: [4.0, 0.9, 0.0] },
+  finish: { cmds: FINISH, cam: [4.0, 0.4, 0.0] },
+  "finish-wide": { cmds: FINISH, cam: [1.2, 0.6, -0.55] },
+  "finish-west": { cmds: FINISH, cam: [3.6, 3.0, 2.3] },
   strip: { cmds: STRIP, cam: [3.6, 3.4, PI] },
   "strip-noshadow": { cmds: STRIP, cam: [3.6, 3.4, PI], quality: "low" },
   "strip-empty": { cmds: [], cam: [3.6, 3.4, PI] },
@@ -81,6 +104,9 @@ for (const name of scenes) {
   await go();
   await page.waitForTimeout(2500);
   await go(); // a re-render (e.g. toggling AO rebuilds the composer) can swallow the first teleport
+  if (sc.look) { // tilt the view: positive = look down; the walker clamps each frame, so feed it in steps
+    for (const step of sc.look) { await page.evaluate((d) => { window.__studioInput.lookDY += d; }, step); await page.waitForTimeout(120); }
+  }
   await page.waitForTimeout(3500);
   await page.screenshot({ path: path.join(out, `${name}.png`) });
   console.log(name, "ok", JSON.stringify(results), errs.length ? "errors: " + JSON.stringify(errs.slice(0, 3)) : "");
