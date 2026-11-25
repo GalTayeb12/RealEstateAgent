@@ -1,3 +1,5 @@
+> **Status 2026-11-26:** M0-M9 are DONE and committed; M10-M13 and Unreal E2-E6 remain. See `README.md` (overview), `PROGRESS.md` (results + next steps) and `SETUP.md` (another machine/user). This file is the original approved plan and is not rewritten as work proceeds.
+
 # HAVENIQ Design Studio — Architecture & Implementation Plan
 
 > **Current round (2026-11-25): evaluation E — Unreal Engine 5 hybrid feasibility.** This is an addition to the approved master plan (M0–M13 below), not a replacement. Status before E: M0–M3 done, M4 partial (branch `feature/design-studio`, head `dd92655`). After E is decided, work resumes at M4 → M13.

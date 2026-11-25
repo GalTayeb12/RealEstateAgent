@@ -2,7 +2,7 @@
 
 Status as of 2026-11-26. Branch `feature/design-studio` (worktree `.claude/worktrees/design-studio`), based on `Work-Gal` HEAD `8a6c21d`.
 This file is the single entry point: what the system is, everything built so far, what is missing, how to run it, and the history of the work.
-Details live in the sibling docs: `PROGRESS.md` (per-milestone results and the exact next steps), `MASTER_PLAN.md` (the approved plan), `ARCHITECTURE.md`, `QUALITY_GATES.md`, `ART_DIRECTION.md`, `ASSET_PIPELINE.md`, `ASSET_LICENSES.md`, `UNREAL.md`.
+To continue from another computer or user: **`SETUP.md`** (clone, env, what is not in git). Details live in the sibling docs: `PROGRESS.md` (per-milestone results and the exact next steps), `MASTER_PLAN.md` (the approved plan), `ARCHITECTURE.md`, `QUALITY_GATES.md`, `ART_DIRECTION.md`, `ASSET_PIPELINE.md`, `ASSET_LICENSES.md`, `UNREAL.md`.
 
 ---
 

@@ -38,3 +38,7 @@ npm run build
 | Data and asset scripts | `scripts/` (Blender pipeline in `scripts/blender`) |
 
 Older status reports and specs are kept in `docs/archive`.
+
+## Design Studio (`/studio/[slug]`)
+
+Feature-flagged (`STUDIO_ENABLED=1`) 3D design studio: walk, design and floor-plan one apartment, with a furniture/material catalog, parametric kitchens and wardrobes, architecture proposals and saved designs. Full documentation: [`docs/design-studio/README.md`](docs/design-studio/README.md); working from another machine or user: [`docs/design-studio/SETUP.md`](docs/design-studio/SETUP.md); status and next steps: [`docs/design-studio/PROGRESS.md`](docs/design-studio/PROGRESS.md).

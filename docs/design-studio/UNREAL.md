@@ -1,6 +1,6 @@
 # Unreal Engine 5 evaluation (optional "Ultra" rendering path)
 
-Status 2026-11-25: **E0 and part of E1 done. POC steps E2-E6 not started.** Full plan: `MASTER_PLAN.md` section E. Rule: Three.js stays the default and independent path; Unreal is only an optional premium path through Pixel Streaming, and only if the pre-registered gates in section E.5 pass.
+Status 2026-11-26: **E0, E1 done; E2 partial (items imported, Lumen level builder written, first GPU render black, unresolved). PAUSED by the owner: Three.js is the default and continues without it. Everything lives outside git on the original machine (see SETUP.md section 4); scripts are in `scripts/studio/ue/`.** Full plan: `MASTER_PLAN.md` section E. Rule: Three.js stays the default and independent path; Unreal is only an optional premium path through Pixel Streaming, and only if the pre-registered gates in section E.5 pass.
 
 ## Verified locally (this machine)
 - Engine: **UE 5.8.4** (changelist 58902052) at `C:\Program Files\Epic Games\UE_5.8`; `UnrealEditor-Cmd.exe` launches headless (`-unattended -nullrhi`) in ~30 s; embedded **Python 3.11.8**.
