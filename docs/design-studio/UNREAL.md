@@ -23,3 +23,10 @@ Status 2026-11-25: **E0 and part of E1 done. POC steps E2-E6 not started.** Full
 
 ## Pre-registered gates (do not loosen)
 Visual: owner prefers UE in side-by-side pairs on 4 cameras. Performance: >=45 fps at 1080p, dedicated VRAM <= 7.0 GB. Latency: command round trip p95 <= 150 ms, input-to-photon <= 100 ms locally. Integration: no validation logic in UE. Cost: measured per-session cost acceptable.
+
+## E1 results (2026-11-25) - GLB import VERIFIED with a UE variant
+- **The web GLBs cannot be imported directly.** Interchange (UE 5.8.4) fails with: "Not all required extensions are supported (Unsupported extensions: EXT_meshopt_compression, EXT_texture_webp)".
+- **UE variant step** (new pipeline stage "Cook for UE"): `node scripts/studio/ue/ue-variant.mjs <web.glb> <out.glb>` decodes meshopt and re-encodes textures as PNG (shell: 1.2 MB web -> 8.2 MB UE; output kept in `assets-src/studio/ue/`, not in git). Remaining required extensions (KHR_mesh_quantization, transmission, emissive_strength) are accepted.
+- **Import result** for `yarkon-twin-shell`: 186 StaticMesh, 42 MaterialInstanceConstant, 11 Texture2D, headless, ~10 s. Surface materials keep their identity with characters sanitised: `S|surface:floor:living` -> `S_surface_floor_living` (so the bridge maps surface ids by replacing `| :` with `_`; ids with `_` or `-` stay unambiguous in this catalog, add a test when the bridge is written).
+- Run: `MSYS_NO_PATHCONV=1` is required in Git Bash (it rewrites `/Game/...`); use the absolute `.uproject` path; script `scripts/studio/ue/import_glb.py` (env `HAV_GLB`, `HAV_DEST`).
+- Still open in E1: modular-sofa nodes and UV-in-metres behaviour on import, textured slot materials via a master material, and whether imported default materials are usable for Lumen as is.
