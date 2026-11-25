@@ -1,0 +1,84 @@
+{
+  "type": "model",
+  "id": "floor-lamp-01",
+  "version": 1,
+  "name": {
+    "he": "מנורת רצפה",
+    "en": "Floor lamp"
+  },
+  "category": "lamp-floor",
+  "styles": [
+    "organic-modern",
+    "japandi",
+    "quiet-luxury"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 0.4,
+    "d": 0.4,
+    "h": 1.7
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [
+    {
+      "id": "metal",
+      "target": "lamp_metal",
+      "label": {
+        "he": "מתכת",
+        "en": "Metal"
+      },
+      "allowed": [
+        "metal",
+        "wood"
+      ]
+    },
+    {
+      "id": "shade",
+      "target": "lamp_shade",
+      "label": {
+        "he": "אהיל",
+        "en": "Shade"
+      },
+      "allowed": [
+        "fabric"
+      ],
+      "default": {
+        "id": "fabric-textured-stone",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "floor-lamp-01/1/model.glb",
+    "preview": "floor-lamp-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/decor",
+    "author": "HAVENIQ"
+  }
+}

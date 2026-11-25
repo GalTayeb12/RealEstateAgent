@@ -48,6 +48,8 @@ const FINISH = [
 const SOFA = (modules) => [item("sofa", "sofa-modular-01", 4.0, 4.5, PI, { modules }), ...FINISH];
 const HERO = [
   item("sofa", "sofa-modular-01", 4.2, 4.5, PI, { modules: ["arm-l", "seat-120", "seat-120", "arm-r"] }),
+  item("rug", "rug-woven-01", 4.2, 1.75, 0),
+  item("lamp", "floor-lamp-01", 7.0, 4.2, 0),
   item("coffee", "coffee-drum-01", 4.2, 2.2, 0),
   item("side", "side-drum-01", 6.15, 3.9, 0),
   item("chair", "armchair-modern-01", 6.6, 2.5, PI / 2),

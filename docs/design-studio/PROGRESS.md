@@ -74,7 +74,8 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - Original assets (Blender, headless): `scripts/blender/studio_sofa.py` (modular sofa: arm-l/arm-r, seat-80/100/120, chaise; plump bevel+subdiv cushions, welt piping, tapered metal legs) and `studio_tables.py` (travertine drum coffee/side tables). Outputs go to `assets-src/studio/items-raw/`, then `optimize.mjs` -> `public/studio/catalog/<id>/1/model.glb`.
 - Harness: `scripts/studio/shots.mjs` scenes (hero, hero-close, sofa-24/34-chaise/40, finish, ...) with view tilt (`look`).
 
-## Next steps (updated 2026-11-25, after the Unreal round)
+## Next steps (updated 2026-11-25; owner chose to return to Three.js, Unreal paused at UNREAL.md E2 status)
+M4 now has rug + floor lamp; remaining M4 art: plants/decor, warmer rug material, stronger grounding, calibrated sun, final shell bake, then M5 (incl. dedicated mobile touch UI, tiers renamed Lite/Standard/High).
 Owner decisions since M4: reference images are NOT required (use ART_DIRECTION + an original HAVENIQ identity); rendering tiers Lite/Standard/High (Three.js) + optional Ultra (UE Pixel Streaming); universal devices incl. a dedicated mobile touch UI; asset sources extended (Fab, Megascans free, iMeshh, BlenderKit, Sketchfab, CGBookcase, ShareTextures, TextureCan) with per-asset license checks. All recorded in MASTER_PLAN section E.8.
 0. Unreal: E1 shell import works (needs ue-variant.mjs). Continue at E2 per UNREAL.md: import sofa/drum/armchair GLBs, master material, level with Lumen/VSM/sun SUN_DIR, screenshots from UnrealEditor (needs a GPU launch, not -nullrhi) (GLB import script, Lumen scene, local Pixel Streaming, bridge, measurements, decision). Keep it time-boxed; Three.js work must not wait on it.
 1. **Ask the owner for the reference images** (none reached the session) and put them in `docs/design-studio/references/`; judge the art against them.

@@ -81,3 +81,6 @@ Shots: `results/m3/{hero,hero-close,sofa-24-close,sofa-34-chaise,sofa-40,finish*
 Library status: 7 models (3 original, 4 Poly Haven test assets - `sofa-03` is ornate and must not ship), 10 materials (5 CC0 textured from ambientCG, 5 flat-colour test materials). Packed textures total about 3 MB.
 
 What is missing for M4 to pass (see PROGRESS.md next steps): final-quality shell bake, rug, floor/pendant lamps, plants and decor, curated armchair, stitching/seam detail, calibrated sun and baked contact decals, a daylight strategy beyond one baked sun, reference images from the owner.
+
+### M4 update (2026-11-25, after the Unreal detour)
+Added originals `rug-woven-01` and `floor-lamp-01` (`scripts/blender/studio_decor.py`); removed the Poly Haven test items `sofa-03`, `coffee-table-modern-01`, `side-table-01` from the catalog (art-direction fails). Hero scene (`results/m3/hero.png`): composition improved (rug grounds the seating group, lamp adds a vertical accent) but still sparse (no plants/decor), rug is a flat cool grey with an invisible weave, lighting still flat, grounding still weak. Composition gate: partial (was fail). Premium bar: still not met.

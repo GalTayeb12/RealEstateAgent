@@ -1,0 +1,73 @@
+{
+  "type": "model",
+  "id": "rug-woven-01",
+  "version": 1,
+  "name": {
+    "he": "שטיח ארוג",
+    "en": "Woven rug"
+  },
+  "category": "rug",
+  "styles": [
+    "organic-modern",
+    "japandi",
+    "quiet-luxury"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 2.4,
+    "d": 1.7,
+    "h": 0.02
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [
+    {
+      "id": "rug",
+      "target": "rug_fabric",
+      "label": {
+        "he": "אריג",
+        "en": "Weave"
+      },
+      "allowed": [
+        "fabric",
+        "rug"
+      ],
+      "default": {
+        "id": "fabric-textured-stone",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "floor-covering",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "rug-woven-01/1/model.glb",
+    "preview": "rug-woven-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/decor",
+    "author": "HAVENIQ"
+  }
+}
