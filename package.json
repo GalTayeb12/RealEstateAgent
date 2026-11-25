@@ -14,7 +14,11 @@
     "make-admin": "node scripts/make-admin.mjs",
     "build:building": "npx tsx scripts/building/pipeline.ts",
     "worker": "npx tsx scripts/twin/build-worker.ts --preview",
-    "worker:full": "npx tsx scripts/twin/build-worker.ts"
+    "worker:full": "npx tsx scripts/twin/build-worker.ts",
+    "studio:test": "vitest run lib/__tests__/studio",
+    "studio:publish": "tsx scripts/studio/ingest/publish.mts",
+    "studio:open": "node scripts/studio/open-studio.mjs",
+    "studio:e2e": "node scripts/studio/e2e-design.mjs && node scripts/studio/e2e-plan.mjs && node scripts/studio/e2e-generated.mjs && node scripts/studio/e2e-arch.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.113.0",

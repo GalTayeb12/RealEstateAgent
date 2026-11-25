@@ -69,3 +69,15 @@ Checks: `npx vitest run`, `npx tsc --noEmit -p .`, `npx eslint components/studio
 | `ASSET_PIPELINE.md`, `ASSET_LICENSES.md` | how assets are ingested and every asset's license |
 | `UNREAL.md` | the UE5 / Pixel Streaming evaluation and its status |
 | `results/` | review screenshots per milestone |
+
+## 7. First 15 minutes for a new developer (checklist)
+
+1. Clone, `git checkout Work-Meytar`, `npm install --legacy-peer-deps`, `npx prisma generate`.
+2. Copy `.env.example` to `.env.local`; set `JWT_SECRET` and `STUDIO_ENABLED=1` (leave `DATABASE_URL` empty to run the studio alone with the file store, or use a DEV database).
+3. `npx vitest run` should report 481 passing tests; `npx tsc --noEmit -p .` and `npx eslint components/studio lib/studio` should be clean.
+4. `npx next dev -p 3001`, then `JWT_SECRET=<same> node scripts/studio/open-studio.mjs` opens Edge signed in as a local admin on `/studio/yarkon-twin-shell`.
+5. Run `node scripts/studio/e2e-design.mjs` (needs the dev server and Edge). Read `PROGRESS.md` "Next steps" and pick the next item.
+
+## 8. Large or private files that cannot be in git
+
+`assets-src/` is about **8 GB** (Blender sources, bakes, raw downloads) and is gitignored on purpose: copy it by hand (external drive or cloud storage) only if you need to re-bake the shell or regenerate Blender items. Published outputs are all in git. The other, unrelated work in the original checkout (theme / Home / `lib/theme.ts` edits on `Work-Gal`) is NOT part of this branch.

@@ -124,6 +124,28 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - **Verification**: 23 new tests (partition rules incl. protected/interior walls, doorway, furniture, overlap, narrow passage; opening rules; proposals as furniture obstacles; wall snapping; command exactness and baseline immutability; kitchen layouts apply cleanly with zero placement errors and undo in one step); 481 tests total; eslint + tsc clean; `scripts/studio/e2e-arch.mjs` passes in en and he (tool snaps to the face at y 4.54, partition/opening placement, protected wall refused with its reason, Escape, panel edit, bad extension refused, undo, 3 kitchen layouts, one-step apply/undo, restore original); design (desktop + mobile-emulated), plan, generated, api and persist suites still pass. Shots in `results/m9/`.
 - **Known gaps**: partitions are straight and axis-friendly (no curved or polyline walls), they cannot be dragged after placement (edit by panel or delete and redraw), openings are doorways of a fixed 2.10 m height (no windows or arches), the shell is not cut or re-lit (concepts render with realtime lighting, as planned), U-shaped kitchen is not available in Yarkon (open-plan edge), proposals do not yet update room areas.
 
+## Unreal summary (2026-11-25/26)
+
+**Question**: can UE5 (Lumen, Virtual Shadow Maps, Pixel Streaming) become an optional premium rendering path next to Three.js? Rule: Three.js stays the default for everyone; UE is never a replacement and holds no business logic.
+
+**Why consider it**: the Three.js studio uses baked lighting for the shell, so furniture does not bounce light onto walls (measured error 37% median for an extreme material swap), contact shadows are weak, there is one daylight condition and no real reflections. Lumen would fix these at the root.
+
+**Done (E0-E2 partial)**
+- UE 5.8.4 is installed at `C:\Program Files\Epic Games\UE_5.8`; headless editor works (`UnrealEditor-Cmd -unattended -nullrhi`). Pixel Streaming 2, Interchange, Python scripting present. No Visual Studio needed so far.
+- The shell GLB imports into UE only through a **cooked variant** (`scripts/studio/ue/ue-variant.mjs`): Interchange rejects `EXT_meshopt_compression` and WebP textures. Material names are sanitised (`S|surface:floor:living` -> `S_surface_floor_living`).
+- Scripts (in git): `scripts/studio/ue/{import_glb.py, build_level.py, probe.py, DefaultEngine.ini.template, HaveniqUltra.uproject.template}`. Use `-ExecutePythonScript` (not `-run=pythonscript`) and, under Git Bash, `MSYS_NO_PATHCONV=1` with absolute paths.
+- Pixel Streaming infrastructure: official `EpicGames/PixelStreamingInfrastructure` branch `UE5.8` cloned to `C:\HaveniqUE\PSInfra` (not npm-installed yet; review before installing).
+
+**Blocked**: the first GPU capture of the level is **black** (twice). Hypotheses: premature capture (use Python or Movie Render Queue capture), sun lux vs manual exposure units, imported material / back-face culling after the Y flip, a stuck loading frame.
+
+**Not started (E3-E6)**: Pixel Streaming local stream inside `/studio/[slug]/ultra`; TS bridge (`lib/studio/bridge/*`: scene patches, tested coordinate mapping plan metres -> UE centimetres, UE -> web `proposeCommand` only); measurements; decision record.
+
+**Pre-registered pass gates (never loosened)**: owner judges UE clearly better on 4 fixed cameras (side-by-side); >= 45 fps at 1080p with Lumen HW RT + streaming on the RTX 4070 Laptop and VRAM <= 7.0 GB; command round trip p95 <= 150 ms locally; no validation logic in UE and a small bridge; measured per-session cost acceptable.
+
+**Cost reality (estimates, not verified)**: developing and testing locally is free. Engine license for non-game commercial use is believed free below ~$1M annual revenue and seat-based above (Epic pages returned 403 to automation: **re-check in a browser**). The real cost is serving users: one GPU process per concurrent user, roughly $1-1.6 per user-hour in the cloud, plus TURN and orchestration. Three.js costs about $0 per user. Hence Ultra is opt-in only (sales office, qualified leads), never mandatory paid infrastructure.
+
+**Status**: PAUSED by the owner; resume at `UNREAL.md` E2 only if the Ultra tier is still wanted. Quality without Unreal comes from assets, materials, light calibration, M12 path-traced stills and offline Blender (Cycles) renders. Everything UE-related lives outside git on the original machine except the scripts above (see `SETUP.md` section 4). Full detail: `UNREAL.md`, `MASTER_PLAN.md` section E.
+
 ## Next steps (updated 2026-11-26, after M9; branch `Work-Meytar` = `feature/design-studio`, head after commit `8d02139` + docs)
 Setup on another machine/user: `SETUP.md`. Overview and gaps: `README.md`. Rule of the house: one verified milestone per commit, tests + e2e + screenshots first.
 
