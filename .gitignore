@@ -119,3 +119,6 @@ assets-src/
 # Walkthroughs built from developer plans (scripts/twin/build-worker.ts): per-developer output, not source
 /public/walk/ut-*/
 /public/projects/ut-*/
+
+# second Next build dir
+/.next-2/

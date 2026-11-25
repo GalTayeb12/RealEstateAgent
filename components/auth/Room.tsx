@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import LanguageToggle from "@/components/LanguageToggle";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import "@/components/quiet/quiet.css";
 import "@/components/theme/cinematic.css";
 
@@ -28,6 +30,7 @@ export function AuthRoom({
   children: ReactNode;
   aside?: ReactNode;
 }) {
+  const { theme } = useTheme();
   return (
     <main className="qp-auth cin">
       {/* Left: image panel */}
@@ -50,10 +53,11 @@ export function AuthRoom({
           {/* Top bar: logo (mobile) + lang toggle + aside link */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
             <span className="qp-auth__mobile-logo">
-              <Logo variant="light" href="/" height={20} />
+              <Logo variant={theme === "dark" ? "light" : "default"} href="/" height={20} />
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginInlineStart: "auto" }}>
               {aside}
+              <ThemeToggle />
               <LanguageToggle />
             </div>
           </div>

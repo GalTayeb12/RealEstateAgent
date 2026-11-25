@@ -11,6 +11,8 @@ import { LocaleProvider } from "@/components/LocaleProvider";
 import { AudioUnlockProvider } from "@/components/AudioUnlockProvider";
 import { dirFor } from "@/lib/i18n/locale";
 import { getRequestLocale } from "@/lib/i18n/request";
+import { getRequestTheme } from "@/lib/themeRequest";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 /** Fallback serif used only for the "Haveniq" logotype when SVG is unavailable */
 const cormorant = Cormorant_Garamond({
@@ -72,13 +74,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getRequestLocale();
+  const theme = await getRequestTheme();
   return (
     <html
       lang={locale}
       dir={dirFor(locale)}
+      data-theme={theme}
       className={`${cormorant.variable} ${heebo.variable} ${serif.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
+        <ThemeProvider initialTheme={theme}>
         <LocaleProvider initialLocale={locale}>
           <AudioUnlockProvider>
             <SessionMigrator />
@@ -88,6 +93,7 @@ export default async function RootLayout({
             <CookieNotice />
           </AudioUnlockProvider>
         </LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

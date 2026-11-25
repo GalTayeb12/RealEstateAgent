@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useI18n } from "@/components/LocaleProvider";
 import { Logo } from "@/components/Logo";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { useAudioUnlock } from "@/components/AudioUnlockProvider";
 import { useCountUp, useParallax, useReveal, useScrolled } from "./hooks";
 import "./home.css";
@@ -47,6 +49,17 @@ export default function Home() {
 
   const [menu, setMenu] = useState(false);
   const solid = useScrolled();
+  const { theme } = useTheme();
+  /** Menu anchors glide down to their section instead of jumping (instant when reduced motion is on). */
+  const glide = (e: MouseEvent<HTMLAnchorElement>, hash: string) => {
+    const el = hash.startsWith("#") ? document.getElementById(hash.slice(1)) : null;
+    if (!el) return;
+    e.preventDefault();
+    setMenu(false);
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    history.replaceState(null, "", hash);
+  };
   const heroRef = useParallax<HTMLElement>();
   const [scoreRef, score] = useCountUp<HTMLSpanElement>(94, 1800);
   const [soldRef, sold] = useCountUp<HTMLDivElement>(62, 1600);
@@ -63,9 +76,10 @@ export default function Home() {
       <a className="hv-skip" href="#main">{t("דילוג לתוכן", "Skip to content")}</a>
 
       <nav className={`hv-nav${solid ? " solid" : ""}`} aria-label={m.home.how}>
-        <Logo variant="light" height={19} href="/" />
-        <ul>{nav.map(([n, h]) => <li key={h}><a href={h}>{n}</a></li>)}</ul>
+        <Logo variant={theme === "light" && solid ? "default" : "light"} height={19} href="/" />
+        <ul>{nav.map(([n, h]) => <li key={h}><a href={h} onClick={(e) => glide(e, h)}>{n}</a></li>)}</ul>
         <div className="r">
+          <ThemeToggle />
           <div className="hv-lang" role="group" aria-label={m.lang.label}>
             {(["he", "en"] as const).map((c) => (
               <button key={c} type="button" aria-pressed={locale === c} onClick={() => void setLocale(c)}>{c === "he" ? "עב" : "EN"}</button>
@@ -78,7 +92,7 @@ export default function Home() {
         </div>
       </nav>
       <div id="hv-menu" className={`hv-menu${menu ? " on" : ""}`} onClick={() => setMenu(false)} inert={!menu}>
-        {nav.map(([n, h]) => <a key={h} href={h}>{n}</a>)}
+        {nav.map(([n, h]) => <a key={h} href={h} onClick={(e) => glide(e, h)}>{n}</a>)}
         <Link href="/login">{m.home.signIn}</Link>
       </div>
 

@@ -1,0 +1,8 @@
+he-desktop /walk/yarkon-v2: Failed to load resource: the server responded with a status of 404 (Not Found)
+he-desktop /no-such-page: Failed to load resource: the server responded with a status of 404 (Not Found)
+he-mobile /walk/yarkon-v2: Failed to load resource: the server responded with a status of 404 (Not Found)
+he-mobile /no-such-page: Failed to load resource: the server responded with a status of 404 (Not Found)
+en-desktop /walk/yarkon-v2: Failed to load resource: the server responded with a status of 404 (Not Found)
+en-desktop /no-such-page: Failed to load resource: the server responded with a status of 404 (Not Found)
+en-mobile /walk/yarkon-v2: Failed to load resource: the server responded with a status of 404 (Not Found)
+en-mobile /no-such-page: Failed to load resource: the server responded with a status of 404 (Not Found)

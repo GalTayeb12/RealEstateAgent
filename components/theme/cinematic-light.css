@@ -1,0 +1,90 @@
+/* Concept C — LIGHT palette of the cinematic theme.
+   Active when <html data-theme="light"> (nav sun/moon toggle, cookie `hv-theme`).
+   Same design language as dark (serif headings, pill buttons, hairlines, glass panels) on an
+   ivory / charcoal / bronze palette. The dark theme's teal is not used here.
+   Photographic heroes keep the dark palette (see "dark islands" below) so their text stays
+   legible over the imagery — the same treatment as the homepage hero. */
+
+html[data-theme=light] .cin{
+  --qp-bg:#F3EFE7; --qp-surface:#FBF9F4; --qp-soft:#ECE6DA;
+  --qp-ink:#1E1D1A; --qp-muted:#5F5B54;
+  --qp-primary:#1E1D1A; --qp-primary-hover:#3A3731; --qp-primary-active:#000; --qp-on-primary:#F8F5EE;
+  --qp-accent:#A47A3C; --qp-accent-text:#83602A; --qp-gold:#A47A3C; --qp-gold-text:#83602A;
+  --qp-border:rgba(30,29,26,.13); --qp-input:#968F83; --qp-focus:#83602A;
+  --qp-disabled-bg:#E4DFD4; --qp-disabled-text:#7D776D;
+  --qp-success:#2E6A4E; --qp-success-bg:#E3EEE6;
+  --qp-warning:#77581C; --qp-warning-bg:#F5EBD5;
+  --qp-error:#A1372D; --qp-error-bg:#F7E5E1;
+  --qp-info:#2D5D75; --qp-info-bg:#E3EDF2;
+  --qp-shadow:0 8px 24px rgba(60,48,30,.08); --qp-shadow-lg:0 18px 44px rgba(60,48,30,.12);
+  --nav-bg:rgba(243,239,231,.9);
+  --c-ink:#1E1D1A; --c-muted:#5F5B54; --c-gold:#83602A;
+  --c-btn:#1E1D1A; --c-btn-hover:#3A3731; --c-on-btn:#F8F5EE;
+  --c-card:#FBF9F4; --c-soft:#ECE6DA; --c-line:rgba(30,29,26,.12);
+  --c-err:#A1372D; --c-err-bg:#F7E5E1; --c-warn-bg:#F5EBD5; --c-ok:#2E6A4E;
+  --lt-glass:rgba(251,249,244,.88); --lt-glass-line:rgba(30,29,26,.1);
+  --lt-glass-shadow:0 1px 2px rgba(60,48,30,.05),0 10px 30px rgba(60,48,30,.07);
+  color-scheme:light;
+}
+
+/* ── Dark islands: photographic heroes and 3D/photo viewer chrome keep the dark palette ── */
+html[data-theme=light] :is(.rh,.of-hero,.av-hero,.cin-dark){
+  --qp-bg:#070C0B; --qp-surface:#0D1514; --qp-soft:#121C1A;
+  --qp-ink:#EFE9DC; --qp-muted:#AEBBB7;
+  --qp-primary:#C9A46A; --qp-primary-hover:#E2C795; --qp-primary-active:#B38B4D; --qp-on-primary:#120D05;
+  --qp-accent:#C9A46A; --qp-accent-text:#E2C795; --qp-gold:#C9A46A; --qp-gold-text:#E2C795;
+  --qp-border:rgba(239,233,220,.16); --qp-input:#6C7D78; --qp-focus:#E2C795;
+  --qp-disabled-bg:#1A2523; --qp-disabled-text:#6C7D78;
+  --qp-success:#8FE0B8; --qp-success-bg:rgba(95,211,154,.12);
+  --qp-warning:#E2C795; --qp-warning-bg:rgba(201,164,106,.14);
+  --qp-error:#FFB4A8; --qp-error-bg:rgba(255,120,100,.12);
+  --qp-info:#9CCBE0; --qp-info-bg:rgba(95,179,190,.12);
+  --c-ink:#EFE9DC; --c-muted:#AEBBB7; --c-gold:#E2C795;
+  --c-btn:#C9A46A; --c-btn-hover:#E2C795; --c-on-btn:#120D05;
+  --c-card:#0D1514; --c-soft:#121C1A; --c-line:rgba(239,233,220,.16);
+  --c-err:#FFB4A8; --c-err-bg:rgba(255,120,100,.12); --c-warn-bg:rgba(201,164,106,.14); --c-ok:#8FE0B8;
+  color:var(--qp-ink); color-scheme:dark;
+}
+
+/* ── Shared cinematic components (cinematic.css) ── */
+html[data-theme=light] .cin .qp-btn--outline{border-color:rgba(30,29,26,.3)}
+html[data-theme=light] .cin .qp-btn--outline:hover:not(:disabled){background:var(--qp-ink);color:var(--qp-bg)}
+html[data-theme=light] .cin .qp-field input,
+html[data-theme=light] .cin .qp-field select,
+html[data-theme=light] .cin .qp-field textarea{border-color:rgba(30,29,26,.22);background:#FFFDF9}
+html[data-theme=light] .cin .qp-notice--danger{border-color:rgba(161,55,45,.3)}
+/* auth photo column: lighter top veil, fades into the ivory form column */
+html[data-theme=light] .cin.qp-auth .qp-auth__side::after{background:linear-gradient(90deg,transparent 60%,var(--qp-bg)),linear-gradient(rgba(4,8,8,.4),transparent 24%)}
+html[data-theme=light][dir=rtl] .cin.qp-auth .qp-auth__side::after,
+html[data-theme=light] [dir=rtl] .cin.qp-auth .qp-auth__side::after{background:linear-gradient(270deg,transparent 60%,var(--qp-bg)),linear-gradient(rgba(4,8,8,.4),transparent 24%)}
+html[data-theme=light] .cin.qp-auth .qp-auth__side img{filter:none}
+
+/* inline-styled cards (tokenised with --c-card): ivory glass instead of dark glass */
+html[data-theme=light] .cin [style*="--c-card"][style*="border-radius: 20px"],
+html[data-theme=light] .cin [style*="--c-card"][style*="border-radius: 18px"],
+html[data-theme=light] .cin [style*="--c-card"][style*="border-radius: 16px"],
+html[data-theme=light] .cin [style*="--c-card"][style*="border-radius: 14px"],
+html[data-theme=light] .cin [style*="--c-card"][style*="border-radius: 1.25rem"],
+html[data-theme=light] .cin [style*="--c-card"][style*="border-radius: 0.875rem"],
+html[data-theme=light] .cin [style*="--c-card"][style*="border-radius: 1rem"]{
+  background:var(--lt-glass)!important;border-color:var(--lt-glass-line)!important;box-shadow:var(--lt-glass-shadow)!important}
+@supports not (backdrop-filter:blur(1px)){
+  html[data-theme=light] .cin [style*="--c-card"][style*="border-radius"]{background:#FBF9F4!important}}
+
+/* ── /results (results-sections.css) ── */
+html[data-theme=light] .cin :is(.rs-panel,.rs-card){background:var(--lt-glass);border-color:var(--lt-glass-line);box-shadow:var(--lt-glass-shadow)}
+html[data-theme=light] .cin .rs-card:hover{border-color:rgba(164,122,60,.45)}
+html[data-theme=light] .cin :is(.rs-rec,.rs-chip){background:rgba(30,29,26,.03)}
+html[data-theme=light] .cin .rs-tag.ok{background:rgba(45,110,119,.1);color:#2B6670}
+html[data-theme=light] .cin .rs-tag.warn{background:rgba(164,122,60,.12)}
+html[data-theme=light] .cin :is(.rs-ghost,.rh-ghost):hover{color:#FBF9F4!important}
+
+/* ── /buyer/offers (offers-v3.css) ── */
+html[data-theme=light] .cin :is(.of-card,.of-empty){background:var(--lt-glass);box-shadow:var(--lt-glass-shadow)}
+html[data-theme=light] .cin .of-card:not([data-new]):not([data-deal]),
+html[data-theme=light] .cin .of-empty{border-color:var(--lt-glass-line)}
+html[data-theme=light] .cin .of-thumb::after{background:none}
+
+/* ── /aom/[id] (aom-hero.css): the floating back pill sits over light content ── */
+html[data-theme=light] .cin .av-backbtn{border-color:rgba(30,29,26,.2);background:rgba(251,249,244,.82);color:var(--qp-ink)}
+html[data-theme=light] .cin .av-backbtn:hover{background:var(--qp-ink);color:var(--qp-bg)}

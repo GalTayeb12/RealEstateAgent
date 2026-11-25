@@ -21,6 +21,8 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/components/LocaleProvider";
 import LanguageToggle from "@/components/LanguageToggle";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/components/theme/ThemeProvider";
 import { isCinematicPath } from "@/lib/theme";
 import { Logo } from "@/components/Logo";
 import { signOutRemote } from "@/lib/clientSession";
@@ -107,6 +109,8 @@ function accountLinks(_role: string, _m: ReturnType<typeof useI18n>["m"]): { hre
 
 export default function TopNav() {
   const pathname  = usePathname();
+  const { theme } = useTheme();
+  const cin = isCinematicPath(pathname);
   const router    = useRouter();
   const { m } = useI18n();
   const [user, setUser]               = useState<NavUser | null>(null);
@@ -250,7 +254,7 @@ export default function TopNav() {
   }
 
   return (
-    <nav className={isCinematicPath(pathname) ? "cin" : undefined} style={{
+    <nav className={cin ? "cin" : undefined} style={{
       position: "sticky",
       top: 0,
       zIndex: 100,
@@ -286,7 +290,7 @@ export default function TopNav() {
         alignItems: "center",
       }}>
         {/* Col 1: Logo */}
-        <Logo variant={isCinematicPath(pathname) ? "light" : "default"} href={showAppNav ? dashHref : "/"} height={22} />
+        <Logo variant={cin && theme === "dark" ? "light" : "default"} href={showAppNav ? dashHref : "/"} height={22} />
 
         {/* Col 2: Nav links (centered) — desktop only */}
         <div
@@ -344,6 +348,7 @@ export default function TopNav() {
 
           {/* Desktop: lang toggle + bell + avatar */}
           <div className="hn-nav-right" style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <ThemeToggle />
             <LanguageToggle />
             {user && user.role === "buyer" && showAppNav && (
               <div data-notif style={{ position: "relative" }}>
@@ -422,6 +427,7 @@ export default function TopNav() {
           {/* Mobile app nav: lang + avatar (shown via CSS) */}
           {showAppNav && (
             <div className="hn-nav-lang-mobile" style={{ display: "none", alignItems: "center", gap: "0.5rem" }}>
+              <ThemeToggle />
               <LanguageToggle />
               {user && (
                 <AccountButton

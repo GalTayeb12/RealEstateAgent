@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import "./cinematic.css";
+import "./cinematic-light.css";
 import { isCinematicPath } from "@/lib/theme";
 
 /** Wraps the routed content and switches it to the Concept C theme on opted-in routes. */

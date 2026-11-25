@@ -273,7 +273,7 @@ export function MortgageCalculator({
             </div>
           )}
 
-          <p style={{ margin: "1rem 0 0", fontSize: "0.6875rem", color: "#7A8B82", lineHeight: 1.5 }}>{mm.disclaimer}</p>
+          <p style={{ margin: "1rem 0 0", fontSize: "0.6875rem", color: "var(--c-muted, #7A8B82)", lineHeight: 1.5 }}>{mm.disclaimer}</p>
         </div>
       </div>
     );
@@ -589,7 +589,7 @@ export function MortgageCalculator({
         )}
 
         {/* Disclaimer */}
-        <p style={{ margin: "1.25rem 0 0", fontSize: "0.6875rem", color: "#7A8B82", lineHeight: 1.5 }}>
+        <p style={{ margin: "1.25rem 0 0", fontSize: "0.6875rem", color: "var(--c-muted, #7A8B82)", lineHeight: 1.5 }}>
           {mm.disclaimer}
         </p>
       </div>
