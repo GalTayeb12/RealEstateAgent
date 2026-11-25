@@ -81,3 +81,12 @@ Checks: `npx vitest run`, `npx tsc --noEmit -p .`, `npx eslint components/studio
 ## 8. Large or private files that cannot be in git
 
 `assets-src/` is about **8 GB** (Blender sources, bakes, raw downloads) and is gitignored on purpose: copy it by hand (external drive or cloud storage) only if you need to re-bake the shell or regenerate Blender items. Published outputs are all in git. The other, unrelated work in the original checkout (theme / Home / `lib/theme.ts` edits on `Work-Gal`) is NOT part of this branch.
+
+## 9. Second project in this branch: light mode / redesign (from another chat)
+
+`Work-Meytar` contains TWO independent pieces of work, committed separately:
+1. **Design Studio** (everything under `lib/studio`, `components/studio`, `app/studio`, `app/api/studio`, `docs/design-studio`, `scripts/studio`, catalog + public assets).
+2. **Light mode / redesign (Work-Gal line)**, committed on top: `components/theme/{ThemeProvider,ThemeToggle,ThemeScope,cinematic-light.css}`, `lib/theme.ts`, `lib/themeRequest.ts`, `app/layout.tsx`, `components/TopNav.tsx`, `components/home/*`, `components/MortgageCalculator.tsx`, `components/auth/Room.tsx`, the `/lab` pages (`app/lab`), redesign docs (`docs/HAVENIQ-REDESIGN-PROMPT.md`, `docs/HAVENIQ-REDESIGN-STAGE0.md`, `docs/redesign/` with screenshots), demo assets in `public/buildings/`, and the `.agents/` skills folder (Higgsfield skills used by that chat).
+3. **Unfinished**: `components/dev/plan/PlanCanvas.tsx` and `PlanWallEditor.tsx` (plan editor with a draggable canvas) import functions (`addWall`, `addOpening`, `moveWall`, `moveWallEnd`, `moveOpening`) from `components/dev/plan/edits.ts` that do not exist yet in any branch. They are excluded from `tsc` in `tsconfig.json` (`exclude`) so the project builds; remove the exclusion once `edits.ts` provides those functions. Nothing imports them yet.
+
+The two pieces do not touch the same files (checked before merging), 481 studio tests pass and `tsc` is clean with both present. `.next-2/` (a 900 MB second Next build directory from that chat) is gitignored, not committed.

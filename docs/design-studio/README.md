@@ -6,6 +6,8 @@ To continue from another computer or user: **`SETUP.md`** (clone, env, what is n
 
 ---
 
+> This branch also carries the separate light-mode / redesign work (see `SETUP.md` section 9).
+
 ## 1. What the system is
 
 HAVENIQ already shipped a first-person apartment walkthrough (`/walk/[slug]`, Three.js, Blender-baked GLBs, a semantic "plan twin"). **Design Studio** (`/studio/[slug]`) grows that into one shared scene with three modes on one design document:
