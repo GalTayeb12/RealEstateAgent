@@ -14,6 +14,9 @@
  *   pack    gltf-transform + WebP + walk.json (build-walk-assets.mjs --twin)
  *                                           → public/walk/<slug>/
  * --preview bakes at 2048² / 256 spp (minutes) instead of 4096² / 2048 spp.
+ * --shell-only (Design Studio) builds the EMPTY apartment: no furniture, every paintable surface
+ * gets its own "S|<surfaceId>" material (studio_shell.py), one lightmap atlas (group A) that
+ * holds irradiance only. The slug must end in "-shell" so existing walk assets are never touched.
  *
  * Env: BLENDER (blender.exe), ASSETS_SRC (default C:/RealEstateAgent/assets-src, shared by
  * worktrees), BASE_BLEND (default <ASSETS_SRC>/yarkon-v2/blender/apartment.blend: the Poly
@@ -33,6 +36,11 @@ if (!source || !slug) {
   process.exit(2);
 }
 const PREVIEW = argv.includes("--preview");
+const SHELL = argv.includes("--shell-only");
+if (SHELL && !slug.endsWith("-shell")) {
+  console.error("--shell-only writes a new asset set: the slug must end in '-shell' (e.g. yarkon-twin-shell)");
+  process.exit(2);
+}
 const BLENDER = process.env.BLENDER ?? "C:/Program Files/Blender Foundation/Blender 5.3/blender.exe";
 const SRC = path.join(process.env.ASSETS_SRC ?? (fs.existsSync(path.join(ROOT, "assets-src")) ? path.join(ROOT, "assets-src") : "C:/RealEstateAgent/assets-src"), slug);
 const BASE = process.env.BASE_BLEND ?? path.join(path.dirname(SRC), "yarkon-v2/blender/apartment.blend");
@@ -40,7 +48,7 @@ const BLEND = path.join(SRC, "blender/twin_walk.blend");
 const OUT = path.join(ROOT, "public/walk", slug);
 const STEPS = ["export", "build", "stills", "bake", "pack"];
 const from = opt("--from"), only = opt("--only");
-const run = STEPS.filter((s, i) => (only ? s === only : i >= (from ? STEPS.indexOf(from) : 0)));
+const run = STEPS.filter((s, i) => (only ? s === only : i >= (from ? STEPS.indexOf(from) : 0))).filter((s) => !(SHELL && s === "stills"));
 
 function sh(cmd, args, label) {
   const t = Date.now();
@@ -56,8 +64,10 @@ const times = {};
 for (const step of run) {
   if (step === "export")
     times.export = sh(npx, ["tsx", "scripts/twin/export-twin.ts", source, SRC], "export twin");
-  if (step === "build")
-    times.build = sh(BLENDER, ["-b", BASE, "--python", "scripts/blender/twin_build.py", "--", SRC, BLEND], "build shell + furniture");
+  if (step === "build") {
+    times.build = sh(BLENDER, ["-b", BASE, "--python", "scripts/blender/twin_build.py", "--", SRC, BLEND, ...(SHELL ? ["--no-furnish"] : [])], SHELL ? "build empty shell" : "build shell + furniture");
+    if (SHELL) times.surfaces = sh(BLENDER, ["-b", BLEND, "--python", "scripts/blender/studio_shell.py", "--", SRC, BLEND], "split surface materials");
+  }
   if (step === "stills") {
     // room pictures + plan view + cutaway for the building page (before the bake: the shell blend is enough)
     const dir = path.join(SRC, "stills");
@@ -65,12 +75,12 @@ for (const step of run) {
     times.stillsWebp = sh(npx, ["tsx", "scripts/twin/stills-to-web.ts", dir, path.join(OUT, "stills")], "stills to WebP");
   }
   if (step === "bake") {
-    const cfg = { out: path.join(SRC, "walk"), twin: SRC, ...(PREVIEW ? { lm_size: 2048, samples: 256, probe_samples: 64 } : { lm_size: 4096, samples: 2048, probe_samples: 256 }) };
+    const cfg = { out: path.join(SRC, "walk"), twin: SRC, ...(SHELL ? { steps: ["realize", "box_uvs", "lm_A", "bake_A", "probes", "sky", "collision", "export"] } : {}), ...(PREVIEW ? { lm_size: 2048, samples: 256, probe_samples: 64 } : { lm_size: 4096, samples: 2048, probe_samples: 256 }) };
     times.bake = sh(BLENDER, ["-b", BLEND, "--python", "scripts/blender/apartment_bake.py", "--python-expr",
       `import bpy; bpy.ops.wm.save_as_mainfile(filepath=${JSON.stringify(BLEND.replace(/\.blend$/, "_baked.blend"))})`,
       "--", JSON.stringify(cfg)], `bake (${PREVIEW ? "preview" : "final"})`);
   }
   if (step === "pack")
-    times.pack = sh(npx, ["tsx", "scripts/blender/build-walk-assets.mjs", path.join(SRC, "walk"), OUT, "--twin", SRC], "pack for the web");
+    times.pack = sh(npx, ["tsx", "scripts/blender/build-walk-assets.mjs", path.join(SRC, "walk"), OUT, "--twin", SRC, ...(SHELL ? ["--shell"] : [])], "pack for the web");
 }
 console.log("\ntimes (s):", JSON.stringify(times));

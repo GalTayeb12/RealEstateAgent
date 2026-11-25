@@ -27,6 +27,8 @@ export type BaselineSurface = {
   facesRooms: string[];
   /** Area in m^2 (walls: length * height, openings not subtracted). */
   area: number;
+  /** False for glass (glazing, railings): there is no plaster or paint to change. */
+  paintable: boolean;
 };
 
 export type BaselineWall = {
@@ -133,8 +135,8 @@ export function baselineFromTwin(twin: PlanTwin): Baseline {
     const ceiling = baselineIds.ceiling(r.id);
     const area = polygonArea(r.polygon);
     rooms[id] = { id, twinId: r.id, type: r.type, name: r.name, polygon: r.polygon, area, floor, ceiling };
-    surfaces[floor] = { id: floor, type: "floor", owner: id, roomId: id, facesRooms: [id], area };
-    surfaces[ceiling] = { id: ceiling, type: "ceiling", owner: id, roomId: id, facesRooms: [id], area };
+    surfaces[floor] = { id: floor, type: "floor", owner: id, roomId: id, facesRooms: [id], area, paintable: true };
+    surfaces[ceiling] = { id: ceiling, type: "ceiling", owner: id, roomId: id, facesRooms: [id], area, paintable: true };
   }
 
   for (const w of twin.walls) {
@@ -155,7 +157,7 @@ export function baselineFromTwin(twin: PlanTwin): Baseline {
     for (const [sid, side, sign] of [[sa, "a", 1], [sb, "b", -1]] as const) {
       const p: Pt = [mx + nx * probe * sign, my + ny * probe * sign];
       const faces = twin.rooms.filter((r) => pointInPoly(p, r.polygon)).map((r) => baselineIds.room(r.id));
-      surfaces[sid] = { id: sid, type: "wall", owner: id, side, facesRooms: faces, area: len * twin.wallHeight };
+      surfaces[sid] = { id: sid, type: "wall", owner: id, side, facesRooms: faces, area: len * twin.wallHeight, paintable: w.kind === "exterior" || w.kind === "interior" };
     }
   }
 

@@ -8,7 +8,8 @@ Read this file first in every session; do not re-audit the repo.
 |---|---|---|
 | M0 | done | worktree, docs, flag (lib/studio/flags.ts), bench (scripts/studio/bench.mjs) |
 | M1 | done | lib/studio core: 85 studio tests (362 total green), tsc + eslint clean |
-| M2-M13 | pending | see MASTER_PLAN section 10 |
+| M2 | done (gate caveat) | empty shell + surface materials + proof; irradiance-only confirmed, swap-without-rebake accuracy limited (see QUALITY_GATES) |
+| M3-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
 - Viewer: `components/walk/ApartmentWalk.tsx` (r3f, lightmaps lm-A/lm-B on uv1, `bakedOnly()` patch, custom Walker, collision vs walk.json boxes). Route `app/walk/[slug]`.
@@ -43,6 +44,15 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - Test fixtures: `lib/__tests__/studio-fixtures.ts` (modular sofa, table, rug, chair variants, parametric wardrobe, shelf, materials).
 - Known gaps (deliberate, later milestones): cabinetRun/countertop nodes (M8), partition/opening proposal validation against structure (M9), seed-design generation from twin_furnish (M2).
 
+## M2 summary
+- `node scripts/twin/build-walk.mjs yarkon yarkon-twin-shell --shell-only [--preview]`: empty shell (twin_build.py --no-furnish) -> `scripts/blender/studio_shell.py` (one `S|<surfaceId>` material per paintable surface, walls split by face side) -> bake group A only -> pack (dedup keeps unique material names). The slug must end in `-shell`; existing walk assets are never touched. Preview total about 1.5 min.
+- `scripts/studio/check-shell.mts` validates GLB material ids against the baseline; `scripts/studio/irradiance-proof.mjs` is the irradiance experiment.
+- `apartment_bake.py` got an optional `seed` (default unchanged). Baseline surfaces have `paintable`.
+- Committed: `public/walk/yarkon-twin-shell/` (PREVIEW bake, 1.6 MB) and `public/projects/yarkon-twin-shell/experience.json` (viewer-only config). The final 4096 px bake is still to do (same command without --preview, about 20 min GPU).
+- Source blends/EXR are in `C:\RealEstateAgent\assets-src\yarkon-twin-shell\` (shared with the main checkout, not in git).
+- Not done from the M2 plan: `seed-design.json` from twin_furnish. M4 supplies the real living-room content, so the old rule-based furniture is not needed for the slice.
+- Tooling note: `npx tsx` fetches tsx from npm (it is not a project dependency; the repo's existing scripts do the same).
+
 ## Next steps
-1. M2: empty-shell bake. Add `--shell-only` to `scripts/twin/build-walk.mjs` (skip furnish; mesh names `S|<surfaceId>`; output `public/walk/yarkon-twin-shell/`). Check headless Blender 5.3 first (`scripts/twin/build-walk.mjs` header for the path). Irradiance proof: bake twice with different floor/wall albedo and compare lightmaps (script + numbers into QUALITY_GATES.md).
-2. Then M3 (/studio route + dynamic item layer).
+1. M3: `/studio/[slug]` route behind `STUDIO_ENABLED`; extract the shared Walker + lightmap material code from ApartmentWalk without changing /walk; dynamic item layer (probe IBL, matched sun shadow, contact AO), quality tiers; bench the shell with `node scripts/studio/bench.mjs http://localhost:3001 /walk/yarkon-twin-shell`.
+2. Before M4 final visuals: run the final-quality shell bake.

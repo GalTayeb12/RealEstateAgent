@@ -1,0 +1,25 @@
+{
+  "slug": "yarkon-twin-shell",
+  "variant": "moderate",
+  "size": 2048,
+  "samples": 256,
+  "albedo": {
+    "surfaces": 26,
+    "meanBefore": 0.8385002052605152,
+    "meanAfter": 0.46571615384615384
+  },
+  "noise": {
+    "texels": 1630463,
+    "median": 0.0152,
+    "p95": 0.1044,
+    "meanRatio": 0.9992
+  },
+  "signal": {
+    "texels": 1630463,
+    "median": 0.151,
+    "p95": 0.3402,
+    "meanRatio": 0.9965
+  },
+  "rule": "median<=0.15 && p95<=0.5",
+  "pass": false
+}

@@ -202,6 +202,13 @@ describe("command engine", () => {
     expect(SURFACE_CATEGORIES.floor).not.toContain("paint");
   });
 
+  it("glazing and railing surfaces are not paintable", () => {
+    expect(baseline.surfaces["surface:facade:a"].paintable).toBe(false);
+    expect(baseline.surfaces["surface:rail:b"].paintable).toBe(false);
+    expect(baseline.surfaces["surface:back:a"].paintable).toBe(true);
+    expect(() => apply(fresh(), { type: "setSurfaceMaterial", surfaceId: "surface:facade:a", material: ref(PAINT) }, ctx)).toThrowError(expect.objectContaining({ code: "unsupported" }));
+  });
+
   it("surface changes never touch the baseline", () => {
     const before = canonicalJson(baseline);
     apply(fresh(), { type: "setSurfaceMaterial", surfaceId: baselineIds.floor("living"), material: ref(PARQUET) }, ctx);

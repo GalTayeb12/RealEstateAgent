@@ -305,6 +305,7 @@ def bake(g):
     sc.cycles.use_denoising = False
     sc.cycles.max_bounces = 8
     sc.cycles.diffuse_bounces = 6
+    sc.cycles.seed = int(cfg.get("seed", 0))  # Design Studio noise-floor measurement; default keeps the old bake
     sc.cycles.caustics_reflective = False
     sc.cycles.caustics_refractive = False
     rb = sc.render.bake

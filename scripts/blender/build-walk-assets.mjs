@@ -31,7 +31,8 @@ import { MeshoptDecoder, MeshoptEncoder } from "meshoptimizer";
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1")), "../..");
 const flagAt = process.argv.indexOf("--twin");
 const TWIN_DIR = flagAt > 0 ? path.resolve(process.argv[flagAt + 1]) : null;
-const args = process.argv.slice(2).filter((_, i, a) => a[i] !== "--twin" && a[i - 1] !== "--twin");
+const SHELL = process.argv.includes("--shell"); // Design Studio shell: keep one material per surface (no material dedup)
+const args = process.argv.slice(2).filter((_, i, a) => a[i] !== "--twin" && a[i - 1] !== "--twin" && a[i] !== "--shell");
 const SRC_DIR = path.resolve(args[0] ?? [
   path.join(ROOT, "assets-src/yarkon-v2/walk"),
   "C:/RealEstateAgent/assets-src/yarkon-v2/walk", // worktrees share the main checkout's assets-src
@@ -59,7 +60,7 @@ const doc = await io.read(path.join(SRC_DIR, "apartment_raw.glb"));
 // colour at 2048; everything else (furniture, normal/roughness maps) at 1024.
 const HERO = /(laminate_floor|marble_01|oak_veneer|painted_plaster|terrazzo|rectangular_parquet)_(Diffuse|diff)/i;
 await doc.transform(
-  dedup(),
+  dedup(SHELL ? { keepUniqueNames: true } : {}),
   prune({ keepAttributes: true }),  // TEXCOORD_1 (lightmap UVs) looks unused to glTF -- keep it
   weld(),
   textureCompress({ encoder: sharp, targetFormat: "webp", quality: 84, resize: [2048, 2048], pattern: HERO }),

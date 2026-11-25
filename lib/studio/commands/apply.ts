@@ -172,6 +172,7 @@ export function apply(doc: DesignDocument, cmd: Command, ctx: ApplyContext): App
     case "setSurfaceMaterial": {
       const surface = ctx.baseline.surfaces[cmd.surfaceId];
       if (!surface) throw new CommandError("unknown-surface", `Unknown surface "${cmd.surfaceId}".`);
+      if (!surface.paintable) throw new CommandError("unsupported", "Glass and railings have no paintable surface.");
       if (cmd.material && ctx.catalog) {
         const mat = ctx.catalog.material(cmd.material);
         if (!mat) throw new CommandError("unknown-asset", `Unknown material "${cmd.material.id}@${cmd.material.version}".`);
