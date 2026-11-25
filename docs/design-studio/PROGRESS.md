@@ -12,7 +12,8 @@ Read this file first in every session; do not re-audit the repo.
 | M3 | done (first pass) | /studio/[slug] behind flag; live item layer, sun + floor overlay, tiers, pipeline v0; evaluation in QUALITY_GATES |
 | M4 | DONE (clean/composed; premium polish items listed in QUALITY_GATES) | pipeline, textured materials, modular sofa (4.0 m verified), travertine drums done; premium art bar NOT met (see QUALITY_GATES M4) |
 | E (Unreal) | E0, E1 done; E2 level builds, first render black | resume at UNREAL.md section E2 status (4 hypotheses) |
-| M5-M13 | pending | see MASTER_PLAN section 10 |
+| M5 | DONE (touch gestures beyond tap/drag and real-device test pending) | Design mode, panels, catalog, mobile layout, he/en; see M5 summary |
+| M6-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
 - Viewer: `components/walk/ApartmentWalk.tsx` (r3f, lightmaps lm-A/lm-B on uv1, `bakedOnly()` patch, custom Walker, collision vs walk.json boxes). Route `app/walk/[slug]`.
@@ -66,6 +67,18 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - Tooling: `scripts/studio/shots.mjs` (scene screenshots through the real command engine; needs `STUDIO_ENABLED=1` dev server and the same `JWT_SECRET`), `bench.mjs --studio`.
 - Dev server for the studio: `STUDIO_ENABLED=1 JWT_SECRET=studio-bench-dummy DATABASE_URL=postgresql://dummy:dummy@localhost:5432/studio_dev npx next dev -p 3001` (stop with PowerShell `Stop-Process` on the listener; restart after edits).
 - Open from M3: sun intensity is uncalibrated; only one daylight condition exists; no UI beyond a mode switch + undo/redo/restore (M5); draw calls above target (M13); i18n strings are inline in StudioApp (centralise in M5).
+
+## M5 summary (2026-11-26) - Design mode, full scope except where noted
+- **Interaction** (`components/studio/scene/DesignInteraction.tsx`): click a piece or a wall/floor/ceiling to select; drag a piece on the floor plane (5 cm grid, live validation, an illegal drop is refused with a translated reason); outline green / amber (advisories) / red (error). Left button selects and drags, right button looks (no pointer lock in Design mode); the camera freezes while a piece is grabbed (`components/studio/gesture.ts`). The click that ends a drag no longer changes the selection.
+- **Edits always go through** `useStudio.commit` (validates the resulting piece first): add from catalog (found a free spot 2.6 m ahead, front facing you), replace, rotate +-15 degrees (button or `R` / `Shift+R`), duplicate (`Ctrl+D`), remove (`Delete`), undo/redo (`Ctrl+Z` / `Ctrl+Y`), restore original (with confirm), `Esc` deselects.
+- **Panels** (`components/studio/panels/*`): property panel (dimensions in cm, actions, size variants, modular editor with legal insert/remove and common-size presets, parametric sliders, material swatches per slot with real texture swatches, placement hints); surface panel (material swatches filtered by surface type, reset); catalog drawer (search, style chips, category chips, thumbnails, replace mode locked to the category).
+- **Pure logic with tests** (`lib/studio/design/{snap,preview,spot,options}.ts`, `lib/__tests__/studio-design.test.ts`): snapping, free-spot search, preview validation, filters, modular presets, legal insert/remove.
+- **i18n**: `lib/studio/i18n.ts` (he/en, test guarantees identical keys; styles, categories, validation codes, module names). RTL verified in Hebrew.
+- **Mobile**: the same flow on a phone viewport; panels and the drawer become bottom sheets, the 3D view shrinks above the open sheet so the piece stays visible, 44 px touch targets. Real touch gestures (two-finger rotate, pinch) are NOT done: rotation is by buttons; real-device testing is still pending.
+- **Quality selector** Lite / Standard / High / Auto; **thumbnails** rendered through the studio itself (`scripts/studio/thumbs.mjs`, neutral backdrop mode via `store.thumb`).
+- **Checks**: `scripts/studio/e2e-design.mjs` drives the real UI (add, rotate, drag, undo, refused move, surface material, modular 4.0 m, delete, restore) in English, Hebrew and mobile (all pass). Screenshots in `docs/design-studio/results/m5/`.
+- Deviations from the plan: no `three-mesh-bvh` (r3f raycasting is enough at this scale; add it if scenes grow); `window.confirm` for restore; engine-level command errors other than placement refusals are still English.
+- Known gaps: no wall snapping for pieces that stand against a wall; plan mode still disabled (M7); no save (M6).
 
 ## M4 summary (partial)
 - Materials pipeline: `scripts/studio/ingest/material.mjs` (downloaded PBR set -> albedo/normal/ORM WebP + manifest; aspect kept; optional colour grade `--saturation --brightness --hue`). Five ambientCG CC0 materials packed: parquet-oak-light (graded), plaster-limewash-soft (graded), travertine-cream, fabric-textured-stone, microcement-light. Raw downloads: `assets-src/studio/materials-raw/<id>/` (zip + extracted images only, not in git).
