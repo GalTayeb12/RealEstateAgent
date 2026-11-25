@@ -26,6 +26,7 @@
     "@react-three/fiber": "^9.8.2",
     "@react-three/postprocessing": "^3.2.2",
     "@types/nodemailer": "^8.0.1",
+    "aws4fetch": "^1.0.20",
     "bcryptjs": "^3.0.3",
     "googleapis": "^176.0.0",
     "jsonwebtoken": "^9.0.3",

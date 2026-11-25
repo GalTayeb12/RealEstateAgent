@@ -10,7 +10,7 @@ const flag = (k, d) => (args.find((a) => a.startsWith(`--${k}=`)) ?? `--${k}=${d
 const base = flag("base", "http://localhost:3001");
 const mobile = args.includes("--mobile");
 const lang = flag("lang", "en");
-const token = jwt.sign({ userId: "e2e", email: "e2e@example.test", role: "admin" }, process.env.JWT_SECRET ?? "studio-bench-dummy", { expiresIn: "1h" });
+const token = jwt.sign({ userId: `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, email: "e2e@example.test", role: "admin" }, process.env.JWT_SECRET ?? "studio-bench-dummy", { expiresIn: "1h" });
 
 const results = [];
 const check = (name, ok, extra = "") => { results.push(ok); console.log(`${ok ? "PASS" : "FAIL"}  ${name}${extra ? "  " + extra : ""}`); };
@@ -60,6 +60,7 @@ st = await state();
 check("undo restores the rotation", Math.abs(st.items[0].transform.rot - start.rot) < 1e-6);
 
 // 4. drag the item with the pointer
+await page.waitForTimeout(900); // the 3D view resizes when the sheet opens
 const cx = Math.round(page.viewportSize().width / 2);
 const cy = await S(([x, id]) => { const r = document.querySelector("canvas").getBoundingClientRect(); for (let y = Math.round(r.top) + 20; y < r.bottom - 20; y += 4) { const h = window.__studioRay(x, y); if (h[0] && h[0].startsWith(id)) return y + 24; } return 800; }, [cx, start && st.items[0].catalog.id]);
 await page.screenshot({ path: "docs/design-studio/results/m5/before-drag.png" });

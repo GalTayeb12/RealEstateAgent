@@ -35,6 +35,7 @@ model User {
   quotaResetAt              DateTime?           // set by admin reset; attempts before this timestamp are ignored
   alertPreference           AlertPreference?
   notifications             Notification[]
+  studioDesigns             StudioDesign[]
 }
 
 model VerificationToken {
@@ -421,4 +422,50 @@ model LeverageGroupMember {
   joinedAt        DateTime      @default(now())
 
   @@unique([leverageGroupId, buyerId])
+}
+
+// ── Design Studio (feature-flagged, see docs/design-studio) ─────────────────
+// A user-owned design pinned to an immutable baseline apartment. Saving uses an
+// integer revision for optimistic concurrency (UPDATE ... WHERE revision = ?).
+model StudioDesign {
+  id            String   @id @default(cuid())
+  ownerId       String
+  owner         User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  baselineId    String   // e.g. "yarkon-twin-shell"
+  name          String
+  schemaVersion Int      @default(1)
+  data          Json     // DesignDocument (lib/studio/schema/document.ts)
+  revision      Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  versions StudioDesignVersion[]
+  shares   StudioDesignShare[]
+
+  @@index([ownerId, baselineId, updatedAt])
+}
+
+model StudioDesignVersion {
+  id        String       @id @default(cuid())
+  designId  String
+  design    StudioDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
+  label     String
+  data      Json
+  createdAt DateTime     @default(now())
+
+  @@index([designId, createdAt])
+}
+
+// Share links: only the SHA-256 hash of the token is stored.
+model StudioDesignShare {
+  id         String       @id @default(cuid())
+  designId   String
+  design     StudioDesign @relation(fields: [designId], references: [id], onDelete: Cascade)
+  tokenHash  String       @unique
+  permission String       // "view" | "edit"
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime     @default(now())
+
+  @@index([designId])
 }

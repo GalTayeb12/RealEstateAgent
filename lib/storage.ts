@@ -5,12 +5,13 @@
  * swapped for S3 / R2 without touching callers. Files never go into Postgres:
  * callers keep only the storage key.
  *
- * Driver selection: STORAGE_DRIVER=local (default). Local files live under
+ * Driver selection: STORAGE_DRIVER=local (default) or r2 (lib/storageR2.ts, needs R2_* variables). Local files live under
  * STORAGE_LOCAL_DIR, default "<cwd>/.storage" (gitignored).
  */
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { r2FromEnv } from "./storageR2";
 
 export interface PutOptions {
   contentType?: string;
@@ -78,6 +79,7 @@ let instance: Storage | null = null;
 export function getStorage(): Storage {
   if (instance) return instance;
   const driver = process.env.STORAGE_DRIVER ?? "local";
+  if (driver === "r2") { instance = r2FromEnv(); return instance; }
   if (driver !== "local") throw new Error(`Unsupported STORAGE_DRIVER: ${driver}`);
   // turbopackIgnore: a runtime data folder, not code; without it the build traces the whole project
   instance = new LocalDiskStorage(path.resolve(/*turbopackIgnore: true*/ process.env.STORAGE_LOCAL_DIR ?? path.join(/*turbopackIgnore: true*/ process.cwd(), ".storage")));

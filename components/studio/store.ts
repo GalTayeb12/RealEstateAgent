@@ -29,6 +29,12 @@ export const DEFAULT_LIGHTING: Lighting = { sun: 2.2, maskLo: 0.35, maskHi: 0.6,
 /** A transient drag (not in the document until released and accepted). */
 export type Drag = { id: string; x: number; y: number; rot: number; preview: Preview };
 export type Pose = { x: number; y: number; yaw: number };
+/** The saved design this session edits (null = nothing persisted yet). */
+export type DesignState = {
+  id: string; name: string; revision: number;
+  mode: "owner" | "shared-edit" | "shared-view"; token?: string;
+  status: "loading" | "saved" | "saving" | "offline" | "conflict" | "error" | "local";
+};
 
 interface StudioState {
   ready: boolean;
@@ -48,6 +54,7 @@ interface StudioState {
   lastError: string | null;
   drag: Drag | null;
   pose: Pose | null;
+  design: DesignState | null;
   catalogOpen: boolean;
   /** Thumbnail rendering (scripts/studio/thumbs.mjs): frame this item on a neutral backdrop, without the shell. */
   thumb: { id: string } | null;
@@ -67,6 +74,9 @@ interface StudioState {
   select(id: string | null): void;
   setDrag(d: Drag | null): void;
   setPose(p: Pose): void;
+  /** Replaces the whole document (loading a saved design); clears undo history. */
+  replaceDocument(doc: DesignDocument, design: DesignState | null): void;
+  setDesign(patch: Partial<DesignState>): void;
   setCatalogOpen(open: boolean, replaceFor?: string | null): void;
   setThumb(t: { id: string } | null): void;
   clearError(): void;
@@ -97,7 +107,7 @@ export const useStudio = create<StudioState>((set, get) => {
   return {
     ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
-    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null,
+    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null,
     catalogOpen: false, replaceFor: null, thumb: null,
 
     init({ baseline, ref, models, materials, mobile }) {
@@ -110,6 +120,7 @@ export const useStudio = create<StudioState>((set, get) => {
     },
     dispatch(cmd) {
       if (!history) return false;
+      if (get().design?.mode === "shared-view") return fail("readOnly");
       try {
         history.do(cmd);
         sync();
@@ -145,6 +156,13 @@ export const useStudio = create<StudioState>((set, get) => {
     select: (selection) => set({ selection }),
     setDrag: (drag) => set({ drag }),
     setPose: (pose) => set({ pose }),
+    replaceDocument(doc, design) {
+      const { baseline, catalog } = get();
+      if (!baseline || !catalog) return;
+      history = new History(doc, { baseline, catalog });
+      set({ doc, design, canUndo: false, canRedo: false, selection: null, drag: null, lastError: null });
+    },
+    setDesign: (patch) => { const d = get().design; if (d) set({ design: { ...d, ...patch } }); },
     setCatalogOpen: (catalogOpen, replaceFor = null) => set({ catalogOpen, replaceFor: catalogOpen ? replaceFor : null }),
     setThumb: (thumb) => set({ thumb }),
     clearError: () => set({ lastError: null }),

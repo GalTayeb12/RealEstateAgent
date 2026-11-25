@@ -13,7 +13,8 @@ Read this file first in every session; do not re-audit the repo.
 | M4 | DONE (clean/composed; premium polish items listed in QUALITY_GATES) | pipeline, textured materials, modular sofa (4.0 m verified), travertine drums done; premium art bar NOT met (see QUALITY_GATES M4) |
 | E (Unreal) | E0, E1 done; E2 level builds, first render black | resume at UNREAL.md section E2 status (4 hypotheses) |
 | M5 | DONE (touch gestures beyond tap/drag and real-device test pending) | Design mode, panels, catalog, mobile layout, he/en; see M5 summary |
-| M6-M13 | pending | see MASTER_PLAN section 10 |
+| M6 | DONE except live-DB integration (needs a dev database) | file store + Prisma repo/migration, API, autosave, versions, share links, R2 driver; see M6 summary |
+| M7-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
 - Viewer: `components/walk/ApartmentWalk.tsx` (r3f, lightmaps lm-A/lm-B on uv1, `bakedOnly()` patch, custom Walker, collision vs walk.json boxes). Route `app/walk/[slug]`.
@@ -67,6 +68,14 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - Tooling: `scripts/studio/shots.mjs` (scene screenshots through the real command engine; needs `STUDIO_ENABLED=1` dev server and the same `JWT_SECRET`), `bench.mjs --studio`.
 - Dev server for the studio: `STUDIO_ENABLED=1 JWT_SECRET=studio-bench-dummy DATABASE_URL=postgresql://dummy:dummy@localhost:5432/studio_dev npx next dev -p 3001` (stop with PowerShell `Stop-Process` on the listener; restart after edits).
 - Open from M3: sun intensity is uncalibrated; only one daylight condition exists; no UI beyond a mode switch + undo/redo/restore (M5); draw calls above target (M13); i18n strings are inline in StudioApp (centralise in M5).
+
+## M6 summary (2026-11-26) - persistence, versions, sharing
+- **Repository layer** (`lib/studio/persist/`): `DesignRepo` contract; `KvDesignRepo` (in-memory for tests, `StorageKv` over the Storage driver for local use; mutations are serialised so two saves with the same revision cannot both win - found by a test); `PrismaDesignRepo` (conditional `UPDATE ... WHERE revision`); `repo.ts` selects by `STUDIO_STORE` (`file` default in dev, `prisma` required in production).
+- **Prisma**: models `StudioDesign`, `StudioDesignVersion`, `StudioDesignShare` + migration `20261126000000_add_studio_designs` (purely additive; generated offline). **Not applied anywhere and the Prisma repo is NOT integration-tested**: there is no local Postgres; it needs a DEV database (ask the owner for a Neon dev branch), then run `node scripts/studio/assert-dev-db.mjs && npx prisma migrate deploy`. The guard refuses the main checkout's DATABASE_URL (verified against the real one), accepts localhost and hosts/databases labelled dev/test/studio.
+- **API** (`app/api/studio/**`, thin wrappers over `lib/studio/persist/ops.ts`): designs CRUD, rename, duplicate, versions + restore (restore = new revision), share links (view/edit, expiry, revoke; only the SHA-256 of the token is stored), public token routes (no owner id exposed). Owner routes answer 404 to anonymous / wrong-role / other users. `scripts/studio/e2e-api.mjs` (20 checks over real HTTP) passes.
+- **Client** (`components/studio/persist/*`, `panels/DesignMenu.tsx`): loads or creates your design for the apartment, silent autosave (1.5 s debounce, revision-checked), save state chip, conflict banner with Reload, IndexedDB draft re-applied after offline/closed tab, flush on tab hide, "More" menu (name, named versions, duplicate, share links). Shared page `/studio/shared/[token]` (view-only disables Design mode and refuses edits). `scripts/studio/e2e-persist.mjs` (15 checks) passes; design e2e still passes in en/he/mobile.
+- **R2 driver** `lib/storageR2.ts` (aws4fetch, SigV4) - built, unit-tested with a fake fetch, INACTIVE until `STORAGE_DRIVER=r2` + `R2_*` variables. Env variables documented in `.env.example`.
+- Known gaps: Prisma repo untested against a database; autosave over a shared edit link works but conflicts between two editors are only resolved by Reload; no per-user rate limiting on the new routes yet (add in M13 hardening); catalog assets still served from `public/studio/catalog` (move to Storage/R2 in M11).
 
 ## M5 summary (2026-11-26) - Design mode, full scope except where noted
 - **Interaction** (`components/studio/scene/DesignInteraction.tsx`): click a piece or a wall/floor/ceiling to select; drag a piece on the floor plane (5 cm grid, live validation, an illegal drop is refused with a translated reason); outline green / amber (advisories) / red (error). Left button selects and drags, right button looks (no pointer lock in Design mode); the camera freezes while a piece is grabbed (`components/studio/gesture.ts`). The click that ends a drag no longer changes the selection.

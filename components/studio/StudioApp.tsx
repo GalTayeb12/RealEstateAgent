@@ -13,6 +13,8 @@ import { roomAt, type ProjectExperience } from "@/lib/experience/types";
 import type { Baseline } from "@/lib/studio/baseline/fromTwin";
 import { MaterialManifest, ModelManifest } from "@/lib/studio/schema/catalog";
 import CatalogDrawer from "./panels/CatalogDrawer";
+import DesignMenu from "./panels/DesignMenu";
+import { reloadFromServer, usePersistence } from "./persist/usePersistence";
 import PropertiesPanel from "./panels/PropertiesPanel";
 import { StudioCanvas } from "./scene/StudioCanvas";
 import { useStudio } from "./store";
@@ -23,7 +25,7 @@ import "./studio-panels.css";
 
 type Boot = { data: WalkData; uvScales: Record<string, number> };
 
-export default function StudioApp({ experience }: { experience: ProjectExperience }) {
+export default function StudioApp({ experience, sharedToken }: { experience: ProjectExperience; sharedToken?: string }) {
   const { t, locale } = useT();
   const he = locale === "he";
   const { walk } = experience;
@@ -45,6 +47,9 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
   const lastError = useStudio((s) => s.lastError);
   const selection = useStudio((s) => s.selection);
   const catalogOpen = useStudio((s) => s.catalogOpen);
+  const design = useStudio((s) => s.design);
+  const readOnly = design?.mode === "shared-view";
+  usePersistence({ baselineId: experience.slug, sharedToken });
 
   useEffect(() => {
     let cancelled = false;
@@ -94,7 +99,7 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
     return () => window.removeEventListener("keydown", k);
   }, []);
 
-  const err = lastError ? (lastError === "noSpace" || lastError.startsWith("err.") ? t(lastError) : lastError) : null;
+  const err = lastError ? (/^[A-Za-z.-]+$/.test(lastError) ? t(lastError) : lastError) : null;
   const hint = mobile ? t("hintTouch") : mode === "design" ? t("hintDesign") : t("hintWalk");
   const title = experience.title[locale];
 
@@ -113,18 +118,20 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
       <div className="st-ui st-top">
         <strong className="st-title">{title}</strong>
         <span className="st-room" aria-live="polite">{walk.rooms[room]?.name[locale]}</span>
+        <SaveStatus />
         <div className="st-modes" role="tablist" aria-label="mode">
           <button role="tab" aria-selected={mode === "walk"} onClick={() => useStudio.getState().setMode("walk")}>{t("walk")}</button>
-          <button role="tab" aria-selected={mode === "design"} onClick={() => useStudio.getState().setMode("design")}>{t("design")}</button>
+          <button role="tab" aria-selected={mode === "design"} disabled={readOnly} onClick={() => useStudio.getState().setMode("design")}>{t("design")}</button>
           <button role="tab" aria-selected={false} disabled title={t("soon")}>{t("plan")}</button>
         </div>
       </div>
 
       <div className="st-ui st-bar">
         {mode === "design" && <button type="button" className="st-primary" onClick={() => useStudio.getState().setCatalogOpen(true)}>＋ {t("add")}</button>}
-        <button type="button" onClick={() => useStudio.getState().undo()} disabled={!canUndo}>{t("undo")}</button>
-        <button type="button" onClick={() => useStudio.getState().redo()} disabled={!canRedo}>{t("redo")}</button>
-        <button type="button" onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
+        <button type="button" onClick={() => useStudio.getState().undo()} disabled={!canUndo || readOnly}>{t("undo")}</button>
+        <button type="button" onClick={() => useStudio.getState().redo()} disabled={!canRedo || readOnly}>{t("redo")}</button>
+        <button type="button" disabled={readOnly} onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
+        <DesignMenu />
         <select aria-label={t("quality")} value={quality} onChange={(e) => useStudio.getState().setQuality(e.target.value as typeof quality)}>
           <option value="auto">{t("quality")}: {t("auto")}</option>
           <option value="low">{t("lite")}</option>
@@ -136,6 +143,8 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
       {mode === "design" && <PropertiesPanel />}
       {mode === "design" && <CatalogDrawer />}
 
+      {design?.mode === "shared-view" && <p className="st-ui st-banner">{t("sharedView")}</p>}
+      {design?.mode === "shared-edit" && <p className="st-ui st-banner">{t("sharedEdit")}</p>}
       {err && <p className="st-ui st-toast" role="status">{err}</p>}
       {!locked && boot && !selection && <p className="st-ui st-hint">{hint}</p>}
       {mobile && stickUi && (
@@ -144,6 +153,22 @@ export default function StudioApp({ experience }: { experience: ProjectExperienc
         </div>
       )}
     </div>
+  );
+}
+
+/** Quiet save state in the top bar (saving is automatic; this only reports it). */
+function SaveStatus() {
+  const { t } = useT();
+  const design = useStudio((s) => s.design);
+  if (!design || design.mode === "shared-view") return null;
+  const s = design.status;
+  const label = s === "saving" ? t("saving") : s === "saved" ? t("savedOk") : s === "offline" ? t("offline") : s === "conflict" ? t("conflict") : s === "local" ? t("localOnly") : s === "error" ? t("saveError") : "";
+  if (!label) return null;
+  return (
+    <span className="st-status" data-state={s} role="status">
+      {label}
+      {s === "conflict" && <button type="button" className="st-link" onClick={() => void reloadFromServer()}>{t("reload")}</button>}
+    </span>
   );
 }
 
