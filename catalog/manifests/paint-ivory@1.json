@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "paint-ivory",
+  "version": 1,
+  "name": {
+    "he": "שנהב",
+    "en": "Ivory"
+  },
+  "category": "paint",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#f2ead8",
+    "roughness": 0.92,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

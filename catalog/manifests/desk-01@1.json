@@ -1,0 +1,109 @@
+{
+  "type": "model",
+  "version": 1,
+  "uvUnits": "metres",
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "desk-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  },
+  "id": "desk-01",
+  "name": {
+    "he": "שולחן עבודה",
+    "en": "Desk"
+  },
+  "category": "desk",
+  "styles": [
+    "scandinavian",
+    "modern-minimalist",
+    "contemporary",
+    "japandi"
+  ],
+  "rooms": [
+    "office",
+    "bedroom",
+    "living"
+  ],
+  "dims": {
+    "w": 1.4,
+    "d": 0.65,
+    "h": 0.75
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "table-panel",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 1,
+        "max": 1.8,
+        "step": 0.1,
+        "default": 1.4,
+        "drives": "w"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "top",
+      "label": {
+        "he": "משטח",
+        "en": "Top"
+      },
+      "allowed": [
+        "wood",
+        "stone",
+        "cabinet",
+        "paint"
+      ],
+      "default": {
+        "id": "wood-pale-birch-flat",
+        "version": 1
+      }
+    },
+    {
+      "id": "base",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "wood",
+        "metal",
+        "paint",
+        "cabinet"
+      ],
+      "default": {
+        "id": "lacquer-white",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.9,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  }
+}

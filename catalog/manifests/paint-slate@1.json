@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "paint-slate",
+  "version": 1,
+  "name": {
+    "he": "צפחה",
+    "en": "Slate"
+  },
+  "category": "paint",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#5d6670",
+    "roughness": 0.92,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

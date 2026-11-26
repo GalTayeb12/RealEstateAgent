@@ -1,0 +1,29 @@
+{
+  "type": "material",
+  "id": "wood-pale-birch-flat",
+  "version": 1,
+  "name": {
+    "he": "ליבנה בהיר (צבע בלבד)",
+    "en": "Pale birch (flat colour)"
+  },
+  "category": "wood",
+  "styles": [
+    "scandinavian",
+    "japandi"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#e0cfb0",
+    "roughness": 0.6,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

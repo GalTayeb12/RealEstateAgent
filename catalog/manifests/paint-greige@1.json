@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "paint-greige",
+  "version": 1,
+  "name": {
+    "he": "גרייג׳",
+    "en": "Greige"
+  },
+  "category": "paint",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#cfc6b8",
+    "roughness": 0.92,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

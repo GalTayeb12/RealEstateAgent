@@ -1,0 +1,108 @@
+{
+  "type": "model",
+  "version": 1,
+  "uvUnits": "metres",
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "console-table-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  },
+  "id": "console-table-01",
+  "name": {
+    "he": "קונסולה",
+    "en": "Console table"
+  },
+  "category": "table",
+  "styles": [
+    "contemporary",
+    "quiet-luxury",
+    "modern-minimalist"
+  ],
+  "rooms": [
+    "living",
+    "entry",
+    "corridor"
+  ],
+  "dims": {
+    "w": 1.2,
+    "d": 0.35,
+    "h": 0.8
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "table-legs",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 0.9,
+        "max": 1.6,
+        "step": 0.1,
+        "default": 1.2,
+        "drives": "w"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "top",
+      "label": {
+        "he": "משטח",
+        "en": "Top"
+      },
+      "allowed": [
+        "wood",
+        "stone",
+        "cabinet",
+        "paint"
+      ],
+      "default": {
+        "id": "wood-walnut-flat",
+        "version": 1
+      }
+    },
+    {
+      "id": "base",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "wood",
+        "metal",
+        "paint",
+        "cabinet"
+      ],
+      "default": {
+        "id": "metal-black-powder",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.6,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  }
+}

@@ -1,0 +1,149 @@
+{
+  "type": "model",
+  "version": 1,
+  "uvUnits": "metres",
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "tv-unit-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  },
+  "id": "tv-unit-01",
+  "name": {
+    "he": "מזנון טלוויזיה",
+    "en": "TV unit"
+  },
+  "category": "tv-unit",
+  "styles": [
+    "modern-minimalist",
+    "contemporary",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "dims": {
+    "w": 1.8,
+    "d": 0.42,
+    "h": 0.48
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "case-drawers",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 1.2,
+        "max": 2.6,
+        "step": 0.1,
+        "default": 1.8,
+        "drives": "w"
+      },
+      {
+        "id": "drawers",
+        "label": {
+          "he": "שורות מגירות",
+          "en": "Drawer rows"
+        },
+        "unit": "count",
+        "min": 1,
+        "max": 2,
+        "step": 1,
+        "default": 1,
+        "drives": "none"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "carcass",
+      "label": {
+        "he": "גוף",
+        "en": "Carcass"
+      },
+      "allowed": [
+        "paint",
+        "cabinet",
+        "wood"
+      ],
+      "default": {
+        "id": "lacquer-cashmere",
+        "version": 1
+      }
+    },
+    {
+      "id": "fronts",
+      "label": {
+        "he": "חזיתות",
+        "en": "Fronts"
+      },
+      "allowed": [
+        "paint",
+        "cabinet",
+        "wood"
+      ],
+      "default": {
+        "id": "lacquer-cashmere",
+        "version": 1
+      }
+    },
+    {
+      "id": "handle",
+      "label": {
+        "he": "ידיות",
+        "en": "Handles"
+      },
+      "allowed": [
+        "metal"
+      ],
+      "default": {
+        "id": "metal-brushed-brass",
+        "version": 1
+      }
+    },
+    {
+      "id": "base",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "wood",
+        "metal",
+        "paint",
+        "cabinet"
+      ],
+      "default": {
+        "id": "floor-flat-oak",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.7,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  }
+}

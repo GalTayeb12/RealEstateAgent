@@ -16,7 +16,9 @@ const count = (ps: Part[], kind: Part["kind"]) => ps.filter((p) => p.kind === ki
 
 describe("parametric generators: catalog", () => {
   it("every generator has a published manifest", () => {
-    expect(manifests.map((m) => (m.sizing.mode === "parametric" ? m.sizing.generator : "")).sort()).toEqual(Object.keys(GENERATORS).sort());
+    // several manifests may share a generator (a desk and a bench are both slab tables): compare the sets
+    const used = [...new Set(manifests.map((m) => (m.sizing.mode === "parametric" ? m.sizing.generator : "")))].sort();
+    expect(used).toEqual(Object.keys(GENERATORS).sort());
   });
 
   it("all manifests pass the quality gates at min / default / max of every parameter", () => {

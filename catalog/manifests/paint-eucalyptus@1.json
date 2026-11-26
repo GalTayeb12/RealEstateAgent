@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "paint-eucalyptus",
+  "version": 1,
+  "name": {
+    "he": "אקליפטוס",
+    "en": "Eucalyptus"
+  },
+  "category": "paint",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#8fa39a",
+    "roughness": 0.92,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

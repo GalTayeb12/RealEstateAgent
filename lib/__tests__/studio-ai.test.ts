@@ -88,8 +88,12 @@ describe("AI designer: limits, provider switch, model request", () => {
   });
 
   it("retrieval puts room-kind and style matches first", () => {
-    const top = retrieveModels(models, { roomKinds: ["kitchen"], limit: 2 }).map((m) => m.id);
-    expect(top.every((id) => id.startsWith("kitchen-"))).toBe(true);
+    const kitchen = models.filter((m) => m.rooms.includes("kitchen")).length;
+    const top = retrieveModels(models, { roomKinds: ["kitchen"], limit: kitchen });
+    expect(kitchen).toBeGreaterThan(1);
+    expect(top.every((m) => m.rooms.includes("kitchen"))).toBe(true); // every kitchen piece ranks above every other
+    const styled = retrieveModels(models, { roomKinds: ["kitchen"], styles: ["scandinavian"], limit: 1 })[0];
+    expect(styled.rooms.includes("kitchen") && styled.styles.includes("scandinavian")).toBe(true);
   });
 });
 

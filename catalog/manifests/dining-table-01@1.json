@@ -1,0 +1,109 @@
+{
+  "type": "model",
+  "version": 1,
+  "uvUnits": "metres",
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "dining-table-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  },
+  "id": "dining-table-01",
+  "name": {
+    "he": "שולחן אוכל",
+    "en": "Dining table"
+  },
+  "category": "table",
+  "styles": [
+    "scandinavian",
+    "japandi",
+    "contemporary",
+    "organic-modern"
+  ],
+  "rooms": [
+    "living",
+    "dining",
+    "kitchen"
+  ],
+  "dims": {
+    "w": 1.8,
+    "d": 0.9,
+    "h": 0.75
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "table-legs",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 1.2,
+        "max": 2.6,
+        "step": 0.1,
+        "default": 1.8,
+        "drives": "w"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "top",
+      "label": {
+        "he": "משטח",
+        "en": "Top"
+      },
+      "allowed": [
+        "wood",
+        "stone",
+        "cabinet",
+        "paint"
+      ],
+      "default": {
+        "id": "floor-flat-oak",
+        "version": 1
+      }
+    },
+    {
+      "id": "base",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "wood",
+        "metal",
+        "paint",
+        "cabinet"
+      ],
+      "default": {
+        "id": "floor-flat-oak",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.8,
+      "back": 0.8,
+      "sides": 0.6
+    },
+    "againstWall": false
+  }
+}

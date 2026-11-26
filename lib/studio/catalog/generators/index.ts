@@ -2,11 +2,13 @@ import { baseRun, wallRun } from "./kitchen";
 import { bed } from "./bed";
 import { shelving } from "./shelving";
 import { wardrobe } from "./wardrobe";
+import { caseDoors, caseDrawers, caseMixed, tableLegs, tablePanel, wallShelf } from "./furniture";
 import type { GenDims, GeneratorId, GenParams, Part } from "./types";
 
 export * from "./types";
 export const GENERATORS: Record<GeneratorId, (dims: GenDims, params: GenParams) => Part[]> = {
   "base-run": baseRun, "wall-run": wallRun, wardrobe, shelving, bed,
+  "table-legs": tableLegs, "table-panel": tablePanel, "case-doors": caseDoors, "case-drawers": caseDrawers, "case-mixed": caseMixed, "wall-shelf": wallShelf,
 };
 export const GENERATOR_IDS = Object.keys(GENERATORS) as GeneratorId[];
 

@@ -30,6 +30,18 @@ const PLACE = [
   ["wd", "wardrobe-hinged-01", 9.7, 8.49, PI, { width: 2.0, height: 2.4 }],
   ["bd", "bed-upholstered-01", 1.6, 8.49, PI, { width: 1.6, headboard: 1.2 }],
   ["sh", "shelving-open-01", 0.02, 2.0, -PI / 2, { width: 1.8, height: 2.0 }],
+  // M11 original furniture (rot 0, spread over the living room and the master bedroom)
+  ["dt", "dining-table-01", 5.5, 0.6, 0, { width: 2.2 }],
+  ["dk", "desk-01", 9.0, 0.3, 0, { width: 1.6 }],
+  ["ct", "console-table-01", 11.0, 0.3, 0, {}],
+  ["cr", "coffee-rect-01", 2.0, 3.0, 0, { width: 1.4 }],
+  ["bn", "bench-01", 13.0, 0.3, 0, { width: 1.6 }],
+  ["sb", "sideboard-01", 9.5, 2.0, 0, { width: 2.4 }],
+  ["tv", "tv-unit-01", 12.6, 2.0, 0, { drawers: 2 }],
+  ["ns", "nightstand-01", 14.4, 3.5, 0, { drawers: 3 }],
+  ["dr", "dresser-01", 9.5, 3.6, 0, { width: 1.6, drawers: 5 }],
+  ["ws", "wall-shelf-01", 4.0, 4.5, 0, { width: 1.8 }],
+  ["sc", "storage-cabinet-01", 12.0, 3.6, 0, { width: 1.4 }],
 ];
 await S((places) => {
   const st = window.__studio.getState();

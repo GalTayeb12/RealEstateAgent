@@ -1,0 +1,30 @@
+{
+  "type": "material",
+  "id": "metal-bronze",
+  "version": 1,
+  "name": {
+    "he": "ברונזה",
+    "en": "Bronze"
+  },
+  "category": "metal",
+  "styles": [
+    "modern-industrial",
+    "contemporary",
+    "quiet-luxury"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#7d5c3a",
+    "roughness": 0.4,
+    "metalness": 1,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

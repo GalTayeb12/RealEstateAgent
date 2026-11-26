@@ -12,6 +12,16 @@ export class SizingError extends Error {
   }
 }
 
+/**
+ * The full parameter set a generator must receive: the manifest defaults overlaid with the node's own
+ * values. Parameters that drive no dimension (a drawer count) would otherwise fall back to the
+ * generator's built-in default instead of the catalog's.
+ */
+export function resolveParams(m: ModelManifest, node: Pick<ItemNode, "params">): Record<string, number> {
+  if (m.sizing.mode !== "parametric") return { ...(node.params ?? {}) };
+  return { ...Object.fromEntries(m.sizing.params.map((p) => [p.id, p.default])), ...(node.params ?? {}) };
+}
+
 export function resolveSize(m: ModelManifest, node: Pick<ItemNode, "variantId" | "modules" | "params">): Dims {
   const s = m.sizing;
   switch (s.mode) {

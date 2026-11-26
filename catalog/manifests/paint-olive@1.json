@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "paint-olive",
+  "version": 1,
+  "name": {
+    "he": "זית",
+    "en": "Olive"
+  },
+  "category": "paint",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#7f7a52",
+    "roughness": 0.92,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

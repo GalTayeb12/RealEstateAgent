@@ -1,0 +1,109 @@
+{
+  "type": "model",
+  "version": 1,
+  "uvUnits": "metres",
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "bench-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  },
+  "id": "bench-01",
+  "name": {
+    "he": "ספסל",
+    "en": "Bench"
+  },
+  "category": "stool",
+  "styles": [
+    "japandi",
+    "scandinavian",
+    "organic-modern"
+  ],
+  "rooms": [
+    "entry",
+    "bedroom",
+    "dining",
+    "living"
+  ],
+  "dims": {
+    "w": 1.2,
+    "d": 0.38,
+    "h": 0.45
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "table-panel",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 1,
+        "max": 1.8,
+        "step": 0.1,
+        "default": 1.2,
+        "drives": "w"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "top",
+      "label": {
+        "he": "מושב",
+        "en": "Seat"
+      },
+      "allowed": [
+        "wood",
+        "stone",
+        "cabinet",
+        "paint"
+      ],
+      "default": {
+        "id": "wood-smoked-oak-flat",
+        "version": 1
+      }
+    },
+    {
+      "id": "base",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "wood",
+        "metal",
+        "paint",
+        "cabinet"
+      ],
+      "default": {
+        "id": "wood-smoked-oak-flat",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.5,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  }
+}

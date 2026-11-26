@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "paint-linen",
+  "version": 1,
+  "name": {
+    "he": "פשתן",
+    "en": "Linen"
+  },
+  "category": "paint",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#e3d9c6",
+    "roughness": 0.92,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

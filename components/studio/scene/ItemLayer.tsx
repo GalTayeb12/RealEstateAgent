@@ -12,7 +12,7 @@ import * as THREE from "three";
 import { EXPOSURE } from "@/components/walk/ApartmentWalk";
 import { modelAssetUrl } from "@/lib/studio/catalog/assets";
 import { generate, type GeneratorId } from "@/lib/studio/catalog/generators";
-import { resolveSize } from "@/lib/studio/catalog/sizing";
+import { resolveParams, resolveSize } from "@/lib/studio/catalog/sizing";
 import { roomAt, type WalkConfig, type WalkData } from "@/lib/experience/types";
 import { applyCube, itemEnvIntensity, parseItemLight, roomCube, srgbToLinear, type Cube, type ItemLight } from "@/lib/studio/lighting";
 import type { ModelManifest } from "@/lib/studio/schema/catalog";
@@ -208,8 +208,10 @@ function GeneratedItem(props: ItemProps) {
   const manifest = catalog.model(props.node.catalog)!;
   const gen = manifest.sizing.mode === "parametric" ? (manifest.sizing.generator as GeneratorId) : undefined;
   const dims = resolveSize(manifest, props.node);
-  const key = `${gen}|${dims.w.toFixed(3)}|${dims.d.toFixed(3)}|${dims.h.toFixed(3)}|${JSON.stringify(props.node.params ?? {})}`;
-  const obj = useMemo(() => buildGenerated(generate(gen!, dims, props.node.params ?? {})), [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  // manifest defaults + the node's own values (a drawer count drives no dimension, so it must come from here)
+  const params = resolveParams(manifest, props.node);
+  const key = `${gen}|${dims.w.toFixed(3)}|${dims.d.toFixed(3)}|${dims.h.toFixed(3)}|${JSON.stringify(params)}`;
+  const obj = useMemo(() => buildGenerated(generate(gen!, dims, params)), [key]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => obj.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.geometry.dispose(); (m.material as THREE.Material).dispose(); } }), [obj]);
   return <ItemBody {...props} obj={obj} />;
 }

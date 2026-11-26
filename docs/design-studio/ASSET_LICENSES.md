@@ -13,5 +13,7 @@ Poly Haven API: unique User-Agent, visible "Powered by Poly Haven" credit if the
 | Fabric086 -> fabric-textured-stone | 1 | https://ambientcg.com/view?id=Fabric086 | ambientCG | CC0-1.0 | none required | 2026-11-25 |
 | Concrete034 -> microcement-light | 1 | https://ambientcg.com/view?id=Concrete034 | ambientCG | CC0-1.0 | none required | 2026-11-25 |
 | sofa-modular-01, coffee-drum-01, side-drum-01 | 1 | original (scripts/blender/studio_sofa.py, studio_tables.py) | HAVENIQ | HAVENIQ-ORIGINAL | - | 2026-11-25 |
+| dining-table-01, desk-01, console-table-01, coffee-rect-01, bench-01, sideboard-01, tv-unit-01, nightstand-01, dresser-01, storage-cabinet-01, wall-shelf-01 | 1 | original parametric generators (lib/studio/catalog/generators/furniture.ts) | HAVENIQ | HAVENIQ-ORIGINAL | - | 2026-11-26 |
+| paint-* (22: warm-white, ivory, linen, greige, sand, mushroom, taupe, cocoa, terracotta, rust, ochre, blush, olive, pistachio, sage-deep, eucalyptus, forest, dusty-blue, slate, navy, stone-grey, charcoal), lacquer-* (7), metal-* (6), wood-*-flat (4) | 1 | original flat colours (no textures) | HAVENIQ | HAVENIQ-ORIGINAL | - | 2026-11-26 |
 
 Notes: ambientCG assets were downloaded once through its public API (one request per asset, descriptive User-Agent), 2026-11-25; the files are CC0 (https://docs.ambientcg.com/license/), only image files were extracted, and the packed textures are colour-graded copies (parquet and plaster). The ambientCG API is run by one person and is not meant for enterprise-level runtime use, so the studio never calls it at runtime.

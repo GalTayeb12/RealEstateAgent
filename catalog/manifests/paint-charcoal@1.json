@@ -1,0 +1,26 @@
+{
+  "type": "material",
+  "id": "paint-charcoal",
+  "version": 1,
+  "name": {
+    "he": "פחם",
+    "en": "Charcoal"
+  },
+  "category": "paint",
+  "styles": [],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#3d3d3d",
+    "roughness": 0.92,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

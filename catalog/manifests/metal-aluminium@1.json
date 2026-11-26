@@ -1,0 +1,30 @@
+{
+  "type": "material",
+  "id": "metal-aluminium",
+  "version": 1,
+  "name": {
+    "he": "אלומיניום",
+    "en": "Aluminium"
+  },
+  "category": "metal",
+  "styles": [
+    "modern-industrial",
+    "contemporary",
+    "quiet-luxury"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#c9ccce",
+    "roughness": 0.4,
+    "metalness": 1,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/flat-colour",
+    "author": "HAVENIQ"
+  }
+}
