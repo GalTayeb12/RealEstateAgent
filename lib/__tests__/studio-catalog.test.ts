@@ -45,7 +45,8 @@ describe("catalog manifests (catalog/manifests)", () => {
     const idx = path.join(root, "public/studio/catalog/index.json");
     expect(existsSync(idx)).toBe(true);
     const snap = JSON.parse(readFileSync(idx, "utf8")) as { models: { id: string; version: number }[]; materials: { id: string; version: number }[] };
-    const want = raw.map(({ json }) => `${json.id}@${json.version}`).sort();
+    // drafts and items under review are deliberately left out of the published index (lib/studio/catalog/admin.ts)
+    const want = raw.filter(({ json }) => json.status !== "draft" && json.status !== "review").map(({ json }) => `${json.id}@${json.version}`).sort();
     const got = [...snap.models, ...snap.materials].map((m) => `${m.id}@${m.version}`).sort();
     expect(got).toEqual(want);
   });
