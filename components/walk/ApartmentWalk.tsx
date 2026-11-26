@@ -391,7 +391,7 @@ function useTourPanel(unitId: string | null, experience: ProjectExperience) {
   return state;
 }
 
-export default function ApartmentWalk({ experience }: { experience: ProjectExperience }) {
+export default function ApartmentWalk({ experience, studioHref }: { experience: ProjectExperience; studioHref?: string }) {
   const { walk, dollhouse } = experience;
   const BASE = walk.base;
   // minimap: a top-down plan render and the plan-metre rectangle it covers
@@ -616,6 +616,12 @@ export default function ApartmentWalk({ experience }: { experience: ProjectExper
         </div>
       </div>
 
+      {studioHref && (
+        <div className="aw-ui aw-studio">
+          <a className="aw-btn" href={studioHref}>✦ {he ? "סטודיו עיצוב: הוספת רהיטים ועיצוב" : "Design Studio: furnish and restyle"}</a>
+        </div>
+      )}
+
       {MAP && (
         <div className="aw-ui aw-map" role="button" tabIndex={0} aria-label={T.map} title={T.map} onClick={onMapClick} style={{ aspectRatio: `${MAP.w} / ${MAP.h}` }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -652,6 +658,11 @@ const CSS = `
 .aw-root canvas:active { cursor: grabbing; }
 .aw-top { position: absolute; top: 14px; inset-inline: 16px; display: flex; gap: 12px; align-items: center; pointer-events: none; }
 .aw-top > * { pointer-events: auto; }
+.aw-studio { position: absolute; top: 60px; left: 16px; right: calc(var(--aw-panel-w) + 32px); display: flex; pointer-events: none; }
+.aw-studio > * { pointer-events: auto; }
+.aw-studio a { display: inline-block; text-decoration: none; background: rgba(232,182,94,.24); border-color: rgba(232,182,94,.6); }
+.aw-studio a:hover { background: rgba(232,182,94,.38); }
+.aw-studio ~ .aw-hint { top: 108px; }
 .aw-btn { background: rgba(20,20,22,.62); color: inherit; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 8px 16px; font-size: 14px; backdrop-filter: blur(10px); cursor: pointer; }
 .aw-btn:hover { background: rgba(40,40,44,.75); }
 .aw-title { display: flex; flex-direction: column; gap: 2px; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
@@ -680,11 +691,13 @@ const CSS = `
 @media (max-width: 760px) {
   .aw-map { width: 42vw; bottom: 12px; }
   .aw-hint { top: 64px; font-size: 12px; }
+  .aw-studio ~ .aw-hint { top: 104px; }
 }
 @media (max-width: 860px) {
   .aw-stage { bottom: 42dvh; }
   .aw-panel { top: 58dvh; bottom: 0; left: 0; right: 0; width: auto; border-radius: 18px 18px 0 0; }
   .aw-top { right: 16px; }
+  .aw-studio { right: 16px; }
   .aw-hint { left: 50%; }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -9,6 +9,6 @@ const ApartmentWalk = dynamic(() => import("@/components/walk/ApartmentWalk"), {
   loading: () => <div style={{ position: "fixed", inset: 0, background: "#0b0b0c" }} />,
 });
 
-export default function WalkClient({ experience }: { experience: ProjectExperience }) {
-  return <ApartmentWalk experience={experience} />;
+export default function WalkClient({ experience, studioHref }: { experience: ProjectExperience; studioHref?: string }) {
+  return <ApartmentWalk experience={experience} studioHref={studioHref} />;
 }
