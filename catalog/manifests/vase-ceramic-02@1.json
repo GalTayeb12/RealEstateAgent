@@ -1,0 +1,55 @@
+{
+  "type": "model",
+  "id": "vase-ceramic-02",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "אגרטל קרמיקה רחב",
+    "en": "Wide ceramic vase"
+  },
+  "category": "decor",
+  "styles": [
+    "japandi",
+    "organic-modern"
+  ],
+  "rooms": [
+    "any"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.218,
+    "d": 0.218,
+    "h": 0.309
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "surface",
+    "layer": "decor",
+    "elevation": 0.0,
+    "clearance": {
+      "front": 0.0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "vase-ceramic-02/1/model.glb",
+    "preview": "vase-ceramic-02/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/ceramic_vase_02",
+    "author": "James Ray Cock",
+    "retrievedAt": "2026-11-26"
+  }
+}

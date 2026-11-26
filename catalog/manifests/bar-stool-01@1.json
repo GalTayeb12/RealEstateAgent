@@ -1,0 +1,57 @@
+{
+  "type": "model",
+  "id": "bar-stool-01",
+  "version": 1,
+  "status": "review",
+  "name": {
+    "he": "כיסא בר",
+    "en": "Bar stool"
+  },
+  "category": "stool",
+  "styles": [
+    "modern-industrial",
+    "contemporary"
+  ],
+  "rooms": [
+    "kitchen",
+    "dining"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.483,
+    "d": 0.486,
+    "h": 0.751
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0.0,
+    "clearance": {
+      "front": 0.0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "bar-stool-01/1/model.glb",
+    "preview": "bar-stool-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/bar_chair_round_01",
+    "author": "Dairon Sanchez",
+    "retrievedAt": "2026-11-26"
+  },
+  "_note": "Held in review: CC0 asset downloaded and normalized correctly, but it fails ART_DIRECTION (dated / ornate styling, not minimalist). Publish only after rework or owner approval."
+}

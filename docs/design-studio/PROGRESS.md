@@ -18,7 +18,7 @@ Read this file first in every session; do not re-audit the repo.
 | M8 | DONE (visual calibration gap noted) | parametric generators: kitchen base/wall runs, wardrobe, shelving, bed; see M8 summary |
 | M9 | DONE | architecture proposals: partition + opening tools, protected structure, concept labelling, kitchen layouts; see M9 summary |
 | M10 | DONE in free dry-run mode; live Claude path written but NEVER called (needs owner approval) | AI designer: validated command batches, accept/reject, one undo; see M10 summary |
-| M11 | DONE (governance, materials, +8 original furniture: 22 models); 30-50 needs CC0 curved pieces (download approval) | catalog lifecycle, immutability gate, admin page, 12 new materials; see M11 summary |
+| M11 | DONE: 29 published models (+4 held in review), 23 materials, lifecycle + admin + gates | catalog lifecycle, immutability gate, admin page, 12 new materials; see M11 summary |
 | M12-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
@@ -174,6 +174,14 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - **Wall-aware placement** (`findWallSpot` in `lib/studio/design/spot.ts`): pieces marked `againstWall` are turned with their back to a real wall face (glazing and railings excluded), slid clear of the wall thickness and accepted only without errors, door-swing or not-against-wall advisories. The free AI planner now uses it and knows the new pieces (dining, TV unit, nightstand, chest of drawers). Result (`results/m11/furnished-plan.png`): sofa on the west wall facing the TV unit on the east wall, sideboard by the dining table, bed headboard to the wall with its nightstand, wardrobe and dresser on walls, L kitchen; 14 pieces, 0 rejected.
 - **Verification**: +4 generator tests (table legs and height, sideboard door widths + handles + legs, drawer rows and gaps, bench/shelf); 506 tests total; publish gates pass for all 22 models.
 - **Still open**: curved / upholstered pieces (dining chairs, lounge chairs, lamps, decor) need real assets: CC0 downloads from Poly Haven need the owner's approval (list in the chat), or original Blender modelling. The free planner places one bedroom only and has no rule for "sofa faces TV" (it happens here because both go to the two long free walls).
+
+## M11c (2026-11-27) - CC0 curved pieces from Poly Haven (owner approved the download)
+- **Downloaded** (one time, 1k glTF, about 16.5 MB, into `assets-src/studio/polyhaven/<id>/`, outside git, each with `meta.json`: name, authors, CC0, source URL, date) with `scripts/studio/ingest/polyhaven.mjs` (tool-only User-Agent, path-safe writes): dining_chair_02, mid_century_lounge_chair, gallinera_chair, Ottoman_01, bar_chair_round_01, round_wooden_table_02, modern_ceiling_lamp_01, ceramic_vase_02, ceramic_vase_03, brass_vase_01, planter_pot_clay.
+- **Normalized without scaling** (`scripts/studio/ingest/normalize-gltf.mjs`: turn 180 degrees so the front faces -Z, floor origin, centred, back at z = 0; measured sizes kept), then `optimize.mjs` (WebP 1024, meshopt; 196-717 KB each). Manifests with measured dims, CC0 license block and rows in ASSET_LICENSES.md. The pendant hangs from the 2.80 m ceiling (elevation = 2.80 - drop).
+- **All 11 pass the publish gates** (size within 1 cm, origin, file size, triangles); orientation verified on thumbnails.
+- **Art review against ART_DIRECTION (honest)**: PUBLISHED 7 - lounge chair, ottoman, globe pendant, two ceramic vases, brass vase, clay planter. HELD IN REVIEW 4 (status `review`, `_note` in the manifest, not in the studio): carved accent chair (ornate), round table (dated cabinet base), tall leather dining chair and dark bar stool (dated, not minimalist). They were never released, so the last committed index was restored before republishing (no immutability violation).
+- **Catalog now: 29 published models (+4 in review), 23 materials.** The free planner uses the lounge chair, ottoman, pendant and vase in the living room (17 pieces across the apartment, 0 rejected). Shots: `results/m11/furnished-*.png`.
+- **Still missing for a complete premium set**: minimalist dining chairs and bar stools (none on Poly Haven fit; options: original Blender chairs, or another CC0/CC-BY source with review), table and floor lamps, textiles, books. The planner's composition is basic (pieces cluster around the room centre when not wall-bound).
 
 ## Next steps (updated 2026-11-26, after M9; branch `Work-Meytar` = `feature/design-studio`, head after commit `8d02139` + docs)
 Setup on another machine/user: `SETUP.md`. Overview and gaps: `README.md`. Rule of the house: one verified milestone per commit, tests + e2e + screenshots first.

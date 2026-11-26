@@ -1,0 +1,59 @@
+{
+  "type": "model",
+  "id": "round-table-01",
+  "version": 1,
+  "status": "review",
+  "name": {
+    "he": "שולחן עגול מעץ",
+    "en": "Round wooden table"
+  },
+  "category": "table",
+  "styles": [
+    "scandinavian",
+    "japandi",
+    "organic-modern"
+  ],
+  "rooms": [
+    "dining",
+    "kitchen",
+    "living"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.796,
+    "d": 0.796,
+    "h": 0.746
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0.0,
+    "clearance": {
+      "front": 0.0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "round-table-01/1/model.glb",
+    "preview": "round-table-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/round_wooden_table_02",
+    "author": "Ulan Cabanilla",
+    "retrievedAt": "2026-11-26"
+  },
+  "_note": "Held in review: CC0 asset downloaded and normalized correctly, but it fails ART_DIRECTION (dated / ornate styling, not minimalist). Publish only after rework or owner approval."
+}

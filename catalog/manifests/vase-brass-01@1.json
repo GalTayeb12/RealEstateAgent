@@ -1,0 +1,55 @@
+{
+  "type": "model",
+  "id": "vase-brass-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "אגרטל פליז",
+    "en": "Brass vase"
+  },
+  "category": "decor",
+  "styles": [
+    "quiet-luxury",
+    "contemporary"
+  ],
+  "rooms": [
+    "any"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.227,
+    "d": 0.227,
+    "h": 0.692
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "decor",
+    "elevation": 0.0,
+    "clearance": {
+      "front": 0.0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "vase-brass-01/1/model.glb",
+    "preview": "vase-brass-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/brass_vase_01",
+    "author": "Rico Cilliers",
+    "retrievedAt": "2026-11-26"
+  }
+}

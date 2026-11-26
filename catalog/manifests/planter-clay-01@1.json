@@ -1,0 +1,56 @@
+{
+  "type": "model",
+  "id": "planter-clay-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "עציץ חרס",
+    "en": "Clay planter"
+  },
+  "category": "decor",
+  "styles": [
+    "organic-modern",
+    "japandi"
+  ],
+  "rooms": [
+    "any",
+    "balcony"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.266,
+    "d": 0.263,
+    "h": 0.222
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "decor",
+    "elevation": 0.0,
+    "clearance": {
+      "front": 0.0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "planter-clay-01/1/model.glb",
+    "preview": "planter-clay-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/planter_pot_clay",
+    "author": "Amal Kumar",
+    "retrievedAt": "2026-11-26"
+  }
+}

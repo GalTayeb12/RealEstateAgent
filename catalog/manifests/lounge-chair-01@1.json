@@ -1,0 +1,57 @@
+{
+  "type": "model",
+  "id": "lounge-chair-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "כורסת טרקלין",
+    "en": "Lounge chair"
+  },
+  "category": "armchair",
+  "styles": [
+    "contemporary",
+    "quiet-luxury",
+    "modern-minimalist"
+  ],
+  "rooms": [
+    "living",
+    "office"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 1.009,
+    "d": 1.19,
+    "h": 1.169
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0.0,
+    "clearance": {
+      "front": 0.4,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "lounge-chair-01/1/model.glb",
+    "preview": "lounge-chair-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/mid_century_lounge_chair",
+    "author": "Kuutti Siitonen",
+    "retrievedAt": "2026-11-26"
+  }
+}

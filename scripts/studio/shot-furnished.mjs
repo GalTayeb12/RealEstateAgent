@@ -33,7 +33,7 @@ for (const prompt of ["living room", "dining", "bedroom", "kitchen"]) {
 }
 await page.waitForTimeout(3000);
 const shot = async (name, x, y, yaw) => { await page.evaluate(([a, b, c]) => { window.__studioInput.teleport = { x: a, y: b, yaw: c }; }, [x, y, yaw]); await page.waitForTimeout(2200); await page.locator("canvas").screenshot({ path: `${dir}/${name}.png` }); };
-await shot("furnished-living", 6.8, 0.6, Math.PI * 0.8);
+await shot("furnished-living", 7.6, 2.3, Math.PI / 2);
 await shot("furnished-dining", 1.2, 0.6, -Math.PI * 0.2);
 await shot("furnished-master", 9.2, 0.6, -Math.PI * 0.25);
 await page.evaluate(() => window.__studio.getState().setMode("plan"));

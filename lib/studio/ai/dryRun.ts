@@ -47,9 +47,9 @@ export function dryRunPropose(prompt: string, doc: DesignDocument, baseline: Bas
   }
   if (has(p, "living", "salon", "סלון", "sofa", "ספה")) {
     const r = roomOf("living");
-    if (r && place("sofa-modular-01", r.id) && place("coffee-drum-01", r.id) && place("armchair-modern-01", r.id)) {
-      const tv = place("tv-unit-01", r.id);
-      notes.push(`a modular sofa, coffee table${tv ? ", TV unit" : ""} and armchair in the living room`);
+    if (r && place("sofa-modular-01", r.id) && place("coffee-drum-01", r.id) && place("lounge-chair-01", r.id)) {
+      const tv = place("tv-unit-01", r.id); place("pendant-01", r.id); place("vase-brass-01", r.id); place("ottoman-01", r.id);
+      notes.push(`a modular sofa, coffee table${tv ? ", TV unit" : ""} lounge chair, ottoman, pendant and vase in the living room`);
     }
   }
   if (has(p, "dining", "פינת אוכל", "שולחן אוכל", "table")) {

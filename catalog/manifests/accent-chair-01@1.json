@@ -1,0 +1,58 @@
+{
+  "type": "model",
+  "id": "accent-chair-01",
+  "version": 1,
+  "status": "review",
+  "name": {
+    "he": "כיסא אקסנט",
+    "en": "Accent chair"
+  },
+  "category": "chair",
+  "styles": [
+    "organic-modern",
+    "contemporary"
+  ],
+  "rooms": [
+    "living",
+    "bedroom",
+    "dining"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.581,
+    "d": 0.604,
+    "h": 1.034
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0.0,
+    "clearance": {
+      "front": 0.0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "accent-chair-01/1/model.glb",
+    "preview": "accent-chair-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/gallinera_chair",
+    "author": "Ulan Cabanilla",
+    "retrievedAt": "2026-11-26"
+  },
+  "_note": "Held in review: CC0 asset downloaded and normalized correctly, but it fails ART_DIRECTION (dated / ornate styling, not minimalist). Publish only after rework or owner approval."
+}

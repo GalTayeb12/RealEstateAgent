@@ -1,0 +1,59 @@
+{
+  "type": "model",
+  "id": "pendant-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "מנורת תלייה",
+    "en": "Pendant lamp"
+  },
+  "category": "lamp-pendant",
+  "styles": [
+    "modern-minimalist",
+    "contemporary",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living",
+    "dining",
+    "kitchen",
+    "bedroom"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.432,
+    "d": 0.432,
+    "h": 0.952
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "ceiling",
+    "layer": "ceiling",
+    "elevation": 1.848,
+    "clearance": {
+      "front": 0.0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "pendant-01/1/model.glb",
+    "preview": "pendant-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/modern_ceiling_lamp_01",
+    "author": "James Ray Cock",
+    "retrievedAt": "2026-11-26"
+  }
+}

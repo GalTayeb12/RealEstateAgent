@@ -20,7 +20,8 @@ check("a developer (not admin) gets 404", r0.status() === 404, String(r0.status(
 const page = await (await ctxFor("admin")).newPage();
 await page.goto(`${base}/dev/admin/catalog`);
 const rows = await page.locator("tr[data-row]").count();
-check("the admin sees every manifest (14 models + 23 materials)", rows === 37, `${rows} rows`);
+const files = fs.readdirSync("catalog/manifests").filter((f) => f.endsWith(".json")).length;
+check("the admin sees every manifest (all lifecycle states)", rows === files, `${rows} rows / ${files} files`);
 const issues = await page.locator("td span[style*='b3261e']").count();
 check("no published entry has a blocking audit issue", issues === 0, `${issues}`);
 await page.screenshot({ path: "docs/design-studio/results/m11/catalog-admin.png", fullPage: false });

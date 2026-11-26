@@ -1,0 +1,56 @@
+{
+  "type": "model",
+  "id": "ottoman-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "הדום מרופד",
+    "en": "Ottoman"
+  },
+  "category": "stool",
+  "styles": [
+    "contemporary",
+    "quiet-luxury"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "uvUnits": "atlas",
+  "dims": {
+    "w": 0.885,
+    "d": 0.621,
+    "h": 0.624
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0.0,
+    "clearance": {
+      "front": 0.0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "ottoman-01/1/model.glb",
+    "preview": "ottoman-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/Ottoman_01",
+    "author": "Caspian Fortune",
+    "retrievedAt": "2026-11-26"
+  }
+}
