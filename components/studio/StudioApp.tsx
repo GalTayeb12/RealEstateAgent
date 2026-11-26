@@ -14,6 +14,7 @@ import { roomAt, type ProjectExperience } from "@/lib/experience/types";
 import type { Baseline } from "@/lib/studio/baseline/fromTwin";
 import { MaterialManifest, ModelManifest } from "@/lib/studio/schema/catalog";
 import { ArchitectureMenu, KitchenPanel } from "./panels/ArchitecturePanels";
+import AiPanel from "./panels/AiPanel";
 import CatalogDrawer from "./panels/CatalogDrawer";
 import DesignMenu from "./panels/DesignMenu";
 import { reloadFromServer, usePersistence } from "./persist/usePersistence";
@@ -55,6 +56,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const catalogOpen = useStudio((s) => s.catalogOpen);
   const tool = useStudio((s) => s.tool);
   const kitchenOpen = useStudio((s) => s.kitchenOpen);
+  const aiOpen = useStudio((s) => s.aiOpen);
   const hasConcept = useStudio((s) => !!s.doc && Object.values(s.doc.nodes).some((n) => n.kind === "partitionProposal" || n.kind === "openingProposal"));
   const design = useStudio((s) => s.design);
   const readOnly = design?.mode === "shared-view";
@@ -127,7 +129,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       if (mod && e.code === "KeyD") { e.preventDefault(); s.duplicateSelected(); }
       else if (e.code === "Delete" || e.code === "Backspace") { if (s.selection && !s.selection.startsWith("surface:")) { e.preventDefault(); s.removeSelected(); } }
       else if (e.code === "KeyR") s.rotateSelected(e.shiftKey ? -1 : 1);
-      else if (e.code === "Escape") { if (s.tool) s.setTool(null); else if (s.kitchenOpen) s.setKitchenOpen(false); else if (s.catalogOpen) s.setCatalogOpen(false); else s.select(null); }
+      else if (e.code === "Escape") { if (s.tool) s.setTool(null); else if (s.aiOpen) s.setAiOpen(false); else if (s.kitchenOpen) s.setKitchenOpen(false); else if (s.catalogOpen) s.setCatalogOpen(false); else s.select(null); }
     };
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
@@ -139,7 +141,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const title = experience.title[locale];
 
   return (
-    <div ref={wrap} className="st-root" data-mode={mode} data-sheet={(editing && (selection || catalogOpen || kitchenOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
+    <div ref={wrap} className="st-root" data-mode={mode} data-sheet={(editing && (selection || catalogOpen || kitchenOpen || aiOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
       <div className="st-stage">
       {boot && ready && (
         <StudioCanvas
@@ -168,6 +170,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         <button type="button" onClick={() => useStudio.getState().redo()} disabled={!canRedo || readOnly}>{t("redo")}</button>
         <button type="button" disabled={readOnly} onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
         {editing && !readOnly && <ArchitectureMenu />}
+        {editing && !readOnly && <button type="button" onClick={() => useStudio.getState().setAiOpen(true)}>✦ {t("aiDesigner")}</button>}
         <DesignMenu />
         <select aria-label={t("quality")} value={quality} onChange={(e) => useStudio.getState().setQuality(e.target.value as typeof quality)}>
           <option value="auto">{t("quality")}: {t("auto")}</option>
@@ -181,6 +184,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       {editing && <PropertiesPanel />}
       {editing && <CatalogDrawer />}
       {editing && <KitchenPanel />}
+      {editing && <AiPanel />}
 
       {hasConcept && <p className="st-ui st-banner st-banner--concept">{t("conceptBanner")}</p>}
       {design?.mode === "shared-view" && <p className="st-ui st-banner">{t("sharedView")}</p>}

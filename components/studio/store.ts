@@ -65,6 +65,9 @@ interface StudioState {
   /** Transient preview of the proposal being drawn (never in the document). */
   ghost: { node: DesignNode; ok: boolean } | null;
   kitchenOpen: boolean;
+  aiOpen: boolean;
+  /** An AI proposal that is applied but not yet kept (Reject = one undo). */
+  aiPending: { summary: string; accepted: number; rejected: number; mode: string } | null;
   /** Floor planner camera (null until the first fit), the stage size in px, dimension overlay on/off. */
   plan: PlanView | null;
   viewport: Viewport;
@@ -84,6 +87,8 @@ interface StudioState {
   setTool(t: ArchTool | null): void;
   setGhost(g: { node: DesignNode; ok: boolean } | null): void;
   setKitchenOpen(open: boolean): void;
+  setAiOpen(open: boolean): void;
+  setAiPending(p: StudioState["aiPending"]): void;
   setPlan(p: PlanView | null): void;
   setPlanKind(kind: ViewKind): void;
   setViewport(v: Viewport): void;
@@ -127,7 +132,7 @@ export const useStudio = create<StudioState>((set, get) => {
   return {
     ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
-    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, tool: null, ghost: null, kitchenOpen: false, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
+    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, tool: null, ghost: null, kitchenOpen: false, aiOpen: false, aiPending: null, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
     catalogOpen: false, replaceFor: null, thumb: null,
 
     init({ baseline, ref, models, materials, mobile }) {
@@ -144,7 +149,7 @@ export const useStudio = create<StudioState>((set, get) => {
       try {
         history.do(cmd);
         sync();
-        set({ lastError: null });
+        set({ lastError: null, aiPending: null }); // any edit makes a pending AI proposal part of the design
         return true;
       } catch (e) {
         if (e instanceof CommandError) return fail(e.message);
@@ -181,6 +186,8 @@ export const useStudio = create<StudioState>((set, get) => {
     setTool: (tool) => set({ tool, ghost: null, ...(tool ? { selection: null, catalogOpen: false, kitchenOpen: false } : {}) }),
     setGhost: (ghost) => set({ ghost }),
     setKitchenOpen: (kitchenOpen) => set({ kitchenOpen, ...(kitchenOpen ? { tool: null, ghost: null, selection: null, catalogOpen: false } : {}) }),
+    setAiOpen: (aiOpen) => set({ aiOpen, ...(aiOpen ? { tool: null, ghost: null, kitchenOpen: false, selection: null, catalogOpen: false } : {}) }),
+    setAiPending: (aiPending) => set({ aiPending }),
     setMode: (mode) => set({ mode, ...(!isEditing(mode) ? { selection: null, drag: null, catalogOpen: false, replaceFor: null, tool: null, ghost: null, kitchenOpen: false } : {}) }),
     setQuality: (quality) => set({ quality, ...(quality !== "auto" ? { tier: quality } : {}) }),
     setTier: (tier) => { if (get().quality === "auto") set({ tier }); },

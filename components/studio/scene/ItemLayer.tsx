@@ -21,6 +21,7 @@ import { buildGenerated } from "./generated";
 import { applyMaterial } from "./materials";
 
 const CATALOG_BASE = "/studio/catalog";
+const ITEM_MIN_PROBE = 1.2;
 
 /** Per-room reflection probes as PMREM environments (same probes the shell uses). */
 function useRoomEnvs(base: string, data: WalkData) {
@@ -163,7 +164,7 @@ function ItemBody({ node, walk, data, envs, listeners, obj }: ItemProps & { obj:
   useEffect(() => {
     const apply = () => {
       const env = envs[room] ?? envs.living;
-      const k = (data.probes[room] ?? data.probes.living ?? 1) * EXPOSURE;
+      const k = Math.max(data.probes[room] ?? data.probes.living ?? 1, ITEM_MIN_PROBE) * EXPOSURE; // dim rooms keep a floor so pieces do not go muddy against the bright baked walls
       obj.traverse((o) => {
         const m = o as THREE.Mesh;
         if (!m.isMesh) return;

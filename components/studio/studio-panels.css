@@ -120,3 +120,6 @@
 .pl-concept { fill: rgba(232, 182, 94, .22); stroke: #e8b65e; stroke-width: 1.5; stroke-dasharray: 5 3; }
 .pl-concept-open { stroke: #e8b65e; stroke-width: 4; stroke-linecap: butt; stroke-dasharray: 6 4; }
 .pl-concept-tag { fill: #f2c45a; font-size: 11px; font-weight: 600; paint-order: stroke; stroke: rgba(10, 10, 12, .8); stroke-width: 3px; }
+
+/* AI designer (M10) */
+.st-ai-input { width: 100%; box-sizing: border-box; resize: vertical; border-radius: 10px; padding: 8px 10px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); color: inherit; font: inherit; margin-bottom: 8px; }

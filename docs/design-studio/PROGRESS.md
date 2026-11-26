@@ -17,7 +17,8 @@ Read this file first in every session; do not re-audit the repo.
 | M7 | DONE | floor planner: top + isometric orthographic views, dimensions, areas, door swings, wall clearances; see M7 summary |
 | M8 | DONE (visual calibration gap noted) | parametric generators: kitchen base/wall runs, wardrobe, shelving, bed; see M8 summary |
 | M9 | DONE | architecture proposals: partition + opening tools, protected structure, concept labelling, kitchen layouts; see M9 summary |
-| M10-M13 | pending | see MASTER_PLAN section 10 |
+| M10 | DONE in free dry-run mode; live Claude path written but NEVER called (needs owner approval) | AI designer: validated command batches, accept/reject, one undo; see M10 summary |
+| M11-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
 - Viewer: `components/walk/ApartmentWalk.tsx` (r3f, lightmaps lm-A/lm-B on uv1, `bakedOnly()` patch, custom Walker, collision vs walk.json boxes). Route `app/walk/[slug]`.
@@ -146,11 +147,22 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 
 **Status**: PAUSED by the owner; resume at `UNREAL.md` E2 only if the Ultra tier is still wanted. Quality without Unreal comes from assets, materials, light calibration, M12 path-traced stills and offline Blender (Cycles) renders. Everything UE-related lives outside git on the original machine except the scripts above (see `SETUP.md` section 4). Full detail: `UNREAL.md`, `MASTER_PLAN.md` section E.
 
+## M10 summary (2026-11-27) - AI designer (free dry-run) + bedroom lighting floor
+- **Contract**: the model never edits anything. It returns commands; `lib/studio/ai/validate.ts` (`sanitizeAiCommands`) parses each with the strict `CommandSchema`, allows only the public vocabulary (no `restoreBaseline`, no nested `batch`), replaces model-invented node ids with real ones (rewriting later references), applies commands one by one to a working copy and keeps a command only if the result passes placement / proposal validation. Caps: 60 commands, 40 new items. Unknown assets, illegal sizes, locked nodes, protected walls and out-of-room placements are dropped with a reason. The accepted commands come back as ONE batch.
+- **Free mode** (`lib/studio/ai/dryRun.ts`): a deterministic planner understanding Hebrew/English keywords (living room/sofa/סלון, bedroom/bed/חדר שינה, kitchen/מטבח) using the catalog, `findFreeSpot` and the kitchen planner. Costs nothing, same validation path as a model.
+- **Live mode** (`lib/studio/ai/anthropic.ts`): Claude tool use with ONE forced tool `propose_changes {summary, commands[]}`, compact retrieval context (rooms, openings, catalog with sizing/params/slots, current nodes). Active ONLY when `STUDIO_AI=live` and `ANTHROPIC_API_KEY` are set. It was never executed (paid). Model id `claude-sonnet-5-5`; system prompt in the file.
+- **API**: `POST /api/studio/ai {baselineId, doc, prompt}` (developer/admin + studio flag, 404 otherwise, rate limited 12/min, document re-validated with zod, baseline and catalog loaded server-side) -> `{mode, summary, batch, accepted, rejected[]}`. Nothing is saved by the route.
+- **UI**: "AI designer" button, prompt box, the batch is applied at once as one history step and stays pending: Keep, or Reject = one exact undo; any other edit makes it part of the design. he/en strings.
+- **Lighting**: dynamic items now use a probe-intensity floor (`ITEM_MIN_PROBE = 1.2` in `ItemLayer.tsx`) so bedroom/corridor pieces are no longer muddy. PARTIAL: they are brighter but still warm-brown against the grey walls (the bedroom probe is floor-dominated). Real fix = per-room probe colour/exposure calibration (M13).
+- **Verification**: 12 new tests (valid placement + id rewrite, unknown assets / bad sizes / malformed, validation failures incl. overlap and wall straddle, no wipe / no nesting, protected walls, caps, one-step undo on the real doc, dry-run in he+en, bedroom, kitchen, "does not understand", context content); 493 tests total; `scripts/studio/e2e-ai.mjs` passes en + he (route 404 without session, apply, Reject, Keep, one undo, clear message); design / plan / arch / generated suites still pass. Shot: `results/m10/`.
+- **Known gaps**: dry-run vocabulary is tiny; no conversation or refinement ("make it warmer"); no style retrieval beyond what the model reads in context; the walker may not be looking at the proposal (no auto-camera); no per-user spend limit (add before enabling live); live mode untested.
+- **Owner decision needed to go live**: approve API spend, set `STUDIO_AI=live` and `ANTHROPIC_API_KEY` on the server, add a daily cap per user.
+
 ## Next steps (updated 2026-11-26, after M9; branch `Work-Meytar` = `feature/design-studio`, head after commit `8d02139` + docs)
 Setup on another machine/user: `SETUP.md`. Overview and gaps: `README.md`. Rule of the house: one verified milestone per commit, tests + e2e + screenshots first.
 
 1. **Owner inputs needed (ask, do not guess)**: a DEV database URL (to test `PrismaDesignRepo` and the migration; run `node scripts/studio/assert-dev-db.mjs` first); R2 credentials only when activating R2; approval before any paid API (AI designer) or purchase.
-2. **M10 AI designer**: `/api/studio/ai`, Claude tool-use whose input is `CommandSchema` (public commands only, `isPublicCommand`), catalog retrieval by style/size, server-side validation with `validateDocument` / `validateProposals`, ghost preview + accept / reject / one-step undo (the batch inverse already exists), rate limit. Build a no-cost dry-run (canned responses) first; real calls need the owner's approval.
+2. (M10 done in free dry-run mode; remaining: live mode after approval, camera to the proposal, per-user cap) **M10 AI designer**: `/api/studio/ai`, Claude tool-use whose input is `CommandSchema` (public commands only, `isPublicCommand`), catalog retrieval by style/size, server-side validation with `validateDocument` / `validateProposals`, ghost preview + accept / reject / one-step undo (the batch inverse already exists), rate limit. Build a no-cost dry-run (canned responses) first; real calls need the owner's approval.
 3. **Lighting calibration for dynamic items outside the living room** (bedrooms/corridor items read dark vs bright baked walls; see M8 known gaps). Then re-check the QUALITY_GATES tone-match gate in every room.
 4. **M11 admin catalog** (`/admin/catalog`: import, review, publish, retire; grow 14 -> 30-50 models and 11 -> 50-100 materials; every asset gets a license row; move assets to the Storage driver / R2).
 5. **M12** path-traced still (`three-gpu-pathtracer`) + queued re-bake; **M13** hardening (perf budgets, LODs, KTX2, instancing, axe a11y, visual regression, rate limits on new routes, real-phone test, touch gestures).
