@@ -5,6 +5,8 @@ export const createOfferSchema = z.object({
   offeredPrice: z.number({ error: "offeredPrice must be a positive number" }).positive("offeredPrice must be a positive amount"),
   terms: z.string().optional(),
   unitId: z.string().min(1).optional(),
+  /** Attach the buyer's saved Design Studio design for this apartment (copied; stays private otherwise). */
+  attachDesign: z.boolean().optional(),
 });
 
 const offerActionEnum = z.enum(["accept", "reject", "counter"], {

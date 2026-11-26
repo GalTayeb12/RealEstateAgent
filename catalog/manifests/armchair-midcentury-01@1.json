@@ -1,0 +1,54 @@
+{
+  "type": "model",
+  "id": "armchair-midcentury-01",
+  "version": 1,
+  "name": {
+    "he": "כורסת מידסנצ'ורי",
+    "en": "Mid-century lounge chair"
+  },
+  "category": "armchair",
+  "styles": [
+    "contemporary",
+    "quiet-luxury"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "dims": {
+    "w": 1.009,
+    "d": 1.19,
+    "h": 1.169
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.6,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "armchair-midcentury-01/1/model.glb",
+    "preview": "armchair-midcentury-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/mid_century_lounge_chair",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-26"
+  }
+}

@@ -12,6 +12,7 @@ const args = process.argv.slice(2);
 const flag = (k, d) => (args.find((a) => a.startsWith(`--${k}=`)) ?? `--${k}=${d}`).split("=")[1];
 const base = flag("base", "http://localhost:3001");
 const only = flag("only", "");
+const wait = Number(flag("wait", 3500)); // ms to let the GLB and the probe environment load; raise it for large or new models
 const token = jwt.sign({ userId: "thumbs", email: "thumbs@example.test", role: "admin" }, process.env.JWT_SECRET ?? "studio-bench-dummy", { expiresIn: "1h" });
 const catalog = JSON.parse(fs.readFileSync("public/studio/catalog/index.json", "utf8"));
 
@@ -22,6 +23,7 @@ const page = await ctx.newPage();
 await page.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
 await page.addStyleTag({ content: ".st-ui, nextjs-portal { display: none !important } .st-loading { display: none !important }" });
+await page.waitForFunction(() => window.__studio.getState().design, null, { timeout: 30000 }).catch(() => {}); // the saved design loads asynchronously and would replace the thumbnail piece
 await page.waitForTimeout(4000);
 
 for (const m of catalog.models) {
@@ -42,7 +44,7 @@ for (const m of catalog.models) {
     });
     st.setThumb({ id });
   }, { m, id });
-  await page.waitForTimeout(3500); // GLB + probe environment
+  await page.waitForTimeout(wait); // GLB + probe environment
   const png = await page.screenshot();
   const out = path.join("public/studio/catalog", m.assets.preview);
   fs.mkdirSync(path.dirname(out), { recursive: true });

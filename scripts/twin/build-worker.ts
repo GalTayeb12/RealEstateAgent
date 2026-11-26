@@ -53,9 +53,9 @@ const storage = getStorage();
 const now = () => new Date().toISOString();
 
 /** Run build-walk.mjs; resolves with the exit code and the tail of its output. */
-function runBuildWalk(twinFile: string, slug: string, preview: boolean): Promise<{ code: number; tail: string }> {
+function runBuildWalk(twinFile: string, slug: string, preview: boolean, shellOnly = false): Promise<{ code: number; tail: string }> {
   return new Promise((resolve) => {
-    const args = ["scripts/twin/build-walk.mjs", twinFile, slug, ...(preview ? ["--preview"] : [])];
+    const args = ["scripts/twin/build-walk.mjs", twinFile, shellOnly ? `${slug}-shell` : slug, ...(shellOnly ? ["--shell-only"] : []), ...(preview ? ["--preview"] : [])];
     const child = spawn(process.execPath, args, { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
     let tail = "";
     const keep = (chunk: Buffer, out: NodeJS.WriteStream) => {
@@ -119,6 +119,41 @@ async function build(job: BuildJob, rec: { twin: unknown; unitType: { id: string
   writeFileSync(path.join(projDir, "experience.json"), JSON.stringify(experience, null, 2) + "\n");
   // Dana content for this apartment, derived from the verified twin
   writeFileSync(path.join(projDir, "tour.json"), JSON.stringify(modelFromTwin(twin), null, 2) + "\n");
+
+  // 5. the same apartment empty, for the Design Studio (the tour's studio button finds it as <slug>-shell).
+  //    Best effort: the tour is already published, so a failure here is logged and the studio button stays hidden.
+  try { await buildStudioShell(slug, twinFile, experience as unknown as ShellTour, job.preview || FORCE_PREVIEW); }
+  catch (e) { console.error(`  studio shell skipped: ${e instanceof Error ? e.message : e}`); }
+}
+
+type ShellTour = { title: { he: string; en: string }; walk: object } & Record<string, unknown>;
+
+async function buildStudioShell(slug: string, twinFile: string, tour: ShellTour, preview: boolean) {
+  const shell = `${slug}-shell`;
+  const shellDir = path.join(ROOT, "public", "walk", shell);
+  if (SIMULATE) {
+    const from = path.join(ROOT, "public", "walk", `${SIMULATE}-shell`);
+    if (!existsSync(path.join(from, "baseline.json"))) return console.log(`  (simulated: no ${SIMULATE}-shell to copy, studio shell skipped)`);
+    rmSync(shellDir, { recursive: true, force: true });
+    cpSync(from, shellDir, { recursive: true });
+  } else {
+    const { code, tail } = await runBuildWalk(twinFile, slug, preview, true);
+    if (code !== 0) throw new Error(`shell build exited with code ${code}: ${tail.slice(-300)}`);
+  }
+  if (!existsSync(path.join(shellDir, "baseline.json"))) throw new Error(`no baseline.json in public/walk/${shell}`);
+  const shellExp: Record<string, unknown> = {
+    ...tour, slug: shell, aliases: [],
+    title: { he: `סטודיו עיצוב — ${tour.title.he}`, en: `Design Studio — ${tour.title.en}` },
+    walk: { ...tour.walk, base: `/walk/${shell}` },
+  };
+  delete shellExp.studio;
+  const dir = path.join(ROOT, "public", "projects", shell);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(path.join(dir, "experience.json"), JSON.stringify(shellExp, null, 2) + "\n");
+  // the developer's starting design: a minimal automatic furnishing, replaceable later by a hand-made one
+  const seed = await new Promise<number>((resolve) => spawn("npx", ["tsx", "scripts/studio/make-seed.mts", shell], { cwd: ROOT, stdio: "inherit", shell: true }).on("close", (c) => resolve(c ?? 1)));
+  if (seed !== 0) console.error(`  seed design for ${shell} failed (the studio opens empty)`);
+  console.log(`  studio shell ready: /studio/${shell}`);
 }
 
 async function processQueued(): Promise<number> {

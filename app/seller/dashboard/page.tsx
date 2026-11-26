@@ -51,6 +51,7 @@ interface Offer {
   negotiationHistory: string;
   buyerSignature: string | null;
   developerSignature: string | null;
+  hasDesign?: boolean;
   createdAt: string;
   buyer: { email: string };
   unitType: { unitLabel: string; project: { name: string } };
@@ -642,6 +643,11 @@ export default function SellerDashboardPage() {
                         <div style={{ textAlign: "right" }}>
                           <div style={{ fontSize: "0.6875rem", color: "var(--qp-muted)", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 600 }}>{m.sellerDash.offeredPrice}</div>
                           <div style={{ fontFamily: "var(--font-heebo, monospace)", fontSize: "1.5rem", fontWeight: 600, color: "var(--qp-ink)" }}><Money amount={offer.offeredPrice} /><EstimatedPriceNote /></div>
+                          {offer.hasDesign && (
+                            <a href={`/studio/offer/${offer.id}`} target="_blank" rel="noopener" style={{ display: "inline-block", marginTop: "0.375rem", fontSize: "0.8125rem", fontWeight: 600, color: "var(--qp-ink)" }}>
+                              ✦ {m.sellerDash.buyerDesign}
+                            </a>
+                          )}
                           {offer.matchScore != null && (
                             <div style={{ fontSize: "0.75rem", color: "var(--qp-muted)", marginTop: "0.25rem" }}>
                               {m.sellerDash.matchScore} <strong style={{ color: "var(--qp-ink)" }}>{offer.matchScore.toFixed(1)}</strong>

@@ -1,0 +1,55 @@
+{
+  "type": "model",
+  "id": "vase-ceramic-03",
+  "version": 1,
+  "name": {
+    "he": "אגרטל קרמיקה גבוה",
+    "en": "Tall ceramic vase"
+  },
+  "category": "decor",
+  "styles": [
+    "organic-modern",
+    "japandi",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living",
+    "bedroom"
+  ],
+  "dims": {
+    "w": 0.112,
+    "d": 0.112,
+    "h": 0.414
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "surface",
+    "layer": "decor",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "vase-ceramic-03/1/model.glb",
+    "preview": "vase-ceramic-03/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/ceramic_vase_03",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-26"
+  }
+}

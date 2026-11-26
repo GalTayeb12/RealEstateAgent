@@ -7,6 +7,7 @@ Poly Haven API: unique User-Agent, visible "Powered by Poly Haven" credit if the
 | Asset id | Version | Source URL | Author | SPDX | Attribution | Retrieved |
 |---|---|---|---|---|---|---|
 | sofa-03, armchair-modern-01, coffee-table-modern-01, side-table-01 | 1 | https://polyhaven.com/models | Poly Haven contributors | CC0-1.0 | none required (credit appreciated) | 2026-11-25 |
+| armchair-midcentury-01 (mid_century_lounge_chair), coffee-wood-01 (modern_coffee_table_01), chair-dining-01 (dining_chair_02), vase-ceramic-03 (ceramic_vase_03) | 1 | https://polyhaven.com/a/<poly-haven-id> | Poly Haven contributors | CC0-1.0 | none required (credit appreciated) | 2026-11-26 |
 | WoodFloor062 -> parquet-oak-light | 1 | https://ambientcg.com/view?id=WoodFloor062 | ambientCG | CC0-1.0 | none required | 2026-11-25 |
 | Plaster001 -> plaster-limewash-soft | 1 | https://ambientcg.com/view?id=Plaster001 | ambientCG | CC0-1.0 | none required | 2026-11-25 |
 | Travertine009 -> travertine-cream | 1 | https://ambientcg.com/view?id=Travertine009 | ambientCG | CC0-1.0 | none required | 2026-11-25 |

@@ -30,22 +30,30 @@ const materials = index.materials.map((m) => MaterialManifest.parse(m));
 const catalog = catalogFrom(models, materials);
 const ref = { id: file.id, version: file.version, twinHash: file.baseline.twinHash };
 
-// each request is one room; the rooms an apartment does not have are simply dropped by the compiler
-const REQUESTS = [
-  "Furnish the living room",
-  "L-shaped kitchen",
-  "master bedroom with a bed and a wardrobe",
-  "bedroom 2 with a bed and a wardrobe",
-  "bedroom 3 as a home office with a desk and shelves reading corner",
-];
+// One request per room, chosen by the room's type, so it works for any plan: the first living room is furnished,
+// the first kitchen gets an L-shaped layout, master and bedrooms get a bed and a wardrobe, and the last plain bedroom
+// (when there are several) becomes a home office. The planner speaks Yarkon room ids, so its ids are swapped for this plan's.
+const rooms = Object.values(file.baseline.rooms) as { id: string; type: string; area?: number }[];
+const living = rooms.find((r) => r.type === "living");
+const kitchen = rooms.find((r) => r.type === "kitchen");
+const masters = rooms.filter((r) => r.type === "master");
+const plain = rooms.filter((r) => r.type === "bedroom").sort((x, y) => x.id.localeCompare(y.id));
+const office = plain.length >= 2 ? plain[plain.length - 1] : undefined;
+const sleeping = [...masters, ...plain.filter((r) => r !== office)];
+const REQUESTS: { text: string; room: string; from: string }[] = [];
+if (living) REQUESTS.push({ text: "Furnish the living room", room: living.id, from: "room:living" });
+if (kitchen) REQUESTS.push({ text: "L-shaped kitchen", room: kitchen.id, from: "room:kitchen" });
+for (const r of sleeping) REQUESTS.push({ text: "bedroom 2 with a bed and a wardrobe", room: r.id, from: "room:bed2" });
+if (office) REQUESTS.push({ text: "bedroom 3 as a home office with a desk and shelves reading corner", room: office.id, from: "room:bed3" });
 
 let n = 0;
 const newId = () => `seed-${++n}`;
 let doc = emptyDocument(ref, "Developer's design");
 for (const req of REQUESTS) {
-  const p = compilePlan(dryRunPlan(req), { doc, baseline: file.baseline, catalog, models, materials, newId });
+  const plan = JSON.parse(JSON.stringify(dryRunPlan(req.text)).split(JSON.stringify(req.from)).join(JSON.stringify(req.room)));
+  const p = compilePlan(plan, { doc, baseline: file.baseline, catalog, models, materials, newId });
   if (p.command) doc = apply(doc, p.command, { baseline: file.baseline, catalog }).doc;
-  console.log(`${req}: +${p.added.length} pieces${p.dropped.length ? `, dropped ${p.dropped.map((d) => `${d.reason}`).join(",")}` : ""}`);
+  console.log(`${req.room}: +${p.added.length} pieces${p.dropped.length ? `, dropped ${p.dropped.map((d) => `${d.reason}`).join(",")}` : ""}`);
 }
 const errors = [...errorsOf(validateDocument(doc, file.baseline, catalog)), ...errorsOf(validateProposals(doc, file.baseline, catalog))];
 if (errors.length) { console.error("seed has errors:", errors); process.exit(1); }

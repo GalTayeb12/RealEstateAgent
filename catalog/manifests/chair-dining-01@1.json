@@ -1,0 +1,54 @@
+{
+  "type": "model",
+  "id": "chair-dining-01",
+  "version": 1,
+  "name": {
+    "he": "כיסא אוכל",
+    "en": "Dining chair"
+  },
+  "category": "chair",
+  "styles": [
+    "contemporary",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living",
+    "kitchen"
+  ],
+  "dims": {
+    "w": 0.434,
+    "d": 0.576,
+    "h": 0.973
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.4,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "chair-dining-01/1/model.glb",
+    "preview": "chair-dining-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/dining_chair_02",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-26"
+  }
+}

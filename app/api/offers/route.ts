@@ -17,6 +17,8 @@ import { atomicAcceptOffer, OutOfStockError, UnitTakenError } from "@/lib/invent
 import { getRequestLocale } from "@/lib/i18n/request";
 import { appendBlock } from "@/lib/ledger";
 import { emailReservationConfirmed } from "@/lib/email";
+import { latestDesignFor } from "@/lib/studio/offerDesign";
+import { withDesignFlag } from "@/lib/studio/offerFlags";
 
 export async function GET(req: NextRequest) {
   const auth = extractToken(req.headers.get("Authorization"));
@@ -24,6 +26,7 @@ export async function GET(req: NextRequest) {
 
   const offers = await prisma.offer.findMany({
     where: { buyerId: auth.userId },
+    omit: { designSnapshot: true },
     include: {
       unitType: {
         select: {
@@ -36,7 +39,7 @@ export async function GET(req: NextRequest) {
     orderBy: { updatedAt: "desc" },
   });
 
-  return NextResponse.json({ offers });
+  return NextResponse.json({ offers: await withDesignFlag(offers) });
 }
 
 export async function POST(req: NextRequest) {
@@ -46,7 +49,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const parsed = createOfferSchema.safeParse(body);
   if (!parsed.success) return zodError(parsed.error);
-  const { unitTypeId, offeredPrice, terms = "", unitId } = parsed.data;
+  const { unitTypeId, offeredPrice, terms = "", unitId, attachDesign } = parsed.data;
 
   const unitType = await prisma.unitType.findUnique({
     where: { id: unitTypeId },
@@ -79,6 +82,12 @@ export async function POST(req: NextRequest) {
     select: { pfij: true },
   });
 
+  // The buyer's saved design is private; it is copied onto the offer only when they asked for that.
+  let designSnapshot: object | undefined;
+  if (attachDesign) {
+    try { designSnapshot = (await latestDesignFor(auth.userId, unitTypeId)) ?? undefined; } catch (e) { console.error("[offers] design attach skipped:", e); }
+  }
+
   // ── Developer-owned unit: instant-accept at listed price ────────────────────
   if (unitType.ownerType === "developer") {
     const pendingOffer = await prisma.offer.create({
@@ -90,6 +99,7 @@ export async function POST(req: NextRequest) {
         matchScore: matchResult?.pfij ?? null,
         terms: "",
         status: "pending",
+        ...(designSnapshot ? { designSnapshot } : {}),
       },
     });
 
@@ -153,6 +163,7 @@ export async function POST(req: NextRequest) {
       matchScore: matchResult?.pfij ?? null,
       terms,
       status: "pending",
+      ...(designSnapshot ? { designSnapshot } : {}),
     },
   });
 

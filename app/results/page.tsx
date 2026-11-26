@@ -530,6 +530,27 @@ function SendOfferPanel({
   const [offeredPrice, setOfferedPrice] = useState(detail.price > 0 ? String(detail.price) : "");
   const [terms, setTerms] = useState("");
   const [errMsg, setErrMsg] = useState("");
+  // a saved Design Studio design for this apartment, offered as an attachment (private unless ticked)
+  const [design, setDesign] = useState<{ name: string; pieces: number } | null>(null);
+  const [attach, setAttach] = useState(true);
+  useEffect(() => {
+    if (phase !== "open" || design) return;
+    let live = true;
+    fetch(`/api/offers/design?unitTypeId=${encodeURIComponent(outcome.aomId)}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (live && d?.available) setDesign({ name: d.name, pieces: d.pieces }); })
+      .catch(() => {});
+    return () => { live = false; };
+  }, [phase, design, outcome.aomId, token]);
+  const attachBox = design ? (
+    <label style={{ display: "flex", gap: "0.625rem", alignItems: "flex-start", fontSize: "0.875rem", cursor: "pointer" }}>
+      <input type="checkbox" checked={attach} onChange={(e) => setAttach(e.target.checked)} style={{ marginTop: 3 }} />
+      <span>
+        {m.results.attachDesign} <span style={{ color: "var(--c-muted,#526563)" }}>({design.name || "—"}, {design.pieces} {m.results.designPieces})</span>
+        <span style={{ display: "block", fontSize: "0.75rem", color: "var(--c-muted,#526563)", marginTop: 2 }}>{m.results.attachDesignNote}</span>
+      </span>
+    </label>
+  ) : null;
 
   async function submit() {
     setPhase("submitting");
@@ -550,6 +571,7 @@ function SendOfferPanel({
         body.terms = terms;
       }
 
+      if (design && attach) body.attachDesign = true;
       const res = await fetch("/api/offers", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -625,6 +647,7 @@ function SendOfferPanel({
               {m.results.fixed}
             </div>
           </div>
+          {attachBox}
           {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--c-err,#9E3434)", fontWeight: 500 }}>{errMsg}</p>}
           <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
             <button
@@ -683,6 +706,7 @@ function SendOfferPanel({
           />
         </div>
 
+        {attachBox}
         {errMsg && <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--c-err,#9E3434)", fontWeight: 500 }}>{errMsg}</p>}
 
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>

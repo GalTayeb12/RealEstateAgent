@@ -34,7 +34,7 @@ import "./studio-panels.css";
 
 type Boot = { data: WalkData; uvScales: Record<string, number> };
 
-export default function StudioApp({ experience, sharedToken }: { experience: ProjectExperience; sharedToken?: string }) {
+export default function StudioApp({ experience, sharedToken, offerId }: { experience: ProjectExperience; sharedToken?: string; offerId?: string }) {
   const { t, locale } = useT();
   const he = locale === "he";
   const { walk } = experience;
@@ -65,7 +65,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const hasConcept = useStudio((s) => !!s.doc && Object.values(s.doc.nodes).some((n) => n.kind === "partitionProposal" || n.kind === "openingProposal"));
   const design = useStudio((s) => s.design);
   const readOnly = design?.mode === "shared-view";
-  usePersistence({ baselineId: experience.slug, sharedToken });
+  usePersistence({ baselineId: experience.slug, sharedToken, offerId });
   const editing = isEditing(mode);
   usePlanGestures(wrap, mode === "plan");
 

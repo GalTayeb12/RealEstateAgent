@@ -29,9 +29,9 @@ export function loadRecord(rec: Rec, mode: DesignState["mode"], token?: string) 
 const SAVE_DELAY = 1500;
 const DRAFT_DELAY = 250;
 
-export function usePersistence(opts: { baselineId: string; sharedToken?: string }) {
+export function usePersistence(opts: { baselineId: string; sharedToken?: string; offerId?: string }) {
   const ready = useStudio((s) => s.ready);
-  const { baselineId, sharedToken } = opts;
+  const { baselineId, sharedToken, offerId } = opts;
 
   useEffect(() => {
     if (!ready) return;
@@ -80,6 +80,17 @@ export function usePersistence(opts: { baselineId: string; sharedToken?: string 
 
     (async () => {
       try {
+        if (offerId) {
+          // the design a buyer attached to an offer: a view-only copy, nothing is ever saved from here
+          const res = await fetch(`/api/offers/${encodeURIComponent(offerId)}/design`, { credentials: "same-origin" });
+          if (!res.ok) throw new ApiError(res.status, {});
+          const { snapshot } = (await res.json()) as { snapshot: { name: string; data: DesignDocument } };
+          if (cancelled) return;
+          const doc = migrateDocument(snapshot.data);
+          persistState.lastSaved = doc;
+          useStudio.getState().replaceDocument(doc, { id: "", name: snapshot.name, revision: 0, mode: "shared-view", status: "saved" });
+          return;
+        }
         if (sharedToken) {
           const { design, permission } = await sharedApi.get(sharedToken);
           if (cancelled) return;
@@ -117,7 +128,7 @@ export function usePersistence(opts: { baselineId: string; sharedToken?: string 
       window.removeEventListener("pagehide", onHide as () => void);
       window.removeEventListener("online", onOnline);
     };
-  }, [ready, baselineId, sharedToken]);
+  }, [ready, baselineId, sharedToken, offerId]);
 }
 
 /** Discards local changes and reloads the server's version (used after a conflict). */

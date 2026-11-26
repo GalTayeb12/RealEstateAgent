@@ -1,0 +1,53 @@
+{
+  "type": "model",
+  "id": "coffee-wood-01",
+  "version": 1,
+  "name": {
+    "he": "שולחן סלון עץ",
+    "en": "Wooden coffee table"
+  },
+  "category": "coffee-table",
+  "styles": [
+    "scandinavian",
+    "japandi"
+  ],
+  "rooms": [
+    "living"
+  ],
+  "dims": {
+    "w": 1.202,
+    "d": 0.6,
+    "h": 0.39
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.4,
+      "back": 0,
+      "sides": 0.3
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "coffee-wood-01/1/model.glb",
+    "preview": "coffee-wood-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "CC0-1.0",
+    "sourceUrl": "https://polyhaven.com/a/modern_coffee_table_01",
+    "author": "Poly Haven contributors",
+    "retrievedAt": "2026-11-26"
+  }
+}

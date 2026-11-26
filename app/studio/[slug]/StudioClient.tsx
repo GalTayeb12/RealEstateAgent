@@ -9,6 +9,6 @@ const StudioApp = dynamic(() => import("@/components/studio/StudioApp"), {
   loading: () => <div style={{ position: "fixed", inset: 0, background: "#0b0b0c" }} />,
 });
 
-export default function StudioClient({ experience, sharedToken }: { experience: ProjectExperience; sharedToken?: string }) {
-  return <StudioApp experience={experience} sharedToken={sharedToken} />;
+export default function StudioClient({ experience, sharedToken, offerId }: { experience: ProjectExperience; sharedToken?: string; offerId?: string }) {
+  return <StudioApp experience={experience} sharedToken={sharedToken} offerId={offerId} />;
 }
