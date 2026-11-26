@@ -153,7 +153,18 @@ async function buildStudioShell(slug: string, twinFile: string, tour: ShellTour,
   // the developer's starting design: a minimal automatic furnishing, replaceable later by a hand-made one
   const seed = await new Promise<number>((resolve) => spawn("npx", ["tsx", "scripts/studio/make-seed.mts", shell], { cwd: ROOT, stdio: "inherit", shell: true }).on("close", (c) => resolve(c ?? 1)));
   if (seed !== 0) console.error(`  seed design for ${shell} failed (the studio opens empty)`);
+  // light the live furniture like the baked shell: per room and direction from the bake (best effort; without it items use neutral light)
+  const light = await new Promise<number>((resolve) => spawn(process.execPath, ["scripts/studio/item-light.mjs", shell, ...referenceGlobal()], { cwd: ROOT, stdio: "inherit" }).on("close", (c) => resolve(c ?? 1)));
+  if (light !== 0) console.error(`  item-light calibration for ${shell} failed (live items use neutral light)`);
   console.log(`  studio shell ready: /studio/${shell}`);
+}
+
+/** The renderer-fitted global factor of the reference apartment (Yarkon): a sound default until a new apartment is fitted by hand. */
+function referenceGlobal(): string[] {
+  try {
+    const g = JSON.parse(readFileSync(path.join(ROOT, "public", "studio", "lighting", "yarkon-twin-shell.json"), "utf8")).global;
+    return typeof g === "number" ? [`--global=${g}`] : [];
+  } catch { return []; }
 }
 
 async function processQueued(): Promise<number> {
