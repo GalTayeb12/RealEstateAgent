@@ -24,7 +24,8 @@ Create `.env.local` (copy `.env.example`). For the studio:
 | `STUDIO_ENABLED=1` | the feature flag (`lib/studio/flags.ts`) | the route returns 404 without it |
 | `DATABASE_URL` | accounts and Prisma persistence | **use a DEV database or branch, never production**; run `node scripts/studio/assert-dev-db.mjs` before any `prisma migrate` |
 | `STORAGE_DRIVER` | asset/design storage | default `local` (writes `.storage/`); `r2` is built but inactive until `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` (+ optional `R2_PUBLIC_BASE_URL`) are set |
-| `ANTHROPIC_API_KEY` | M10 AI designer (not built yet) | paid: ask the owner before using |
+| `ANTHROPIC_API_KEY` | M10 AI designer, live mode only | paid: used only with `STUDIO_AI_PROVIDER=claude`; ask the owner before switching it on |
+| `STUDIO_AI_PROVIDER` / `STUDIO_AI_PER_MINUTE` | AI designer | default: free dry-run planner, 8 requests per user per minute |
 
 Access to `/studio/*` needs a session with role developer or admin (httpOnly `hq_session` cookie). Locally you can mint one: `jwt.sign({userId, email, role: "admin"}, JWT_SECRET)` (see any `scripts/studio/e2e-*.mjs`), or log in with a developer/admin account of the database you use. A browser that already holds a `hq_session` cookie must clear it first (JS cannot overwrite an httpOnly cookie).
 
@@ -74,7 +75,7 @@ Checks: `npx vitest run`, `npx tsc --noEmit -p .`, `npx eslint components/studio
 
 1. Clone, `git checkout Work-Meytar`, `npm install --legacy-peer-deps`, `npx prisma generate`.
 2. Copy `.env.example` to `.env.local`; set `JWT_SECRET` and `STUDIO_ENABLED=1` (leave `DATABASE_URL` empty to run the studio alone with the file store, or use a DEV database).
-3. `npx vitest run` should report 494 passing tests; `npx tsc --noEmit -p .` and `npx eslint components/studio lib/studio` should be clean.
+3. `npx vitest run` should report 517 passing tests; `npx tsc --noEmit -p .` and `npx eslint components/studio lib/studio` should be clean.
 4. `npx next dev -p 3001`, then `JWT_SECRET=<same> node scripts/studio/open-studio.mjs` opens Edge signed in as a local admin on `/studio/yarkon-twin-shell`.
 5. Run `node scripts/studio/e2e-design.mjs` (needs the dev server and Edge). Read `PROGRESS.md` "Next steps" and pick the next item.
 

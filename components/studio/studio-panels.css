@@ -120,3 +120,20 @@
 .pl-concept { fill: rgba(232, 182, 94, .22); stroke: #e8b65e; stroke-width: 1.5; stroke-dasharray: 5 3; }
 .pl-concept-open { stroke: #e8b65e; stroke-width: 4; stroke-linecap: butt; stroke-dasharray: 6 4; }
 .pl-concept-tag { fill: #f2c45a; font-size: 11px; font-weight: 600; paint-order: stroke; stroke: rgba(10, 10, 12, .8); stroke-width: 3px; }
+
+/* AI designer (M10) */
+.st-bar .st-ai-btn[aria-pressed="true"] { background: rgba(110, 150, 255, .28); border-color: rgba(140, 170, 255, .6); }
+.st-ai { width: 360px; }
+.st-ai__input {
+  width: 100%; box-sizing: border-box; resize: vertical; min-height: 64px; padding: 10px 12px; border-radius: 12px;
+  background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .18); color: inherit; font: inherit; font-size: 14px; line-height: 1.4;
+}
+.st-ai__input:focus { outline: 2px solid rgba(140, 170, 255, .7); outline-offset: 1px; }
+.st-ai .st-chip { text-align: start; white-space: normal; }
+.st-ai__go, .st-ai__accept { background: #e8b65e !important; color: #1b1407; border-color: transparent !important; font-weight: 600; }
+.st-ai__go:disabled { opacity: .5; cursor: default; }
+.st-ai__summary { font-size: 14px; line-height: 1.45; margin: 12px 0 8px; }
+.st-ai__changes { margin: 0; padding: 0; list-style: none; font-size: 13px; display: grid; gap: 4px; }
+.st-ai__note { font-size: 12px; opacity: .75; margin: 12px 0 0; }
+.st-ai__ok { align-self: center; font-size: 13px; color: #9fe0a8; }
+@media (max-width: 760px) { .st-ai { width: auto; } }

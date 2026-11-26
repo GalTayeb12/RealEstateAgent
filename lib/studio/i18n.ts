@@ -43,6 +43,16 @@ const en = {
   "cat.side-table": "Side tables", "cat.desk": "Desks", "cat.wardrobe": "Wardrobes", "cat.cabinet": "Cabinets", "cat.shelving": "Shelving", "cat.kitchen-cabinet": "Kitchen cabinets",
   "cat.countertop": "Countertops", "cat.tv-unit": "TV units", "cat.rug": "Rugs", "cat.lamp-floor": "Floor lamps", "cat.lamp-table": "Table lamps", "cat.lamp-pendant": "Pendants",
   "cat.lamp-wall": "Wall lights", "cat.plant": "Plants", "cat.decor": "Decor", "cat.mirror": "Mirrors", "cat.bathroom-fixture": "Bathroom", "cat.outdoor": "Outdoor",
+  "ai.open": "AI designer", "ai.title": "AI designer", "ai.dryRun": "Demo mode: no paid AI is called", "ai.live": "Live: Claude",
+  "ai.placeholder": "Describe what you want, e.g. \"furnish the living room\"", "ai.send": "Suggest", "ai.thinking": "Thinking…", "ai.try": "Try",
+  "ai.accept": "Accept", "ai.reject": "Reject", "ai.previewNote": "This is a preview (blue pieces). Nothing changes until you accept.",
+  "ai.applied": "Applied.", "ai.undo": "Undo it", "ai.again": "New request", "ai.skipped": "Left out", "ai.nothing": "No changes suggested.",
+  "ai.surfaces": "{n} surfaces get a new finish", "ai.failed": "The designer could not answer. Try again.", "ai.rateLimited": "Too many requests. Wait a minute and try again.",
+  "ai.invalid": "The suggestion did not fit this design.", "ai.outdated": "The design changed since this suggestion and it no longer fits. Ask again.",
+  "ai.err.refusal": "The model declined this request.", "ai.err.no-tool-call": "The model did not return a design.", "ai.err.bad-output": "The model returned something unusable.", "ai.err.truncated": "The answer was cut off.",
+  "ai.drop.unknown-asset": "A piece that is not in the catalog.", "ai.drop.unknown-material": "A material that is not in the catalog.", "ai.drop.unknown-room": "A room that does not exist.",
+  "ai.drop.unknown-target": "A piece that is not in the design.", "ai.drop.unknown-slot": "A part of a piece that cannot take a material.", "ai.drop.no-space": "A piece with no free space for it.",
+  "ai.drop.no-layout": "A kitchen layout that does not fit this room.", "ai.drop.bad-size": "A size that is not available.", "ai.drop.not-allowed": "A change that is not allowed.",
 } as const;
 
 export type StringKey = keyof typeof en;
@@ -85,6 +95,16 @@ const he: Record<StringKey, string> = {
   "cat.side-table": "שולחנות צד", "cat.desk": "שולחנות עבודה", "cat.wardrobe": "ארונות בגדים", "cat.cabinet": "ארונות", "cat.shelving": "מדפים", "cat.kitchen-cabinet": "ארונות מטבח",
   "cat.countertop": "משטחי עבודה", "cat.tv-unit": "מזנונים", "cat.rug": "שטיחים", "cat.lamp-floor": "מנורות רצפה", "cat.lamp-table": "מנורות שולחן", "cat.lamp-pendant": "מנורות תלויות",
   "cat.lamp-wall": "מנורות קיר", "cat.plant": "צמחים", "cat.decor": "קישוט", "cat.mirror": "מראות", "cat.bathroom-fixture": "אמבטיה", "cat.outdoor": "חוץ",
+  "ai.open": "מעצב AI", "ai.title": "מעצב AI", "ai.dryRun": "מצב הדגמה: לא נעשה שימוש ב-AI בתשלום", "ai.live": "חי: Claude",
+  "ai.placeholder": "תארו מה תרצו, למשל \"רהט את הסלון\"", "ai.send": "הצעה", "ai.thinking": "חושב…", "ai.try": "נסו",
+  "ai.accept": "אישור", "ai.reject": "דחייה", "ai.previewNote": "זו תצוגה מקדימה (הפריטים הכחולים). שום דבר לא משתנה עד שתאשרו.",
+  "ai.applied": "הוחל.", "ai.undo": "ביטול", "ai.again": "בקשה חדשה", "ai.skipped": "לא נכלל", "ai.nothing": "אין הצעה לשינוי.",
+  "ai.surfaces": "{n} משטחים מקבלים גימור חדש", "ai.failed": "המעצב לא הצליח לענות. נסו שוב.", "ai.rateLimited": "יותר מדי בקשות. המתינו דקה ונסו שוב.",
+  "ai.invalid": "ההצעה לא מתאימה לעיצוב הזה.", "ai.outdated": "העיצוב השתנה מאז ההצעה והיא כבר לא מתאימה. בקשו שוב.",
+  "ai.err.refusal": "המודל סירב לבקשה.", "ai.err.no-tool-call": "המודל לא החזיר עיצוב.", "ai.err.bad-output": "המודל החזיר תשובה לא שמישה.", "ai.err.truncated": "התשובה נקטעה.",
+  "ai.drop.unknown-asset": "פריט שלא קיים בקטלוג.", "ai.drop.unknown-material": "חומר שלא קיים בקטלוג.", "ai.drop.unknown-room": "חדר שלא קיים.",
+  "ai.drop.unknown-target": "פריט שלא קיים בעיצוב.", "ai.drop.unknown-slot": "חלק של פריט שלא מקבל חומר.", "ai.drop.no-space": "פריט שאין לו מקום פנוי.",
+  "ai.drop.no-layout": "תכנית מטבח שלא מתאימה לחדר.", "ai.drop.bad-size": "מידה שלא זמינה.", "ai.drop.not-allowed": "שינוי שאינו מותר.",
 };
 
 export const STRINGS: Record<Locale, Record<StringKey, string>> = { en, he };

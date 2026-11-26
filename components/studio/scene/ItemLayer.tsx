@@ -164,7 +164,30 @@ function assembleModules(scene: THREE.Object3D, sizing: Modular, ids: string[]) 
 type ItemProps = {
   node: ItemNode; walk: WalkConfig; data: WalkData;
   envs: Record<string, THREE.Texture>; listeners: Set<() => void>; cal: ItemLight | null;
+  /** Part of an AI proposal under review: drawn translucent and tinted, not selectable. */
+  ghost?: boolean;
 };
+
+/** Translucent blue-tinted look for proposal ghosts; returns a function that restores the materials. */
+function ghostify(obj: THREE.Object3D): () => void {
+  const saved: [THREE.MeshStandardMaterial, { t: boolean; o: number; dw: boolean; e: THREE.Color; ei: number }][] = [];
+  obj.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh) return;
+    const mat = m.material as THREE.MeshStandardMaterial;
+    if (saved.some(([s]) => s === mat)) return;
+    saved.push([mat, { t: mat.transparent, o: mat.opacity, dw: mat.depthWrite, e: mat.emissive.clone(), ei: mat.emissiveIntensity }]);
+    mat.transparent = true; mat.opacity = 0.62; mat.depthWrite = false;
+    mat.emissive.set("#3d6bd6"); mat.emissiveIntensity = 0.35;
+    mat.needsUpdate = true;
+  });
+  return () => {
+    for (const [mat, s] of saved) {
+      mat.transparent = s.t; mat.opacity = s.o; mat.depthWrite = s.dw; mat.emissive.copy(s.e); mat.emissiveIntensity = s.ei;
+      mat.needsUpdate = true;
+    }
+  };
+}
 
 /** Item backed by a GLB (fixed, variant or modular). */
 function GlbItem(props: ItemProps) {
@@ -196,7 +219,7 @@ function Item(props: ItemProps) {
   return manifest.assets.glb ? <GlbItem {...props} /> : <GeneratedItem {...props} />;
 }
 
-function ItemBody({ node, walk, data, envs, listeners, cal, obj }: ItemProps & { obj: THREE.Object3D }) {
+function ItemBody({ node, walk, data, envs, listeners, cal, ghost, obj }: ItemProps & { obj: THREE.Object3D }) {
   const catalog = useStudio((s) => s.catalog)!;
   const showDecal = useStudio((s) => s.lighting.ao);
   const manifest = catalog.model(node.catalog)!;
@@ -240,10 +263,13 @@ function ItemBody({ node, walk, data, envs, listeners, cal, obj }: ItemProps & {
     return () => { listeners.delete(apply); };
   }, [obj, room, envs, listeners, data.probes, cal]);
 
-  const decal = showDecal && manifest.placement.layer === "furniture";
+  // AI proposal ghost (after the slot materials, so a slot change re-applies it)
+  useEffect(() => (ghost ? ghostify(obj) : undefined), [obj, ghost, node.slots]);
+
+  const decal = showDecal && !ghost && manifest.placement.layer === "furniture";
   return (
-    <group position={[t.x, t.z + manifest.placement.elevation, -t.y]} rotation={[0, t.rot, 0]} name={`item:${node.id}`} userData={{ itemId: node.id }}
-      onPointerDown={(e) => design?.onItemDown(node.id, e)}
+    <group position={[t.x, t.z + manifest.placement.elevation, -t.y]} rotation={[0, t.rot, 0]} name={`item:${node.id}`} userData={{ itemId: node.id, ghost: !!ghost }}
+      onPointerDown={(e) => { if (!ghost) design?.onItemDown(node.id, e); }}
       onClick={(e) => { if (design) e.stopPropagation(); }}>
       <primitive object={obj} />
       {decal && (
@@ -257,7 +283,11 @@ function ItemBody({ node, walk, data, envs, listeners, cal, obj }: ItemProps & {
 }
 
 export function ItemLayer({ walk, data }: { walk: WalkConfig; data: WalkData }) {
-  const nodes = useStudio((s) => s.doc?.nodes);
+  // while an AI proposal is under review the scene shows its preview document; new or changed pieces are ghosts
+  const ai = useStudio((s) => s.ai);
+  const docNodes = useStudio((s) => s.doc?.nodes);
+  const nodes = ai?.preview?.nodes ?? docNodes;
+  const ghosts = useMemo(() => new Set(ai?.preview ? [...(ai.response?.added ?? []), ...(ai.response?.changed ?? [])] : []), [ai]);
   const catalog = useStudio((s) => s.catalog);
   const cal = useItemLight(walk.base);
   const { envs, listeners } = useRoomEnvs(walk.base, data, cal);
@@ -269,7 +299,7 @@ export function ItemLayer({ walk, data }: { walk: WalkConfig; data: WalkData }) 
     <>
       {items.map((n) => (
         <Suspense key={n.id} fallback={null}>
-          <Item node={n} walk={walk} data={data} envs={envs} listeners={listeners} cal={cal} />
+          <Item node={n} walk={walk} data={data} envs={envs} listeners={listeners} cal={cal} ghost={ghosts.has(n.id)} />
         </Suspense>
       ))}
     </>

@@ -44,9 +44,11 @@ Stack: Next 16 (App Router, `proxy.ts`), React 19 (+ React Compiler lint rules),
 | M7 | Floor planner | Done. Top + true isometric views, dimensions to the cm, areas, door swings, clearances, wheel / pinch zoom, pan, cutaway |
 | M8 | Parametric systems | Done. Generators: kitchen base run (doors, drawers, handles, countertop), wall units, wardrobe, open shelving, upholstered bed; publish gates (size within 1 cm, bevels, 3 mm gaps, handle per front) |
 | M9 | Architecture proposals | Done. Partition + opening tools, protected structure, unverified labelling, kitchen layouts (single / galley / L / U) as one undoable batch |
+| Item light | Calibration | Live items lit per room and direction from the bake; held-out walls 79-111 % of the wall's luminance (was 23-56 %); warm cast on bedroom side walls remains |
+| M10 | AI designer | Done in dry-run (free). `/api/studio/ai`: plan of small actions compiled server-side into one validated batch; ghost preview, accept / reject / one-step undo, per-user rate limit, he/en. Live Claude path written but never called (needs owner approval) |
 | Unreal E0-E2 | Evaluation | Partial. UE 5.8.4 verified, GLB import works via a cooked variant; first GPU render black (unresolved); paused by the owner, work returned to Three.js |
 
-Tests at the last commit: **494 vitest tests**, eslint + tsc clean, e2e suites passing (`e2e-design` desktop/mobile/he, `e2e-plan`, `e2e-generated`, `e2e-arch` en/he, `e2e-api`, `e2e-persist`).
+Tests at the last commit: **517 vitest tests**, eslint + tsc clean, e2e suites passing (`e2e-ai` desktop/he/mobile, `e2e-design` desktop/mobile/he, `e2e-plan`, `e2e-generated`, `e2e-arch` en/he, `e2e-api`, `e2e-persist`).
 
 Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9).
 
@@ -55,7 +57,7 @@ Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9
 ## 3. What is missing (honest list)
 
 **Planned milestones not started**
-- **M10 AI designer**: `/api/studio/ai` using Claude tool-use whose tool input is the Command schema, catalog retrieval by style and size, server-side validation, ghost preview / accept / reject / one-step undo, rate limits. No paid calls without approval. The command vocabulary is ready (`setProposal`, batches, strict zod schemas).
+- **M10 live model**: the Claude provider exists (`lib/studio/ai/claude.ts`, `STUDIO_AI_PROVIDER=claude`) but has never been called; evaluating it costs money and needs the owner's approval. The dry-run planner is a test double that only understands the sample requests.
 - **M11 Admin catalog**: `/admin/catalog` import / review / publish / retire; growth from 14 to 30-50 models and 50-100 materials; per-asset license checks for new sources (Poly Haven, ambientCG, Sketchfab CC0/CC-BY, etc.); move assets to the Storage driver / R2.
 - **M12 Path-traced still** (`three-gpu-pathtracer`) and optional queued re-bake of a saved design.
 - **M13 Hardening**: performance budgets, LODs, KTX2, instancing, a11y (axe), visual regression set, rate limits on new routes, real-device mobile test, richer touch gestures.
@@ -108,13 +110,14 @@ $env:JWT_SECRET="studio-bench-dummy"; $env:STUDIO_ENABLED="1"; npx next dev -p 3
 Open `/studio/yarkon-twin-shell`. The route needs a developer/admin session (httpOnly `hq_session` cookie); the e2e scripts mint one with the same secret. Add `?debug` to expose `window.__studio` for tests.
 
 ```powershell
-npx vitest run                                   # 494 unit tests
+npx vitest run                                   # 517 unit tests
 npx tsc --noEmit -p . ; npx eslint components/studio lib/studio
 node scripts/studio/e2e-design.mjs               # also --mobile, --lang=he
 node scripts/studio/e2e-plan.mjs                 # floor planner
 node scripts/studio/e2e-generated.mjs            # parametric items: rendered size == resolved size
 node scripts/studio/e2e-arch.mjs                 # proposals + kitchen layouts
 node scripts/studio/e2e-api.mjs ; node scripts/studio/e2e-persist.mjs
+node scripts/studio/e2e-ai.mjs                   # AI designer, dry-run (also --lang=he, --mobile)
 npx tsx scripts/studio/ingest/publish.mts        # validate manifests + publish catalog index (gates)
 node scripts/studio/thumbs.mjs --only=<id>       # catalog thumbnails through the real studio
 node scripts/studio/light-tone.mjs [--neutral]   # item vs baked-wall tone match per room (sets A + B)
@@ -159,7 +162,7 @@ lib/__tests__/studio-*.test.ts
 ## 7. Next steps (exact)
 
 1. Provide a **dev database URL** (not production) to test the Prisma repo and migration.
-2. M10 AI designer (design the tool schema from `CommandSchema`; start with a dry-run mode that costs nothing).
+2. M10 live model: with the owner's approval, switch `STUDIO_AI_PROVIDER=claude` and measure the sample prompts (cost, dropped actions).
 3. Finish the item tone match (warm cast on bedroom side walls, flatter item contrast; PROGRESS "Item lighting calibration"), then M11 catalog growth and admin.
 4. M12 / M13, then resume Unreal E2 (black render) only if the owner still wants the Ultra tier.
 5. Re-check Epic licensing and test on a real phone.

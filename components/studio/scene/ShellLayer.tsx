@@ -66,7 +66,8 @@ export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false 
   walk: WalkConfig; data: WalkData; mobile: boolean; tier: Tier; uvScales: Record<string, number>; hidden?: boolean;
 }) {
   const { scene } = useGLTF(`${walk.base}/apartment.glb`, false, true);
-  const overrides = useStudio((s) => s.doc?.overrides);
+  // an AI proposal under review previews its finishes (the document itself is unchanged until Accept)
+  const overrides = useStudio((s) => (s.ai?.preview ?? s.doc)?.overrides);
   const catalog = useStudio((s) => s.catalog);
   const lighting = useStudio((s) => s.lighting);
   const shadows = tier !== "low";

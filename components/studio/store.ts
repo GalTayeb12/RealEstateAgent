@@ -19,9 +19,34 @@ import { catalogFrom, type CatalogLookup, type MaterialManifest, type ModelManif
 import { emptyDocument, type BaselineRef, type DesignDocument } from "@/lib/studio/schema/document";
 import { newNodeId } from "@/lib/studio/schema/ids";
 import type { ItemLight } from "@/lib/studio/lighting";
+import { validateProposals } from "@/lib/studio/validation/architecture";
+import { errorsOf, validateDocument } from "@/lib/studio/validation/placement";
 import type { DesignNode, ItemNode } from "@/lib/studio/schema/nodes";
 
 export type Mode = "walk" | "design" | "plan";
+
+/** What /api/studio/ai returns (lib/studio/ai/compile.ts `Proposal` + the provider used). */
+export type AiResponse = {
+  provider: "dryrun" | "claude";
+  summary: string;
+  command: Command | null;
+  accepted: number[];
+  dropped: { index: number; op: string; reason: string; detail?: string }[];
+  added: string[]; changed: string[]; removed: string[]; surfaces: string[];
+  advisories: { code: string; nodeId: string; message: string }[];
+  error?: string;
+};
+export type AiState = {
+  status: "loading" | "ready" | "applied" | "error";
+  prompt: string;
+  response?: AiResponse;
+  /** The design with the proposal applied (what the ghost preview shows). */
+  preview?: DesignDocument;
+  /** The design the proposal was computed for. */
+  base?: DesignDocument;
+  /** i18n key or message. */
+  error?: string;
+};
 /** Active drawing tool for architectural proposals (partition: first point once placed; opening: pick a wall). */
 export type ArchTool = { kind: "partition"; a: [number, number] | null } | { kind: "opening" };
 /** Design and Plan both edit the document (same selection, drag, panels); Walk only looks. */
@@ -104,6 +129,15 @@ interface StudioState {
   setCatalogOpen(open: boolean, replaceFor?: string | null): void;
   setThumb(t: { id: string } | null): void;
   clearError(): void;
+  /** AI designer (M10): request state, the server's proposal and its ghost preview document. */
+  ai: AiState | null;
+  aiOpen: boolean;
+  setAiOpen(open: boolean): void;
+  /** Sends the prompt and the current design to /api/studio/ai; the result is previewed, never applied. */
+  askAi(slug: string, prompt: string, lang: "he" | "en"): Promise<void>;
+  /** Applies the previewed proposal as ONE command (one undo step). */
+  acceptAi(): boolean;
+  rejectAi(): void;
   // high-level actions used by buttons, keys and touch
   addFromCatalog(m: ModelManifest): boolean;
   replaceSelected(m: ModelManifest): boolean;
@@ -132,7 +166,52 @@ export const useStudio = create<StudioState>((set, get) => {
     ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING, itemLight: null,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
     canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, tool: null, ghost: null, kitchenOpen: false, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
-    catalogOpen: false, replaceFor: null, thumb: null,
+    catalogOpen: false, replaceFor: null, thumb: null, ai: null, aiOpen: false,
+
+    setAiOpen: (aiOpen) => set({ aiOpen, ...(aiOpen ? { catalogOpen: false, kitchenOpen: false, tool: null, ghost: null, selection: null } : { ai: get().ai?.status === "loading" ? get().ai : null }) }),
+    async askAi(slug, prompt, lang) {
+      const { doc, baseline, catalog } = get();
+      if (!doc || !baseline || !catalog) return;
+      set({ ai: { status: "loading", prompt } });
+      try {
+        const r = await fetch("/api/studio/ai", {
+          method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ slug, prompt, lang, doc }),
+        });
+        if (get().ai?.prompt !== prompt) return; // superseded or closed
+        if (r.status === 429) { set({ ai: { status: "error", prompt, error: "ai.rateLimited" } }); return; }
+        if (!r.ok) { set({ ai: { status: "error", prompt, error: "ai.failed" } }); return; }
+        const response = (await r.json()) as AiResponse;
+        let preview: DesignDocument | undefined;
+        if (response.command) {
+          // the client re-applies the batch through its own engine before showing anything
+          try { preview = apply(doc, response.command, { baseline, catalog }).doc; }
+          catch { set({ ai: { status: "error", prompt, error: "ai.invalid" } }); return; }
+        }
+        set({ ai: { status: "ready", prompt, response, preview, base: doc } });
+      } catch {
+        if (get().ai?.prompt === prompt) set({ ai: { status: "error", prompt, error: "ai.failed" } });
+      }
+    },
+    acceptAi() {
+      const ai = get().ai;
+      const cmd = ai?.response?.command;
+      if (!ai || ai.status !== "ready" || !cmd) return false;
+      // the design may have changed since the request: re-check placement on the CURRENT design
+      const { doc, baseline, catalog } = get();
+      if (doc && baseline && catalog && doc !== ai.base) {
+        const errs = (d: DesignDocument) => [...errorsOf(validateDocument(d, baseline, catalog)), ...errorsOf(validateProposals(d, baseline, catalog))]
+          .map((i) => `${i.code}|${i.nodeId}|${i.otherId ?? ""}`);
+        try {
+          const before = new Set(errs(doc));
+          if (errs(apply(doc, cmd, { baseline, catalog }).doc).some((k) => !before.has(k))) return fail("ai.outdated");
+        } catch { return fail("ai.outdated"); }
+      }
+      if (!get().dispatch(cmd)) return false;
+      set({ ai: { ...ai, status: "applied", preview: undefined } });
+      return true;
+    },
+    rejectAi: () => set({ ai: null }),
 
     init({ baseline, ref, models, materials, mobile }) {
       const catalog = catalogFrom(models, materials);
