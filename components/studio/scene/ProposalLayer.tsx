@@ -74,10 +74,10 @@ export function ProposalLayer() {
     n.kind === "partitionProposal" ? <Partition key={key} n={n} height={baseline.wallHeight} color={color} planning={planning} onPick={onPick} />
     : n.kind === "openingProposal" ? <Opening key={key} n={n} color={color} look={look} planning={planning} onPick={onPick} /> : null;
   return (
-    <>
+    <group userData={{ stillHidden: true }}>
       {list.map((n) => render(n, n.id === selection ? WHITE : AMBER, { color: AMBER, opacity: n.id === selection ? 0.5 : 0.3 }, n.id, pick(n.id)))}
       {ghost && render(ghost.node, ghost.ok ? GREEN : RED, { color: ghost.ok ? GREEN : RED, opacity: 0.35 }, "ghost")}
-    </>
+    </group>
   );
 }
 

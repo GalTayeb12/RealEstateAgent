@@ -46,6 +46,7 @@ Stack: Next 16 (App Router, `proxy.ts`), React 19 (+ React Compiler lint rules),
 | M9 | Architecture proposals | Done. Partition + opening tools, protected structure, unverified labelling, kitchen layouts (single / galley / L / U) as one undoable batch |
 | Item light | Calibration | Live items lit per room and direction from the bake; held-out walls 79-111 % of the wall's luminance (was 23-56 %); warm cast on bedroom side walls remains |
 | M11 | Admin catalog + growth | Catalog 14 -> 25 models (11 original parametric pieces: tables, desk, bench, sideboard, TV unit, nightstand, chest, cabinet, wall shelf) and 11 -> 50 materials (original flat finishes). `/admin/catalog`: import drafts with files, shared publish gates, publish / retire, every change a numbered release (history kept), retired items hidden but still rendered in existing designs; the studio loads the latest release |
+| M12 | Path-traced still | "Render still" in Walk mode: progressive path-traced PNG of the current view (`three-gpu-pathtracer`), draft / standard / fine. Standard (128 spl, 1600 px) takes 50 s on this laptop's RTX GPU with the Vulkan ANGLE backend; the default Direct3D11 backend is roughly 10x slower (labelled, smoothed). The queued Blender re-bake is not built. |
 | M10 | AI designer | Done in dry-run (free). `/api/studio/ai`: plan of small actions compiled server-side into one validated batch; ghost preview, accept / reject / one-step undo, per-user rate limit, he/en. Live Claude path written but never called (needs owner approval) |
 | Unreal E0-E2 | Evaluation | Partial. UE 5.8.4 verified, GLB import works via a cooked variant; first GPU render black (unresolved); paused by the owner, work returned to Three.js |
 
@@ -60,7 +61,7 @@ Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9
 **Planned milestones not started**
 - **M10 live model**: the Claude provider exists (`lib/studio/ai/claude.ts`, `STUDIO_AI_PROVIDER=claude`) but has never been called; evaluating it costs money and needs the owner's approval. The dry-run planner is a test double that only understands the sample requests.
 - **Catalog beyond 25 models**: chairs, soft seating, lamps, decor and textured materials need modelled or scanned assets; downloading CC0 / CC-BY assets needs the owner's approval.
-- **M12 Path-traced still** (`three-gpu-pathtracer`) and optional queued re-bake of a saved design.
+- **M12 queued re-bake** of a saved design (the path-traced still itself is done, see PROGRESS M12).
 - **M13 Hardening**: performance budgets, LODs, KTX2, instancing, a11y (axe), visual regression set, rate limits on new routes, real-device mobile test, richer touch gestures.
 - **Unreal E2-E6**: fix the black render, Pixel Streaming locally, bridge, measurements against pre-registered gates, decision record (Ultra tier optional; Three.js stays the default).
 
@@ -166,5 +167,5 @@ lib/__tests__/studio-*.test.ts
 1. Decide how to add the main app's missing migrations (SellerProfile + 4 columns; see PROGRESS "Live database").
 2. M10 live model: with the owner's approval, switch `STUDIO_AI_PROVIDER=claude` and measure the sample prompts (cost, dropped actions).
 3. Finish the item tone match (warm cast on bedroom side walls, flatter item contrast; PROGRESS "Item lighting calibration"), then M11 catalog growth and admin.
-4. M12 / M13, then resume Unreal E2 (black render) only if the owner still wants the Ultra tier.
+4. M13 (and optionally the M12 re-bake), then resume Unreal E2 (black render) only if the owner still wants the Ultra tier.
 5. Re-check Epic licensing and test on a real phone.

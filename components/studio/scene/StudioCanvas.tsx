@@ -24,6 +24,7 @@ import { ShellLayer } from "./ShellLayer";
 import { ArchTool } from "./ArchTool";
 import { DesignProvider, SelectionBox } from "./DesignInteraction";
 import { ProposalLayer } from "./ProposalLayer";
+import { StillRender } from "./StillRender";
 
 /**
  * The bake's sun (twin_build.py: Euler XYZ 55°, 0, -35°) travels along
@@ -113,9 +114,12 @@ function ToneMappingSync({ composer }: { composer: boolean }) {
 }
 
 function Tiering() {
+  const stilling = useStudio((s) => s.still.status === "preparing" || s.still.status === "rendering" || s.still.status === "cancelled");
   const quality = useStudio((s) => s.quality);
   const tier = useStudio((s) => s.tier);
   const setTier = useStudio((s) => s.setTier);
+  // while a still renders the frame rate says nothing about the live view, so it must not step the tier down
+  if (stilling) return null;
   return (
     <PerformanceMonitor
       flipflops={3}
@@ -134,7 +138,9 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
   const thumb = useStudio((s) => s.thumb);
   const mode = useStudio((s) => s.mode);
   const planning = mode === "plan";
-  const composer = !mobile && tier === "high" && !planning;
+  const stilling = useStudio((s) => s.still.status === "preparing" || s.still.status === "rendering" || s.still.status === "cancelled");
+  // "cancelled" counts too: the still restores the canvas size before the composer may read it again
+  const composer = !mobile && tier === "high" && !planning && !stilling;
   const dpr: [number, number] = tier === "low" ? [1, 1] : tier === "medium" ? [1, 1.5] : [1, 2];
   return (
     <Canvas
@@ -155,6 +161,7 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
         <SelectionBox />
         <ProposalLayer />
         <ArchTool />
+        <StillRender />
       </DesignProvider>
       <Sun tier={tier} />
       {thumb ? <ThumbCamera id={thumb.id} /> : planning ? <PlanRig /> : <Walker walk={walk} data={data} input={input} reduce={reduce} onRoom={onRoom} onPose={onPose} />}

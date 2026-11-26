@@ -18,6 +18,7 @@ import type { PlanView, ViewKind, Viewport } from "@/lib/studio/plan/view";
 import { catalogFrom, type CatalogLookup, type MaterialManifest, type ModelManifest } from "@/lib/studio/schema/catalog";
 import { emptyDocument, type BaselineRef, type DesignDocument } from "@/lib/studio/schema/document";
 import { newNodeId } from "@/lib/studio/schema/ids";
+import { idleStill, STILL_PRESETS, type StillPreset, type StillState } from "@/lib/studio/render/still";
 import type { ItemLight } from "@/lib/studio/lighting";
 import { browsable } from "@/lib/studio/catalog/keys";
 import { validateProposals } from "@/lib/studio/validation/architecture";
@@ -134,6 +135,13 @@ interface StudioState {
   /** AI designer (M10): request state, the server's proposal and its ghost preview document. */
   ai: AiState | null;
   aiOpen: boolean;
+  /** Path-traced still (M12). The renderer component reads this and does the work. */
+  still: StillState;
+  /** Starts a still of the current view (walk mode only); the renderer picks it up from "preparing". */
+  startStill(preset: StillPreset): void;
+  patchStill(p: Partial<StillState>): void;
+  /** Stops a running render (keeps nothing) or closes a finished one. */
+  closeStill(): void;
   setAiOpen(open: boolean): void;
   /** Sends the prompt and the current design to /api/studio/ai; the result is previewed, never applied. */
   askAi(slug: string, prompt: string, lang: "he" | "en"): Promise<void>;
@@ -168,7 +176,21 @@ export const useStudio = create<StudioState>((set, get) => {
     ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING, itemLight: null,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
     canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, tool: null, ghost: null, kitchenOpen: false, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
-    catalogOpen: false, replaceFor: null, thumb: null, ai: null, aiOpen: false,
+    catalogOpen: false, replaceFor: null, thumb: null, ai: null, aiOpen: false, still: idleStill(),
+
+    startStill(preset) {
+      const s = get().still;
+      if (get().mode !== "walk" || s.status === "preparing" || s.status === "rendering") return;
+      if (s.url) URL.revokeObjectURL(s.url);
+      set({ still: { ...idleStill(preset), status: "preparing", target: STILL_PRESETS[preset].samples, startedAt: Date.now() }, selection: null, drag: null, tool: null, ghost: null });
+    },
+    patchStill: (p) => set({ still: { ...get().still, ...p } }),
+    closeStill() {
+      const s = get().still;
+      if (s.status === "preparing" || s.status === "rendering") { set({ still: { ...s, status: "cancelled" } }); return; }
+      if (s.url) URL.revokeObjectURL(s.url);
+      set({ still: idleStill(s.preset) });
+    },
 
     setAiOpen: (aiOpen) => set({ aiOpen, ...(aiOpen ? { catalogOpen: false, kitchenOpen: false, tool: null, ghost: null, selection: null } : { ai: get().ai?.status === "loading" ? get().ai : null }) }),
     async askAi(slug, prompt, lang) {

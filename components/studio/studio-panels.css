@@ -137,3 +137,18 @@
 .st-ai__note { font-size: 12px; opacity: .75; margin: 12px 0 0; }
 .st-ai__ok { align-self: center; font-size: 13px; color: #9fe0a8; }
 @media (max-width: 760px) { .st-ai { width: auto; } }
+
+/* M12: path-traced still */
+.st-still-ctl { display: inline-flex; gap: 6px; align-items: center; }
+.st-bar .st-still-btn { background: rgba(232, 182, 94, .22); border-color: rgba(232, 182, 94, .55); }
+.st-still { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(8, 8, 10, .72); backdrop-filter: blur(6px); padding: 16px; }
+.st-still__card { width: min(920px, 100%); max-height: 100%; overflow: auto; background: rgba(24, 24, 27, .92); border: 1px solid rgba(255, 255, 255, .16); border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; color: #f4efe6; }
+.st-still__card h2 { margin: 0; font-size: 17px; }
+.st-still__card p { margin: 0; font-size: 14px; }
+.st-still__note { font-size: 12px; opacity: .75; }
+.st-still__bar { height: 6px; border-radius: 6px; background: rgba(255, 255, 255, .14); overflow: hidden; }
+.st-still__bar span { display: block; height: 100%; background: #e8b65e; transition: width .3s ease; }
+.st-still__img { width: 100%; height: auto; border-radius: 10px; display: block; background: #111; }
+.st-still__row { display: flex; gap: 8px; flex-wrap: wrap; }
+.st-still__row button, .st-still__dl { background: rgba(255, 255, 255, .1); color: inherit; border: 1px solid rgba(255, 255, 255, .2); border-radius: 999px; padding: 8px 16px; font-size: 13px; cursor: pointer; text-decoration: none; }
+.st-still__row .st-primary { background: #e8b65e; color: #1b1407; border-color: transparent; font-weight: 600; }

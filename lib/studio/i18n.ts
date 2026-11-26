@@ -64,6 +64,12 @@ const en = {
   "adm.manifest": "Manifest", "adm.import": "Import a draft", "adm.importBtn": "Import", "adm.imported": "Draft imported", "adm.files": "Asset files",
   "adm.importHelp": "Paste the manifest and attach its files (GLB, preview, textures). Paths whose file name matches an upload point to the uploaded file. A published version cannot change: use a higher version.",
   "adm.releases": "Releases", "adm.added": "added", "adm.failed": "The action failed.", "adm.loadFailed": "Could not load the catalog.",
+  "still.open": "Render still", "still.preset": "Still quality", "still.draft": "Draft", "still.standard": "Standard", "still.fine": "Fine",
+  "still.title": "Path-traced still", "still.preparing": "Preparing the scene...", "still.rendering": "Rendering", "still.eta": "about {n} s left",
+  "still.cancel": "Cancel", "still.done": "Your still is ready", "still.download": "Download PNG", "still.close": "Close",
+  "still.stats": "{samples} samples, {w}x{h}px, {s} s", "still.truncated": "Stopped at the time limit, so it is a little grainier than the target.",
+  "still.note": "A physically based render of this view with your furniture and finishes. It is lit by the sun and sky, not by the baked lightmap.",
+  "still.slowHint": "This browser draws through Direct3D11, which is slow for path tracing. Setting the ANGLE graphics backend to Vulkan (edge://flags or chrome://flags) is much faster.", "still.error": "The render failed on this device.", "still.walkOnly": "Switch to Walk to render a still.", "still.aiBusy": "Accept or reject the AI proposal first.",
 } as const;
 
 export type StringKey = keyof typeof en;
@@ -127,6 +133,12 @@ const he: Record<StringKey, string> = {
   "ai.drop.unknown-asset": "פריט שלא קיים בקטלוג.", "ai.drop.unknown-material": "חומר שלא קיים בקטלוג.", "ai.drop.unknown-room": "חדר שלא קיים.",
   "ai.drop.unknown-target": "פריט שלא קיים בעיצוב.", "ai.drop.unknown-slot": "חלק של פריט שלא מקבל חומר.", "ai.drop.no-space": "פריט שאין לו מקום פנוי.",
   "ai.drop.no-layout": "תכנית מטבח שלא מתאימה לחדר.", "ai.drop.bad-size": "מידה שלא זמינה.", "ai.drop.not-allowed": "שינוי שאינו מותר.",
+  "still.open": "רינדור תמונה", "still.preset": "איכות רינדור", "still.draft": "טיוטה", "still.standard": "רגיל", "still.fine": "גבוהה",
+  "still.title": "תמונת רינדור פיזיקלי", "still.preparing": "מכינים את הסצנה...", "still.rendering": "מרנדרים", "still.eta": "נשארו בערך {n} שניות",
+  "still.cancel": "ביטול", "still.done": "התמונה מוכנה", "still.download": "הורדת PNG", "still.close": "סגירה",
+  "still.stats": "{samples} דגימות, {w}x{h} פיקסלים, {s} שניות", "still.truncated": "הרינדור נעצר במגבלת הזמן, ולכן התמונה קצת פחות חלקה מהיעד.",
+  "still.note": "רינדור פיזיקלי של התצוגה הזו עם הרהיטים והחומרים שבחרתם. התאורה היא שמש ושמיים, לא מפת האור האפויה.",
+  "still.slowHint": "הדפדפן מצייר דרך Direct3D11, שאיטי מאוד לרינדור כזה. מעבר של ה-ANGLE graphics backend ל-Vulkan (ב-edge://flags או chrome://flags) מהיר בהרבה.", "still.error": "הרינדור נכשל במכשיר הזה.", "still.walkOnly": "עברו למצב הליכה כדי לרנדר תמונה.", "still.aiBusy": "אשרו או דחו קודם את הצעת ה-AI.",
 };
 
 export const STRINGS: Record<Locale, Record<StringKey, string>> = { en, he };

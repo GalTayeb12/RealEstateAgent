@@ -17,6 +17,7 @@ import AiPanel from "./panels/AiPanel";
 import { ArchitectureMenu, KitchenPanel } from "./panels/ArchitecturePanels";
 import CatalogDrawer from "./panels/CatalogDrawer";
 import DesignMenu from "./panels/DesignMenu";
+import { StillButton, StillOverlay } from "./panels/StillPanel";
 import { reloadFromServer, usePersistence } from "./persist/usePersistence";
 import PropertiesPanel from "./panels/PropertiesPanel";
 import { StudioCanvas } from "./scene/StudioCanvas";
@@ -173,6 +174,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         {editing && !readOnly && <ArchitectureMenu />}
         {!readOnly && <button type="button" className="st-ai-btn" aria-pressed={aiOpen} onClick={() => useStudio.getState().setAiOpen(!aiOpen)}>✦ {t("ai.open")}</button>}
         <DesignMenu />
+        <StillButton disabled={!ready} />
         <select aria-label={t("quality")} value={quality} onChange={(e) => useStudio.getState().setQuality(e.target.value as typeof quality)}>
           <option value="auto">{t("quality")}: {t("auto")}</option>
           <option value="low">{t("lite")}</option>
@@ -187,6 +189,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       {editing && <KitchenPanel />}
       {!readOnly && <AiPanel slug={walk.base.split("/").filter(Boolean).pop() ?? experience.slug} />}
 
+      <StillOverlay designName={design?.name ?? null} />
       {hasConcept && <p className="st-ui st-banner st-banner--concept">{t("conceptBanner")}</p>}
       {design?.mode === "shared-view" && <p className="st-ui st-banner">{t("sharedView")}</p>}
       {design?.mode === "shared-edit" && <p className="st-ui st-banner">{t("sharedEdit")}</p>}

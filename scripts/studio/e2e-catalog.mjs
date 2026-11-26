@@ -115,7 +115,8 @@ await studio.evaluate((d) => {
   const m = st.models.find((q) => q.id === d);
   st.dispatch({ type: "add", node: { id: "e2e-cat-drum", kind: "item", locked: false, catalog: { id: m.id, version: m.version }, slots: {}, transform: { x: 3.5, y: 2.3, z: 0, rot: 0 } } });
 }, drumId);
-await studio.waitForTimeout(4000);
+await studio.waitForFunction(() => !!window.__studioBounds?.("e2e-cat-drum"), null, { timeout: 40000 }).catch(() => {}); // the GLB loads from the asset route; wait for it instead of a fixed pause
+await studio.waitForTimeout(1000);
 const bounds = await studio.evaluate(() => window.__studioBounds?.("e2e-cat-drum"));
 const w = bounds ? bounds[3] - bounds[0] : 0;
 check("the uploaded GLB renders at its catalog width", Math.abs(w - drum.dims.w) < 0.015, `${(w * 100).toFixed(1)} cm`);
@@ -128,7 +129,8 @@ await studio.reload();
 await studio.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 120000 });
 check("a retired model is no longer offered in the catalog", !(await studio.evaluate((d) => window.__studio.getState().models.some((m) => m.id === d), drumId)));
 await studio.evaluate((d) => window.__studio.getState().replaceDocument(d, null), doc);
-await studio.waitForTimeout(4000);
+await studio.waitForFunction(() => !!window.__studioBounds?.("e2e-cat-drum"), null, { timeout: 40000 }).catch(() => {});
+await studio.waitForTimeout(1000);
 const b2 = await studio.evaluate(() => window.__studioBounds?.("e2e-cat-drum"));
 check("but a design that already uses it still renders it", !!b2 && Math.abs(b2[3] - b2[0] - drum.dims.w) < 0.015);
 

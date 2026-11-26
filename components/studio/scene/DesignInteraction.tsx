@@ -155,7 +155,7 @@ export function SelectionBox() {
   const preview = dragging ? dragging.preview : doc && baseline && catalog ? previewNode(doc, item, baseline, catalog) : null;
   const color = !preview ? "#7bd88f" : !preview.ok ? "#ff6b6b" : preview.advisories.length ? "#f2c45a" : "#7bd88f";
   return (
-    <group position={[t.x, t.z + manifest.placement.elevation, -t.y]} rotation={[0, t.rot, 0]}>
+    <group userData={{ stillHidden: true }} position={[t.x, t.z + manifest.placement.elevation, -t.y]} rotation={[0, t.rot, 0]}>
       <lineSegments geometry={geo} position={[0, dims.h / 2, -dims.d / 2]} renderOrder={5}>
         <lineBasicMaterial color={color} depthTest={false} transparent opacity={0.95} />
       </lineSegments>
