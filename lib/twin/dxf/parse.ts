@@ -261,9 +261,11 @@ const ROOM_KEYWORDS: [RegExp, RoomType][] = [
   [/חדר שירות|שירות|utility/i, "laundry"],
   [/כביסה|laundry|utility/i, "laundry"],
   [/מחסן|storage|store/i, "storage"],
-  [/סלון|living|lounge|family/i, "living"],
+  [/סלון|חדר מגורים|מגורים|living|lounge|family/i, "living"],
   [/מטבח|kitchen/i, "kitchen"],
   [/פינת אוכל|dining/i, "dining"],
+  // "מבואת הורים" is the lobby of the master suite, not the master bedroom
+  [/מבואת\s/, "corridor"],
   [/הורים|master|parents/i, "master"],
   [/מסדרון|מבואה|פרוזדור|hall|corridor|entry|foyer|lobby/i, "corridor"],
   [/שינה|bedroom|bed\b|חדר ילדים|ילדים|עבודה|study|office/i, "bedroom"],
@@ -275,6 +277,13 @@ const ROOMS_RE = /(\d+(?:[.,]\d+)?)\s*(?:חדרים|חד['׳]|rooms)/i;
 export function roomType(label: string): RoomType {
   for (const [re, t] of ROOM_KEYWORDS) if (re.test(label)) return t;
   return "other";
+}
+
+/** When one outline holds several labels (an open living area), the most important function names the room. */
+const TYPE_PRIORITY: RoomType[] = ["living", "kitchen", "dining", "master", "bedroom", "mamad", "bath", "wc", "laundry", "storage", "corridor", "balcony", "other"];
+export function roomTypeOfLabels(labels: string[]): RoomType {
+  const types = labels.map(roomType);
+  return TYPE_PRIORITY.find((t) => types.includes(t)) ?? "other";
 }
 
 export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
@@ -510,7 +519,7 @@ export function parseDxf(src: string, opts: ParseOptions = {}): ParseResult {
     inside.forEach((t) => used.add(t.i));
     const areaText = inside.find((t) => AREA_RE.test(t.text) && !/[א-תA-Za-z]{3,}/.test(t.text.replace(AREA_RE, "")));
     const nameText = inside.filter((t) => t !== areaText).map((t) => t.text).join(" ").trim();
-    const type = roomType(nameText);
+    const type = roomTypeOfLabels(inside.filter((t) => t !== areaText).map((t) => t.text));
     const num = nameText.match(/\d+/)?.[0];
     counters[type] = (counters[type] ?? 0) + 1;
     const id = `${type}-${num ?? counters[type]}`;

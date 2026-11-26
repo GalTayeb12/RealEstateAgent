@@ -6,7 +6,7 @@
  * units on one sheet. Each case is built here from a few lines of DXF.
  */
 import { describe, expect, it } from "vitest";
-import { parseDxf, roomType } from "../twin/dxf/parse";
+import { parseDxf, roomType, roomTypeOfLabels } from "../twin/dxf/parse";
 import { polygonArea } from "../twin/schema";
 
 const dxf = (ents: string[][], insunits = 4) =>
@@ -99,6 +99,23 @@ describe("rooms from walls", () => {
   it("names rooms from the text label inside, in English, Hebrew and Chinese", () => {
     const { twin } = parseDxf(dxf([...apartment("A-WALL"), text("TXT", 1.5, 2, "KITCHEN"), text("TXT", 4.5, 2, "客厅")]));
     expect(twin.rooms.map((r) => r.type).sort()).toEqual(["kitchen", "living"]);
+  });
+});
+
+describe("room labels with several texts in one outline", () => {
+  it("an open living area with a balcony label is a living room, not a balcony", () => {
+    expect(roomTypeOfLabels(["חדר מגורים", "מטבח", "פינת אוכל", "מרפסת"])).toBe("living");
+    expect(roomTypeOfLabels(["מטבח", "מרפסת"])).toBe("kitchen");
+  });
+  it("a lone balcony stays a balcony; unknown texts are ignored", () => {
+    expect(roomTypeOfLabels(["מרפסת"])).toBe("balcony");
+    expect(roomTypeOfLabels(["356 × 331"])).toBe("other");
+    expect(roomTypeOfLabels(["חדר שינה א", "356 × 331"])).toBe("bedroom");
+  });
+  it("the lobby of a suite is a corridor, not the master bedroom", () => {
+    expect(roomType("מבואת הורים")).toBe("corridor");
+    expect(roomType("חדר הורים")).toBe("master");
+    expect(roomType("מבואת כניסה מסדרון חדר מגורים מטבח")).toBe("living");
   });
 });
 
