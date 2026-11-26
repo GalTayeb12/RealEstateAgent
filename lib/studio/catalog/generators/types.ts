@@ -20,7 +20,7 @@ export type Part = {
 
 export type GenDims = { w: number; d: number; h: number };
 export type GenParams = Record<string, number>;
-export type GeneratorId = "base-run" | "wall-run" | "wardrobe" | "shelving" | "bed";
+export type GeneratorId = "base-run" | "wall-run" | "wardrobe" | "shelving" | "bed" | "table" | "sideboard" | "nightstand" | "dresser" | "bench" | "wall-shelf";
 
 /** Gap between neighbouring fronts, metres (3 mm is the industry norm). */
 export const GAP = 0.003;

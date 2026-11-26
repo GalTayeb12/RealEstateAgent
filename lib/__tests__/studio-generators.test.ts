@@ -16,7 +16,7 @@ const count = (ps: Part[], kind: Part["kind"]) => ps.filter((p) => p.kind === ki
 
 describe("parametric generators: catalog", () => {
   it("every generator has a published manifest", () => {
-    expect(manifests.map((m) => (m.sizing.mode === "parametric" ? m.sizing.generator : "")).sort()).toEqual(Object.keys(GENERATORS).sort());
+    expect([...new Set(manifests.map((m) => (m.sizing.mode === "parametric" ? m.sizing.generator : "")))].sort()).toEqual(Object.keys(GENERATORS).sort());
   });
 
   it("all manifests pass the quality gates at min / default / max of every parameter", () => {
@@ -184,5 +184,40 @@ describe("manifest schema", () => {
     expect(ModelManifest.safeParse({ ...base, assets: { ...base.assets, glb: "x/1/model.glb" } }).success).toBe(false);
     expect(ModelManifest.safeParse({ ...base, sizing: { ...base.sizing, generator: undefined } }).success).toBe(false);
     expect(ModelManifest.safeParse(base).success).toBe(true);
+  });
+});
+
+describe("case furniture and tables", () => {
+  it("a table has its top at the full height and four legs inside the footprint", () => {
+    const ps = parts("table", { width: 1.8, depth: 0.7 });
+    const top = ps.find((p) => p.id === "top")!;
+    expect(top.cy + top.h / 2).toBeCloseTo(byGen("table").dims.h, 9); // desk 74 cm, dining table 75 cm
+    const legs = ps.filter((p) => p.id.startsWith("leg-"));
+    expect(legs).toHaveLength(4);
+    for (const l of legs) { expect(Math.abs(l.cx) + l.w / 2).toBeLessThanOrEqual(0.9 + 1e-9); expect(l.cy - l.h / 2).toBeCloseTo(0, 9); }
+  });
+
+  it("a sideboard splits into doors of 35-70 cm, each with a handle, standing on legs", () => {
+    for (const w of [1.0, 1.8, 2.5, 3.0]) {
+      const ps = parts("sideboard", { width: w });
+      const doors = ps.filter((p) => p.kind === "front");
+      for (const d of doors) { expect(d.w + GAP).toBeGreaterThanOrEqual(0.35 - 1e-9); expect(d.w + GAP).toBeLessThanOrEqual(0.7 + 1e-9); }
+      expect(count(ps, "hardware")).toBe(doors.length);
+      expect(ps.filter((p) => p.slot === "legs")).toHaveLength(4);
+    }
+  });
+
+  it("nightstand has 2 drawer rows, dresser 3, with 3 mm between drawers", () => {
+    const n = parts("nightstand", { width: 0.5 }).filter((p) => p.kind === "front");
+    const d = parts("dresser", { width: 1.2 }).filter((p) => p.kind === "front");
+    expect(new Set(n.map((p) => p.cy.toFixed(4))).size).toBe(2);
+    expect(new Set(d.map((p) => p.cy.toFixed(4))).size).toBe(3);
+    const col = d.filter((p) => Math.abs(p.cx - d[0].cx) < 1e-6).sort((a, b) => a.cy - b.cy);
+    expect(col[1].cy - col[1].h / 2 - (col[0].cy + col[0].h / 2)).toBeCloseTo(GAP, 9);
+  });
+
+  it("bench and floating shelf are single-material solid wood pieces", () => {
+    expect(new Set(parts("bench", { width: 1.4 }).map((p) => p.slot))).toEqual(new Set(["frame"]));
+    expect(parts("wall-shelf", { width: 1.2 })).toHaveLength(1);
   });
 });

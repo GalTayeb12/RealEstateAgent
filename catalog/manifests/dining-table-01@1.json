@@ -1,0 +1,122 @@
+{
+  "type": "model",
+  "id": "dining-table-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "שולחן אוכל",
+    "en": "Dining table"
+  },
+  "category": "table",
+  "styles": [
+    "modern-minimalist",
+    "japandi",
+    "scandinavian",
+    "contemporary"
+  ],
+  "rooms": [
+    "dining",
+    "living",
+    "kitchen"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 1.8,
+    "d": 0.9,
+    "h": 0.75
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "table",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "אורך",
+          "en": "Length"
+        },
+        "unit": "m",
+        "min": 1.2,
+        "max": 2.8,
+        "step": 0.1,
+        "default": 1.8,
+        "drives": "w"
+      },
+      {
+        "id": "depth",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 0.8,
+        "max": 1.1,
+        "step": 0.05,
+        "default": 0.9,
+        "drives": "d"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "top",
+      "label": {
+        "he": "משטח",
+        "en": "Top"
+      },
+      "allowed": [
+        "wood",
+        "stone",
+        "marble",
+        "quartz",
+        "microcement"
+      ],
+      "default": {
+        "id": "floor-flat-oak",
+        "version": 1
+      }
+    },
+    {
+      "id": "legs",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "metal",
+        "wood"
+      ],
+      "default": {
+        "id": "metal-black-steel",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "dining-table-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "type": "model",
+  "id": "dresser-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "שידת מגירות",
+    "en": "Chest of drawers"
+  },
+  "category": "cabinet",
+  "styles": [
+    "modern-minimalist",
+    "scandinavian",
+    "contemporary"
+  ],
+  "rooms": [
+    "bedroom",
+    "master"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 1.2,
+    "d": 0.5,
+    "h": 0.85
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "dresser",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 0.8,
+        "max": 1.8,
+        "step": 0.1,
+        "default": 1.2,
+        "drives": "w"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "fronts",
+      "label": {
+        "he": "חזיתות",
+        "en": "Fronts"
+      },
+      "allowed": [
+        "cabinet",
+        "paint",
+        "wood"
+      ],
+      "default": {
+        "id": "cabinet-matte-white",
+        "version": 1
+      }
+    },
+    {
+      "id": "carcass",
+      "label": {
+        "he": "גוף",
+        "en": "Carcass"
+      },
+      "allowed": [
+        "cabinet",
+        "paint",
+        "wood"
+      ],
+      "default": {
+        "id": "cabinet-matte-white",
+        "version": 1
+      }
+    },
+    {
+      "id": "handle",
+      "label": {
+        "he": "ידיות",
+        "en": "Handles"
+      },
+      "allowed": [
+        "metal"
+      ],
+      "default": {
+        "id": "metal-brushed-brass",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.7,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "dresser-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  }
+}

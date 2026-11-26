@@ -1,0 +1,136 @@
+{
+  "type": "model",
+  "id": "sideboard-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "מזנון",
+    "en": "Sideboard"
+  },
+  "category": "cabinet",
+  "styles": [
+    "modern-minimalist",
+    "contemporary",
+    "quiet-luxury",
+    "japandi"
+  ],
+  "rooms": [
+    "living",
+    "dining"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 1.8,
+    "d": 0.45,
+    "h": 0.78
+  },
+  "sizing": {
+    "mode": "parametric",
+    "generator": "sideboard",
+    "params": [
+      {
+        "id": "width",
+        "label": {
+          "he": "רוחב",
+          "en": "Width"
+        },
+        "unit": "m",
+        "min": 1.0,
+        "max": 3.0,
+        "step": 0.1,
+        "default": 1.8,
+        "drives": "w"
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "fronts",
+      "label": {
+        "he": "חזיתות",
+        "en": "Fronts"
+      },
+      "allowed": [
+        "cabinet",
+        "paint",
+        "wood"
+      ],
+      "default": {
+        "id": "cabinet-matte-white",
+        "version": 1
+      }
+    },
+    {
+      "id": "carcass",
+      "label": {
+        "he": "גוף",
+        "en": "Carcass"
+      },
+      "allowed": [
+        "cabinet",
+        "paint",
+        "wood"
+      ],
+      "default": {
+        "id": "cabinet-matte-white",
+        "version": 1
+      }
+    },
+    {
+      "id": "handle",
+      "label": {
+        "he": "ידיות",
+        "en": "Handles"
+      },
+      "allowed": [
+        "metal"
+      ],
+      "default": {
+        "id": "metal-brushed-brass",
+        "version": 1
+      }
+    },
+    {
+      "id": "legs",
+      "label": {
+        "he": "רגליים",
+        "en": "Legs"
+      },
+      "allowed": [
+        "metal",
+        "wood"
+      ],
+      "default": {
+        "id": "metal-black-steel",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0.6,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": true
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "parametric",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "preview": "sideboard-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/parametric-generators",
+    "author": "HAVENIQ"
+  }
+}

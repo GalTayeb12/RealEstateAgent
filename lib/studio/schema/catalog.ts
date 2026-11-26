@@ -31,7 +31,7 @@ export const ROOM_KINDS = [
   "balcony", "entry", "corridor", "laundry", "storage", "any",
 ] as const;
 
-export const GENERATOR_KINDS = ["base-run", "wall-run", "wardrobe", "shelving", "bed"] as const;
+export const GENERATOR_KINDS = ["base-run", "wall-run", "wardrobe", "shelving", "bed", "table", "sideboard", "nightstand", "dresser", "bench", "wall-shelf"] as const;
 
 export const CAPABILITIES = ["move", "rotate", "material", "variant", "modular", "parametric", "duplicate", "remove"] as const;
 export type Capability = (typeof CAPABILITIES)[number];
