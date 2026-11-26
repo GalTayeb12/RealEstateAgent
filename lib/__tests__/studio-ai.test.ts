@@ -108,6 +108,21 @@ describe("free dry-run planner", () => {
     }
   });
 
+  it("sets a dining table with at least 4 chairs, every chair facing the table", () => {
+    const { out } = run("dining");
+    const nodes = Object.values(out.doc.nodes).filter((n): n is import("../studio/schema/nodes").ItemNode => n.kind === "item");
+    const table = nodes.find((n) => n.catalog.id === "dining-table-01")!;
+    const chairs = nodes.filter((n) => n.catalog.id === "dining-chair-01");
+    expect(table).toBeTruthy();
+    expect(chairs.length).toBeGreaterThanOrEqual(4);
+    for (const c of chairs) {
+      const front: [number, number] = [-Math.sin(c.transform.rot), Math.cos(c.transform.rot)];
+      const toTable: [number, number] = [table.transform.x - c.transform.x, table.transform.y + 0.45 - c.transform.y];
+      expect(front[0] * toTable[0] + front[1] * toTable[1]).toBeGreaterThan(0); // the chair looks at the table
+    }
+    expect(errorsOf(validateDocument(out.doc, baseline, catalog))).toEqual([]);
+  });
+
   it("says so when it does not understand, and proposes nothing", () => {
     const { p, out } = run("make it purple");
     expect(p.commands).toEqual([]);

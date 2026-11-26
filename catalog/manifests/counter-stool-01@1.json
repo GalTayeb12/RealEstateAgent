@@ -1,0 +1,87 @@
+{
+  "type": "model",
+  "id": "counter-stool-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "כיסא בר לאי מטבח",
+    "en": "Counter stool"
+  },
+  "category": "stool",
+  "styles": [
+    "modern-minimalist",
+    "contemporary",
+    "modern-industrial"
+  ],
+  "rooms": [
+    "kitchen",
+    "dining"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 0.374,
+    "d": 0.374,
+    "h": 0.651
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [
+    {
+      "id": "metal",
+      "label": {
+        "he": "מתכת",
+        "en": "Metal"
+      },
+      "allowed": [
+        "metal"
+      ],
+      "default": {
+        "id": "metal-black-steel",
+        "version": 1
+      }
+    },
+    {
+      "id": "upholstery",
+      "label": {
+        "he": "ריפוד",
+        "en": "Upholstery"
+      },
+      "allowed": [
+        "fabric",
+        "leather"
+      ],
+      "default": {
+        "id": "fabric-textured-stone",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "floor",
+    "layer": "furniture",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "counter-stool-01/1/model.glb",
+    "preview": "counter-stool-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/studio-chairs",
+    "author": "HAVENIQ"
+  }
+}

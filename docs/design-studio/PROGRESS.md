@@ -18,7 +18,7 @@ Read this file first in every session; do not re-audit the repo.
 | M8 | DONE (visual calibration gap noted) | parametric generators: kitchen base/wall runs, wardrobe, shelving, bed; see M8 summary |
 | M9 | DONE | architecture proposals: partition + opening tools, protected structure, concept labelling, kitchen layouts; see M9 summary |
 | M10 | DONE in free dry-run mode; live Claude path written but NEVER called (needs owner approval) | AI designer: validated command batches, accept/reject, one undo; see M10 summary |
-| M11 | DONE: 29 published models (+4 held in review), 23 materials, lifecycle + admin + gates | catalog lifecycle, immutability gate, admin page, 12 new materials; see M11 summary |
+| M11 | DONE: 31 published models (+4 held in review), 23 materials, lifecycle + admin + gates | catalog lifecycle, immutability gate, admin page, 12 new materials; see M11 summary |
 | M12-M13 | pending | see MASTER_PLAN section 10 |
 
 ## Repo map (compact)
@@ -182,6 +182,12 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 - **Art review against ART_DIRECTION (honest)**: PUBLISHED 7 - lounge chair, ottoman, globe pendant, two ceramic vases, brass vase, clay planter. HELD IN REVIEW 4 (status `review`, `_note` in the manifest, not in the studio): carved accent chair (ornate), round table (dated cabinet base), tall leather dining chair and dark bar stool (dated, not minimalist). They were never released, so the last committed index was restored before republishing (no immutability violation).
 - **Catalog now: 29 published models (+4 in review), 23 materials.** The free planner uses the lounge chair, ottoman, pendant and vase in the living room (17 pieces across the apartment, 0 rejected). Shots: `results/m11/furnished-*.png`.
 - **Still missing for a complete premium set**: minimalist dining chairs and bar stools (none on Poly Haven fit; options: original Blender chairs, or another CC0/CC-BY source with review), table and floor lamps, textiles, books. The planner's composition is basic (pieces cluster around the room centre when not wall-bound).
+
+## M11d (2026-11-27) - original chairs (Blender)
+- `scripts/blender/studio_chairs.py` (headless, procedural, no downloads): **dining-chair-01** (Japandi: oak frame, tapered round legs, raked rear legs carrying a curved bent-wood back rail, upholstered seat pad; 47 x 46 x 80 cm, 3.4k tris, 44 KB) and **counter-stool-01** (seat at 65 cm for the 90 cm counter, four splayed black-steel legs, footrest ring, round upholstered seat; 37 x 37 x 65 cm, 6k tris, 69 KB). Real metres, floor origin, back at y = 0, UVs in metres, slots `wood`/`metal` + `upholstery` (catalog materials tile at real size). License rows added; publish gates pass. Catalog: **31 published models**.
+- Free planner: the dining table is tried at 12 positions across the room and placed where it seats the most people; chairs go on both long sides, 1 cm clear, facing the table, each validated. Yarkon result: table with 6 chairs plus sideboard; whole apartment 23 pieces, 0 rejected (`results/m11/furnished-plan.png`).
+- Test: dining prompt gives >= 4 chairs, each facing the table, zero placement errors.
+- Open: counter stools are not placed by the planner (the L kitchen has no overhang/island); more seating families (armless lounge, bench seating) and lamps remain.
 
 ## Next steps (updated 2026-11-26, after M9; branch `Work-Meytar` = `feature/design-studio`, head after commit `8d02139` + docs)
 Setup on another machine/user: `SETUP.md`. Overview and gaps: `README.md`. Rule of the house: one verified milestone per commit, tests + e2e + screenshots first.
