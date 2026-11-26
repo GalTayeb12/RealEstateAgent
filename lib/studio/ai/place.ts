@@ -49,12 +49,43 @@ function inwardNormal(poly: Vec[], i: number): Vec {
 }
 
 /**
+ * How far the space stays open straight ahead of a wall spot, for a piece `w` wide: the shortest of five rays across
+ * its width to the first wall (any wall, also a partition with gaps) or the edge of the outline. An open-plan outline
+ * can include a corridor or an entrance, and a wall that faces a 1 m strip is a poor place for a sofa group.
+ */
+export function openDepth(baseline: Baseline, poly: Vec[], p: Vec, n: Vec, w: number, cap = 5): number {
+  const along: Vec = [-n[1], n[0]];
+  const walls = Object.values(baseline.walls);
+  let min = cap;
+  for (let k = 0; k < 5; k++) {
+    const s = (k / 4 - 0.5) * w;
+    const o: Vec = [p[0] + along[0] * s + n[0] * 0.2, p[1] + along[1] * s + n[1] * 0.2];
+    let d = 0.2;
+    for (; d < min; d += 0.1) if (!pointInPolygon([p[0] + along[0] * s + n[0] * d, p[1] + along[1] * s + n[1] * d], poly)) break;
+    min = Math.min(min, d);
+    for (const wl of walls) { // distance to the first wall crossed by this ray
+      const ex = wl.b[0] - wl.a[0], ey = wl.b[1] - wl.a[1];
+      const den = n[0] * ey - n[1] * ex;
+      if (Math.abs(den) < 1e-9) continue;
+      const t = ((wl.a[0] - o[0]) * ey - (wl.a[1] - o[1]) * ex) / den;
+      const u = ((wl.a[0] - o[0]) * n[1] - (wl.a[1] - o[1]) * n[0]) / den;
+      if (t > 0 && u >= 0 && u <= 1) min = Math.min(min, 0.2 + t);
+    }
+  }
+  return min;
+}
+
+/** Free room a piece wants in front of it beyond its own depth: enough to use it and walk past. */
+const FRONT_ROOM = 0.9;
+
+/**
  * Back of the piece on a wall face of the room, facing into the room. Walks every edge of the room
  * polygon on a 10 cm grid (longest edges first, centre of each edge first), snaps to the actual wall
- * face, and returns the best legal spot.
+ * face, and returns the best legal spot. Walls that face a roomy space win; walls that face a narrow strip or a
+ * small gap are only used when nothing roomy works.
  */
 export function againstWall(ctx: Ctx, manifest: ModelManifest, room: BaselineRoom, base: Partial<ItemNode> = {}, limit = 6): Spot | null {
-  const { w, h } = resolveSize(manifest, base as ItemNode);
+  const { w, h, d } = resolveSize(manifest, base as ItemNode);
   /**
    * A wall a piece can stand against at this spot: solid (not glazing or a railing), and the piece's
    * span along it clear of openings (a door or slider never; a window only if the piece stays below its sill).
@@ -79,6 +110,8 @@ export function againstWall(ctx: Ctx, manifest: ModelManifest, room: BaselineRoo
     .map((e) => ({ ...e, L: Math.hypot(e.b[0] - e.a[0], e.b[1] - e.a[1]) }))
     .filter((e) => e.L >= w + 0.05)
     .sort((p, q) => q.L - p.L);
+  const wantDepth = d + FRONT_ROOM;
+  for (const roomy of [true, false]) {
   const found: Spot[] = [];
   for (const e of edges) {
     const n = inwardNormal(poly, e.i);
@@ -93,12 +126,16 @@ export function againstWall(ctx: Ctx, manifest: ModelManifest, room: BaselineRoo
       if (!face.snapped) continue;
       const p: Vec = face.point;
       if (!solidAt(p)) continue;
+      if (roomy && openDepth(ctx.baseline, poly, p, n, w) < wantDepth) continue;
       const s = trial(ctx, manifest, base, p[0] + n[0] * 0.01, p[1] + n[1] * 0.01, rotFacing(n[0], n[1]));
       if (s) { found.push(s); if (!s.preview.advisories.length) break; }
     }
     if (found.length >= limit || found.some((s) => !s.preview.advisories.length)) break;
   }
-  return best(found);
+  const pick = best(found);
+  if (pick) return pick;
+  }
+  return null;
 }
 
 /** Free spot on a 25 cm spiral around `near` (default: the room's centroid), facing `rot`. */

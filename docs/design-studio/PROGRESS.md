@@ -238,3 +238,10 @@ Every tour now links to an empty apartment of its own plan: `/walk/<slug>` looks
 - Result on `03_Yarden.dxf`: Living room 76.4 m2, Hallway 3.6 m2, net 140.5 m2 (was 64.1), 0 warnings. Other real plans unchanged (Tamar 100.86, Gefen 115.66, Apartment-1 294.13 with the same 17 errors). The studio seed went from 14 to 19 pieces (living group + kitchen now placed).
 - Still open: the merged outline also swallows the corridor and the entrance area, so the planner put the sofa group on the wall of the corridor strip instead of in the main living space. Needs either a split of open-plan outlines or a placement rule that prefers the largest open rectangle.
 - The already-built TOUR of this test apartment still has the old names; apartments built from now on get the fix automatically (re-run the worker to refresh one).
+
+## Seed placement in open-plan outlines (2026-11-27)
+- Problem: in the Yarden test apartment the open living outline also holds the corridor, so the longest wall (the corridor's) won and the sofa group stood in the corridor row.
+- Fix (`lib/studio/ai/place.ts`, `againstWall`): two passes. Pass 1 only takes wall spots that keep `depth + 0.9 m` open straight ahead across the piece's width, measured to the first wall of ANY kind (partitions with gaps count) or the outline's edge (`openDepth`). Pass 2 is the old behaviour, used only when pass 1 finds nothing, so small rooms and narrow strips still get their pieces.
+- Result on `03_Yarden`: sofa against the south wall of the living space facing into it, rug, table, lamp and plant in the living space, the corridor stays clear (19 pieces). New tests in `studio-placement-open-plan.test.ts` (553 total); `e2e-ai` and `e2e-newplan` pass.
+- `e2e-newplan.mjs` now uses a fresh visitor id per run (a saved design from an earlier run made it flaky).
+- Not done: seeds of already built apartments are regenerated only on demand (`npx tsx scripts/studio/make-seed.mts <slug>`); the hand-made Yarkon seed is untouched.

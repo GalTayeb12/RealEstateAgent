@@ -20,7 +20,7 @@ function secret() {
   }
   return "studio-bench-dummy";
 }
-const userId = `e2e-newplan-${slug}`;
+const userId = `e2e-newplan-${slug}-${Date.now()}`; // a fresh visitor every run: no saved design from an earlier run
 const token = jwt.sign({ userId, email: "e2e@example.test", role: "buyer" }, secret(), { expiresIn: "1h" });
 const results = [];
 const check = (name, ok, extra = "") => { results.push(ok); console.log(`${ok ? "PASS" : "FAIL"}  ${name}${extra ? "  " + extra : ""}`); };
