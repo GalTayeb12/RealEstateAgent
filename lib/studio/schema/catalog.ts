@@ -140,6 +140,8 @@ const ModelManifestBase = z.strictObject({
   type: z.literal("model"),
   id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
   version: z.number().int().positive(),
+  /** Lifecycle (lib/studio/catalog/admin.ts). Missing = published (older manifests). */
+  status: z.enum(["draft", "review", "published", "retired"]).optional(),
   name: Bilingual,
   category: z.enum(ASSET_CATEGORIES),
   styles: z.array(z.enum(STYLES)).min(1),
@@ -176,6 +178,7 @@ export const MaterialManifest = z.strictObject({
   type: z.literal("material"),
   id: z.string().regex(/^[a-z0-9][a-z0-9-]*$/),
   version: z.number().int().positive(),
+  status: z.enum(["draft", "review", "published", "retired"]).optional(),
   name: Bilingual,
   category: z.enum(MATERIAL_CATEGORIES),
   styles: z.array(z.enum(STYLES)).default([]),

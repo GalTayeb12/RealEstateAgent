@@ -1,0 +1,30 @@
+{
+  "type": "material",
+  "id": "cabinet-matte-graphite",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "לכה גרפיט מט",
+    "en": "Matte graphite lacquer"
+  },
+  "category": "cabinet",
+  "styles": [
+    "modern-industrial",
+    "contemporary"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#4a4b4d",
+    "roughness": 0.5,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

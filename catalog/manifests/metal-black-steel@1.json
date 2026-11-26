@@ -1,0 +1,30 @@
+{
+  "type": "material",
+  "id": "metal-black-steel",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "פלדה שחורה",
+    "en": "Black steel"
+  },
+  "category": "metal",
+  "styles": [
+    "modern-industrial",
+    "modern-minimalist"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#2b2b2c",
+    "roughness": 0.45,
+    "metalness": 1,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

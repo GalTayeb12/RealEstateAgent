@@ -1,0 +1,31 @@
+{
+  "type": "material",
+  "id": "paint-warm-white",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "לבן חם",
+    "en": "Warm white"
+  },
+  "category": "paint",
+  "styles": [
+    "modern-minimalist",
+    "scandinavian",
+    "japandi"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#ece6db",
+    "roughness": 0.9,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

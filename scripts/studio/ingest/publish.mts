@@ -22,6 +22,7 @@ import { getBounds } from "@gltf-transform/functions";
 import { MeshoptDecoder } from "meshoptimizer";
 import { MaterialManifest, ModelManifest } from "../../../lib/studio/schema/catalog";
 import { verifyGenerated } from "../../../lib/studio/catalog/generators/verify";
+import { immutabilityViolations, inIndex } from "../../../lib/studio/catalog/admin";
 
 const ROOT = path.resolve(import.meta.dirname, "../../..");
 const dir = path.join(ROOT, "catalog/manifests");
@@ -45,6 +46,7 @@ for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json")).sort()) {
   if (seen.has(key)) problems.push(`${f}: duplicate ${key}`);
   seen.add(key);
   if (m.license.spdx === "CC-BY-4.0" && !m.license.attributionText) problems.push(`${f}: CC-BY needs attributionText`);
+  if (!inIndex(m)) { console.log(`skip ${key} (${m.status})`); continue; } // drafts and items under review are not published
   if (m.type === "material") { materials.push(m); continue; }
 
   if (!m.assets.glb) {
@@ -90,6 +92,13 @@ for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json")).sort()) {
   const mb = fs.statSync(glb).size / 1048576;
   if (mb > 1.5) problems.push(`${f}: GLB is ${mb.toFixed(2)} MB (hero budget 1.5 MB)`);
   models.push(m);
+}
+
+// published versions are immutable and never disappear (designs pin them)
+const indexPath = path.join(pub, "index.json");
+if (fs.existsSync(indexPath)) {
+  const prev = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+  problems.push(...immutabilityViolations([...(prev.models ?? []), ...(prev.materials ?? [])], [...models, ...materials]));
 }
 
 if (problems.length) {

@@ -6,11 +6,11 @@ import type { MaterialManifest, MaterialSlot, ModelManifest, Style } from "../sc
 export type Locale = "he" | "en";
 
 export function materialsForSlot(materials: MaterialManifest[], slot: MaterialSlot): MaterialManifest[] {
-  return materials.filter((m) => slot.allowed.includes(m.category));
+  return materials.filter((m) => m.status !== "retired" && slot.allowed.includes(m.category));
 }
 
 export function materialsForSurface(materials: MaterialManifest[], type: "wall" | "floor" | "ceiling"): MaterialManifest[] {
-  return materials.filter((m) => SURFACE_CATEGORIES[type].includes(m.category));
+  return materials.filter((m) => m.status !== "retired" && SURFACE_CATEGORIES[type].includes(m.category));
 }
 
 export type CatalogFilter = { query?: string; style?: Style | null; category?: string | null; room?: string | null };
@@ -18,6 +18,7 @@ export type CatalogFilter = { query?: string; style?: Style | null; category?: s
 export function filterModels(models: ModelManifest[], f: CatalogFilter, locale: Locale): ModelManifest[] {
   const q = (f.query ?? "").trim().toLowerCase();
   return models.filter((m) => {
+    if (m.status === "retired") return false; // still resolvable for pinned designs, no longer offered
     if (f.style && !m.styles.includes(f.style)) return false;
     if (f.category && m.category !== f.category) return false;
     if (f.room && !(m.rooms.includes("any") || m.rooms.includes(f.room as ModelManifest["rooms"][number]))) return false;

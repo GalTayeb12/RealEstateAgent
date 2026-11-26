@@ -19,7 +19,7 @@ export function buildContext(doc: DesignDocument, baseline: Baseline, models: Mo
   return {
     rooms: Object.values(baseline.rooms).map((r) => ({ id: r.id, type: r.type, name: r.name.en, area: r.area, polygon: r.polygon })),
     openings: Object.values(baseline.openings).map((o) => ({ id: o.id, kind: o.kind, center: o.center, width: o.width })),
-    catalog: models.map((m) => ({
+    catalog: models.filter((m) => m.status !== "retired").map((m) => ({
       id: m.id, version: m.version, name: m.name.en, category: m.category, styles: m.styles, rooms: m.rooms,
       sizing: m.sizing.mode, dims: m.dims, slots: m.slots.map((s) => s.id),
       params: m.sizing.mode === "parametric" ? m.sizing.params.map((p) => ({ id: p.id, min: p.min, max: p.max, step: p.step })) : undefined,

@@ -1,0 +1,30 @@
+{
+  "type": "material",
+  "id": "metal-brushed-brass",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "פליז מוברש",
+    "en": "Brushed brass"
+  },
+  "category": "metal",
+  "styles": [
+    "quiet-luxury",
+    "organic-modern"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#b59a63",
+    "roughness": 0.38,
+    "metalness": 1,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

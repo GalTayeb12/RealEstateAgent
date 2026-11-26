@@ -1,0 +1,30 @@
+{
+  "type": "material",
+  "id": "cabinet-matte-white",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "לכה לבנה מט",
+    "en": "Matte white lacquer"
+  },
+  "category": "cabinet",
+  "styles": [
+    "modern-minimalist",
+    "scandinavian"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#e9e6e0",
+    "roughness": 0.55,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/flat-colour",
+    "author": "HAVENIQ"
+  }
+}

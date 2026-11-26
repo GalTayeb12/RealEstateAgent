@@ -1,0 +1,29 @@
+{
+  "type": "material",
+  "id": "paint-terracotta",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "טרקוטה",
+    "en": "Terracotta"
+  },
+  "category": "paint",
+  "styles": [
+    "organic-modern"
+  ],
+  "tileSize": [
+    1,
+    1
+  ],
+  "pbr": {
+    "baseColor": "#b46e52",
+    "roughness": 0.9,
+    "metalness": 0,
+    "maps": {}
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/flat-colour",
+    "author": "HAVENIQ"
+  }
+}
