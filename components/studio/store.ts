@@ -18,6 +18,7 @@ import type { PlanView, ViewKind, Viewport } from "@/lib/studio/plan/view";
 import { catalogFrom, type CatalogLookup, type MaterialManifest, type ModelManifest } from "@/lib/studio/schema/catalog";
 import { emptyDocument, type BaselineRef, type DesignDocument } from "@/lib/studio/schema/document";
 import { newNodeId } from "@/lib/studio/schema/ids";
+import type { ItemLight } from "@/lib/studio/lighting";
 import type { DesignNode, ItemNode } from "@/lib/studio/schema/nodes";
 
 export type Mode = "walk" | "design" | "plan";
@@ -47,6 +48,8 @@ interface StudioState {
   quality: Quality;
   tier: Tier;
   lighting: Lighting;
+  /** Per-room calibration of the light live items receive (lib/studio/lighting); null = neutral / not loaded. */
+  itemLight: ItemLight | null;
   baseline: Baseline | null;
   catalog: CatalogLookup | null;
   models: ModelManifest[];
@@ -91,6 +94,7 @@ interface StudioState {
   setQuality(q: Quality): void;
   setTier(t: Tier): void;
   setLighting(p: Partial<Lighting>): void;
+  setItemLight(l: ItemLight | null): void;
   select(id: string | null): void;
   setDrag(d: Drag | null): void;
   setPose(p: Pose): void;
@@ -125,7 +129,7 @@ export const useStudio = create<StudioState>((set, get) => {
     return false;
   };
   return {
-    ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING,
+    ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING, itemLight: null,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
     canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, tool: null, ghost: null, kitchenOpen: false, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
     catalogOpen: false, replaceFor: null, thumb: null,
@@ -185,6 +189,7 @@ export const useStudio = create<StudioState>((set, get) => {
     setQuality: (quality) => set({ quality, ...(quality !== "auto" ? { tier: quality } : {}) }),
     setTier: (tier) => { if (get().quality === "auto") set({ tier }); },
     setLighting: (p) => set({ lighting: { ...get().lighting, ...p } }),
+    setItemLight: (itemLight) => set({ itemLight }),
     select: (selection) => set({ selection }),
     setDrag: (drag) => set({ drag }),
     setPose: (pose) => set({ pose }),

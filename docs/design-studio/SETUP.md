@@ -74,7 +74,7 @@ Checks: `npx vitest run`, `npx tsc --noEmit -p .`, `npx eslint components/studio
 
 1. Clone, `git checkout Work-Meytar`, `npm install --legacy-peer-deps`, `npx prisma generate`.
 2. Copy `.env.example` to `.env.local`; set `JWT_SECRET` and `STUDIO_ENABLED=1` (leave `DATABASE_URL` empty to run the studio alone with the file store, or use a DEV database).
-3. `npx vitest run` should report 481 passing tests; `npx tsc --noEmit -p .` and `npx eslint components/studio lib/studio` should be clean.
+3. `npx vitest run` should report 494 passing tests; `npx tsc --noEmit -p .` and `npx eslint components/studio lib/studio` should be clean.
 4. `npx next dev -p 3001`, then `JWT_SECRET=<same> node scripts/studio/open-studio.mjs` opens Edge signed in as a local admin on `/studio/yarkon-twin-shell`.
 5. Run `node scripts/studio/e2e-design.mjs` (needs the dev server and Edge). Read `PROGRESS.md` "Next steps" and pick the next item.
 

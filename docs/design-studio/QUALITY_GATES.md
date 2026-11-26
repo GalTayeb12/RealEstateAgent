@@ -97,3 +97,18 @@ Done: final-quality shell bake (4096 px, 2048 spp, 927 s; same 34 `S|` materials
 | Shell vs dynamic tone, exposure | partial | the cool grey sofa sits against warm oak and wool; the single baked sun still gives flat light; sun intensity still uncalibrated |
 | Daylight variants | not done | single baked sun |
 Remaining for "premium": calibrated sun and baked per-item AO, a warmer sofa colourway, stitching/tufting detail, wall art, more than one daylight condition. Not blocking M5.
+
+### Shell vs dynamic tone match: first MEASURED gate (2026-11-26)
+Method: `scripts/studio/light-tone.mjs` (same material on wall and wardrobe, wardrobe flush against a plain wall, item pixels vs the same bare-wall pixels; tier High). Gate set before measuring and not loosened: item/wall luminance 1 +- 0.15 and colour cast (max - min normalised channel ratio) <= 0.10. Set A = one wall per room (used to fit the room scalars), set B = a wall facing another way (held out).
+
+| Room | A before | A after | B before | B after | B cast after |
+|---|---|---|---|---|---|
+| living | 0.88 | 1.07 | 0.52 | 1.11 | 0.04 |
+| master | 0.81 | 1.03 | 0.37 | 1.08 | 0.15 |
+| kitchen | 0.64 | 1.00 | 0.32 | 1.05 | 0.08 |
+| bed3 | 0.82 | 1.00 | 0.23 | 1.01 | 0.53 |
+| bed2 | 0.78 | 0.99 | 0.23 | 0.79 | 0.42 |
+| bath | 0.74 | 0.99 | 0.56 | 1.01 | 0.14 |
+| corridor | not measurable (1.2 m wide) | | | | |
+
+Verdict: **partial**. Luminance passes on 11 of 12 walls (bed2 B 0.79); colour cast fails on 4 held-out walls (warm side walls in the bedrooms). Raw numbers: `results/light/tone-before.json`, `tone-after.json`; review pairs `results/light/m8-*-before-after.webp`. Side effect judged by eye: items read flatter (less contrast at door gaps and seams).

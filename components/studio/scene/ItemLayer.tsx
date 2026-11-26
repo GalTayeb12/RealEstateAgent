@@ -13,6 +13,7 @@ import { EXPOSURE } from "@/components/walk/ApartmentWalk";
 import { generate, type GeneratorId } from "@/lib/studio/catalog/generators";
 import { resolveSize } from "@/lib/studio/catalog/sizing";
 import { roomAt, type WalkConfig, type WalkData } from "@/lib/experience/types";
+import { applyCube, itemEnvIntensity, parseItemLight, roomCube, srgbToLinear, type Cube, type ItemLight } from "@/lib/studio/lighting";
 import type { ModelManifest } from "@/lib/studio/schema/catalog";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { useStudio } from "../store";
@@ -22,26 +23,87 @@ import { applyMaterial } from "./materials";
 
 const CATALOG_BASE = "/studio/catalog";
 
-/** Per-room reflection probes as PMREM environments (same probes the shell uses). */
-function useRoomEnvs(base: string, data: WalkData) {
+/**
+ * The probe image as a linear float equirect with the room's directional gain cube multiplied in.
+ * Float, so a gain above 1 does not clip; rows are flipped because a DataTexture's first row is the
+ * BOTTOM of the image (v = 0), while `applyCube` walks rows from the top like the image itself.
+ */
+function correctedProbe(img: HTMLImageElement, cube: Cube) {
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const g = c.getContext("2d", { willReadFrequently: true })!;
+  g.drawImage(img, 0, 0);
+  const px = g.getImageData(0, 0, W, H).data;
+  const rgba = new Float32Array(W * H * 4);
+  for (let i = 0, n = W * H; i < n; i++) {
+    rgba[i * 4] = srgbToLinear(px[i * 4]);
+    rgba[i * 4 + 1] = srgbToLinear(px[i * 4 + 1]);
+    rgba[i * 4 + 2] = srgbToLinear(px[i * 4 + 2]);
+    rgba[i * 4 + 3] = 1;
+  }
+  applyCube(rgba, W, H, cube, 4);
+  const flipped = new Float32Array(rgba.length);
+  for (let row = 0; row < H; row++) flipped.set(rgba.subarray(row * W * 4, (row + 1) * W * 4), (H - 1 - row) * W * 4);
+  const t = new THREE.DataTexture(flipped, W, H, THREE.RGBAFormat, THREE.FloatType);
+  t.mapping = THREE.EquirectangularReflectionMapping;
+  t.colorSpace = THREE.LinearSRGBColorSpace;
+  t.magFilter = THREE.LinearFilter;
+  t.minFilter = THREE.LinearFilter;
+  t.needsUpdate = true;
+  return t;
+}
+
+/**
+ * Per-room reflection probes as PMREM environments for live items: the same probe images the shell
+ * uses, corrected per room and direction by the item-light calibration (lib/studio/lighting) so items
+ * receive what the bake says that room delivers. The shell's own materials are not affected.
+ */
+function useRoomEnvs(base: string, data: WalkData, cal: ItemLight | null) {
   const gl = useThree((s) => s.gl);
   const envs = useMemo(() => ({} as Record<string, THREE.Texture>), []);
   const listeners = useMemo(() => new Set<() => void>(), []);
+  const cubeKey = JSON.stringify(Object.keys(data.probes).map((r) => roomCube(cal, r)));
   useEffect(() => {
     const pm = new THREE.PMREMGenerator(gl);
-    const loaded: THREE.Texture[] = [];
-    for (const r of Object.keys(data.probes)) {
-      const t = new THREE.TextureLoader().load(`${base}/probe-${r}.webp`, (tt) => {
-        envs[r] = pm.fromEquirectangular(tt).texture;
+    const targets: THREE.WebGLRenderTarget[] = [];
+    const cubes = JSON.parse(cubeKey) as Cube[];
+    let alive = true;
+    Object.keys(data.probes).forEach((r, i) => {
+      new THREE.ImageLoader().load(`${base}/probe-${r}.webp`, (img) => {
+        if (!alive) return;
+        const src = correctedProbe(img, cubes[i]);
+        const rt = pm.fromEquirectangular(src);
+        src.dispose();
+        targets.push(rt);
+        envs[r] = rt.texture;
         listeners.forEach((f) => f());
       });
-      t.mapping = THREE.EquirectangularReflectionMapping;
-      t.colorSpace = THREE.SRGBColorSpace;
-      loaded.push(t);
-    }
-    return () => { loaded.forEach((t) => t.dispose()); pm.dispose(); };
-  }, [gl, base, data.probes, envs, listeners]);
+    });
+    return () => { alive = false; targets.forEach((t) => t.dispose()); pm.dispose(); };
+  }, [gl, base, data.probes, envs, listeners, cubeKey]);
   return { envs, listeners };
+}
+
+/** Loads the shell's item-light calibration once (public/studio/lighting/<slug>.json); neutral when absent. */
+function useItemLight(base: string) {
+  const cal = useStudio((s) => s.itemLight);
+  const setItemLight = useStudio((s) => s.setItemLight);
+  useEffect(() => {
+    const slug = base.split("/").filter(Boolean).pop();
+    if (!slug) return;
+    let alive = true;
+    fetch(`/studio/lighting/${slug}.json`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((raw) => {
+        const parsed = raw ? parseItemLight(raw) : null;
+        // a calibration set explicitly (calibration script, tests) wins over the file
+        if (alive && parsed && !useStudio.getState().itemLight) setItemLight(parsed);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [base, setItemLight]);
+  return cal;
 }
 
 let aoTexture: THREE.CanvasTexture | null = null;
@@ -101,7 +163,7 @@ function assembleModules(scene: THREE.Object3D, sizing: Modular, ids: string[]) 
 
 type ItemProps = {
   node: ItemNode; walk: WalkConfig; data: WalkData;
-  envs: Record<string, THREE.Texture>; listeners: Set<() => void>;
+  envs: Record<string, THREE.Texture>; listeners: Set<() => void>; cal: ItemLight | null;
 };
 
 /** Item backed by a GLB (fixed, variant or modular). */
@@ -134,7 +196,7 @@ function Item(props: ItemProps) {
   return manifest.assets.glb ? <GlbItem {...props} /> : <GeneratedItem {...props} />;
 }
 
-function ItemBody({ node, walk, data, envs, listeners, obj }: ItemProps & { obj: THREE.Object3D }) {
+function ItemBody({ node, walk, data, envs, listeners, cal, obj }: ItemProps & { obj: THREE.Object3D }) {
   const catalog = useStudio((s) => s.catalog)!;
   const showDecal = useStudio((s) => s.lighting.ao);
   const manifest = catalog.model(node.catalog)!;
@@ -159,11 +221,12 @@ function ItemBody({ node, walk, data, envs, listeners, obj }: ItemProps & { obj:
     }
   }, [obj, manifest, node.slots, catalog]);
 
-  // room reflection probe (arrives asynchronously)
+  // room reflection probe (arrives asynchronously), scaled by the room's item-light calibration
   useEffect(() => {
     const apply = () => {
-      const env = envs[room] ?? envs.living;
-      const k = (data.probes[room] ?? data.probes.living ?? 1) * EXPOSURE;
+      const probeRoom = envs[room] ? room : "living";
+      const env = envs[probeRoom];
+      const k = itemEnvIntensity(data.probes[probeRoom] ?? 1, EXPOSURE, cal, probeRoom);
       obj.traverse((o) => {
         const m = o as THREE.Mesh;
         if (!m.isMesh) return;
@@ -175,7 +238,7 @@ function ItemBody({ node, walk, data, envs, listeners, obj }: ItemProps & { obj:
     apply();
     listeners.add(apply);
     return () => { listeners.delete(apply); };
-  }, [obj, room, envs, listeners, data.probes]);
+  }, [obj, room, envs, listeners, data.probes, cal]);
 
   const decal = showDecal && manifest.placement.layer === "furniture";
   return (
@@ -196,7 +259,8 @@ function ItemBody({ node, walk, data, envs, listeners, obj }: ItemProps & { obj:
 export function ItemLayer({ walk, data }: { walk: WalkConfig; data: WalkData }) {
   const nodes = useStudio((s) => s.doc?.nodes);
   const catalog = useStudio((s) => s.catalog);
-  const { envs, listeners } = useRoomEnvs(walk.base, data);
+  const cal = useItemLight(walk.base);
+  const { envs, listeners } = useRoomEnvs(walk.base, data, cal);
   const items = useMemo(
     () => Object.values(nodes ?? {}).filter((n): n is ItemNode => n.kind === "item" && !!catalog?.model(n.catalog)),
     [nodes, catalog],
@@ -205,7 +269,7 @@ export function ItemLayer({ walk, data }: { walk: WalkConfig; data: WalkData }) 
     <>
       {items.map((n) => (
         <Suspense key={n.id} fallback={null}>
-          <Item node={n} walk={walk} data={data} envs={envs} listeners={listeners} />
+          <Item node={n} walk={walk} data={data} envs={envs} listeners={listeners} cal={cal} />
         </Suspense>
       ))}
     </>

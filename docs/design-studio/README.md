@@ -46,7 +46,7 @@ Stack: Next 16 (App Router, `proxy.ts`), React 19 (+ React Compiler lint rules),
 | M9 | Architecture proposals | Done. Partition + opening tools, protected structure, unverified labelling, kitchen layouts (single / galley / L / U) as one undoable batch |
 | Unreal E0-E2 | Evaluation | Partial. UE 5.8.4 verified, GLB import works via a cooked variant; first GPU render black (unresolved); paused by the owner, work returned to Three.js |
 
-Tests at the last commit: **481 vitest tests**, eslint + tsc clean, e2e suites passing (`e2e-design` desktop/mobile/he, `e2e-plan`, `e2e-generated`, `e2e-arch` en/he, `e2e-api`, `e2e-persist`).
+Tests at the last commit: **494 vitest tests**, eslint + tsc clean, e2e suites passing (`e2e-design` desktop/mobile/he, `e2e-plan`, `e2e-generated`, `e2e-arch` en/he, `e2e-api`, `e2e-persist`).
 
 Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9).
 
@@ -63,7 +63,7 @@ Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9
 
 **Known gaps in what exists**
 - Art quality: premium goal not fully met; the catalog is small (14 models, 11 materials); headboards are flat panels; no sink / hob cut-outs; no corner kitchen units beyond placing runs at right angles; wardrobes are hinged only.
-- **Dynamic items in bedrooms and corridor are under-exposed** against the bright baked walls (probe exposure ~0.6 vs 1.27 in the living room). Needs per-room lighting calibration (M13).
+- **Item lighting vs the baked shell** is now calibrated per room and direction from the bake (`lib/studio/lighting.ts`, measured with `scripts/studio/light-tone.mjs`): held-out walls went from 23-56 % of the wall's luminance to 79-111 %. Still open: a warm cast on bedroom side walls, items read flatter than before, the corridor cannot be measured with the current method (PROGRESS "Item lighting calibration").
 - Plan mode: isometric walls are open-topped; labels of neighbouring rooms duplicate on shared walls; pinch gestures untested on a real device.
 - Proposals: straight partitions only, not draggable after placement, openings are fixed-height doorways, room areas do not update, concepts are rendered with realtime lighting (not baked).
 - Persistence: `PrismaDesignRepo` and the migration `20261126000000_add_studio_designs` are **untested against a live database** (needs a dev DB URL; run `node scripts/studio/assert-dev-db.mjs` first). R2 stays inactive until credentials are supplied.
@@ -108,7 +108,7 @@ $env:JWT_SECRET="studio-bench-dummy"; $env:STUDIO_ENABLED="1"; npx next dev -p 3
 Open `/studio/yarkon-twin-shell`. The route needs a developer/admin session (httpOnly `hq_session` cookie); the e2e scripts mint one with the same secret. Add `?debug` to expose `window.__studio` for tests.
 
 ```powershell
-npx vitest run                                   # 481 unit tests
+npx vitest run                                   # 494 unit tests
 npx tsc --noEmit -p . ; npx eslint components/studio lib/studio
 node scripts/studio/e2e-design.mjs               # also --mobile, --lang=he
 node scripts/studio/e2e-plan.mjs                 # floor planner
@@ -117,6 +117,9 @@ node scripts/studio/e2e-arch.mjs                 # proposals + kitchen layouts
 node scripts/studio/e2e-api.mjs ; node scripts/studio/e2e-persist.mjs
 npx tsx scripts/studio/ingest/publish.mts        # validate manifests + publish catalog index (gates)
 node scripts/studio/thumbs.mjs --only=<id>       # catalog thumbnails through the real studio
+node scripts/studio/light-tone.mjs [--neutral]   # item vs baked-wall tone match per room (sets A + B)
+node scripts/studio/item-light.mjs               # re-derive item lighting from the bake (after a re-bake;
+                                                 #   then light-tone.mjs --fit-global and --fit-rooms)
 ```
 
 Shell re-bake: `node scripts/twin/build-walk.mjs yarkon yarkon-twin-shell --shell-only` (about 20 min, headless Blender). Source assets live in `assets-src/` (gitignored). Unreal project: `C:\HaveniqUE\HaveniqUltra` (outside the repo; scripts in `scripts/studio/ue/`).
@@ -157,6 +160,6 @@ lib/__tests__/studio-*.test.ts
 
 1. Provide a **dev database URL** (not production) to test the Prisma repo and migration.
 2. M10 AI designer (design the tool schema from `CommandSchema`; start with a dry-run mode that costs nothing).
-3. Per-room lighting calibration for items (bedrooms look dark), then M11 catalog growth and admin.
+3. Finish the item tone match (warm cast on bedroom side walls, flatter item contrast; PROGRESS "Item lighting calibration"), then M11 catalog growth and admin.
 4. M12 / M13, then resume Unreal E2 (black render) only if the owner still wants the Ultra tier.
 5. Re-check Epic licensing and test on a real phone.
