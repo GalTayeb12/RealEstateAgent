@@ -18,7 +18,8 @@ import type { Baseline } from "@/lib/studio/baseline/fromTwin";
 import { runDesigner } from "@/lib/studio/ai/designer";
 import { SlidingLimiter } from "@/lib/studio/ai/limit";
 import { parseDocument } from "@/lib/studio/persist/ops";
-import { catalogFrom, MaterialManifest, ModelManifest } from "@/lib/studio/schema/catalog";
+import { browsableCatalog, currentCatalog } from "@/lib/studio/catalog/server";
+import { catalogFrom } from "@/lib/studio/schema/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,6 @@ const PROMPT_MAX = 500;
 
 type Loaded = { baselineId: string; baseline: Baseline };
 const baselines = new Map<string, Promise<Loaded | null>>();
-let catalogP: Promise<{ models: ModelManifest[]; materials: MaterialManifest[] }> | null = null;
 
 function loadBaseline(slug: string): Promise<Loaded | null> {
   if (!baselines.has(slug)) {
@@ -37,14 +37,6 @@ function loadBaseline(slug: string): Promise<Loaded | null> {
       .catch(() => null));
   }
   return baselines.get(slug)!;
-}
-
-function loadCatalog() {
-  catalogP ??= fs.readFile(path.join(process.cwd(), "public", "studio", "catalog", "index.json"), "utf8").then((s) => {
-    const j = JSON.parse(s) as { models: unknown[]; materials: unknown[] };
-    return { models: j.models.map((m) => ModelManifest.parse(m)), materials: j.materials.map((m) => MaterialManifest.parse(m)) };
-  });
-  return catalogP;
 }
 
 const bad = (error: string, status = 400) => NextResponse.json({ error }, { status });
@@ -70,8 +62,10 @@ export async function POST(req: Request) {
   try { doc = parseDocument(body.doc); } catch { return bad("bad_document"); }
   if (doc.baseline.id !== loaded.baselineId) return bad("document_for_another_apartment");
 
-  const { models, materials } = await loadCatalog();
-  const catalog = catalogFrom(models, materials);
+  // the latest published release: every entry resolves (existing designs), only browsable ones may be proposed
+  const current = await currentCatalog();
+  const catalog = catalogFrom(current.models, current.materials);
+  const { models, materials } = browsableCatalog(current);
   try {
     const { provider, proposal, error } = await runDesigner({ prompt, lang, doc, baseline: loaded.baseline, catalog, models, materials });
     return NextResponse.json({ provider, ...proposal, ...(error ? { error } : {}), remaining: gate.remaining });

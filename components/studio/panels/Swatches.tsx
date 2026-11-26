@@ -1,7 +1,7 @@
 "use client";
+import { materialMapUrl } from "@/lib/studio/catalog/assets";
 import type { MaterialManifest } from "@/lib/studio/schema/catalog";
 
-const CATALOG = "/studio/catalog";
 
 /** Round material swatches: the albedo texture when there is one, the flat colour otherwise. */
 export function Swatches({ materials, selectedId, onPick, locale }: {
@@ -10,7 +10,7 @@ export function Swatches({ materials, selectedId, onPick, locale }: {
   return (
     <div className="st-swatches" role="listbox">
       {materials.map((m) => {
-        const albedo = m.pbr.maps.albedo ? `${CATALOG}/${m.id}/${m.version}/${m.pbr.maps.albedo}` : null;
+        const albedo = m.pbr.maps.albedo ? materialMapUrl(m, m.pbr.maps.albedo) : null;
         return (
           <button
             key={m.id} type="button" role="option" aria-selected={m.id === selectedId} aria-label={m.name[locale]} title={m.name[locale]}

@@ -95,13 +95,14 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         const [data, base, cat, surfaces] = await Promise.all([
           get<WalkData>(`${walk.base}/walk.json`),
           get<{ id: string; version: number; baseline: Baseline }>(`${walk.base}/baseline.json`),
-          get<{ models: unknown[]; materials: unknown[] }>(`/studio/catalog/index.json`),
+          // the latest published release (admin catalog); the static repository snapshot if the API is unavailable
+          get<{ models: unknown[]; materials: unknown[]; retired?: string[] }>(`/api/studio/catalog`).catch(() => get<{ models: unknown[]; materials: unknown[]; retired?: string[] }>(`/studio/catalog/index.json`)),
           get<{ materials: Record<string, { uvScale: number }> }>(`${walk.base}/surfaces.json`),
         ]);
         if (cancelled) return;
         const models = cat.models.map((m) => ModelManifest.parse(m));
         const materials = cat.materials.map((m) => MaterialManifest.parse(m));
-        useStudio.getState().init({ baseline: base.baseline, ref: { id: base.id, version: base.version, twinHash: base.baseline.twinHash }, models, materials, mobile });
+        useStudio.getState().init({ baseline: base.baseline, ref: { id: base.id, version: base.version, twinHash: base.baseline.twinHash }, models, materials, mobile, retired: cat.retired ?? [] });
         const uvScales = Object.fromEntries(Object.entries(surfaces.materials).map(([k, v]) => [k, v.uvScale]));
         setRoom(roomAt(walk, data.rooms, data.spawn[0], data.spawn[1]));
         setBoot({ data, uvScales });

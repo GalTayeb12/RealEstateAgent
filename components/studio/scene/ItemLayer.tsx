@@ -10,6 +10,7 @@ import { useThree } from "@react-three/fiber";
 import { Suspense, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { EXPOSURE } from "@/components/walk/ApartmentWalk";
+import { modelAssetUrl } from "@/lib/studio/catalog/assets";
 import { generate, type GeneratorId } from "@/lib/studio/catalog/generators";
 import { resolveSize } from "@/lib/studio/catalog/sizing";
 import { roomAt, type WalkConfig, type WalkData } from "@/lib/experience/types";
@@ -21,7 +22,6 @@ import { useDesign } from "./DesignInteraction";
 import { buildGenerated } from "./generated";
 import { applyMaterial } from "./materials";
 
-const CATALOG_BASE = "/studio/catalog";
 
 /**
  * The probe image as a linear float equirect with the room's directional gain cube multiplied in.
@@ -193,7 +193,7 @@ function ghostify(obj: THREE.Object3D): () => void {
 function GlbItem(props: ItemProps) {
   const catalog = useStudio((s) => s.catalog)!;
   const manifest = catalog.model(props.node.catalog)!;
-  const { scene } = useGLTF(`${CATALOG_BASE}/${manifest.assets.glb}`, false, true);
+  const { scene } = useGLTF(modelAssetUrl(manifest.assets.glb!), false, true);
   const modKey = manifest.sizing.mode === "modular" ? (props.node.modules ?? manifest.sizing.defaultConfig ?? []).join(",") : "";
   const obj = useMemo(
     () => (manifest.sizing.mode === "modular" ? assembleModules(scene, manifest.sizing, modKey.split(",").filter(Boolean)) : cloneItem(scene)),
@@ -238,7 +238,7 @@ function ItemBody({ node, walk, data, envs, listeners, cal, ghost, obj }: ItemPr
       obj.traverse((o) => {
         const m = o as THREE.Mesh;
         if (m.isMesh && (m.material as THREE.Material).name === target) {
-          applyMaterial(m.material as THREE.MeshStandardMaterial, mat, { uvScale: manifest.uvUnits === "metres" ? 1 : null, base: CATALOG_BASE });
+          applyMaterial(m.material as THREE.MeshStandardMaterial, mat, { uvScale: manifest.uvUnits === "metres" ? 1 : null });
         }
       });
     }

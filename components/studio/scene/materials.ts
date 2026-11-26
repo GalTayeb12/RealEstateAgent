@@ -6,6 +6,7 @@
  * roughness and metalness until their manifests carry per-slot UV scales (M4).
  */
 import * as THREE from "three";
+import { materialMapUrl } from "@/lib/studio/catalog/assets";
 import type { MaterialManifest } from "@/lib/studio/schema/catalog";
 
 type Std = THREE.MeshStandardMaterial;
@@ -31,7 +32,7 @@ function tex(url: string, srgb: boolean, repeat: [number, number]): THREE.Textur
   return t;
 }
 
-export function applyMaterial(mat: Std, m: MaterialManifest | null, opts: { uvScale: number | null; base: string }) {
+export function applyMaterial(mat: Std, m: MaterialManifest | null, opts: { uvScale: number | null }) {
   const orig = (mat.userData.studioOrig ??= {
     color: mat.color.clone(), map: mat.map, normalMap: mat.normalMap, roughnessMap: mat.roughnessMap,
     metalnessMap: mat.metalnessMap, roughness: mat.roughness, metalness: mat.metalness,
@@ -44,7 +45,7 @@ export function applyMaterial(mat: Std, m: MaterialManifest | null, opts: { uvSc
   } else {
     const maps = m.pbr.maps;
     const rep: [number, number] | null = opts.uvScale ? [1 / (opts.uvScale * m.tileSize[0]), 1 / (opts.uvScale * m.tileSize[1])] : null;
-    const url = (f?: string) => (f ? `${opts.base}/${m.id}/${m.version}/${f}` : null);
+    const url = (f?: string) => (f ? materialMapUrl(m, f) : null);
     mat.color.set(maps.albedo && rep ? "#ffffff" : m.pbr.baseColor);
     mat.map = rep && maps.albedo ? tex(url(maps.albedo)!, true, rep) : null;
     mat.normalMap = rep && maps.normal ? tex(url(maps.normal)!, false, rep) : null;

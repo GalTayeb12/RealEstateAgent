@@ -19,6 +19,7 @@ import { catalogFrom, type CatalogLookup, type MaterialManifest, type ModelManif
 import { emptyDocument, type BaselineRef, type DesignDocument } from "@/lib/studio/schema/document";
 import { newNodeId } from "@/lib/studio/schema/ids";
 import type { ItemLight } from "@/lib/studio/lighting";
+import { browsable } from "@/lib/studio/catalog/keys";
 import { validateProposals } from "@/lib/studio/validation/architecture";
 import { errorsOf, validateDocument } from "@/lib/studio/validation/placement";
 import type { DesignNode, ItemNode } from "@/lib/studio/schema/nodes";
@@ -101,7 +102,8 @@ interface StudioState {
   thumb: { id: string } | null;
   /** When set, picking a catalog entry replaces this item instead of adding a new one. */
   replaceFor: string | null;
-  init(a: { baseline: Baseline; ref: BaselineRef; models: ModelManifest[]; materials: MaterialManifest[]; mobile: boolean }): void;
+  /** `retired` (keys `<type>:<id>@<version>`) stay resolvable for existing designs but are hidden from browsing. */
+  init(a: { baseline: Baseline; ref: BaselineRef; models: ModelManifest[]; materials: MaterialManifest[]; mobile: boolean; retired?: string[] }): void;
   /** Applies a command unchecked (used by tests, the AI path and internal moves). Returns false and sets lastError when the engine refuses it. */
   dispatch(cmd: Command): boolean;
   /** Applies a command after validating the item it touches; refuses with a message on a hard placement error. */
@@ -213,8 +215,9 @@ export const useStudio = create<StudioState>((set, get) => {
     },
     rejectAi: () => set({ ai: null }),
 
-    init({ baseline, ref, models, materials, mobile }) {
-      const catalog = catalogFrom(models, materials);
+    init({ baseline, ref, models: allModels, materials: allMaterials, mobile, retired = [] }) {
+      const catalog = catalogFrom(allModels, allMaterials);
+      const models = browsable(allModels, retired), materials = browsable(allMaterials, retired);
       history = new History(emptyDocument(ref), { baseline, catalog });
       set({
         ready: true, baseline, catalog, models, materials, doc: history.doc, canUndo: false, canRedo: false,

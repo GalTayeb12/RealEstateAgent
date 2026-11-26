@@ -1,0 +1,53 @@
+.ca { min-height: 100vh; background: #0f0f11; color: #ece9e4; font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 24px clamp(16px, 3vw, 40px) 48px; box-sizing: border-box; }
+.ca button, .ca input, .ca select, .ca textarea { font: inherit; color: inherit; }
+.ca button { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.ca button:hover:not(:disabled) { background: rgba(255, 255, 255, .16); }
+.ca button:disabled { opacity: .45; cursor: default; }
+.ca .ca-primary { background: #e8b65e; color: #1b1407; border-color: transparent; font-weight: 600; }
+.ca .ca-danger { color: #ff9a9a; }
+.ca input, .ca select, .ca textarea { background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .16); border-radius: 10px; padding: 7px 10px; }
+.ca :focus-visible { outline: 2px solid #8fb0ff; outline-offset: 2px; }
+.ca-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 16px; }
+.ca-head h1 { margin: 0; font-size: 24px; font-weight: 600; }
+.ca-sub { margin: 4px 0 0; opacity: .75; }
+.ca-msg { border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; }
+.ca-msg p { margin: 0; }
+.ca-msg ul { margin: 6px 0 0; padding-inline-start: 18px; font-size: 12px; opacity: .9; }
+.ca-msg--ok { background: rgba(80, 170, 110, .16); border: 1px solid rgba(110, 200, 140, .4); }
+.ca-msg--err { background: rgba(200, 80, 80, .16); border: 1px solid rgba(240, 120, 120, .45); }
+.ca-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
+.ca-filters, .ca-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.ca-filters input { flex: 1 1 200px; }
+.ca-actions input { flex: 1 1 180px; }
+.ca-table { width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, .03); border-radius: 12px; overflow: hidden; }
+.ca-table th { text-align: start; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; opacity: .6; font-weight: 600; padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, .1); }
+.ca-table td { padding: 8px 10px; border-bottom: 1px solid rgba(255, 255, 255, .06); vertical-align: middle; }
+.ca-table tbody tr { cursor: pointer; }
+.ca-table tbody tr:hover, .ca-table tbody tr[aria-selected="true"] { background: rgba(255, 255, 255, .06); }
+.ca-table tr[data-status="retired"] td { opacity: .55; }
+.ca-mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 12px; }
+.ca-chip { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; }
+.ca-chip--draft { background: rgba(232, 182, 94, .2); color: #f3cf8c; }
+.ca-chip--published { background: rgba(110, 200, 140, .18); color: #9fe0b2; }
+.ca-chip--retired { background: rgba(255, 255, 255, .1); color: #bbb; }
+.ca-good { color: #9fe0b2; }
+.ca-bad { color: #ff9a9a; }
+.ca-dim { opacity: .6; }
+.ca-side { display: grid; gap: 16px; position: sticky; top: 16px; }
+.ca-card { background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .12); border-radius: 16px; padding: 14px 16px; display: grid; gap: 10px; }
+.ca-card header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ca-card header button { padding: 2px 10px; }
+.ca-card textarea { width: 100%; box-sizing: border-box; resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
+.ca-card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 13px; }
+.ca-card dt { opacity: .6; }
+.ca-card dd { margin: 0; overflow-wrap: anywhere; }
+.ca-card pre { max-height: 320px; overflow: auto; font-size: 11px; background: rgba(0, 0, 0, .3); padding: 10px; border-radius: 10px; }
+.ca-preview { width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: #ece7df; border-radius: 10px; }
+.ca-issues { margin: 0; padding-inline-start: 18px; color: #ffb4b4; font-size: 12px; }
+.ca-releases { margin: 0; padding-inline-start: 0; list-style: none; display: grid; gap: 8px; max-height: 420px; overflow: auto; font-size: 13px; }
+.ca-releases li { padding-bottom: 8px; border-bottom: 1px solid rgba(255, 255, 255, .08); }
+@media (max-width: 960px) {
+  .ca-grid { grid-template-columns: 1fr; }
+  .ca-side { position: static; }
+  .ca-table th:nth-child(5), .ca-table td:nth-child(5) { display: none; }
+}

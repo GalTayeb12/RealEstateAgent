@@ -20,7 +20,6 @@ import { useDesign } from "./DesignInteraction";
 import { applyMaterial } from "./materials";
 
 const STRIP_DIRECT = /RE_Direct\([^;]*\);/g;
-const CATALOG_BASE = "/studio/catalog";
 
 /** Wraps the baked-light patch so realtime lights no longer add on top of the lightmap. */
 function stripDirectLights(mat: THREE.MeshStandardMaterial) {
@@ -117,7 +116,7 @@ export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false 
       const id = mat.name.slice(2);
       const ov = overrides?.[id];
       const manifest = ov ? catalog.material(ov.material) ?? null : null;
-      applyMaterial(mat, manifest, { uvScale: uvScales[mat.name] ?? 1, base: CATALOG_BASE });
+      applyMaterial(mat, manifest, { uvScale: uvScales[mat.name] ?? 1 });
     });
   }, [scene, overrides, catalog, uvScales]);
 

@@ -7,11 +7,11 @@
  */
 import { useMemo, useState } from "react";
 import { categoriesOf, filterModels } from "@/lib/studio/design/options";
+import { modelAssetUrl } from "@/lib/studio/catalog/assets";
 import { STYLES, type ModelManifest, type Style } from "@/lib/studio/schema/catalog";
 import { useStudio } from "../store";
 import { useT } from "../useT";
 
-const CATALOG = "/studio/catalog";
 
 function Card({ m, onPick, locale, t }: { m: ModelManifest; onPick: () => void; locale: "he" | "en"; t: (k: string) => string }) {
   const [broken, setBroken] = useState(false);
@@ -21,7 +21,7 @@ function Card({ m, onPick, locale, t }: { m: ModelManifest; onPick: () => void; 
       <span className="st-card__img">
         {!broken ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={`${CATALOG}/${m.assets.preview}`} alt="" loading="lazy" draggable={false} onError={() => setBroken(true)} />
+          <img src={modelAssetUrl(m.assets.preview)} alt="" loading="lazy" draggable={false} onError={() => setBroken(true)} />
         ) : (
           <span className="st-card__ph" aria-hidden>{t(`cat.${m.category}`).slice(0, 1)}</span>
         )}
