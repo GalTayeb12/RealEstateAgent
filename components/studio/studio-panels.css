@@ -151,3 +151,7 @@
 .st-still__row { display: flex; gap: 8px; flex-wrap: wrap; }
 .st-still__row button, .st-still__dl { background: rgba(255, 255, 255, .1); color: inherit; border: 1px solid rgba(255, 255, 255, .2); border-radius: 999px; padding: 8px 16px; font-size: 13px; cursor: pointer; text-decoration: none; }
 .st-still__row .st-primary { background: #e8b65e; color: #1b1407; border-color: transparent; font-weight: 600; }
+
+.st-back { background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .16); color: inherit; border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.st-save { background: #e8b65e; color: #1b1407; border: 0; border-radius: 999px; padding: 7px 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.st-save:disabled { opacity: .7; cursor: default; }

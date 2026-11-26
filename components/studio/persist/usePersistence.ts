@@ -15,7 +15,7 @@ import { ApiError, designsApi, sharedApi } from "./api";
 import { clearDraft, draftKey, readDraft, writeDraft } from "./draft";
 
 /** The document the server already has (loaded or last saved): changes are measured against it. */
-export const persistState: { lastSaved: DesignDocument | null } = { lastSaved: null };
+export const persistState: { lastSaved: DesignDocument | null; saveNow: (() => Promise<void>) | null } = { lastSaved: null, saveNow: null };
 
 type Rec = Omit<DesignRecord, "ownerId"> & { ownerId?: string };
 
@@ -60,6 +60,7 @@ export function usePersistence(opts: { baselineId: string; sharedToken?: string 
         if (!cancelled && st().doc !== persistState.lastSaved && st().design?.status === "saved") schedule();
       }
     }
+    persistState.saveNow = async () => { clearTimeout(saveTimer); await flush(); };
     function schedule() { clearTimeout(saveTimer); saveTimer = setTimeout(() => void flush(), SAVE_DELAY); }
 
     const unsub = useStudio.subscribe((s, prev) => {
@@ -109,6 +110,7 @@ export function usePersistence(opts: { baselineId: string; sharedToken?: string 
 
     return () => {
       cancelled = true;
+      persistState.saveNow = null;
       clearTimeout(saveTimer); clearTimeout(draftTimer); clearInterval(retryTimer);
       unsub();
       document.removeEventListener("visibilitychange", onHide);

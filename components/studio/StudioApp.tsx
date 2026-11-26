@@ -19,7 +19,7 @@ import { ArchitectureMenu, KitchenPanel } from "./panels/ArchitecturePanels";
 import CatalogDrawer from "./panels/CatalogDrawer";
 import DesignMenu from "./panels/DesignMenu";
 import { StillButton, StillOverlay } from "./panels/StillPanel";
-import { reloadFromServer, usePersistence } from "./persist/usePersistence";
+import { persistState, reloadFromServer, usePersistence } from "./persist/usePersistence";
 import PropertiesPanel from "./panels/PropertiesPanel";
 import { StudioCanvas } from "./scene/StudioCanvas";
 import { fitView } from "@/lib/studio/plan/view";
@@ -163,6 +163,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       <Loader text={t("loading")} failed={failed} />
 
       <div className="st-ui st-top">
+        <button type="button" className="st-back" onClick={goBack}>{he ? "→" : "←"} {t("back")}</button>
         <strong className="st-title">{title}</strong>
         <span className="st-room" aria-live="polite">{walk.rooms[room]?.name[locale]}</span>
         <SaveStatus />
@@ -181,6 +182,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         <button type="button" disabled={readOnly} onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
         {editing && !readOnly && <ArchitectureMenu />}
         {!readOnly && <button type="button" className="st-ai-btn" aria-pressed={aiOpen} onClick={() => useStudio.getState().setAiOpen(!aiOpen)}>✦ {t("ai.open")}</button>}
+        <SaveButton />
         <DesignMenu />
         <StillButton disabled={!ready} />
         <select aria-label={t("quality")} value={quality} onChange={(e) => useStudio.getState().setQuality(e.target.value as typeof quality)}>
@@ -209,6 +211,25 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         </div>
       )}
     </div>
+  );
+}
+
+/** Back to the page the buyer came from (the tour, the building page), else the projects list. */
+function goBack() {
+  if (window.history.length > 1) window.history.back();
+  else window.location.href = "/results";
+}
+
+/** Explicit save: the design is private to the signed-in person; autosave still runs, this just does it now. */
+function SaveButton() {
+  const { t } = useT();
+  const design = useStudio((s) => s.design);
+  if (!design || design.mode === "shared-view") return null;
+  const busy = design.status === "saving";
+  return (
+    <button type="button" className="st-save" disabled={busy || design.status === "conflict"} title={design.status === "local" ? t("localOnly") : undefined} onClick={() => void persistState.saveNow?.()}>
+      {busy ? t("saving") : design.status === "saved" ? `✓ ${t("savedOk")}` : t("save")}
+    </button>
   );
 }
 
