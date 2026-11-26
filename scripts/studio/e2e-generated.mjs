@@ -16,7 +16,7 @@ await ctx.addCookies([{ name: "hq_session", value: token, domain: "localhost", p
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
-await page.goto(`${base}/studio/yarkon-twin-shell?debug`);
+await page.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
 await page.addStyleTag({ content: "nextjs-portal { display: none !important }" });
 await page.waitForTimeout(4000);

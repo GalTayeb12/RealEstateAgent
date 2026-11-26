@@ -19,7 +19,7 @@ const browser = await chromium.launch({ channel: "msedge", headless: true, args:
 const ctx = await browser.newContext({ viewport: { width: 640, height: 640 }, deviceScaleFactor: 1 });
 await ctx.addCookies([{ name: "hq_session", value: token, domain: "localhost", path: "/" }]);
 const page = await ctx.newPage();
-await page.goto(`${base}/studio/yarkon-twin-shell?debug`);
+await page.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
 await page.addStyleTag({ content: ".st-ui, nextjs-portal { display: none !important } .st-loading { display: none !important }" });
 await page.waitForTimeout(4000);

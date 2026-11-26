@@ -143,7 +143,7 @@ await ctx.addCookies([{ name: "hq_session", value: token, domain: "localhost", p
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
-await page.goto(`${base}/studio/${SLUG}?debug`);
+await page.goto(`${base}/studio/${SLUG}?debug&seed=none`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 120000 });
 // only the 3D view: UI chips and buttons change state when the wardrobe is added (Undo, Saved) and would enter the difference mask
 await page.addStyleTag({ content: "nextjs-portal { display: none !important } body * { visibility: hidden !important } canvas { visibility: visible !important }" });

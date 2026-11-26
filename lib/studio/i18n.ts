@@ -7,7 +7,7 @@ import type { Locale } from "./design/options";
 
 const en = {
   walk: "Walk", design: "Design", plan: "Plan", soon: "Soon",
-  undo: "Undo", redo: "Redo", restore: "Restore original", restoreConfirm: "Remove all your changes and go back to the original apartment?",
+  undo: "Undo", redo: "Redo", restore: "Empty apartment", restoreConfirm: "Remove everything and go back to the empty apartment? You can undo this.", seed: "Developer's design", seedConfirm: "Replace your design with the developer's design? You can undo this.",
   add: "Add", close: "Close", search: "Search furniture…", allStyles: "All styles", allCategories: "All categories", noResults: "Nothing matches.",
   replace: "Replace", duplicate: "Duplicate", remove: "Remove", rotateLeft: "Rotate left", rotateRight: "Rotate right",
   size: "Size", variant: "Size option", configuration: "Configuration", addModule: "Add module", removeModule: "Remove", width: "Width", presets: "Common sizes",
@@ -76,7 +76,7 @@ export type StringKey = keyof typeof en;
 
 const he: Record<StringKey, string> = {
   walk: "הליכה", design: "עיצוב", plan: "תוכנית", soon: "בקרוב",
-  undo: "ביטול", redo: "שחזור", restore: "שחזור המצב המקורי", restoreConfirm: "למחוק את כל השינויים ולחזור לדירה המקורית?",
+  undo: "ביטול", redo: "שחזור", restore: "דירה ריקה", restoreConfirm: "להסיר הכל ולחזור לדירה הריקה? אפשר לבטל.", seed: "העיצוב של היזם", seedConfirm: "להחליף את העיצוב שלך בעיצוב של היזם? אפשר לבטל.",
   add: "הוספה", close: "סגירה", search: "חיפוש ריהוט…", allStyles: "כל הסגנונות", allCategories: "כל הקטגוריות", noResults: "אין תוצאות.",
   replace: "החלפה", duplicate: "שכפול", remove: "הסרה", rotateLeft: "סיבוב שמאלה", rotateRight: "סיבוב ימינה",
   size: "מידה", variant: "אפשרות מידה", configuration: "הרכבה", addModule: "הוספת מודול", removeModule: "הסרה", width: "רוחב", presets: "מידות נפוצות",

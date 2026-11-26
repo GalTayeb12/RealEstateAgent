@@ -97,7 +97,7 @@ for (const name of scenes) {
   const errs = [];
   page.on("pageerror", (e) => errs.push(e.message.slice(0, 240)));
   page.on("console", (m) => { if (m.type() === "error" && !/404/.test(m.text())) errs.push(m.text().slice(0, 240)); });
-  const res = await page.goto(`${base}/studio/${slug}?debug`, { waitUntil: "load" });
+  const res = await page.goto(`${base}/studio/${slug}?debug&seed=none`, { waitUntil: "load" });
   if (res.status() !== 200) { console.error(name, "HTTP", res.status()); await page.close(); continue; }
   await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
   await page.waitForSelector("canvas", { state: "attached" });

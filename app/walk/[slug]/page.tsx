@@ -32,8 +32,7 @@ export default async function WalkPage({
     const qs = q.toString();
     redirect(`/walk/${experience.slug}${qs ? `?${qs}` : ""}`);
   }
-  // A link into the Design Studio for people who may use it (flag + role). It opens this apartment when it has a studio
-  // baseline, otherwise the studio's own apartment, so the entry point is always the same place in the walk.
+  // A link into the Design Studio for people who may use it (flag + role), only for an apartment that has a studio build.
   let role: string | null = null;
   const jwt = (await cookies()).get(SESSION_COOKIE)?.value;
   if (jwt) {
@@ -41,8 +40,9 @@ export default async function WalkPage({
   }
   let studioHref: string | undefined;
   if (studioAccess(role).allowed) {
-    const hasBaseline = fs.existsSync(path.join(process.cwd(), "public", experience.walk.base, "baseline.json"));
-    studioHref = `/studio/${hasBaseline ? experience.slug : "yarkon-twin-shell"}`;
+    const has = (slug: string) => fs.existsSync(path.join(process.cwd(), "public", "walk", slug, "baseline.json"));
+    const target = experience.studio ?? (has(experience.slug) ? experience.slug : undefined);
+    if (target && has(target)) studioHref = `/studio/${target}`;
   }
   return <WalkClient experience={experience} studioHref={studioHref} />;
 }

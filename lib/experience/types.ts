@@ -133,6 +133,12 @@ export const ProjectExperience = z.object({
   dollhouse: DollhouseConfig,
   /** Building photo stage: hero image boxes, fly-in, room stations and the walk link. */
   photoStage: PhotoMeta.optional(),
+  /**
+   * The Design Studio apartment of this walk: the slug of an empty-shell build of the SAME plan
+   * (public/walk/{studio}/baseline.json, see `build-walk.mjs --shell-only`). Without it, only a walk
+   * that has its own baseline gets the studio entry button.
+   */
+  studio: z.string().regex(/^[a-z0-9][a-z0-9-]*$/).optional(),
 });
 export type ProjectExperience = z.infer<typeof ProjectExperience>;
 export type ProjectExperienceInput = z.input<typeof ProjectExperience>;

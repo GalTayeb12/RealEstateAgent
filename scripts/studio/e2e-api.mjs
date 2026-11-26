@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // Live check of /api/studio/* against the dev server (STUDIO_ENABLED=1, file store).
 //   JWT_SECRET=... node scripts/studio/e2e-api.mjs [--base=http://localhost:3001]
+import fs from "node:fs";
 import jwt from "jsonwebtoken";
+import { rolesOpen } from "./roles.mjs";
 
 const base = (process.argv.find((a) => a.startsWith("--base=")) ?? "--base=http://localhost:3001").slice(7);
 const secret = process.env.JWT_SECRET ?? "studio-bench-dummy";
@@ -20,7 +22,7 @@ const call = async (method, path, { token, body, cookie } = {}) => {
 const doc = (name) => ({ schemaVersion: 1, baseline: { id: "yarkon-twin-shell", version: 1, twinHash: "x" }, name, nodes: {}, overrides: {} });
 
 check("anonymous gets 404", (await call("GET", "/api/studio/designs")).status === 404);
-check("buyer gets 404", (await call("GET", "/api/studio/designs", { token: BUYER })).status === 404);
+{ const s = (await call("GET", "/api/studio/designs", { token: BUYER })).status; check(rolesOpen ? "a buyer is let in (STUDIO_ROLES=*)" : "buyer gets 404", rolesOpen ? s !== 404 : s === 404); }
 let r = await call("POST", "/api/studio/designs", { token: A, body: { data: doc("API test"), name: "API test" } });
 check("developer creates a design", r.status === 201, r.json?.design?.id);
 const id = r.json.design.id;

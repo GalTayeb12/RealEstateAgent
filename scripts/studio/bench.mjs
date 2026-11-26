@@ -22,7 +22,7 @@ const slug = flags.slug ?? "yarkon-twin-shell";
 const item = (id, catalog, x, y, rot) => ({ type: "add", node: { id, kind: "item", catalog: { id: catalog, version: 1 }, transform: { x, y, z: 0, rot }, slots: {}, locked: false } });
 const LIVING = [item("sofa", "sofa-03", 4.0, 4.5, Math.PI), item("table", "coffee-table-modern-01", 4.0, 2.9, 0),
   item("chair", "armchair-modern-01", 6.6, 2.4, Math.PI / 2), item("side", "side-table-01", 6.1, 4.4, Math.PI)];
-if (!paths.length) paths.push(STUDIO ? `/studio/${slug}?debug` : "/walk/yarkon");
+if (!paths.length) paths.push(STUDIO ? `/studio/${slug}?debug&seed=none` : "/walk/yarkon");
 
 const initScript = () => {
   const stats = { frames: 0, draws: 0, tris: 0, lastFrameDraws: 0, perFrame: [], t: [] };

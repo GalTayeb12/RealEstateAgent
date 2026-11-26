@@ -6,6 +6,7 @@
 import { chromium } from "@playwright/test";
 import fs from "node:fs";
 import jwt from "jsonwebtoken";
+import { rolesOpen } from "./roles.mjs";
 
 const arg = (k, d) => (process.argv.find((a) => a.startsWith(`--${k}=`)) ?? `--${k}=${d}`).split("=").slice(1).join("=");
 const base = arg("base", "http://localhost:3001");
@@ -37,7 +38,7 @@ await ctx.addCookies([{ name: "hq_session", value: sign(), domain: "localhost", 
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
-await page.goto(`${base}/studio/yarkon-twin-shell?debug`);
+await page.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 120000 });
 await page.addStyleTag({ content: "nextjs-portal { display: none !important }" });
 await page.waitForTimeout(3000);
@@ -143,7 +144,7 @@ const anonRes = await anon.request.post(`${base}/api/studio/ai`, { data: { slug:
 check("anonymous callers get 404", anonRes.status() === 404);
 const buyer = await browser.newContext();
 const buyerRes = await buyer.request.post(`${base}/api/studio/ai`, { data: { slug: "yarkon-twin-shell", prompt: "x", lang, doc }, headers: { Authorization: `Bearer ${sign("buyer")}` } });
-check("a buyer role gets 404", buyerRes.status() === 404);
+check(rolesOpen ? "a buyer is let in (STUDIO_ROLES=*)" : "a buyer role gets 404", rolesOpen ? buyerRes.status() !== 404 : buyerRes.status() === 404);
 await anon.close(); await buyer.close();
 
 // 7. rate limit (per user): a fresh user hammers the endpoint

@@ -107,7 +107,7 @@ check("a published version is immutable", (await api(ADMIN, modelForm(drumId, dr
 // 5. the studio loads the new release and renders the uploaded model at its real size
 const studio = await ctx.newPage();
 studio.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
-await studio.goto(`${base}/studio/yarkon-twin-shell?debug`);
+await studio.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
 await studio.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 120000 });
 check("the studio catalog lists the new model and material", await studio.evaluate(([d, p]) => { const s = window.__studio.getState(); return s.models.some((m) => m.id === d) && s.materials.some((m) => m.id === p); }, [drumId, paintId]));
 await studio.evaluate((d) => {

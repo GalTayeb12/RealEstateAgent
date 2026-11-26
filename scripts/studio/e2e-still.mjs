@@ -44,7 +44,7 @@ const errors = [];
 page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
 // lm-B.webp: the walk viewer probes for an optional second lightmap that this shell does not have (pre-existing, harmless)
 page.on("response", (r) => { if (r.status() === 404 && !/lm-B(-2k)?.webp/.test(r.url())) errors.push("404 " + r.url().slice(0, 120)); });
-await page.goto(`${base}/studio/yarkon-twin-shell?debug`);
+await page.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 120000 });
 await page.addStyleTag({ content: "nextjs-portal { display: none !important }" });
 await page.waitForTimeout(3000);

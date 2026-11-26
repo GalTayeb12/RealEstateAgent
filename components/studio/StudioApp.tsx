@@ -13,6 +13,7 @@ import type { WalkData } from "@/lib/experience/types";
 import { roomAt, type ProjectExperience } from "@/lib/experience/types";
 import type { Baseline } from "@/lib/studio/baseline/fromTwin";
 import { MaterialManifest, ModelManifest } from "@/lib/studio/schema/catalog";
+import { DesignDocument } from "@/lib/studio/schema/document";
 import AiPanel from "./panels/AiPanel";
 import { ArchitectureMenu, KitchenPanel } from "./panels/ArchitecturePanels";
 import CatalogDrawer from "./panels/CatalogDrawer";
@@ -38,10 +39,12 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const he = locale === "he";
   const { walk } = experience;
   const wrap = useRef<HTMLDivElement>(null);
-  const [{ mobile, reduce, debug }] = useState(() => ({
+  const [{ mobile, reduce, debug, noSeed }] = useState(() => ({
     mobile: typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 760),
     reduce: typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     debug: typeof window !== "undefined" && window.location.search.includes("debug"),
+    // ?seed=none opens the empty apartment instead of the developer's design (tests, support, a clean start)
+    noSeed: typeof window !== "undefined" && new URLSearchParams(window.location.search).get("seed") === "none",
   }));
   const { input, teleport, locked, stickUi, touch } = useWalkInput(wrap, mobile);
   const [boot, setBoot] = useState<Boot | null>(null);
@@ -50,6 +53,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const ready = useStudio((s) => s.ready);
   const mode = useStudio((s) => s.mode);
   const canUndo = useStudio((s) => s.canUndo);
+  const hasSeed = useStudio((s) => !!s.seed);
   const canRedo = useStudio((s) => s.canRedo);
   const quality = useStudio((s) => s.quality);
   const lastError = useStudio((s) => s.lastError);
@@ -93,17 +97,20 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
     (async () => {
       try {
         const get = async <T,>(url: string) => { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: ${r.status}`); return (await r.json()) as T; };
-        const [data, base, cat, surfaces] = await Promise.all([
+        const [data, base, cat, surfaces, seedRaw] = await Promise.all([
           get<WalkData>(`${walk.base}/walk.json`),
           get<{ id: string; version: number; baseline: Baseline }>(`${walk.base}/baseline.json`),
           // the latest published release (admin catalog); the static repository snapshot if the API is unavailable
           get<{ models: unknown[]; materials: unknown[]; retired?: string[] }>(`/api/studio/catalog`).catch(() => get<{ models: unknown[]; materials: unknown[]; retired?: string[] }>(`/studio/catalog/index.json`)),
           get<{ materials: Record<string, { uvScale: number }> }>(`${walk.base}/surfaces.json`),
+          // the developer's design for this apartment (optional: not every apartment has one)
+          noSeed ? Promise.resolve(null) : get<unknown>(`${walk.base}/seed-design.json`).catch(() => null),
         ]);
         if (cancelled) return;
         const models = cat.models.map((m) => ModelManifest.parse(m));
         const materials = cat.materials.map((m) => MaterialManifest.parse(m));
-        useStudio.getState().init({ baseline: base.baseline, ref: { id: base.id, version: base.version, twinHash: base.baseline.twinHash }, models, materials, mobile, retired: cat.retired ?? [] });
+        const parsedSeed = seedRaw ? DesignDocument.safeParse(seedRaw) : null;
+        useStudio.getState().init({ baseline: base.baseline, ref: { id: base.id, version: base.version, twinHash: base.baseline.twinHash }, models, materials, mobile, retired: cat.retired ?? [], seed: parsedSeed?.success ? parsedSeed.data : null });
         const uvScales = Object.fromEntries(Object.entries(surfaces.materials).map(([k, v]) => [k, v.uvScale]));
         setRoom(roomAt(walk, data.rooms, data.spawn[0], data.spawn[1]));
         setBoot({ data, uvScales });
@@ -117,7 +124,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       }
     })();
     return () => { cancelled = true; };
-  }, [walk, mobile, debug, input]);
+  }, [walk, mobile, debug, noSeed, input]);
 
   // keyboard: undo/redo everywhere; editing keys only in Design mode
   useEffect(() => {
@@ -170,6 +177,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         {editing && !readOnly && <button type="button" className="st-primary" onClick={() => useStudio.getState().setCatalogOpen(true)}>＋ {t("add")}</button>}
         <button type="button" onClick={() => useStudio.getState().undo()} disabled={!canUndo || readOnly}>{t("undo")}</button>
         <button type="button" onClick={() => useStudio.getState().redo()} disabled={!canRedo || readOnly}>{t("redo")}</button>
+        {hasSeed && <button type="button" disabled={readOnly} onClick={() => { if (window.confirm(t("seedConfirm"))) useStudio.getState().resetToSeed(); }}>{t("seed")}</button>}
         <button type="button" disabled={readOnly} onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
         {editing && !readOnly && <ArchitectureMenu />}
         {!readOnly && <button type="button" className="st-ai-btn" aria-pressed={aiOpen} onClick={() => useStudio.getState().setAiOpen(!aiOpen)}>✦ {t("ai.open")}</button>}

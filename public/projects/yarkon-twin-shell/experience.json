@@ -3,8 +3,8 @@
   "slug": "yarkon-twin-shell",
   "aliases": [],
   "title": {
-    "he": "סטודיו עיצוב — דירת ירקון ריקה (תצוגה מקדימה)",
-    "en": "Design Studio — empty Yarkon shell (preview)"
+    "he": "סטודיו עיצוב — דירת ירקון",
+    "en": "Design Studio — Yarkon apartment"
   },
   "walk": {
     "base": "/walk/yarkon-twin-shell",

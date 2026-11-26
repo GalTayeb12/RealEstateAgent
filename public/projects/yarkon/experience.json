@@ -1,6 +1,7 @@
 {
   "version": 1,
   "slug": "yarkon",
+  "studio": "yarkon-twin-shell",
   "aliases": [
     "seed-yarkon-towers",
     "/buildings/yarkon-v2/on.webp"

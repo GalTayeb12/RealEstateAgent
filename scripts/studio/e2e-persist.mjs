@@ -18,7 +18,7 @@ await ctx.addCookies([{ name: "hq_session", value: token, domain: "localhost", p
 
 async function open(context) {
   const p = await context.newPage();
-  await p.goto(`${base}/studio/yarkon-twin-shell?debug`);
+  await p.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
   await p.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
   await p.addStyleTag({ content: "nextjs-portal { display: none !important }" });
   await p.waitForFunction(() => ["saved", "local", "offline"].includes(window.__studio.getState().design?.status), null, { timeout: 30000 });

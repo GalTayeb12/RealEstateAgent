@@ -24,7 +24,7 @@ await ctx.addCookies([
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
-await page.goto(`${base}/studio/yarkon-twin-shell?debug`);
+await page.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
 await page.addStyleTag({ content: "nextjs-portal { display: none !important }" }); // dev-only error overlay captures clicks
 await page.waitForTimeout(5000);
@@ -108,7 +108,7 @@ await page.keyboard.press("Delete");
 st = await state();
 check("Delete removes the selected piece", !st.items.some((i) => i.catalog.id === "sofa-modular-01"));
 page.once("dialog", (d) => d.accept());
-await page.getByRole("button", { name: T("שחזור המצב המקורי", "Restore original") }).click();
+await page.getByRole("button", { name: T("דירה ריקה", "Empty apartment") }).click();
 st = await state();
 check("restore original empties the design", st.items.length === 0 && Object.keys(st.overrides).length === 0);
 

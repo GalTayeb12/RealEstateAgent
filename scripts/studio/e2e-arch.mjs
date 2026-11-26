@@ -20,7 +20,7 @@ await ctx.addCookies([{ name: "hq_session", value: token, domain: "localhost", p
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message.slice(0, 200)));
-await page.goto(`${base}/studio/yarkon-twin-shell?debug`);
+await page.goto(`${base}/studio/yarkon-twin-shell?debug&seed=none`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
 await page.addStyleTag({ content: "nextjs-portal { display: none !important }" });
 await page.waitForTimeout(4000);
@@ -102,7 +102,7 @@ await shot("kitchen-iso");
 
 // 6. restore original removes every proposal and kitchen run
 page.once("dialog", (d) => d.accept());
-await page.getByRole("button", { name: T("שחזור המצב המקורי", "Restore original"), exact: true }).click();
+await page.getByRole("button", { name: T("דירה ריקה", "Empty apartment"), exact: true }).click();
 await page.waitForTimeout(500);
 check("restore original removes all proposals", (await nodes()).length === 0);
 check("no page errors", errors.length === 0, errors[0] ?? "");

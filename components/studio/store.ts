@@ -104,7 +104,11 @@ interface StudioState {
   /** When set, picking a catalog entry replaces this item instead of adding a new one. */
   replaceFor: string | null;
   /** `retired` (keys `<type>:<id>@<version>`) stay resolvable for existing designs but are hidden from browsing. */
-  init(a: { baseline: Baseline; ref: BaselineRef; models: ModelManifest[]; materials: MaterialManifest[]; mobile: boolean; retired?: string[] }): void;
+  init(a: { baseline: Baseline; ref: BaselineRef; models: ModelManifest[]; materials: MaterialManifest[]; mobile: boolean; retired?: string[]; seed?: DesignDocument | null }): void;
+  /** The developer's design for this apartment (null when it has none); a new visitor starts from it. */
+  seed: DesignDocument | null;
+  /** Returns the whole design to the developer's design as ONE undoable step. */
+  resetToSeed(): boolean;
   /** Applies a command unchecked (used by tests, the AI path and internal moves). Returns false and sets lastError when the engine refuses it. */
   dispatch(cmd: Command): boolean;
   /** Applies a command after validating the item it touches; refuses with a message on a hard placement error. */
@@ -237,12 +241,20 @@ export const useStudio = create<StudioState>((set, get) => {
     },
     rejectAi: () => set({ ai: null }),
 
-    init({ baseline, ref, models: allModels, materials: allMaterials, mobile, retired = [] }) {
+    seed: null,
+    resetToSeed() {
+      const seed = get().seed;
+      if (!seed) return false;
+      return get().dispatch({ type: "restoreSnapshot", nodes: seed.nodes, overrides: seed.overrides });
+    },
+    init({ baseline, ref, models: allModels, materials: allMaterials, mobile, retired = [], seed = null }) {
       const catalog = catalogFrom(allModels, allMaterials);
       const models = browsable(allModels, retired), materials = browsable(allMaterials, retired);
-      history = new History(emptyDocument(ref), { baseline, catalog });
+      // a seed from another baseline version would reference walls that no longer exist: ignore it
+      const usable = seed && seed.baseline.id === ref.id && seed.baseline.twinHash === ref.twinHash ? seed : null;
+      history = new History(usable ? { ...usable, baseline: ref } : emptyDocument(ref), { baseline, catalog });
       set({
-        ready: true, baseline, catalog, models, materials, doc: history.doc, canUndo: false, canRedo: false,
+        seed: usable, ready: true, baseline, catalog, models, materials, doc: history.doc, canUndo: false, canRedo: false,
         tier: mobile ? "medium" : "high", selection: null, lastError: null, drag: null, catalogOpen: false, replaceFor: null,
       });
     },
