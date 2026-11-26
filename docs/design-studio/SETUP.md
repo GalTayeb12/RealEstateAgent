@@ -74,6 +74,7 @@ Checks: `npx vitest run`, `npx tsc --noEmit -p .`, `npx eslint components/studio
 |---|---|
 | `README.md` | what the system is, what exists, what is missing, history |
 | `PROGRESS.md` | milestone table, per-milestone summaries with measured results, **next steps** |
+| `HANDOVER_MEYTAR.md` | how to move from `Work-Meytar` to `Work-Gal` without losing work (catalog pieces, id collisions, traps) |
 | `MASTER_PLAN.md` | the approved plan (architecture, roadmap M0-M13, risks, section E Unreal) |
 | `ARCHITECTURE.md`, `QUALITY_GATES.md`, `ART_DIRECTION.md` | design, acceptance gates and visual review records, art rules |
 | `ASSET_PIPELINE.md`, `ASSET_LICENSES.md` | how assets are ingested and every asset's license |
