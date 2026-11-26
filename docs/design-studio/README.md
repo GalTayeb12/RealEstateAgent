@@ -1,6 +1,6 @@
 # HAVENIQ Design Studio: full project README
 
-Status as of 2026-11-27. Working branch `implement/concept-c` (worktree `C:\RealEstateAgent-clever`, = `Work-Meytar` + the studio work), head `934164b`. Everything is committed locally; **nothing has been pushed**. The older notes below mention `feature/design-studio` (its original branch).
+Status as of 2026-11-27. Working branch `implement/concept-c` (worktree `C:\RealEstateAgent-clever`, = `Work-Meytar` as of 8a6c21d + the studio work), pushed to `origin/Work-Gal` on 2026-11-27 (fast-forward). `Work-Meytar` has since moved on (8 newer commits that are not merged here). The older notes below mention `feature/design-studio` (its original branch).
 This file is the single entry point: what the system is, everything built so far, what is missing, how to run it, and the history of the work.
 To continue from another computer or user: **`SETUP.md`** (clone, env, what is not in git). Details live in the sibling docs: `PROGRESS.md` (per-milestone results and the exact next steps), `MASTER_PLAN.md` (the approved plan), `ARCHITECTURE.md`, `QUALITY_GATES.md`, `ART_DIRECTION.md`, `ASSET_PIPELINE.md`, `ASSET_LICENSES.md`, `UNREAL.md`.
 
@@ -54,11 +54,16 @@ Stack: Next 16 (App Router, `proxy.ts`), React 19 (+ React Compiler lint rules),
 | Auto seed | Minimal design for every uploaded plan | `scripts/studio/make-seed.mts` (generic by room type) and `build-worker` (`buildStudioShell`, `shellOnly`) build the shell and a starter design when a plan is approved. Not run end to end (about 20 min of Blender). |
 | Catalog | 25 -> 29 models | 4 CC0 Poly Haven pieces added (armchair, coffee table, dining chair, ceramic vase; 9 were tried, 4 fit the art direction). Licence rows in `ASSET_LICENSES.md`. The runtime catalog needs "Sync repository" in `/admin/catalog`. |
 | M10 live | Live Claude AI designer test | Done on 2026-11-26: 7 real calls (`scripts/studio/live-ai.mts`, model `claude-opus-5-5`) on the engine, not through the UI. All plans passed the validators (advisories only), Hebrew worked, an impossible request (sofa on the ceiling) was refused politely, 2-19 s per call. Cost per call, load, and the UI path with `STUDIO_AI_PROVIDER=claude` are **not measured**. |
+| Worker | Build worker end to end | Done and verified (2026-11-27) on the LOCAL dev database: an approved plan becomes the tour, the empty studio shell, an automatic starter design and item lighting (`scripts/twin/build-worker.ts`; about 9 min in preview mode). Test tools: `scripts/twin/e2e-enqueue.mts`, `scripts/studio/e2e-newplan.mjs`. |
+| Dev upload | Developer uploads a plan through the UI | Done and verified on the local dev database (`node scripts/studio/dev-local.mjs 3004`, `scripts/twin/e2e-dev-ui.mjs`): upload `02_Gefen.dxf`, review, approve, build, buyer opens the studio. Not covered: DWG, the build button and polling on the page, a plan with errors, the shared (Neon) database. |
+| Parser | Room labelling in open plans | Fixed: one outline with several labels is typed by function priority (living > kitchen > ... > balcony), "מבואת <x>" is a corridor, "חדר מגורים" is living (`lib/twin/dxf/parse.ts`). |
+| Placement | Wall pieces in open plans | Fixed: `againstWall` first tries walls that keep depth + 0.9 m open ahead (partitions count), so a sofa no longer ends up in a corridor strip (`lib/studio/ai/place.ts`). |
+| Lighting | Item lighting for new shells | The worker derives it from the bake (`item-light.mjs`); `global` defaults to Yarkon's fitted value. Checked by eye, not measured numerically. |
 | Unreal E0-E2 | Evaluation | Partial. UE 5.8.4 verified, GLB import works via a cooked variant; first GPU render black (unresolved); paused by the owner, work returned to Three.js |
 
-Tests at the last commit (`934164b`): **547 vitest tests**, eslint + tsc clean, e2e suites passing (`e2e-catalog` en/he, `e2e-ai` desktop/he/mobile, `e2e-design` desktop/mobile/he, `e2e-plan`, `e2e-generated`, `e2e-arch` en/he, `e2e-api`, `e2e-persist`, `e2e-seed`).
+Tests at the last commit (`934164b`): **553 vitest tests**, eslint + tsc clean, e2e suites passing (`e2e-catalog` en/he, `e2e-ai` desktop/he/mobile, `e2e-design` desktop/mobile/he, `e2e-plan`, `e2e-generated`, `e2e-arch` en/he, `e2e-api`, `e2e-persist`, `e2e-seed`).
 
-Commits: M0..M12 plus the 2026-11-26/27 work (tour button, Save/Back, offers, auto seed, catalog, live AI test) are in `git log`; latest `934164b`. Not pushed.
+Commits: M0..M12 plus the 2026-11-26/27 work (tour button, Save/Back, offers, auto seed, catalog, live AI test, worker end to end, room labelling, placement, item lighting, dev-UI upload test) are in `git log`.
 
 ---
 
@@ -67,8 +72,11 @@ Commits: M0..M12 plus the 2026-11-26/27 work (tour button, Save/Back, offers, au
 **Planned milestones not started**
 - **M10 live model, remaining part**: the engine was tested live (7 calls, see section 2). Still open: the UI path with `STUDIO_AI_PROVIDER=claude`, measured cost per call, rate limits under load. The dry-run planner remains the default and only understands the sample requests.
 - **Catalog beyond 29 models** (target 30-50): more original parametric pieces (dining chair, bar stool, pendant lamp, mirror, bookcase); Poly Haven items are mostly rustic, so only 4 of 9 fit.
-- **Before deploying the offers feature**: the owner runs `prisma migrate deploy` (migration `20261126020000`), then an end-to-end offer-with-design test against a database.
-- **Auto seed**: run `build-worker` on a newly uploaded apartment end to end (about 20 min Blender). The `cmwp5dhx...` seed is sparse because of its irregular plan.
+- **Offers feature on the shared database**: the column `Offer.designSnapshot` was added by hand (one `ALTER TABLE`, 2026-11-27, owner-approved) after `/buyer/offers` returned 500; the other pending migrations (e.g. `20261126010000` SellerProfile) are NOT applied there. A full offer-with-design test against a database is still open.
+- **Item lighting for new apartments**: only the bake-derived part is automatic; the renderer fit of `global`/`gain` and a numeric tone-match measurement need `light-tone.mjs` to pick wall spots per apartment (it is hard-wired to Yarkon).
+- **Open-plan outlines**: the polygon of an open living area can swallow the corridor and the entrance; the seed now avoids placing there, but the room itself is still one outline.
+- **Developer flow not covered**: DWG upload, the build button and polling on the page, a plan with errors blocking approval, the real (Neon) database.
+- The `cmwp5dhx...` seed is sparse because of its irregular plan.
 - **Manual tests by the owner** (after the plans are finished): Back on `/aom/seed-yarkon-4`, Save/Back in the studio, catalog chips on mobile, the three empty apartments.
 - **Storage**: no R2 credentials yet; everything is local.
 - **M12 queued re-bake** of a saved design (the path-traced still itself is done, see PROGRESS M12).
@@ -175,11 +183,11 @@ lib/__tests__/studio-*.test.ts
 
 ## 7. Next steps (exact)
 
-1. Owner: manual tests, then `prisma migrate deploy` for the offers migration (and the SellerProfile migration `f73df56` if not yet applied); then test offer-with-design against a database.
+1. Owner: manual tests of the tour, studio, Save/Back and offers; decide how to apply the pending migrations to the shared database (SellerProfile `20261126010000`; the offers column is already there).
 2. Catalog: original parametric generators to reach 30-50 models; press "Sync repository" in `/admin/catalog` after publishing.
 3. M10 UI path: with approval, run the studio with `STUDIO_AI_PROVIDER=claude` and measure cost per call.
 4. Finish the item tone match (warm cast on bedroom side walls, flatter item contrast; PROGRESS "Item lighting calibration").
 5. M13 hardening (performance budgets, LODs, KTX2, a11y, real-device mobile test), optionally the M12 re-bake.
-6. Push to `Work-Meytar` (or a branch the owner names), never to `main`, only when the owner says so.
+6. Compare with the newer `Work-Meytar` (8 commits ahead of this branch's base) before any merge; never push to `main`, and push only when the owner says so.
 7. Resume Unreal E2 only if the owner still wants the Ultra tier; re-check Epic licensing in a browser.
 8. Ideas discussed, no decision: premium asset packs or AI text-to-3D furniture (pilot), richer lighting and architectural detail in the shell, a server-side path-traced "photo" render. The owner said to drop it for now.

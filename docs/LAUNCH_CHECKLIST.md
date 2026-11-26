@@ -150,3 +150,12 @@ Remaining warnings (not errors): exhaustive-deps and `img` suggestions in older 
 - Photo stage (`/aom/seed-yarkon-3`): floor selection, unit card, back to building (verified earlier in this pass).
 - GLB scene (`BuildingGLBScene`) and plain canvas (`BuildingCanvas`): not reachable with current data. Every building in the database uses a `.webp` model, so the explorer always chooses the photo stage. A `.glb` model would be needed to exercise these; that needs either a data change (needs your approval) or a temporary test route.
 - Unit picking inside the 3D canvas could not be clicked from the DOM (units are drawn in WebGL).
+
+## עדכון 27.11.2026: Design Studio והצנרת
+- [x] Build worker מקצה לקצה (תוכנית ← סיור ← מעטפת סטודיו ← עיצוב התחלתי ← תאורת פריטים) על DB מקומי. *Status:* עובד, כ-9 דקות בתצוגה מקדימה; לא נבדק על שרת אמיתי.
+- [x] העלאת תוכנית ואישורה דרך מסך היזם, עד סיור וסטודיו אצל הקונה, על DB מקומי.
+- [ ] **מיגרציות במסד המשותף (Neon).** העמודה `Offer.designSnapshot` נוספה ידנית ב-27.11 (באישור, `ALTER TABLE ... IF NOT EXISTS`). נשארו ממתינות: `20261126010000_add_seller_profile_and_missing_columns` (SellerProfile ועמודות) ועוד מנובמבר שלא אומתו. *Blocked:* החלטה איך להריץ.
+- [ ] בדיקת הצעה עם עיצוב מצורף מול DB (הקוד כתוב, נבדק רק בבדיקות יחידה).
+- [ ] Worker כשירות קבוע על מחשב עם Blender (היום רץ ידנית).
+- [ ] כיול תאורה מספרי לדירות חדשות (`light-tone.mjs` קשור לירקון).
+- [ ] מדידה של עלות וקצב קריאות של מעצב ה-AI בממשק (`STUDIO_AI_PROVIDER=claude`); הבדיקה החיה של המנוע עברה (7 קריאות).

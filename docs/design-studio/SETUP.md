@@ -12,7 +12,7 @@ npm install --legacy-peer-deps      # pannellum-react declares React 16 as a pee
 npx prisma generate                 # writes app/generated/prisma (gitignored)
 ```
 
-The branch was developed in a git worktree called `feature/design-studio`; `Work-Meytar` is that branch pushed under another name. The studio does not need the worktree: it runs from any checkout of this branch. It was branched from `Work-Gal` (8a6c21d); other uncommitted work in the original checkout (theme / Home / lib/theme.ts) is NOT part of this branch.
+The work lives on the local branch `implement/concept-c` (worktree `C:\RealEstateAgent-clever`), pushed as `origin/Work-Gal`; it started as `feature/design-studio` (also pushed earlier as `Work-Meytar`, which has since moved on). The studio does not need the worktree: it runs from any checkout of this branch.
 
 ## 2. Environment variables (never commit them)
 

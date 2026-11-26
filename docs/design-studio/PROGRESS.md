@@ -201,7 +201,7 @@ Budgets in QUALITY_GATES.md: furnished scene <=1.2M tris desktop; the current fu
 
 **Status**: PAUSED by the owner; resume at `UNREAL.md` E2 only if the Ultra tier is still wanted. Quality without Unreal comes from assets, materials, light calibration, M12 path-traced stills and offline Blender (Cycles) renders. Everything UE-related lives outside git on the original machine except the scripts above (see `SETUP.md` section 4). Full detail: `UNREAL.md`, `MASTER_PLAN.md` section E.
 
-## Next steps (updated 2026-11-26, after M10 dry-run; branch `Work-Meytar` = `feature/design-studio`, head after commit `8d02139` + docs)
+## Next steps (updated 2026-11-27; branch `implement/concept-c`, pushed to `Work-Gal`). NOTE: item 2 (live model: engine tested, UI path and cost not), item 4 (catalog is now 29 models) and parts of 3 are partly DONE; the newest sections below and `README.md` section 7 are the current list.
 Setup on another machine/user: `SETUP.md`. Overview and gaps: `README.md`. Rule of the house: one verified milestone per commit, tests + e2e + screenshots first.
 
 1. **Owner inputs needed (ask, do not guess)**: R2 credentials only when activating R2; approval before any paid API (AI designer live mode) or purchase; a decision on the main app's missing migrations (see "Live database": SellerProfile + 4 columns have no migration). The dev database is done (local `studio_dev`).

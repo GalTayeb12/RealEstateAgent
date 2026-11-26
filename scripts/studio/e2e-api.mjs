@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Live check of /api/studio/* against the dev server (STUDIO_ENABLED=1, file store).
 //   JWT_SECRET=... node scripts/studio/e2e-api.mjs [--base=http://localhost:3001]
-import fs from "node:fs";
 import jwt from "jsonwebtoken";
 import { rolesOpen } from "./roles.mjs";
 
