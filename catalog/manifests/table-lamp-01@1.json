@@ -1,0 +1,102 @@
+{
+  "type": "model",
+  "id": "table-lamp-01",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "מנורת שולחן קרמית",
+    "en": "Ceramic table lamp"
+  },
+  "category": "lamp-table",
+  "styles": [
+    "japandi",
+    "organic-modern",
+    "quiet-luxury",
+    "scandinavian"
+  ],
+  "rooms": [
+    "living",
+    "bedroom",
+    "dining"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 0.343,
+    "d": 0.343,
+    "h": 0.52
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [
+    {
+      "id": "base",
+      "label": {
+        "he": "בסיס",
+        "en": "Base"
+      },
+      "allowed": [
+        "stone",
+        "paint",
+        "wood",
+        "metal"
+      ],
+      "default": {
+        "id": "travertine-cream",
+        "version": 1
+      }
+    },
+    {
+      "id": "metal",
+      "label": {
+        "he": "מתכת",
+        "en": "Metal"
+      },
+      "allowed": [
+        "metal"
+      ],
+      "default": {
+        "id": "metal-brushed-brass",
+        "version": 1
+      }
+    },
+    {
+      "id": "shade",
+      "target": "lamp_shade",
+      "label": {
+        "he": "אהיל",
+        "en": "Shade"
+      },
+      "allowed": [
+        "fabric"
+      ]
+    }
+  ],
+  "placement": {
+    "on": "surface",
+    "layer": "decor",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "table-lamp-01/1/model.glb",
+    "preview": "table-lamp-01/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/studio-lamps",
+    "author": "HAVENIQ"
+  }
+}

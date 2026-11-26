@@ -12,6 +12,7 @@ import * as THREE from "three";
 import { resolveSize } from "@/lib/studio/catalog/sizing";
 import { previewNode, withTransform } from "@/lib/studio/design/preview";
 import { snapTo } from "@/lib/studio/design/snap";
+import { settleOnSurface } from "@/lib/studio/design/surface";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { gesture } from "../gesture";
 import { isEditing, useStudio } from "../store";
@@ -48,8 +49,8 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     const x = snapTo(p.x - a.grabDx), y = snapTo(-p.z - a.grabDy);
     if (!a.moved && Math.hypot(x - a.start.transform.x, y - a.start.transform.y) < 0.04) return;
     a.moved = true;
-    const node = withTransform(a.start, { x, y });
-    st.setDrag({ id: a.id, x, y, rot: node.transform.rot, preview: previewNode(st.doc, node, st.baseline, st.catalog) });
+    const node = settleOnSurface(st.doc, st.catalog, withTransform(a.start, { x, y }));
+    st.setDrag({ id: a.id, x, y, z: node.transform.z, rot: node.transform.rot, preview: previewNode(st.doc, node, st.baseline, st.catalog) });
   }, [planePoint]);
 
   const upRef = useRef<() => void>(() => {});
@@ -64,7 +65,7 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     const st = useStudio.getState();
     const d = st.drag;
     st.setDrag(null);
-    if (a?.moved && d) st.commit({ type: "move", id: d.id, x: d.x, y: d.y }, d.id); // refuses with a message when illegal
+    if (a?.moved && d) st.commit({ type: "move", id: d.id, x: d.x, y: d.y, ...(d.z !== undefined ? { z: d.z } : {}) }, d.id); // refuses with a message when illegal
   }, [move]);
 
   useEffect(() => {
@@ -151,7 +152,7 @@ export function SelectionBox() {
 
   if (!isEditing(mode) || !item || !manifest || !dims || !geo || !selection) return null;
   const dragging = drag && drag.id === item.id ? drag : null;
-  const t = dragging ? { ...item.transform, x: dragging.x, y: dragging.y, rot: dragging.rot } : item.transform;
+  const t = dragging ? { ...item.transform, x: dragging.x, y: dragging.y, z: dragging.z ?? item.transform.z, rot: dragging.rot } : item.transform;
   const preview = dragging ? dragging.preview : doc && baseline && catalog ? previewNode(doc, item, baseline, catalog) : null;
   const color = !preview ? "#7bd88f" : !preview.ok ? "#ff6b6b" : preview.advisories.length ? "#f2c45a" : "#7bd88f";
   return (

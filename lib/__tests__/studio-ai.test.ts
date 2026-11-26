@@ -7,6 +7,7 @@ import { apply } from "../studio/commands/apply";
 import { dryRunPropose } from "../studio/ai/dryRun";
 import { buildContext } from "../studio/ai/anthropic";
 import { MAX_AI_ADDS, sanitizeAiCommands } from "../studio/ai/validate";
+import { settleOnSurface, surfaceTopAt } from "../studio/design/surface";
 import { catalogFrom, MaterialManifest, ModelManifest } from "../studio/schema/catalog";
 import { emptyDocument } from "../studio/schema/document";
 import { errorsOf, validateDocument } from "../studio/validation/placement";
@@ -123,11 +124,50 @@ describe("free dry-run planner", () => {
     expect(errorsOf(validateDocument(out.doc, baseline, catalog))).toEqual([]);
   });
 
+  it("sets table lamps ON furniture (nightstand, sideboard) and a floor lamp beside the sofa", () => {
+    const items = (prompt: string) => Object.values(run(prompt).out.doc.nodes).filter((n): n is import("../studio/schema/nodes").ItemNode => n.kind === "item");
+    for (const [prompt, host] of [["bedroom", "nightstand-01"], ["dining", "sideboard-01"]] as const) {
+      const nodes = items(prompt);
+      const lamp = nodes.find((n) => n.catalog.id === "table-lamp-01");
+      const h = nodes.find((n) => n.catalog.id === host)!;
+      expect(lamp, prompt).toBeTruthy();
+      expect(lamp!.transform.z, prompt).toBeCloseTo(surfaceTopAt({ ...doc0(), nodes: { [h.id]: h } }, catalog, lamp!.transform.x, lamp!.transform.y), 3);
+      expect(lamp!.transform.z, prompt).toBeGreaterThan(0.3);
+    }
+    const living = items("living room");
+    const sofa = living.find((n) => n.catalog.id === "sofa-modular-01")!;
+    const fl = living.find((n) => n.catalog.id === "floor-lamp-01")!;
+    expect(fl).toBeTruthy();
+    expect(Math.hypot(fl.transform.x - sofa.transform.x, fl.transform.y - sofa.transform.y)).toBeLessThan(2.6);
+  });
+
   it("says so when it does not understand, and proposes nothing", () => {
     const { p, out } = run("make it purple");
     expect(p.commands).toEqual([]);
     expect(out.batch).toBeNull();
     expect(p.summary).toMatch(/could not/i);
+  });
+});
+
+describe("surface items", () => {
+  const ns = (x: number, y: number) => ({ id: "ns", kind: "item" as const, locked: false, catalog: { id: "nightstand-01", version: 1 }, slots: {}, transform: { x, y, z: 0, rot: 0 } });
+  const lamp = (x: number, y: number, z = 0) => ({ id: "l", kind: "item" as const, locked: false, catalog: { id: "table-lamp-02", version: 1 }, slots: {}, transform: { x, y, z, rot: 0 } });
+  it("rest on the furniture under them, and drop to the floor when moved off it", () => {
+    const doc = { ...doc0(), nodes: { ns: ns(4, 2) } };
+    const top = catalog.model({ id: "nightstand-01", version: 1 })!.dims.h;
+    expect(settleOnSurface(doc, catalog, lamp(4, 2.2)).transform.z).toBeCloseTo(top, 3);
+    expect(settleOnSurface(doc, catalog, lamp(5.5, 2, top)).transform.z).toBe(0);
+  });
+  it("ignore tall pieces and things that are not surfaces", () => {
+    const sofa = { ...ns(4, 2), id: "s", catalog: { id: "wardrobe-hinged-01", version: 1 } };
+    expect(surfaceTopAt({ ...doc0(), nodes: { s: sofa } }, catalog, 4, 2.2)).toBe(0);
+  });
+  it("an AI proposal that leaves a lamp at z=0 over a nightstand gets it set on top", () => {
+    const doc = apply(doc0(), { type: "add", node: ns(4, 2) }, { baseline, catalog }).doc;
+    const o = sanitizeAiCommands([{ type: "add", node: lamp(4, 2.2) }], doc, baseline, catalog);
+    expect(o.accepted).toBe(1);
+    const l = Object.values(o.doc.nodes).find((n) => n.kind === "item" && n.catalog.id === "table-lamp-02");
+    expect(l && l.kind === "item" && l.transform.z).toBeGreaterThan(0.3);
   });
 });
 

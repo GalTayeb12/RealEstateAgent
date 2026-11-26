@@ -1,0 +1,73 @@
+{
+  "type": "model",
+  "id": "table-lamp-02",
+  "version": 1,
+  "status": "published",
+  "name": {
+    "he": "מנורת פטרייה",
+    "en": "Mushroom table lamp"
+  },
+  "category": "lamp-table",
+  "styles": [
+    "modern-minimalist",
+    "contemporary",
+    "quiet-luxury"
+  ],
+  "rooms": [
+    "living",
+    "bedroom",
+    "dining"
+  ],
+  "uvUnits": "metres",
+  "dims": {
+    "w": 0.279,
+    "d": 0.279,
+    "h": 0.35
+  },
+  "sizing": {
+    "mode": "fixed"
+  },
+  "slots": [
+    {
+      "id": "metal",
+      "label": {
+        "he": "מתכת",
+        "en": "Metal"
+      },
+      "allowed": [
+        "metal"
+      ],
+      "default": {
+        "id": "metal-brushed-brass",
+        "version": 1
+      }
+    }
+  ],
+  "placement": {
+    "on": "surface",
+    "layer": "decor",
+    "elevation": 0,
+    "clearance": {
+      "front": 0,
+      "back": 0,
+      "sides": 0
+    },
+    "againstWall": false
+  },
+  "capabilities": [
+    "move",
+    "rotate",
+    "material",
+    "duplicate",
+    "remove"
+  ],
+  "assets": {
+    "glb": "table-lamp-02/1/model.glb",
+    "preview": "table-lamp-02/1/preview.webp"
+  },
+  "license": {
+    "spdx": "HAVENIQ-ORIGINAL",
+    "sourceUrl": "https://haveniq.local/original/studio-lamps",
+    "author": "HAVENIQ"
+  }
+}

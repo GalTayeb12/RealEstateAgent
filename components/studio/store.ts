@@ -13,6 +13,7 @@ import { History } from "@/lib/studio/commands/history";
 import type { Command } from "@/lib/studio/commands/types";
 import { previewNode, previewProposal, type Preview } from "@/lib/studio/design/preview";
 import { findFreeSpot, makeItem } from "@/lib/studio/design/spot";
+import { settleOnSurface } from "@/lib/studio/design/surface";
 import { rotateBy, snapAngle } from "@/lib/studio/design/snap";
 import type { PlanView, ViewKind, Viewport } from "@/lib/studio/plan/view";
 import { catalogFrom, type CatalogLookup, type MaterialManifest, type ModelManifest } from "@/lib/studio/schema/catalog";
@@ -32,7 +33,7 @@ export type Lighting = { sun: number; maskLo: number; maskHi: number; shadowOpac
 export const DEFAULT_LIGHTING: Lighting = { sun: 2.2, maskLo: 0.35, maskHi: 0.6, shadowOpacity: 0.6, ao: true };
 
 /** A transient drag (not in the document until released and accepted). */
-export type Drag = { id: string; x: number; y: number; rot: number; preview: Preview };
+export type Drag = { id: string; x: number; y: number; rot: number; z?: number; preview: Preview };
 export type Pose = { x: number; y: number; yaw: number };
 /** The saved design this session edits (null = nothing persisted yet). */
 export type DesignState = {
@@ -214,7 +215,7 @@ export const useStudio = create<StudioState>((set, get) => {
       const rot = snapAngle(yaw + Math.PI); // the front of the new item faces the person adding it
       const spot = findFreeSpot({ doc, baseline, catalog, manifest: m, near, rot });
       if (!spot) return fail("noSpace");
-      const node = makeItem(m, spot.x, spot.y, rot, newNodeId());
+      const node = settleOnSurface(doc, catalog, makeItem(m, spot.x, spot.y, rot, newNodeId()));
       if (!get().commit({ type: "add", node }, node.id)) return false;
       set({ selection: node.id, catalogOpen: false, replaceFor: null });
       return true;

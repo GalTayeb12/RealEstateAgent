@@ -29,3 +29,4 @@ Notes: ambientCG assets were downloaded once through its public API (one request
 | brass_vase_01 -> vase-brass-01 | 1 | https://polyhaven.com/a/brass_vase_01 | Rico Cilliers | CC0-1.0 | none required (credit appreciated) | 2026-11-26 |
 | planter_pot_clay -> planter-clay-01 | 1 | https://polyhaven.com/a/planter_pot_clay | Amal Kumar | CC0-1.0 | none required (credit appreciated) | 2026-11-26 |
 | dining-chair-01, counter-stool-01 | 1 | (original, scripts/blender/studio_chairs.py) | HAVENIQ | HAVENIQ-ORIGINAL | none | 2026-11-27 |
+| table-lamp-01, table-lamp-02 | 1 | (original, scripts/blender/studio_lamps.py) | HAVENIQ | HAVENIQ-ORIGINAL | none | 2026-11-26 |

@@ -142,7 +142,7 @@ function ItemBody({ node, walk, data, envs, listeners, obj }: ItemProps & { obj:
   const dims = resolveSize(manifest, node);
   const design = useDesign();
   const drag = useStudio((s) => (s.drag && s.drag.id === node.id ? s.drag : null));
-  const t = drag ? { ...node.transform, x: drag.x, y: drag.y, rot: drag.rot } : node.transform;
+  const t = drag ? { ...node.transform, x: drag.x, y: drag.y, z: drag.z ?? node.transform.z, rot: drag.rot } : node.transform;
   const room = roomAt(walk, data.rooms, t.x, t.y);
 
   // slot materials: textured when the asset's UVs are in metres, otherwise colour/roughness/metalness only

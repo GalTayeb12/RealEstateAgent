@@ -5,6 +5,7 @@
  * passes placement / proposal validation. Unknown assets, illegal sizes, locked nodes,
  * protected structure and wipe-everything commands never reach the client.
  */
+import { settleOnSurface } from "../design/surface";
 import type { Baseline } from "../baseline/fromTwin";
 import { apply, CommandError } from "../commands/apply";
 import { CommandSchema, isPublicCommand, type Command } from "../commands/types";
@@ -51,7 +52,8 @@ export function sanitizeAiCommands(raw: unknown, doc: DesignDocument, baseline: 
       if (adds >= MAX_AI_ADDS) return void rejected.push({ index, reason: "Too many new items in one proposal." });
       const fresh = newNodeId();
       remap.set(cmd.node.id, fresh);
-      cmd = { ...cmd, node: { ...cmd.node, id: fresh } as DesignNode };
+      const node = { ...cmd.node, id: fresh } as DesignNode;
+      cmd = { ...cmd, node: node.kind === "item" ? settleOnSurface(working, catalog, node) : node };
     } else if ("id" in cmd && typeof cmd.id === "string" && remap.has(cmd.id)) {
       cmd = { ...cmd, id: remap.get(cmd.id)! } as Command;
     }
