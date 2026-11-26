@@ -40,7 +40,7 @@ Stack: Next 16 (App Router, `proxy.ts`), React 19 (+ React Compiler lint rules),
 | M3 | `/studio/[slug]` | Done. Shared Walker, live item layer, lighting stack, adaptive quality tiers (Lite / Standard / High) |
 | M4 | Premium living-room slice | Done (art still modest). Original modular sofa, travertine tables, armchair, rug, lamp, plants, textured CC0 materials |
 | M5 | Design mode UX | Done. Select, drag, rotate, catalog drawer, properties panel, modular configurator, surface picker, validation hints, he/en + RTL, mobile bottom-sheet layout |
-| M6 | Persistence | Done except live-DB test. File + Prisma repos, revision-checked autosave, IndexedDB draft, named versions, duplicate, share links (view/edit, hashed tokens), R2 driver (inactive) |
+| M6 | Persistence | Done; Prisma path verified on a local dev Postgres (contract tests + API/persist e2e). File + Prisma repos, revision-checked autosave, IndexedDB draft, named versions, duplicate, share links (view/edit, hashed tokens), R2 driver (inactive) |
 | M7 | Floor planner | Done. Top + true isometric views, dimensions to the cm, areas, door swings, clearances, wheel / pinch zoom, pan, cutaway |
 | M8 | Parametric systems | Done. Generators: kitchen base run (doors, drawers, handles, countertop), wall units, wardrobe, open shelving, upholstered bed; publish gates (size within 1 cm, bevels, 3 mm gaps, handle per front) |
 | M9 | Architecture proposals | Done. Partition + opening tools, protected structure, unverified labelling, kitchen layouts (single / galley / L / U) as one undoable batch |
@@ -68,7 +68,7 @@ Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9
 - **Item lighting vs the baked shell** is now calibrated per room and direction from the bake (`lib/studio/lighting.ts`, measured with `scripts/studio/light-tone.mjs`): held-out walls went from 23-56 % of the wall's luminance to 79-111 %. Still open: a warm cast on bedroom side walls, items read flatter than before, the corridor cannot be measured with the current method (PROGRESS "Item lighting calibration").
 - Plan mode: isometric walls are open-topped; labels of neighbouring rooms duplicate on shared walls; pinch gestures untested on a real device.
 - Proposals: straight partitions only, not draggable after placement, openings are fixed-height doorways, room areas do not update, concepts are rendered with realtime lighting (not baked).
-- Persistence: `PrismaDesignRepo` and the migration `20261126000000_add_studio_designs` are **untested against a live database** (needs a dev DB URL; run `node scripts/studio/assert-dev-db.mjs` first). R2 stays inactive until credentials are supplied.
+- Persistence: `PrismaDesignRepo` and the migration `20261126000000_add_studio_designs` are verified on a local dev Postgres (PROGRESS "Live database"). The main app's `schema.prisma` has SellerProfile + 4 columns without a migration (pre-existing, not studio; owner decision). R2 stays inactive until credentials are supplied.
 - Poly Haven test assets were removed from the catalog; remaining items are original or CC0 with license rows in `ASSET_LICENSES.md`.
 - Epic license terms must be re-checked in a browser (pages returned 403 to automated fetching).
 - Performance numbers are desktop measured (RTX 4070 Laptop); mobile numbers are emulated only.
@@ -161,7 +161,7 @@ lib/__tests__/studio-*.test.ts
 
 ## 7. Next steps (exact)
 
-1. Provide a **dev database URL** (not production) to test the Prisma repo and migration.
+1. Decide how to add the main app's missing migrations (SellerProfile + 4 columns; see PROGRESS "Live database").
 2. M10 live model: with the owner's approval, switch `STUDIO_AI_PROVIDER=claude` and measure the sample prompts (cost, dropped actions).
 3. Finish the item tone match (warm cast on bedroom side walls, flatter item contrast; PROGRESS "Item lighting calibration"), then M11 catalog growth and admin.
 4. M12 / M13, then resume Unreal E2 (black render) only if the owner still wants the Ultra tier.

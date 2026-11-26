@@ -6,7 +6,8 @@ import jwt from "jsonwebtoken";
 
 const base = (process.argv.find((a) => a.startsWith("--base=")) ?? "--base=http://localhost:3001").slice(7);
 const secret = process.env.JWT_SECRET ?? "studio-bench-dummy";
-const uid = `e2e-persist-${Date.now()}`;
+// --uid=<id> pins the user (needed with STUDIO_STORE=prisma: create it first with dev-db-users.mjs add)
+const uid = (process.argv.find((a) => a.startsWith("--uid=")) ?? "").slice(6) || `e2e-persist-${Date.now()}`;
 const token = jwt.sign({ userId: uid, email: `${uid}@example.test`, role: "developer" }, secret, { expiresIn: "1h" });
 const results = [];
 const check = (name, ok, extra = "") => { results.push(ok); console.log(`${ok ? "PASS" : "FAIL"}  ${name}${extra ? "  " + extra : ""}`); };

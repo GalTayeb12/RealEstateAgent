@@ -42,14 +42,18 @@ function candidates() {
   }
   return out;
 }
-for (const c of candidates()) {
-  try {
-    const p = new URL(c);
-    if (p.hostname.toLowerCase() === host && p.pathname === u.pathname) fail(`this is the same database as the one configured in your .env files (${p.hostname}${p.pathname})`);
-  } catch { /* ignore unparsable */ }
-}
-
 const local = ["localhost", "127.0.0.1", "::1", "[::1]"].includes(host);
+// A remote URL that equals one configured in the .env files is treated as production and refused.
+// A database on THIS machine cannot be the hosted production database, so a local dev URL kept in
+// .env.local (where it has to live for the app and the Prisma CLI) is not refused for matching itself.
+if (!local) {
+  for (const c of candidates()) {
+    try {
+      const p = new URL(c);
+      if (p.hostname.toLowerCase() === host && p.pathname === u.pathname) fail(`this is the same database as the one configured in your .env files (${p.hostname}${p.pathname})`);
+    } catch { /* ignore unparsable */ }
+  }
+}
 const labelled = /(^|[-_.])(dev|test|studio)([-_.]|$)/.test(`${host}/${db}`);
 if (!local && !labelled) fail(`host "${host}" is neither local nor labelled dev/test/studio`);
 console.log(`assert-dev-db: ok (${local ? "local" : "labelled dev"} database "${db}" on ${host})`);

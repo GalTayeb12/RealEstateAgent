@@ -27,6 +27,15 @@ Create `.env.local` (copy `.env.example`). For the studio:
 | `ANTHROPIC_API_KEY` | M10 AI designer, live mode only | paid: used only with `STUDIO_AI_PROVIDER=claude`; ask the owner before switching it on |
 | `STUDIO_AI_PROVIDER` / `STUDIO_AI_PER_MINUTE` | AI designer | default: free dry-run planner, 8 requests per user per minute |
 
+**Testing the Prisma path on a dev Postgres** (verified 2026-11-26 on a local `studio_dev`):
+```powershell
+node --env-file=.env.local scripts/studio/assert-dev-db.mjs     # must say ok; it refuses anything that may be production
+npx prisma migrate deploy                                        # creates the tables (run only after the guard says ok)
+$env:STUDIO_TEST_DATABASE_URL = (node --env-file=.env.local -e "process.stdout.write(process.env.DATABASE_URL)")
+npx vitest run lib/__tests__/studio-persist.test.ts              # adds the 8 contract tests on Postgres (24 total)
+```
+For the app itself start a dev server with the Prisma store (`$env:STUDIO_STORE="prisma"; npx next dev -p 3002`; stop the other dev server first, they share `.next`), create the e2e owners with `node --env-file=.env.local scripts/studio/dev-db-users.mjs add api-user-a api-user-b e2e-persist-db` (designs need a real User row), run `node scripts/studio/e2e-api.mjs --base=http://localhost:3002` and `node scripts/studio/e2e-persist.mjs --base=http://localhost:3002 --uid=e2e-persist-db`, then `dev-db-users.mjs remove ...`. Note: `schema.prisma` has a few main-app tables/columns without a migration; on a fresh dev DB apply them with `npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script` (strip the CLI's `◇` log lines) and `npx prisma db execute --file ...`.
+
 Access to `/studio/*` needs a session with role developer or admin (httpOnly `hq_session` cookie). Locally you can mint one: `jwt.sign({userId, email, role: "admin"}, JWT_SECRET)` (see any `scripts/studio/e2e-*.mjs`), or log in with a developer/admin account of the database you use. A browser that already holds a `hq_session` cookie must clear it first (JS cannot overwrite an httpOnly cookie).
 
 ## 3. Run

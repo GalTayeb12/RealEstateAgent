@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -18,14 +19,47 @@ const withItem = (d: DesignDocument, id: string): DesignDocument => ({
 const dir = mkdtempSync(path.join(os.tmpdir(), "studio-persist-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
 
-const factories: [string, () => { repo: DesignRepo; kv: MemoryKv | StorageKv }][] = [
+type Made = { repo: DesignRepo; kv: MemoryKv | StorageKv | null; storedTokenHashes?: () => Promise<string[]> };
+const factories: [string, () => Made | Promise<Made>][] = [
   ["memory", () => { const kv = new MemoryKv(); return { repo: new KvDesignRepo(kv), kv }; }],
   ["local storage", () => { const kv = new StorageKv(new LocalDiskStorage(mkdtempSync(path.join(dir, "s-")))); return { repo: new KvDesignRepo(kv), kv }; }],
 ];
 
+/**
+ * Postgres (PrismaDesignRepo), opt-in: STUDIO_TEST_DATABASE_URL must point at a DEV database and pass
+ * scripts/studio/assert-dev-db.mjs (checked here before anything connects). The owners u1/u2 are
+ * created as User rows (StudioDesign.ownerId is a foreign key) and everything is removed afterwards.
+ */
+const dbUrl = process.env.STUDIO_TEST_DATABASE_URL;
+if (dbUrl) {
+  const guard = spawnSync(process.execPath, ["scripts/studio/assert-dev-db.mjs", `--url=${dbUrl}`], { encoding: "utf8" });
+  if (guard.status !== 0) throw new Error(`STUDIO_TEST_DATABASE_URL refused by assert-dev-db: ${guard.stderr.trim()}`);
+  process.env.DATABASE_URL = dbUrl;
+  const { prisma } = await import("../prisma");
+  const { PrismaDesignRepo } = await import("../studio/persist/prismaRepo");
+  const owners = ["u1", "u2"];
+  for (const id of owners) {
+    await prisma.studioDesign.deleteMany({ where: { ownerId: id } });
+    await prisma.user.upsert({ where: { id }, update: {}, create: { id, email: `${id}@studio-test.invalid`, passwordHash: "x", role: "developer" } });
+  }
+  afterAll(async () => {
+    await prisma.studioDesign.deleteMany({ where: { ownerId: { in: owners } } });
+    await prisma.user.deleteMany({ where: { id: { in: owners } } });
+    await prisma.$disconnect();
+  });
+  // each test starts from a clean slate, like the fresh in-memory stores above (the database is shared)
+  factories.push(["postgres", async () => {
+    await prisma.studioDesign.deleteMany({ where: { ownerId: { in: owners } } });
+    return {
+      repo: new PrismaDesignRepo(prisma), kv: null,
+      storedTokenHashes: async () => (await prisma.studioDesignShare.findMany({ select: { tokenHash: true } })).map((s) => s.tokenHash),
+    };
+  }]);
+}
+
 describe.each(factories)("design repository (%s)", (_name, make) => {
   it("creates, reads and lists only the owner's designs for a baseline", async () => {
-    const { repo } = make();
+    const { repo } = await make();
     const a = await repo.create("u1", doc("A"));
     await repo.create("u2", doc("B"));
     await repo.create("u1", { ...doc("C"), baseline: { ...ref, id: "other" } });
@@ -36,7 +70,7 @@ describe.each(factories)("design repository (%s)", (_name, make) => {
   });
 
   it("saves with optimistic concurrency", async () => {
-    const { repo } = make();
+    const { repo } = await make();
     const a = await repo.create("u1", doc());
     const s1 = await repo.save(a.id, "u1", withItem(a.data, "x"), 1);
     expect(s1.revision).toBe(2);
@@ -47,7 +81,7 @@ describe.each(factories)("design repository (%s)", (_name, make) => {
   });
 
   it("refuses other owners, unknown designs, baseline changes and oversized documents", async () => {
-    const { repo } = make();
+    const { repo } = await make();
     const a = await repo.create("u1", doc());
     await expect(repo.save(a.id, "u2", a.data, 1)).rejects.toBeInstanceOf(ForbiddenError);
     await expect(repo.save("nope", "u1", a.data, 1)).rejects.toBeInstanceOf(NotFoundError);
@@ -58,7 +92,7 @@ describe.each(factories)("design repository (%s)", (_name, make) => {
   });
 
   it("renames (trimmed, non-empty) and duplicates independently", async () => {
-    const { repo } = make();
+    const { repo } = await make();
     const a = await repo.create("u1", withItem(doc("A"), "x"));
     expect((await repo.rename(a.id, "u1", "  Living  ")).name).toBe("Living");
     await expect(repo.rename(a.id, "u1", "   ")).rejects.toBeInstanceOf(ValidationError);
@@ -71,7 +105,7 @@ describe.each(factories)("design repository (%s)", (_name, make) => {
   });
 
   it("keeps named versions and restores one as a new revision", async () => {
-    const { repo } = make();
+    const { repo } = await make();
     const a = await repo.create("u1", doc());
     const s = await repo.save(a.id, "u1", withItem(a.data, "x"), 1); // rev 2
     const v = await repo.addVersion(a.id, "u1", "  First idea ");
@@ -87,7 +121,7 @@ describe.each(factories)("design repository (%s)", (_name, make) => {
   });
 
   it("shares by unguessable token: view cannot write, edit can, revoke and expiry work", async () => {
-    const { repo, kv } = make();
+    const { repo, kv, storedTokenHashes } = await make();
     const a = await repo.create("u1", doc());
     const view = await repo.createShare(a.id, "u1", "view");
     const edit = await repo.createShare(a.id, "u1", "edit");
@@ -100,9 +134,15 @@ describe.each(factories)("design repository (%s)", (_name, make) => {
     expect(saved.revision).toBe(2);
     await expect(repo.saveShared(edit.token, a.data, 1)).rejects.toBeInstanceOf(ConflictError);
     // only the hash is stored
-    const keys = await kv.list("");
-    expect(keys.some((k) => k.includes(view.token))).toBe(false);
-    expect(keys).toContain(`share/${hashToken(view.token)}`);
+    if (kv) {
+      const keys = await kv.list("");
+      expect(keys.some((k) => k.includes(view.token))).toBe(false);
+      expect(keys).toContain(`share/${hashToken(view.token)}`);
+    } else {
+      const hashes = await storedTokenHashes!();
+      expect(hashes).toContain(hashToken(view.token));
+      expect(hashes).not.toContain(view.token);
+    }
     await repo.revokeShare(a.id, "u1", view.share.id);
     expect(await repo.resolveShare(view.token)).toBeNull();
     const old = await repo.createShare(a.id, "u1", "view", new Date(Date.now() - 1000));
@@ -111,7 +151,7 @@ describe.each(factories)("design repository (%s)", (_name, make) => {
   });
 
   it("removing a design removes its versions and share links", async () => {
-    const { repo } = make();
+    const { repo } = await make();
     const a = await repo.create("u1", doc());
     await repo.addVersion(a.id, "u1", "v");
     const s = await repo.createShare(a.id, "u1", "view");
@@ -122,7 +162,7 @@ describe.each(factories)("design repository (%s)", (_name, make) => {
   });
 
   it("serialises concurrent saves: exactly one wins per revision", async () => {
-    const { repo } = make();
+    const { repo } = await make();
     const a = await repo.create("u1", doc());
     const results = await Promise.allSettled([1, 2, 3].map((i) => repo.save(a.id, "u1", withItem(a.data, `n${i}`), 1)));
     expect(results.filter((r) => r.status === "fulfilled").length).toBe(1);
