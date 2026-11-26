@@ -13,7 +13,8 @@
   ],
   "rooms": [
     "living",
-    "kitchen"
+    "kitchen",
+    "bedroom"
   ],
   "dims": {
     "w": 0.434,

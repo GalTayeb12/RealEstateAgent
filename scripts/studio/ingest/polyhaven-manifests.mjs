@@ -11,7 +11,7 @@ const ITEMS = [
     placement: { on: "floor", layer: "furniture", elevation: 0, ...{ clearance: base.clearance, againstWall: false } } },
   { id: "coffee-wood-01", name: L("שולחן סלון עץ", "Wooden coffee table"), category: "coffee-table", styles: ["scandinavian", "japandi"], rooms: ["living"], slots: [],
     placement: { on: "floor", layer: "furniture", elevation: 0, clearance: { front: 0.4, back: 0, sides: 0.3 }, againstWall: false } },
-  { id: "chair-dining-01", name: L("כיסא אוכל", "Dining chair"), category: "chair", styles: ["contemporary", "scandinavian"], rooms: ["living", "kitchen"], slots: [],
+  { id: "chair-dining-01", name: L("כיסא אוכל", "Dining chair"), category: "chair", styles: ["contemporary", "scandinavian"], rooms: ["living", "kitchen", "bedroom"], slots: [],
     placement: { on: "floor", layer: "furniture", elevation: 0, clearance: { front: 0.4, back: 0, sides: 0 }, againstWall: false } },
   { id: "vase-ceramic-03", name: L("אגרטל קרמיקה גבוה", "Tall ceramic vase"), category: "decor", styles: ["organic-modern", "japandi", "scandinavian"], rooms: ["living", "bedroom"], slots: [],
     placement: { on: "surface", layer: "decor", elevation: 0, clearance: { front: 0, back: 0, sides: 0 }, againstWall: false } },
