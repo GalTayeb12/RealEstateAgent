@@ -1,6 +1,6 @@
 # HAVENIQ Design Studio: full project README
 
-Status as of 2026-11-26. Branch `feature/design-studio` (worktree `.claude/worktrees/design-studio`), based on `Work-Gal` HEAD `8a6c21d`.
+Status as of 2026-11-27. Working branch `implement/concept-c` (worktree `C:\RealEstateAgent-clever`, = `Work-Meytar` + the studio work), head `934164b`. Everything is committed locally; **nothing has been pushed**. The older notes below mention `feature/design-studio` (its original branch).
 This file is the single entry point: what the system is, everything built so far, what is missing, how to run it, and the history of the work.
 To continue from another computer or user: **`SETUP.md`** (clone, env, what is not in git). Details live in the sibling docs: `PROGRESS.md` (per-milestone results and the exact next steps), `MASTER_PLAN.md` (the approved plan), `ARCHITECTURE.md`, `QUALITY_GATES.md`, `ART_DIRECTION.md`, `ASSET_PIPELINE.md`, `ASSET_LICENSES.md`, `UNREAL.md`.
 
@@ -48,19 +48,29 @@ Stack: Next 16 (App Router, `proxy.ts`), React 19 (+ React Compiler lint rules),
 | M11 | Admin catalog + growth | Catalog 14 -> 25 models (11 original parametric pieces: tables, desk, bench, sideboard, TV unit, nightstand, chest, cabinet, wall shelf) and 11 -> 50 materials (original flat finishes). `/admin/catalog`: import drafts with files, shared publish gates, publish / retire, every change a numbered release (history kept), retired items hidden but still rendered in existing designs; the studio loads the latest release |
 | M12 | Path-traced still | "Render still" in Walk mode: progressive path-traced PNG of the current view (`three-gpu-pathtracer`), draft / standard / fine. Standard (128 spl, 1600 px) takes 50 s on this laptop's RTX GPU with the Vulkan ANGLE backend; the default Direct3D11 backend is roughly 10x slower (labelled, smoothed). The queued Blender re-bake is not built. |
 | M10 | AI designer | Done in dry-run (free). `/api/studio/ai`: plan of small actions compiled server-side into one validated batch; ghost preview, accept / reject / one-step undo, per-user rate limit, he/en. Live Claude path written but never called (needs owner approval) |
+| Tour <-> studio | Studio button in every tour | Done (2026-11-26/27). `/walk/<slug>` shows "Design Studio" when `public/walk/<studio-target>/baseline.json` exists; empty-apartment shells for the three plans (yarkon-4, rotem, cmwp5dhx...); the developer's seed design opens as the starting point. Back from the building page skips the tour. |
+| Buyer save | Save and Back in the studio | Done. Autosave plus an explicit Save button; designs are private to the signed-in buyer; the catalog drawer chips wrap instead of scrolling out of view. |
+| Offers | Buyer design attached to an offer | Done in code, **not tested against a database**. Opt-in checkbox on the offer: a COPY of the design (`Offer.designSnapshot`) is attached; the developer sees only the attached copy (view-only `/studio/offer/<offerId>`, link in the seller dashboard). Developers never see a buyer's ordinary saves. Migration `20261126020000_add_offer_design_snapshot` is **not applied** anywhere. |
+| Auto seed | Minimal design for every uploaded plan | `scripts/studio/make-seed.mts` (generic by room type) and `build-worker` (`buildStudioShell`, `shellOnly`) build the shell and a starter design when a plan is approved. Not run end to end (about 20 min of Blender). |
+| Catalog | 25 -> 29 models | 4 CC0 Poly Haven pieces added (armchair, coffee table, dining chair, ceramic vase; 9 were tried, 4 fit the art direction). Licence rows in `ASSET_LICENSES.md`. The runtime catalog needs "Sync repository" in `/admin/catalog`. |
+| M10 live | Live Claude AI designer test | Done on 2026-11-26: 7 real calls (`scripts/studio/live-ai.mts`, model `claude-opus-5-5`) on the engine, not through the UI. All plans passed the validators (advisories only), Hebrew worked, an impossible request (sofa on the ceiling) was refused politely, 2-19 s per call. Cost per call, load, and the UI path with `STUDIO_AI_PROVIDER=claude` are **not measured**. |
 | Unreal E0-E2 | Evaluation | Partial. UE 5.8.4 verified, GLB import works via a cooked variant; first GPU render black (unresolved); paused by the owner, work returned to Three.js |
 
-Tests at the last commit: **532 vitest tests**, eslint + tsc clean, e2e suites passing (`e2e-catalog` en/he, `e2e-ai` desktop/he/mobile, `e2e-design` desktop/mobile/he, `e2e-plan`, `e2e-generated`, `e2e-arch` en/he, `e2e-api`, `e2e-persist`).
+Tests at the last commit (`934164b`): **547 vitest tests**, eslint + tsc clean, e2e suites passing (`e2e-catalog` en/he, `e2e-ai` desktop/he/mobile, `e2e-design` desktop/mobile/he, `e2e-plan`, `e2e-generated`, `e2e-arch` en/he, `e2e-api`, `e2e-persist`, `e2e-seed`).
 
-Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9).
+Commits: M0..M12 plus the 2026-11-26/27 work (tour button, Save/Back, offers, auto seed, catalog, live AI test) are in `git log`; latest `934164b`. Not pushed.
 
 ---
 
 ## 3. What is missing (honest list)
 
 **Planned milestones not started**
-- **M10 live model**: the Claude provider exists (`lib/studio/ai/claude.ts`, `STUDIO_AI_PROVIDER=claude`) but has never been called; evaluating it costs money and needs the owner's approval. The dry-run planner is a test double that only understands the sample requests.
-- **Catalog beyond 25 models**: chairs, soft seating, lamps, decor and textured materials need modelled or scanned assets; downloading CC0 / CC-BY assets needs the owner's approval.
+- **M10 live model, remaining part**: the engine was tested live (7 calls, see section 2). Still open: the UI path with `STUDIO_AI_PROVIDER=claude`, measured cost per call, rate limits under load. The dry-run planner remains the default and only understands the sample requests.
+- **Catalog beyond 29 models** (target 30-50): more original parametric pieces (dining chair, bar stool, pendant lamp, mirror, bookcase); Poly Haven items are mostly rustic, so only 4 of 9 fit.
+- **Before deploying the offers feature**: the owner runs `prisma migrate deploy` (migration `20261126020000`), then an end-to-end offer-with-design test against a database.
+- **Auto seed**: run `build-worker` on a newly uploaded apartment end to end (about 20 min Blender). The `cmwp5dhx...` seed is sparse because of its irregular plan.
+- **Manual tests by the owner** (after the plans are finished): Back on `/aom/seed-yarkon-4`, Save/Back in the studio, catalog chips on mobile, the three empty apartments.
+- **Storage**: no R2 credentials yet; everything is local.
 - **M12 queued re-bake** of a saved design (the path-traced still itself is done, see PROGRESS M12).
 - **M13 Hardening**: performance budgets, LODs, KTX2, instancing, a11y (axe), visual regression set, rate limits on new routes, real-device mobile test, richer touch gestures.
 - **Unreal E2-E6**: fix the black render, Pixel Streaming locally, bridge, measurements against pre-registered gates, decision record (Ultra tier optional; Three.js stays the default).
@@ -158,14 +168,18 @@ lib/__tests__/studio-*.test.ts
 3. **Unreal feasibility addendum**: evaluate UE5 as an optional "Ultra" tier via Pixel Streaming (not a replacement); universal device support with tiers Lite / Standard / High + Ultra and a 2D fallback; free premium asset ecosystem with per-asset license checks; measure, do not assume. UE 5.8.4 installed by the owner; E0-E2 done, first render black.
 4. **Owner returned work to Three.js** and asked to run the server and finish the M4 materials; login/404 confusion was explained (needs a developer/admin httpOnly session cookie).
 5. **M4-M9 delivered** in order (M5-M9 in this stretch), each verified by unit tests, e2e and screenshots, then committed.
-6. **Latest instruction**: continue the whole project in order without reducing scope, forgetting nothing; then, running low on usage, write this README and push to `Work-Meytar`.
+6. **Earlier instruction**: continue the whole project in order without reducing scope, forgetting nothing; then, running low on usage, write this README and push to `Work-Meytar`.
+7. **2026-11-26/27**: the owner tested the tour and asked for: a studio button in every tour, Back/Save buttons, wrapped catalog chips, buyer designs private until attached to an offer, an automatic minimal design for each uploaded plan, more free catalog models, and a live test of the Claude designer. All done and committed locally (section 2).
 
 ---
 
 ## 7. Next steps (exact)
 
-1. Decide how to add the main app's missing migrations (SellerProfile + 4 columns; see PROGRESS "Live database").
-2. M10 live model: with the owner's approval, switch `STUDIO_AI_PROVIDER=claude` and measure the sample prompts (cost, dropped actions).
-3. Finish the item tone match (warm cast on bedroom side walls, flatter item contrast; PROGRESS "Item lighting calibration"), then M11 catalog growth and admin.
-4. M13 (and optionally the M12 re-bake), then resume Unreal E2 (black render) only if the owner still wants the Ultra tier.
-5. Re-check Epic licensing and test on a real phone.
+1. Owner: manual tests, then `prisma migrate deploy` for the offers migration (and the SellerProfile migration `f73df56` if not yet applied); then test offer-with-design against a database.
+2. Catalog: original parametric generators to reach 30-50 models; press "Sync repository" in `/admin/catalog` after publishing.
+3. M10 UI path: with approval, run the studio with `STUDIO_AI_PROVIDER=claude` and measure cost per call.
+4. Finish the item tone match (warm cast on bedroom side walls, flatter item contrast; PROGRESS "Item lighting calibration").
+5. M13 hardening (performance budgets, LODs, KTX2, a11y, real-device mobile test), optionally the M12 re-bake.
+6. Push to `Work-Meytar` (or a branch the owner names), never to `main`, only when the owner says so.
+7. Resume Unreal E2 only if the owner still wants the Ultra tier; re-check Epic licensing in a browser.
+8. Ideas discussed, no decision: premium asset packs or AI text-to-3D furniture (pilot), richer lighting and architectural detail in the shell, a server-side path-traced "photo" render. The owner said to drop it for now.
