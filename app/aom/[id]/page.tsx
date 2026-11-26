@@ -93,10 +93,15 @@ interface UnitDetail {
 function BackButton({ label, inNav }: { label: string; inNav?: boolean }) {
   const router = useRouter();
   const base = useRef<number | null>(null);
-  useEffect(() => { base.current = window.history.length; }, []);
+  // Left a room tour (/walk/...) by its Exit button: the page was reloaded, so one step back is the tour itself.
+  const fromTour = useRef(false);
+  useEffect(() => {
+    base.current = window.history.length;
+    try { fromTour.current = new URL(document.referrer).pathname.startsWith("/walk/"); } catch { fromTour.current = false; }
+  }, []);
   function goBack() {
     const start = base.current;
-    if (start == null || start <= 1) { router.push("/results"); return; }
+    if (fromTour.current || start == null || start <= 1) { router.push("/results"); return; }
     const added = Math.max(0, window.history.length - start);
     window.history.go(-(added + 1));
   }

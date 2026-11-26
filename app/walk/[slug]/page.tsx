@@ -41,7 +41,7 @@ export default async function WalkPage({
   let studioHref: string | undefined;
   if (studioAccess(role).allowed) {
     const has = (slug: string) => fs.existsSync(path.join(process.cwd(), "public", "walk", slug, "baseline.json"));
-    const target = experience.studio ?? (has(experience.slug) ? experience.slug : undefined);
+    const target = experience.studio ?? [experience.slug, `${experience.slug}-shell`].find(has);
     if (target && has(target)) studioHref = `/studio/${target}`;
   }
   return <WalkClient experience={experience} studioHref={studioHref} />;
