@@ -15,6 +15,7 @@ import type { Baseline } from "@/lib/studio/baseline/fromTwin";
 import { MaterialManifest, ModelManifest } from "@/lib/studio/schema/catalog";
 import { ArchitectureMenu, KitchenPanel } from "./panels/ArchitecturePanels";
 import AiPanel from "./panels/AiPanel";
+import StillPanel from "./panels/StillPanel";
 import CatalogDrawer from "./panels/CatalogDrawer";
 import DesignMenu from "./panels/DesignMenu";
 import { reloadFromServer, usePersistence } from "./persist/usePersistence";
@@ -57,6 +58,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const tool = useStudio((s) => s.tool);
   const kitchenOpen = useStudio((s) => s.kitchenOpen);
   const aiOpen = useStudio((s) => s.aiOpen);
+  const still = useStudio((s) => s.still);
   const hasConcept = useStudio((s) => !!s.doc && Object.values(s.doc.nodes).some((n) => n.kind === "partitionProposal" || n.kind === "openingProposal"));
   const design = useStudio((s) => s.design);
   const readOnly = design?.mode === "shared-view";
@@ -125,6 +127,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.code === "KeyZ") { e.preventDefault(); (e.shiftKey ? s.redo : s.undo)(); return; }
       if (mod && e.code === "KeyY") { e.preventDefault(); s.redo(); return; }
+      if (e.code === "Escape" && s.still) { s.setStill(null); return; }
       if (!isEditing(s.mode)) return;
       if (mod && e.code === "KeyD") { e.preventDefault(); s.duplicateSelected(); }
       else if (e.code === "Delete" || e.code === "Backspace") { if (s.selection && !s.selection.startsWith("surface:")) { e.preventDefault(); s.removeSelected(); } }
@@ -171,6 +174,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
         <button type="button" disabled={readOnly} onClick={() => { if (window.confirm(t("restoreConfirm"))) useStudio.getState().dispatch({ type: "restoreBaseline" }); }}>{t("restore")}</button>
         {editing && !readOnly && <ArchitectureMenu />}
         {editing && !readOnly && <button type="button" onClick={() => useStudio.getState().setAiOpen(true)}>✦ {t("aiDesigner")}</button>}
+        {!mobile && mode !== "plan" && <button type="button" disabled={!!still && still.status !== "done" && still.status !== "error"} onClick={() => useStudio.getState().startStill()}>◎ {t("still")}</button>}
         <DesignMenu />
         <select aria-label={t("quality")} value={quality} onChange={(e) => useStudio.getState().setQuality(e.target.value as typeof quality)}>
           <option value="auto">{t("quality")}: {t("auto")}</option>
@@ -185,6 +189,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
       {editing && <CatalogDrawer />}
       {editing && <KitchenPanel />}
       {editing && <AiPanel />}
+      <StillPanel />
 
       {hasConcept && <p className="st-ui st-banner st-banner--concept">{t("conceptBanner")}</p>}
       {design?.mode === "shared-view" && <p className="st-ui st-banner">{t("sharedView")}</p>}

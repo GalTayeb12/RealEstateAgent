@@ -18,7 +18,9 @@
     "studio:test": "vitest run lib/__tests__/studio",
     "studio:publish": "tsx scripts/studio/ingest/publish.mts",
     "studio:open": "node scripts/studio/open-studio.mjs",
-    "studio:e2e": "node scripts/studio/e2e-design.mjs && node scripts/studio/e2e-plan.mjs && node scripts/studio/e2e-generated.mjs && node scripts/studio/e2e-arch.mjs"
+    "studio:e2e": "node scripts/studio/e2e-design.mjs && node scripts/studio/e2e-plan.mjs && node scripts/studio/e2e-generated.mjs && node scripts/studio/e2e-arch.mjs",
+    "studio:still": "node scripts/studio/still.mjs --wait=90",
+    "studio:e2e:still": "node scripts/studio/e2e-still.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.113.0",
@@ -45,6 +47,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "three": "^0.186.1",
+    "three-gpu-pathtracer": "^0.0.27",
+    "three-mesh-bvh": "^0.9.18",
     "xlsx": "^0.18.5",
     "zod": "^4.5.4",
     "zustand": "^5.1.0"

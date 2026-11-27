@@ -123,3 +123,17 @@
 
 /* AI designer (M10) */
 .st-ai-input { width: 100%; box-sizing: border-box; resize: vertical; border-radius: 10px; padding: 8px 10px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); color: inherit; font: inherit; margin-bottom: 8px; }
+
+/* M12 photo render: same glass as the panels, centred above the bar */
+.st-still {
+  position: absolute; bottom: 84px; inset-inline-start: 50%; translate: -50% 0; width: min(420px, calc(100vw - 32px)); box-sizing: border-box;
+  padding: 14px 16px; border-radius: 18px; background: rgba(18, 18, 20, .78); border: 1px solid rgba(255, 255, 255, .14);
+  backdrop-filter: blur(16px); box-shadow: 0 14px 44px rgba(0, 0, 0, .4);
+}
+[dir="rtl"] .st-still { translate: 50% 0; }
+.st-progress { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; margin: 10px 0; }
+.st-progress span { display: block; height: 100%; background: #e8b65e; transition: width .25s linear; }
+.st-still__hint { font-size: 12px; opacity: .7; margin: 0; line-height: 1.5; }
+.st-actions .st-btnlink { display: inline-flex; align-items: center; text-decoration: none; border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; background: #e8b65e; color: #1b1407; }
+.st-actions .st-btnlink:hover { background: #f0c57a; }
+@media (prefers-reduced-motion: reduce) { .st-progress span { transition: none; } }

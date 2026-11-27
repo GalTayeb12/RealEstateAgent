@@ -11,6 +11,18 @@ Desktop High >=60 fps; mid mobile Low >=30 fps; furnished scene <=1.2M tris desk
 
 ## Results log
 
+### M12 - path-traced still (2026-11-27) - gate MET
+Gate (MASTER_PLAN): still render under 60 s on the RTX 4070 laptop. Measured, headless Edge 1920x1080, ANGLE/D3D11 on the RTX 4070 Laptop GPU, 128 spp + denoise, shader warmed in the background first:
+
+| View | Click to PNG | Invalid pixels |
+|---|---|---|
+| living | 42.8 s | 0.00% |
+| dining | 45.4 s | 0.00% |
+| bedroom | 36.8 s | 0.00% |
+
+Cold (shader not yet compiled): first sample after ~100 s (ANGLE compile); the warm-up compiles it in ~79 s in the background. Visual review (`results/m12/compare-*.webp`): grounding and contact shadows PASS (soft chair / table shadows, lamp pools on walls); shell vs dynamic tone PASS (one light model for everything, no pasted-on look); exposure / white balance PASS (neutral daylight; realtime view is warmer and darker); texture scale PASS; noise: walls clean, polished stone slightly grainy at 128 spp (acceptable); fabric sparkle fixed by disabling sheen in the still.
+
+
 ### M2 - irradiance proof (2026-11-25) - gate NOT met as pre-registered; accepted with a documented limitation
 Shell `yarkon-twin-shell`, preview bake (2048 px, 256 spp, OIDN), 1.63M lit texels, three bakes: base, noise (other seed), alt (recoloured surfaces). Script: `scripts/studio/irradiance-proof.mjs`; raw results in `results/irradiance-*.json`.
 

@@ -24,6 +24,7 @@ import { ShellLayer } from "./ShellLayer";
 import { ArchTool } from "./ArchTool";
 import { DesignProvider, SelectionBox } from "./DesignInteraction";
 import { ProposalLayer } from "./ProposalLayer";
+import { StillRender, StillWarmup } from "./StillRender";
 
 /**
  * The bake's sun (twin_build.py: Euler XYZ 55°, 0, -35°) travels along
@@ -134,7 +135,8 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
   const thumb = useStudio((s) => s.thumb);
   const mode = useStudio((s) => s.mode);
   const planning = mode === "plan";
-  const composer = !mobile && tier === "high" && !planning;
+  const still = useStudio((s) => !!s.still && s.still.status !== "error");
+  const composer = !mobile && tier === "high" && !planning && !still;
   const dpr: [number, number] = tier === "low" ? [1, 1] : tier === "medium" ? [1, 1.5] : [1, 2];
   return (
     <Canvas
@@ -157,6 +159,8 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
         <ArchTool />
       </DesignProvider>
       <Sun tier={tier} />
+      {still && <StillRender />}
+      {!mobile && tier === "high" && !thumb && <StillWarmup />}
       {thumb ? <ThumbCamera id={thumb.id} /> : planning ? <PlanRig /> : <Walker walk={walk} data={data} input={input} reduce={reduce} onRoom={onRoom} onPose={onPose} />}
       {/* two separately keyed composers: N8AO cannot share a multisampled composer, and
           removing an effect from a live composer leaves its depth buffers in a broken state */}

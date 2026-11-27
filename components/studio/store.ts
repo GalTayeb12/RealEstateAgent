@@ -35,6 +35,8 @@ export const DEFAULT_LIGHTING: Lighting = { sun: 2.2, maskLo: 0.35, maskHi: 0.6,
 /** A transient drag (not in the document until released and accepted). */
 export type Drag = { id: string; x: number; y: number; rot: number; z?: number; preview: Preview };
 export type Pose = { x: number; y: number; yaw: number };
+/** A path-traced still (M12): progressive, from the current camera; `url` is the finished PNG. */
+export type Still = { status: "preparing" | "rendering" | "done" | "error"; samples: number; target: number; startedAt: number; prepMs?: number; compileMs?: number; ms?: number; nanFrac?: number; url?: string; error?: string };
 /** The saved design this session edits (null = nothing persisted yet). */
 export type DesignState = {
   id: string; name: string; revision: number;
@@ -77,6 +79,7 @@ interface StudioState {
   thumb: { id: string } | null;
   /** When set, picking a catalog entry replaces this item instead of adding a new one. */
   replaceFor: string | null;
+  still: Still | null;
   init(a: { baseline: Baseline; ref: BaselineRef; models: ModelManifest[]; materials: MaterialManifest[]; mobile: boolean }): void;
   /** Applies a command unchecked (used by tests, the AI path and internal moves). Returns false and sets lastError when the engine refuses it. */
   dispatch(cmd: Command): boolean;
@@ -105,6 +108,9 @@ interface StudioState {
   setDesign(patch: Partial<DesignState>): void;
   setCatalogOpen(open: boolean, replaceFor?: string | null): void;
   setThumb(t: { id: string } | null): void;
+  /** Starts a path-traced still from the current view (walk / design only); `target` = samples per pixel. */
+  startStill(target?: number): void;
+  setStill(patch: Partial<Still> | null): void;
   clearError(): void;
   // high-level actions used by buttons, keys and touch
   addFromCatalog(m: ModelManifest): boolean;
@@ -113,6 +119,9 @@ interface StudioState {
   removeSelected(): boolean;
   duplicateSelected(): boolean;
 }
+
+/** Samples per pixel for a still: with the denoise pass, clean walls at 1080p in ~40 s on an RTX 4070 laptop (results/m12/timings.json). */
+export const STILL_SAMPLES = 128;
 
 let history: History | null = null;
 let errTimer: ReturnType<typeof setTimeout> | undefined;
@@ -133,7 +142,7 @@ export const useStudio = create<StudioState>((set, get) => {
   return {
     ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
-    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, design: null, tool: null, ghost: null, kitchenOpen: false, aiOpen: false, aiPending: null, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
+    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, still: null, design: null, tool: null, ghost: null, kitchenOpen: false, aiOpen: false, aiPending: null, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
     catalogOpen: false, replaceFor: null, thumb: null,
 
     init({ baseline, ref, models, materials, mobile }) {
@@ -189,7 +198,7 @@ export const useStudio = create<StudioState>((set, get) => {
     setKitchenOpen: (kitchenOpen) => set({ kitchenOpen, ...(kitchenOpen ? { tool: null, ghost: null, selection: null, catalogOpen: false } : {}) }),
     setAiOpen: (aiOpen) => set({ aiOpen, ...(aiOpen ? { tool: null, ghost: null, kitchenOpen: false, selection: null, catalogOpen: false } : {}) }),
     setAiPending: (aiPending) => set({ aiPending }),
-    setMode: (mode) => set({ mode, ...(!isEditing(mode) ? { selection: null, drag: null, catalogOpen: false, replaceFor: null, tool: null, ghost: null, kitchenOpen: false } : {}) }),
+    setMode: (mode) => set({ mode, ...(mode === "plan" ? { still: null } : {}), ...(!isEditing(mode) ? { selection: null, drag: null, catalogOpen: false, replaceFor: null, tool: null, ghost: null, kitchenOpen: false } : {}) }),
     setQuality: (quality) => set({ quality, ...(quality !== "auto" ? { tier: quality } : {}) }),
     setTier: (tier) => { if (get().quality === "auto") set({ tier }); },
     setLighting: (p) => set({ lighting: { ...get().lighting, ...p } }),
@@ -205,6 +214,11 @@ export const useStudio = create<StudioState>((set, get) => {
     setDesign: (patch) => { const d = get().design; if (d) set({ design: { ...d, ...patch } }); },
     setCatalogOpen: (catalogOpen, replaceFor = null) => set({ catalogOpen, replaceFor: catalogOpen ? replaceFor : null }),
     setThumb: (thumb) => set({ thumb }),
+    startStill(target = STILL_SAMPLES) {
+      if (get().mode === "plan" || get().still?.status === "preparing" || get().still?.status === "rendering") return;
+      set({ still: { status: "preparing", samples: 0, target, startedAt: performance.now() }, selection: null, drag: null, catalogOpen: false, tool: null, ghost: null });
+    },
+    setStill: (patch) => set((s) => ({ still: patch === null ? null : s.still ? { ...s.still, ...patch } : null })),
     clearError: () => set({ lastError: null }),
 
     addFromCatalog(m) {

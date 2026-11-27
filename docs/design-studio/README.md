@@ -55,9 +55,9 @@ Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9
 ## 3. What is missing (honest list)
 
 **Planned milestones not started**
-- **M10 AI designer**: `/api/studio/ai` using Claude tool-use whose tool input is the Command schema, catalog retrieval by style and size, server-side validation, ghost preview / accept / reject / one-step undo, rate limits. No paid calls without approval. The command vocabulary is ready (`setProposal`, batches, strict zod schemas).
-- **M11 Admin catalog**: `/admin/catalog` import / review / publish / retire; growth from 14 to 30-50 models and 50-100 materials; per-asset license checks for new sources (Poly Haven, ambientCG, Sketchfab CC0/CC-BY, etc.); move assets to the Storage driver / R2.
-- **M12 Path-traced still** (`three-gpu-pathtracer`) and optional queued re-bake of a saved design.
+- **M10 AI designer**: done in free dry-run mode (see PROGRESS); live Claude mode needs the owner's approval and a per-user cap.
+- **M11 Admin catalog**: done (lifecycle, immutability gate, 33 published models, 23 materials); remaining: more textured materials, R2.
+- **M12 Path-traced still**: done ("Photo render" button, 1080p in ~40 s on an RTX 4070 laptop after a background shader warm-up; see PROGRESS M12). Optional part 2 not started: queued Blender re-bake of a saved design.
 - **M13 Hardening**: performance budgets, LODs, KTX2, instancing, a11y (axe), visual regression set, rate limits on new routes, real-device mobile test, richer touch gestures.
 - **Unreal E2-E6**: fix the black render, Pixel Streaming locally, bridge, measurements against pre-registered gates, decision record (Ultra tier optional; Three.js stays the default).
 
