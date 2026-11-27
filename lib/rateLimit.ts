@@ -7,12 +7,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 const hits = new Map<string, { count: number; resetAt: number }>();
 
-export function clientIp(req: NextRequest): string {
+type HasHeaders = Pick<NextRequest, "headers"> | Pick<Request, "headers">;
+
+export function clientIp(req: HasHeaders): string {
   return req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || "local";
 }
 
 /** Returns a 429 response when `key` exceeded `limit` hits in `windowMs`, otherwise null. */
-export function rateLimit(req: NextRequest, bucket: string, limit: number, windowMs: number): NextResponse | null {
+export function rateLimit(req: HasHeaders, bucket: string, limit: number, windowMs: number): NextResponse | null {
   const now = Date.now();
   const key = `${bucket}:${clientIp(req)}`;
   const cur = hits.get(key);

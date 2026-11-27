@@ -1,0 +1,146 @@
+{
+  "date": "2026-11-27T15:15:12.413Z",
+  "axe": "4.12.1",
+  "report": [
+    {
+      "lang": "en",
+      "state": "walk",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "en",
+      "state": "design",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "en",
+      "state": "design-selected",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "en",
+      "state": "catalog",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "en",
+      "state": "ai-panel",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "en",
+      "state": "kitchen-panel",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "en",
+      "state": "still-panel",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "en",
+      "state": "plan",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "en",
+      "state": "admin-catalog",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "lang": "he",
+      "state": "walk",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "he",
+      "state": "design",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "he",
+      "state": "design-selected",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "he",
+      "state": "catalog",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "he",
+      "state": "ai-panel",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "he",
+      "state": "kitchen-panel",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "he",
+      "state": "still-panel",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "he",
+      "state": "plan",
+      "violations": [],
+      "incomplete": [
+        "color-contrast"
+      ]
+    },
+    {
+      "lang": "he",
+      "state": "admin-catalog",
+      "violations": [],
+      "incomplete": []
+    }
+  ]
+}

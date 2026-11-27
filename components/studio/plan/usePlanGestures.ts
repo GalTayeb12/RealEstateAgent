@@ -2,7 +2,8 @@
 /**
  * Pan and zoom for the floor planner: wheel zooms at the cursor, a drag on empty
  * space pans, two fingers pan and pinch. A drag that starts on a piece belongs to
- * the design interaction (gesture.itemActive) and is left alone.
+ * the design interaction (gesture.itemActive) and is left alone, including the
+ * second finger that twists it.
  */
 import { useEffect } from "react";
 import { panBy, zoomAt } from "@/lib/studio/plan/view";
@@ -34,7 +35,8 @@ export function usePlanGestures(wrap: React.RefObject<HTMLElement | null>, activ
       if ((e.target as HTMLElement).tagName !== "CANVAS") return;
       if (e.pointerType === "mouse" && e.button === 2) { /* right button also pans */ } else if (e.pointerType === "mouse" && e.button !== 0) return;
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      panning = !gesture.itemActive || pts.size > 1;
+      // a second finger while a piece is held twists the piece (DesignInteraction), it does not pinch the view
+      if (pts.size === 1) panning = !gesture.itemActive;
       moved = 0;
       if (pts.size === 2) { const [a, b] = [...pts.values()]; last = { dist: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; }
     };

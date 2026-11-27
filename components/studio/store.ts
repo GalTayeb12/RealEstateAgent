@@ -61,6 +61,8 @@ interface StudioState {
   selection: string | null;
   lastError: string | null;
   drag: Drag | null;
+  /** A finger or button is holding a piece (before and during a drag or twist). The phone sheet waits for the release. */
+  holding: boolean;
   pose: Pose | null;
   design: DesignState | null;
   catalogOpen: boolean;
@@ -102,6 +104,7 @@ interface StudioState {
   setLighting(p: Partial<Lighting>): void;
   select(id: string | null): void;
   setDrag(d: Drag | null): void;
+  setHolding(holding: boolean): void;
   setPose(p: Pose): void;
   /** Replaces the whole document (loading a saved design); clears undo history. */
   replaceDocument(doc: DesignDocument, design: DesignState | null): void;
@@ -142,7 +145,7 @@ export const useStudio = create<StudioState>((set, get) => {
   return {
     ready: false, mode: "walk", quality: "auto", tier: "high", lighting: DEFAULT_LIGHTING,
     baseline: null, catalog: null, models: [], materials: [], doc: null,
-    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, pose: null, still: null, design: null, tool: null, ghost: null, kitchenOpen: false, aiOpen: false, aiPending: null, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
+    canUndo: false, canRedo: false, selection: null, lastError: null, drag: null, holding: false, pose: null, still: null, design: null, tool: null, ghost: null, kitchenOpen: false, aiOpen: false, aiPending: null, plan: null, viewport: { w: 1000, h: 600 }, showDims: true,
     catalogOpen: false, replaceFor: null, thumb: null,
 
     init({ baseline, ref, models, materials, mobile }) {
@@ -204,6 +207,7 @@ export const useStudio = create<StudioState>((set, get) => {
     setLighting: (p) => set({ lighting: { ...get().lighting, ...p } }),
     select: (selection) => set({ selection }),
     setDrag: (drag) => set({ drag }),
+    setHolding: (holding) => set({ holding }),
     setPose: (pose) => set({ pose }),
     replaceDocument(doc, design) {
       const { baseline, catalog } = get();

@@ -16,6 +16,7 @@ import { roomAt, type WalkConfig, type WalkData } from "@/lib/experience/types";
 import type { ModelManifest } from "@/lib/studio/schema/catalog";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { useStudio } from "../store";
+import { mergeByMaterial } from "./shellBatch";
 import { useDesign } from "./DesignInteraction";
 import { buildGenerated } from "./generated";
 import { applyMaterial } from "./materials";
@@ -79,6 +80,12 @@ function cloneItem(scene: THREE.Object3D, cache = new Map<THREE.Material, THREE.
   return root;
 }
 
+/** M13: one draw (and one shadow draw) per material instead of per part: legs, welts, handles, carcasses. */
+function batchItem(root: THREE.Object3D) {
+  mergeByMaterial(root, (m) => !(m.material as THREE.Material).transparent);
+  return root;
+}
+
 type Modular = Extract<ModelManifest["sizing"], { mode: "modular" }>;
 
 /** Lays the configured modules out left to right, centred; every module's back stays on the same line. */
@@ -112,9 +119,11 @@ function GlbItem(props: ItemProps) {
   const { scene } = useGLTF(`${CATALOG_BASE}/${manifest.assets.glb}`, false, true);
   const modKey = manifest.sizing.mode === "modular" ? (props.node.modules ?? manifest.sizing.defaultConfig ?? []).join(",") : "";
   const obj = useMemo(
-    () => (manifest.sizing.mode === "modular" ? assembleModules(scene, manifest.sizing, modKey.split(",").filter(Boolean)) : cloneItem(scene)),
+    () => batchItem(manifest.sizing.mode === "modular" ? assembleModules(scene, manifest.sizing, modKey.split(",").filter(Boolean)) : cloneItem(scene)),
     [scene, manifest, modKey],
   );
+  // merged geometry belongs to this clone (the unmerged parts still share the cached GLB's buffers)
+  useEffect(() => () => obj.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh && m.userData.ownsGeometry) m.geometry.dispose(); }), [obj]);
   return <ItemBody {...props} obj={obj} />;
 }
 
@@ -125,7 +134,7 @@ function GeneratedItem(props: ItemProps) {
   const gen = manifest.sizing.mode === "parametric" ? (manifest.sizing.generator as GeneratorId) : undefined;
   const dims = resolveSize(manifest, props.node);
   const key = `${gen}|${dims.w.toFixed(3)}|${dims.d.toFixed(3)}|${dims.h.toFixed(3)}|${JSON.stringify(props.node.params ?? {})}`;
-  const obj = useMemo(() => buildGenerated(generate(gen!, dims, props.node.params ?? {})), [key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const obj = useMemo(() => batchItem(buildGenerated(generate(gen!, dims, props.node.params ?? {}))), [key]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => obj.traverse((o) => { const m = o as THREE.Mesh; if (m.isMesh) { m.geometry.dispose(); (m.material as THREE.Material).dispose(); } }), [obj]);
   return <ItemBody {...props} obj={obj} />;
 }

@@ -113,6 +113,18 @@ function ToneMappingSync({ composer }: { composer: boolean }) {
   return null;
 }
 
+/** `?debug` only: exposes the scene and renderer to the bench, census and regression scripts. */
+function DebugHandle() {
+  const scene = useThree((s) => s.scene);
+  const gl = useThree((s) => s.gl);
+  const get = useThree((s) => s.get);
+  useEffect(() => {
+    if (!new URLSearchParams(location.search).has("debug")) return;
+    (window as unknown as { __studioGL: unknown }).__studioGL = { scene, gl, camera: () => get().camera };
+  }, [scene, gl, get]);
+  return null;
+}
+
 function Tiering() {
   const quality = useStudio((s) => s.quality);
   const tier = useStudio((s) => s.tier);
@@ -148,6 +160,7 @@ export function StudioCanvas({ walk, data, uvScales, input, reduce, mobile, labe
       aria-label={label}
     >
       <Tiering />
+      <DebugHandle />
       <ToneMappingSync composer={composer} />
       <DesignProvider>
         <Suspense fallback={null}>

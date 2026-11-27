@@ -3,7 +3,8 @@
  * The baked apartment shell plus everything the studio adds on top of it:
  *  - realtime direct light is removed from the baked materials (the lightmap
  *    already holds all of it; the sun light exists for the furniture),
- *  - shell meshes cast into the sun's shadow map so walls shade furniture,
+ *  - walls and ceilings shade furniture through two merged shadow proxies, and the
+ *    fixed shell parts are merged per material (M13 draw-call budget, shellBatch.ts),
  *  - the user's surface material overrides (S|<surfaceId> materials),
  *  - a floor overlay that darkens the lightmapped floor where FURNITURE blocks
  *    the sun. It is masked by the lightmap's own brightness, so shadows that
@@ -11,13 +12,15 @@
  */
 import { useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import * as THREE from "three";
 import { Apartment } from "@/components/walk/ApartmentWalk";
 import type { WalkConfig, WalkData } from "@/lib/experience/types";
 import { useStudio, type Tier } from "../store";
 import { useDesign } from "./DesignInteraction";
 import { applyMaterial } from "./materials";
+import { mergeStaticShell, shellShadowProxies } from "./shellBatch";
 
 const STRIP_DIRECT = /RE_Direct\([^;]*\);/g;
 const CATALOG_BASE = "/studio/catalog";
@@ -60,6 +63,18 @@ function floorOverlayMaterial(lm: THREE.Texture, opacity: number, lo: number, hi
   return m;
 }
 
+/** Float32 attributes so quantized glTF data survives applyMatrix4 and merging. */
+function toFloat(g: THREE.BufferGeometry) {
+  for (const [name, attr] of Object.entries(g.attributes)) {
+    const a = attr as THREE.BufferAttribute;
+    if (a.array instanceof Float32Array && !a.normalized) continue;
+    const arr = new Float32Array(a.count * a.itemSize);
+    for (let i = 0; i < a.count; i++) for (let k = 0; k < a.itemSize; k++) arr[i * a.itemSize + k] = a.getComponent(i, k);
+    g.setAttribute(name, new THREE.BufferAttribute(arr, a.itemSize));
+  }
+  return g;
+}
+
 const CUT_PLANE = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1.25); // keeps everything below y = 1.25 m
 
 export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false }: {
@@ -74,28 +89,38 @@ export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false 
   const mode = useStudio((s) => s.mode);
   const gl = useThree((s) => s.gl);
 
-  // 1. baked materials: no realtime direct light; walls and ceilings cast into the sun shadow map
+  // 0. batching (once per GLB): fixed parts merged per material, shadow proxies built
+  const proxies = useMemo(() => {
+    mergeStaticShell(scene);
+    const built = (scene.userData.shadowProxies ??= shellShadowProxies(scene)) as ReturnType<typeof shellShadowProxies>;
+    for (const p of [built.rest, built.ceilings]) if (p && !p.parent) scene.add(p);
+    return built;
+  }, [scene]);
+
+  // 1. baked materials: no realtime direct light; only the proxies cast into the sun shadow map
   useEffect(() => {
     const seen = new Set<THREE.Material>();
     scene.traverse((o) => {
       const mesh = o as THREE.Mesh;
-      if (!mesh.isMesh) return;
+      if (!mesh.isMesh || mesh.userData.shadowProxy) return;
       const mat = mesh.material as THREE.MeshStandardMaterial;
       if (mat.lightMap && !seen.has(mat)) { seen.add(mat); stripDirectLights(mat); }
-      mesh.castShadow = shadows && !mat.transparent;
+      mesh.castShadow = false;
       mesh.receiveShadow = false;
     });
-  }, [scene, shadows]);
+    for (const p of [proxies.rest, proxies.ceilings]) if (p) p.castShadow = shadows;
+  }, [scene, shadows, proxies]);
 
   // 1b. plan mode: a cutaway. Ceilings are hidden and walls are clipped at 1.25 m so the rooms can be seen from above
   useEffect(() => {
     const cut = mode === "plan";
     // eslint-disable-next-line react-hooks/immutability -- renderer flag, set imperatively (r3f pattern)
     gl.localClippingEnabled = cut;
+    if (proxies.ceilings) proxies.ceilings.visible = !cut;
     const seen = new Set<THREE.Material>();
     scene.traverse((o) => {
       const mesh = o as THREE.Mesh;
-      if (!mesh.isMesh) return;
+      if (!mesh.isMesh || mesh.userData.shadowProxy) return;
       const mat = mesh.material as THREE.Material;
       mesh.userData.planHidden = cut && mat.name.startsWith("S|surface:ceiling:");
       mesh.visible = !mesh.userData.planHidden;
@@ -104,7 +129,7 @@ export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false 
       mat.clippingPlanes = cut && !mat.name.startsWith("S|surface:floor:") ? [CUT_PLANE] : null;
       mat.needsUpdate = true;
     });
-  }, [scene, mode, gl]);
+  }, [scene, mode, gl, proxies]);
 
   // 2. surface material overrides (S|<surfaceId>)
   useEffect(() => {
@@ -131,27 +156,36 @@ export function ShellLayer({ walk, data, mobile, tier, uvScales, hidden = false 
       if (!lm) return;
       const mat = floorOverlayMaterial(lm, lighting.shadowOpacity, lighting.maskLo, lighting.maskHi);
       overlayMat = mat;
+      // every room's floor in ONE overlay mesh (lightmap UVs exposed as the standard uv attribute)
+      scene.updateMatrixWorld(true);
+      const inv = new THREE.Matrix4().copy(scene.matrixWorld).invert();
+      const parts: THREE.BufferGeometry[] = [];
       scene.traverse((o) => {
         const mesh = o as THREE.Mesh;
         const name = mesh.isMesh ? (mesh.material as THREE.Material).name : "";
         if (!name.startsWith("S|surface:floor:") || !mesh.geometry.getAttribute("uv1")) return;
-        // same buffers, lightmap UVs exposed as the standard uv attribute
-        // (no geometry.dispose() on it: the buffers belong to the shell)
+        const src = mesh.geometry;
         const g = new THREE.BufferGeometry();
-        g.setAttribute("position", mesh.geometry.getAttribute("position"));
-        g.setAttribute("normal", mesh.geometry.getAttribute("normal"));
-        g.setAttribute("uv", mesh.geometry.getAttribute("uv1"));
-        g.setIndex(mesh.geometry.getIndex());
-        const ov = new THREE.Mesh(g, mat);
+        g.setAttribute("position", src.getAttribute("position").clone());
+        g.setAttribute("normal", src.getAttribute("normal").clone());
+        g.setAttribute("uv", src.getAttribute("uv1").clone());
+        const idx = src.getIndex();
+        if (idx) g.setIndex(idx.clone());
+        parts.push(toFloat(g).applyMatrix4(inv.clone().multiply(mesh.matrixWorld)));
+      });
+      const merged = parts.length ? mergeGeometries(parts, false) : null;
+      for (const g of parts) g.dispose();
+      if (merged) {
+        const ov = new THREE.Mesh(merged, mat);
         ov.receiveShadow = true;
         ov.castShadow = false;
         ov.renderOrder = 2;
         ov.name = "studio-floor-shadow";
-        mesh.parent?.add(ov);
+        scene.add(ov);
         added.push(ov);
-      });
+      }
     }
-    return () => { for (const m of added) m.removeFromParent(); overlayMat?.dispose(); };
+    return () => { for (const m of added) { m.removeFromParent(); m.geometry.dispose(); } overlayMat?.dispose(); };
   }, [scene, shadows, lighting.shadowOpacity, lighting.maskLo, lighting.maskHi]);
 
   return (

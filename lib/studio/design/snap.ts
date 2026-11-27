@@ -23,3 +23,12 @@ export function normaliseAngle(a: number): number {
 export function rotateBy(rot: number, steps: number): number {
   return snapAngle(rot + steps * ROT_STEP);
 }
+
+/**
+ * Two-finger twist on a touch screen: `a0` / `a1` are the screen angles (radians, y down) of the
+ * line between the fingers at the start and now. Turning the fingers clockwise on screen turns
+ * the piece clockwise seen from above (plan rotation is counter-clockwise positive), snapped.
+ */
+export function twistRotation(startRot: number, a0: number, a1: number, step = ROT_STEP): number {
+  return snapAngle(startRot - normaliseAngle(a1 - a0), step);
+}

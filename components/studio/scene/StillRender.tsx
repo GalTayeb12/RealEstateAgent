@@ -244,12 +244,17 @@ export function warmStill(gl: THREE.WebGLRenderer): Promise<unknown> | undefined
 
 /**
  * Compiles the path-tracing shader in the background a few seconds after the studio is
- * ready (desktop, high tier only), so the user's first still does not wait for it.
+ * ready (desktop, high tier only, and only with `?warm` since M13), so a first still does not wait for it.
  * Uses KHR_parallel_shader_compile through renderer.compileAsync: the live view keeps running.
  */
 export function StillWarmup({ delayMs = 6000 }: { delayMs?: number }) {
   const gl = useThree((s) => s.gl);
   useEffect(() => {
+    // Opt-in only (`?warm`, used by the benchmark scripts). M13 found that a page reload or navigation while
+    // this ~45-100 s ANGLE/D3D11 compile is in flight stalls ~55 s: the GPU process cannot drop a context with
+    // a pending compile. A visitor who opens the studio and leaves must never pay for a photo they did not ask
+    // for, so the compile starts on the first "Photo render" click and the tracer is cached for the visit.
+    if (!new URLSearchParams(location.search).has("warm")) return;
     const id = setTimeout(() => {
       if (useStudio.getState().still) return; // the user already asked for a still: it compiles the shader itself
       const t0 = performance.now();

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { YARKON_TWIN } from "../twin/fixtures/yarkon";
 import { baselineFromTwin, baselineRef } from "../studio/baseline/fromTwin";
 import { emptyDocument, type DesignDocument } from "../studio/schema/document";
-import { snapAngle, snapTo, rotateBy, normaliseAngle } from "../studio/design/snap";
+import { snapAngle, snapTo, rotateBy, normaliseAngle, twistRotation } from "../studio/design/snap";
 import { previewNode, withTransform } from "../studio/design/preview";
 import { findFreeSpot, makeItem } from "../studio/design/spot";
 import { insertableModules, withInserted, withoutModule, categoriesOf, filterModels, materialsForSlot, materialsForSurface, modularPresets, nextModules } from "../studio/design/options";
@@ -15,6 +15,13 @@ const doc0 = (): DesignDocument => emptyDocument(baselineRef("yarkon", 1, baseli
 const sofaSizing = SOFA.sizing as Extract<ModelManifest["sizing"], { mode: "modular" }>;
 
 describe("snap", () => {
+  it("two-finger twist: clockwise on screen turns clockwise from above, snapped to 15 degrees, across the +-PI seam", () => {
+    expect(twistRotation(0, 0, 0.27)).toBeCloseTo(-Math.PI / 12, 9);
+    expect(twistRotation(0, 0.5, 0.5 - Math.PI / 2)).toBeCloseTo(Math.PI / 2, 9);
+    expect(twistRotation(Math.PI / 2, 0, 0.04)).toBeCloseTo(Math.PI / 2, 9); // under half a step: no change
+    expect(twistRotation(0, 3.1, -3.1)).toBeCloseTo(0, 9); // fingers crossing the atan2 seam is a tiny turn, not a full one
+    expect(twistRotation(Math.PI, 0, -0.27)).toBeCloseTo(-Math.PI + Math.PI / 12, 9);
+  });
   it("snaps to the 5 cm grid and 15 degree steps", () => {
     expect(snapTo(1.234)).toBeCloseTo(1.25, 9);
     expect(snapTo(-0.021)).toBeCloseTo(-0.0, 9);

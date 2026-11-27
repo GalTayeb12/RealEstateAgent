@@ -4,11 +4,11 @@ import type { MaterialManifest } from "@/lib/studio/schema/catalog";
 const CATALOG = "/studio/catalog";
 
 /** Round material swatches: the albedo texture when there is one, the flat colour otherwise. */
-export function Swatches({ materials, selectedId, onPick, locale }: {
-  materials: MaterialManifest[]; selectedId?: string; onPick: (m: MaterialManifest) => void; locale: "he" | "en";
+export function Swatches({ materials, selectedId, onPick, locale, label }: {
+  materials: MaterialManifest[]; selectedId?: string; onPick: (m: MaterialManifest) => void; locale: "he" | "en"; label: string;
 }) {
   return (
-    <div className="st-swatches" role="listbox">
+    <div className="st-swatches" role="listbox" aria-label={label}>
       {materials.map((m) => {
         const albedo = m.pbr.maps.albedo ? `${CATALOG}/${m.id}/${m.version}/${m.pbr.maps.albedo}` : null;
         return (

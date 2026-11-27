@@ -37,7 +37,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const { t, locale } = useT();
   const he = locale === "he";
   const { walk } = experience;
-  const wrap = useRef<HTMLDivElement>(null);
+  const wrap = useRef<HTMLElement>(null);
   const [{ mobile, reduce, debug }] = useState(() => ({
     mobile: typeof window !== "undefined" && (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 760),
     reduce: typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -54,6 +54,8 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const quality = useStudio((s) => s.quality);
   const lastError = useStudio((s) => s.lastError);
   const selection = useStudio((s) => s.selection);
+  // the phone sheet resizes the 3D view; never under a finger that is holding a piece (it opens on release)
+  const holding = useStudio((s) => s.holding);
   const catalogOpen = useStudio((s) => s.catalogOpen);
   const tool = useStudio((s) => s.tool);
   const kitchenOpen = useStudio((s) => s.kitchenOpen);
@@ -65,6 +67,26 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   usePersistence({ baselineId: experience.slug, sharedToken });
   const editing = isEditing(mode);
   usePlanGestures(wrap, mode === "plan");
+
+  // phone sheet: the 3D view ends exactly where the open panel or drawer begins (no dead band under a short panel)
+  useEffect(() => {
+    const root = wrap.current;
+    if (!root) return;
+    let ro: ResizeObserver | null = null;
+    const watch = () => {
+      ro?.disconnect();
+      const sheet = root.querySelector<HTMLElement>(":scope > .st-panel, :scope > .st-drawer");
+      if (!sheet) { root.style.removeProperty("--sheet-h"); return; }
+      const sync = () => root.style.setProperty("--sheet-h", `${Math.round(sheet.getBoundingClientRect().height)}px`);
+      sync();
+      ro = new ResizeObserver(sync);
+      ro.observe(sheet);
+    };
+    watch();
+    const mo = new MutationObserver(watch);
+    mo.observe(root, { childList: true });
+    return () => { mo.disconnect(); ro?.disconnect(); };
+  }, [boot]);
 
   // stage size feeds the plan projection (camera and SVG overlay use the same numbers)
   useEffect(() => {
@@ -144,7 +166,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
   const title = experience.title[locale];
 
   return (
-    <div ref={wrap} className="st-root" data-mode={mode} data-sheet={(editing && (selection || catalogOpen || kitchenOpen || aiOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
+    <main ref={wrap} className="st-root" data-mode={mode} data-holding={holding || undefined} data-sheet={(editing && !holding && (selection || catalogOpen || kitchenOpen || aiOpen)) || undefined} dir={he ? "rtl" : "ltr"} {...touch}>
       <div className="st-stage">
       {boot && ready && (
         <StudioCanvas
@@ -201,7 +223,7 @@ export default function StudioApp({ experience, sharedToken }: { experience: Pro
           <span style={{ transform: `translate(${stickUi.x * 40}px, ${stickUi.y * 40}px)` }} />
         </div>
       )}
-    </div>
+    </main>
   );
 }
 

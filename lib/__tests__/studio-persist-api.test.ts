@@ -99,3 +99,23 @@ describe("design operations (HTTP semantics)", () => {
     expect(s.share.expiresAt).toBeNull();
   });
 });
+
+describe("rate limits on the studio routes (M13)", () => {
+  it("a share link answers 429 after 60 requests a minute from one address; other addresses are unaffected", async () => {
+    const prev = process.env.STUDIO_ENABLED;
+    process.env.STUDIO_ENABLED = "1";
+    process.env.JWT_SECRET ??= "unit-test-only-secret"; // lib/auth refuses to load without one; no token is signed here
+    try {
+      const { shared } = await import("../studio/persist/http");
+      const route = shared(async () => ({ status: 200, body: { ok: true } }));
+      const call = (ip: string) => route(new Request("http://x/api/studio/shared/t", { headers: { "x-forwarded-for": ip } }), { params: Promise.resolve({ token: "t" }) });
+      const codes: number[] = [];
+      for (let i = 0; i < 61; i++) codes.push((await call("203.0.113.7")).status);
+      expect(codes.slice(0, 60).every((c) => c === 200)).toBe(true);
+      expect(codes[60]).toBe(429);
+      expect((await call("203.0.113.8")).status).toBe(200);
+    } finally {
+      process.env.STUDIO_ENABLED = prev;
+    }
+  });
+});

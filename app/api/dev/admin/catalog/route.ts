@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/adminAuth";
+import { rateLimit } from "@/lib/rateLimit";
 import { STATUSES } from "@/lib/studio/catalog/admin";
 import { applyAction, auditAll, catalogWritable } from "@/lib/studio/catalog/adminFs";
 
@@ -20,6 +21,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const guard = requireAdmin(req);
   if (!guard.ok) return guard.response;
+  const limited = rateLimit(req, "studio-catalog-admin", 30, 60_000);
+  if (limited) return limited;
   const b = (await req.json().catch(() => null)) as { type?: string; id?: string; version?: number; action?: string } | null;
   if (!b || (b.type !== "model" && b.type !== "material") || typeof b.id !== "string" || !Number.isInteger(b.version) || !ACTIONS.includes(b.action as never)) {
     return NextResponse.json({ error: "bad_request" }, { status: 400 });

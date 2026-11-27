@@ -24,3 +24,10 @@
 @media (prefers-reduced-motion: reduce) { .st-loading__bar span { transition: none; } }
 
 .st-bar select { background: rgba(20, 20, 22, .62); color: inherit; border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px; padding: 8px 12px; font-size: 13px; backdrop-filter: blur(10px); }
+
+/* M13 a11y: a visible keyboard focus ring on the dark glass UI (pointer clicks do not show it) */
+.st-root :is(button, a, select, input, textarea, [role="option"], [role="tab"], [tabindex]):focus-visible {
+  outline: 2px solid #e8b65e;
+  outline-offset: 2px;
+}
+.st-root canvas:focus-visible { outline: 2px solid #e8b65e; outline-offset: -2px; }

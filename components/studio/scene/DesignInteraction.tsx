@@ -3,7 +3,9 @@
 /**
  * Design mode inside the 3D scene: click a piece to select it, drag it on the
  * floor (snapped to a 5 cm grid, validated live; an illegal drop snaps back with
- * a reason), click a wall / floor / ceiling to select that surface. Everything
+ * a reason), click a wall / floor / ceiling to select that surface. On a touch
+ * screen a second finger turns the held piece (two-finger twist, 15 degree snaps,
+ * one undo step) instead of moving it. Everything
  * that changes the design goes through the store's validated `commit`.
  */
 import { useThree, type ThreeEvent } from "@react-three/fiber";
@@ -11,7 +13,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef } fr
 import * as THREE from "three";
 import { resolveSize } from "@/lib/studio/catalog/sizing";
 import { previewNode, withTransform } from "@/lib/studio/design/preview";
-import { snapTo } from "@/lib/studio/design/snap";
+import { normaliseAngle, snapTo, twistRotation } from "@/lib/studio/design/snap";
 import { settleOnSurface } from "@/lib/studio/design/surface";
 import type { ItemNode } from "@/lib/studio/schema/nodes";
 import { gesture } from "../gesture";
@@ -24,7 +26,16 @@ export type DesignApi = {
 const Ctx = createContext<DesignApi | null>(null);
 export const useDesign = () => useContext(Ctx);
 
-type Active = { id: string; start: ItemNode; grabDx: number; grabDy: number; moved: boolean; plane: THREE.Plane };
+type Twist = { prev: number; total: number };
+type Active = {
+  id: string; start: ItemNode; grabDx: number; grabDy: number; moved: boolean; plane: THREE.Plane;
+  primary: number; pointers: Map<number, { x: number; y: number }>; twist: Twist | null;
+};
+
+const fingerAngle = (p: Map<number, { x: number; y: number }>) => {
+  const [a, b] = [...p.values()];
+  return Math.atan2(b.y - a.y, b.x - a.x);
+};
 
 export function DesignProvider({ children }: { children: React.ReactNode }) {
   const camera = useThree((s) => s.camera);
@@ -44,6 +55,18 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     const a = active.current;
     const st = useStudio.getState();
     if (!a || !st.doc || !st.baseline || !st.catalog) return;
+    if (a.pointers.has(ev.pointerId)) a.pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (a.twist) {
+      if (a.pointers.size < 2) return;
+      const ang = fingerAngle(a.pointers);
+      a.twist.total += normaliseAngle(ang - a.twist.prev);
+      a.twist.prev = ang;
+      const rot = twistRotation(a.start.transform.rot, 0, a.twist.total);
+      const node = withTransform(a.start, { rot });
+      st.setDrag({ id: a.id, x: node.transform.x, y: node.transform.y, z: node.transform.z, rot, preview: previewNode(st.doc, node, st.baseline, st.catalog) });
+      return;
+    }
+    if (ev.pointerId !== a.primary) return;
     const p = planePoint(ev.clientX, ev.clientY, a.plane);
     if (!p) return;
     const x = snapTo(p.x - a.grabDx), y = snapTo(-p.z - a.grabDy);
@@ -53,8 +76,24 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     st.setDrag({ id: a.id, x, y, z: node.transform.z, rot: node.transform.rot, preview: previewNode(st.doc, node, st.baseline, st.catalog) });
   }, [planePoint]);
 
+  // a second finger while a piece is held: switch the gesture from move to twist (the piece goes back to its spot)
+  const down2 = useCallback((ev: PointerEvent) => {
+    const a = active.current;
+    if (!a || a.twist || ev.pointerType !== "touch" || a.pointers.has(ev.pointerId)) return;
+    a.pointers.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (a.pointers.size !== 2) return;
+    a.twist = { prev: fingerAngle(a.pointers), total: 0 };
+    a.moved = true;
+    const st = useStudio.getState();
+    if (st.doc && st.baseline && st.catalog) {
+      const t = a.start.transform;
+      st.setDrag({ id: a.id, x: t.x, y: t.y, z: t.z, rot: t.rot, preview: previewNode(st.doc, a.start, st.baseline, st.catalog) });
+    }
+  }, []);
+
   const upRef = useRef<() => void>(() => {});
   const up = useCallback(() => {
+    window.removeEventListener("pointerdown", down2, true);
     window.removeEventListener("pointermove", move);
     window.removeEventListener("pointerup", upRef.current);
     window.removeEventListener("pointercancel", upRef.current);
@@ -65,13 +104,15 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     const st = useStudio.getState();
     const d = st.drag;
     st.setDrag(null);
+    st.setHolding(false);
+    if (a?.twist && d) { if (d.rot !== a.start.transform.rot) st.commit({ type: "rotate", id: d.id, rot: d.rot }, d.id); return; }
     if (a?.moved && d) st.commit({ type: "move", id: d.id, x: d.x, y: d.y, ...(d.z !== undefined ? { z: d.z } : {}) }, d.id); // refuses with a message when illegal
-  }, [move]);
+  }, [move, down2]);
 
   useEffect(() => {
     upRef.current = up;
-    return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
-  }, [move, up]);
+    return () => { window.removeEventListener("pointerdown", down2, true); window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+  }, [move, up, down2]);
 
   const onItemDown = useCallback((id: string, e: ThreeEvent<PointerEvent>) => {
     const st = useStudio.getState();
@@ -79,18 +120,24 @@ export function DesignProvider({ children }: { children: React.ReactNode }) {
     const ne = e.nativeEvent;
     if (ne.pointerType === "mouse" && ne.button !== 0) return; // the right button looks around
     e.stopPropagation();
+    if (active.current) return; // a second finger on a piece joins the gesture in progress (twist), it does not grab anew
     st.select(id);
     const node = st.doc?.nodes[id];
     const m = node && node.kind === "item" ? st.catalog?.model(node.catalog) : null;
     if (!node || node.kind !== "item" || !m || node.locked) return;
     gesture.itemActive = true;
+    st.setHolding(true);
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -(node.transform.z + m.placement.elevation));
     const p = planePoint(ne.clientX, ne.clientY, plane);
-    active.current = { id, start: node, plane, moved: false, grabDx: p ? p.x - node.transform.x : 0, grabDy: p ? -p.z - node.transform.y : 0 };
+    active.current = {
+      id, start: node, plane, moved: false, grabDx: p ? p.x - node.transform.x : 0, grabDy: p ? -p.z - node.transform.y : 0,
+      primary: ne.pointerId, pointers: new Map([[ne.pointerId, { x: ne.clientX, y: ne.clientY }]]), twist: null,
+    };
+    window.addEventListener("pointerdown", down2, true);
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
     window.addEventListener("pointercancel", up);
-  }, [move, up, planePoint]);
+  }, [move, up, down2, planePoint]);
 
   const onShellClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     const st = useStudio.getState();

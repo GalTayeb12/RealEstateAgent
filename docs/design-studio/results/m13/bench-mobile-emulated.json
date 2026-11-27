@@ -1,0 +1,24 @@
+{
+  "kind": "mobile EMULATED on desktop GPU (390x844 DPR 3) - not a phone measurement",
+  "date": "2026-11-27T14:24:25.986Z",
+  "results": [
+    {
+      "path": "/studio/yarkon-twin-shell?debug",
+      "furnished": true,
+      "mobile": true,
+      "items": 27,
+      "tier": null,
+      "ao": null,
+      "loadMs": 1850,
+      "transferredMB": 6.2,
+      "glbMB": 2.5,
+      "frames": 3924,
+      "fpsAvg": 489.7,
+      "frameMsP50": 2,
+      "frameMsP95": 2.6,
+      "drawCallsMedian": 166,
+      "trianglesMedian": 314818,
+      "jsHeapMB": 64
+    }
+  ]
+}

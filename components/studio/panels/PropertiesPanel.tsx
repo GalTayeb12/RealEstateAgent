@@ -58,7 +58,7 @@ function SurfacePanel({ id, t, locale }: { id: string } & Tx) {
       <Header title={t(surface.type)} sub={room?.name[locale]} onClose={() => useStudio.getState().select(null)} t={t} />
       <section>
         <h4>{t("material")}</h4>
-        <Swatches materials={list} selectedId={override?.material.id} locale={locale}
+        <Swatches materials={list} selectedId={override?.material.id} locale={locale} label={t("material")}
           onPick={(m) => useStudio.getState().dispatch({ type: "setSurfaceMaterial", surfaceId: id, material: { id: m.id, version: m.version } })} />
         {override && (
           <button type="button" className="st-link" onClick={() => useStudio.getState().dispatch({ type: "setSurfaceMaterial", surfaceId: id, material: null })}>
@@ -127,7 +127,7 @@ function ItemPanel({ node, t, locale }: { node: ItemNode } & Tx) {
             return (
               <div key={slot.id} className="st-slot">
                 <label>{slot.label[locale]}</label>
-                <Swatches materials={list} selectedId={current?.id} locale={locale}
+                <Swatches materials={list} selectedId={current?.id} locale={locale} label={`${t("material")}: ${slot.label[locale]}`}
                   onPick={(m) => commit({ type: "setSlotMaterial", id: node.id, slot: slot.id, material: { id: m.id, version: m.version } }, node.id)} />
               </div>
             );
@@ -139,8 +139,9 @@ function ItemPanel({ node, t, locale }: { node: ItemNode } & Tx) {
         <h4>{t("hints")}</h4>
         {preview && preview.errors.length + preview.advisories.length === 0 && <p className="st-ok">{t("noIssues")}</p>}
         <ul className="st-issues">
-          {preview?.errors.map((i, k) => <li key={`e${k}`} className="st-err">{t(`err.${i.code}`)}</li>)}
-          {preview?.advisories.map((i, k) => <li key={`a${k}`} className="st-adv">{t(`adv.${i.code}`)}</li>)}
+          {/* one line per kind of issue: two neighbours that are both too close read as one hint */}
+          {[...new Set(preview?.errors.map((i) => i.code))].map((c) => <li key={`e${c}`} className="st-err">{t(`err.${c}`)}</li>)}
+          {[...new Set(preview?.advisories.map((i) => i.code))].map((c) => <li key={`a${c}`} className="st-adv">{t(`adv.${c}`)}</li>)}
         </ul>
       </section>
     </aside>

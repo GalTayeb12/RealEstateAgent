@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // M12: furnishes the apartment (free dry-run planner), then renders path-traced stills from fixed
 // cameras and records time-to-target per view. Also saves the realtime frame for a side-by-side.
-//   JWT_SECRET=... node scripts/studio/still.mjs [--base=http://localhost:3001] [--samples=256] [--size=1920x1080] [--only=living]
+//   JWT_SECRET=... node scripts/studio/still.mjs [--base=http://localhost:3001] [--samples=256] [--size=1920x1080] [--only=living] [--cold] [--profile=dir]
 import { chromium } from "@playwright/test";
 import jwt from "jsonwebtoken";
 import fs from "node:fs";
@@ -27,7 +27,9 @@ const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
-await page.goto(`${base}/studio/yarkon-twin-shell?debug`);
+// ?warm: background shader warm-up (opt-in since M13), so --wait measures the warmed path
+// --cold: no warm-up, i.e. the first photo of a real visit (the default product behaviour since M13)
+await page.goto(`${base}/studio/yarkon-twin-shell?debug${args.includes("--cold") ? "" : "&warm"}`);
 await page.waitForFunction(() => window.__studio?.getState().ready, null, { timeout: 90000 });
 await page.addStyleTag({ content: ".st-ui, nextjs-portal { display: none !important }" });
 await page.waitForTimeout(4000);

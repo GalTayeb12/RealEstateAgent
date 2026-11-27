@@ -1,0 +1,24 @@
+{
+  "kind": "desktop measured (headless Edge, ANGLE/D3D11, 1920x1080, DPR 1)",
+  "date": "2026-11-27T14:23:57.223Z",
+  "results": [
+    {
+      "path": "/studio/yarkon-twin-shell?debug",
+      "furnished": true,
+      "mobile": false,
+      "items": 27,
+      "tier": "low",
+      "ao": "1",
+      "loadMs": 2163,
+      "transferredMB": 6.7,
+      "glbMB": 2.5,
+      "frames": 4056,
+      "fpsAvg": 506.2,
+      "frameMsP50": 1.9,
+      "frameMsP95": 2.5,
+      "drawCallsMedian": 117,
+      "trianglesMedian": 163056,
+      "jsHeapMB": 74
+    }
+  ]
+}

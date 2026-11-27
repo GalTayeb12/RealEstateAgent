@@ -57,8 +57,8 @@ Commits: M0..M9 on `feature/design-studio` (see `git log`); latest `8d02139` (M9
 **Planned milestones not started**
 - **M10 AI designer**: done in free dry-run mode (see PROGRESS); live Claude mode needs the owner's approval and a per-user cap.
 - **M11 Admin catalog**: done (lifecycle, immutability gate, 33 published models, 23 materials); remaining: more textured materials, R2.
-- **M12 Path-traced still**: done ("Photo render" button, 1080p in ~40 s on an RTX 4070 laptop after a background shader warm-up; see PROGRESS M12). Optional part 2 not started: queued Blender re-bake of a saved design.
-- **M13 Hardening**: performance budgets, LODs, KTX2, instancing, a11y (axe), visual regression set, rate limits on new routes, real-device mobile test, richer touch gestures.
+- **M12 Path-traced still**: done ("Photo render" button, 1080p in ~40 s on an RTX 4070 laptop once the shader is compiled; the first photo of a visit includes the compile, ~105-146 s, see M13). Optional part 2 not started: queued Blender re-bake of a saved design.
+- **M13 Hardening**: done except a physical-phone measurement. Draw calls cut ~60 % by batching (all desktop and emulated-phone budgets met), axe 0 violations in en/he, 9-view visual regression set, emulated mobile e2e with real multi-touch (two-finger twist added), rate limits on the persistence / share / catalog-admin routes. The photo render no longer warms up in the background (it stalled reloads ~55 s), so the first photo of a visit takes ~105-146 s. See PROGRESS M13.
 - **Unreal E2-E6**: fix the black render, Pixel Streaming locally, bridge, measurements against pre-registered gates, decision record (Ultra tier optional; Three.js stays the default).
 
 **Known gaps in what exists**

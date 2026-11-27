@@ -20,7 +20,11 @@
     "studio:open": "node scripts/studio/open-studio.mjs",
     "studio:e2e": "node scripts/studio/e2e-design.mjs && node scripts/studio/e2e-plan.mjs && node scripts/studio/e2e-generated.mjs && node scripts/studio/e2e-arch.mjs",
     "studio:still": "node scripts/studio/still.mjs --wait=90",
-    "studio:e2e:still": "node scripts/studio/e2e-still.mjs"
+    "studio:e2e:still": "node scripts/studio/e2e-still.mjs",
+    "studio:e2e:mobile": "node scripts/studio/e2e-mobile.mjs --lang=en && node scripts/studio/e2e-mobile.mjs --lang=he",
+    "studio:a11y": "node scripts/studio/a11y.mjs",
+    "studio:vr": "node scripts/studio/visual-regression.mjs",
+    "studio:bench": "node scripts/studio/bench.mjs http://localhost:3001 --studio --furnish --uncapped=1 --hp=1"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.113.0",

@@ -61,7 +61,9 @@
   .st-swatch { width: 42px; height: 42px; }
   .st-iconbtn { width: 40px; height: 40px; }
   /* a sheet is open: the 3D view shrinks above it so the selected piece stays visible and draggable */
-  .st-root[data-sheet] .st-stage { bottom: 50dvh; }
+  .st-root[data-sheet] .st-stage { bottom: var(--sheet-h, 50dvh); }
+  /* while a finger holds a piece the sheet stays down; it slides up on release */
+  .st-root[data-holding] .st-panel { display: none; }
   .st-panel, .st-drawer { max-height: 50dvh; }
   .st-cards { grid-template-columns: repeat(3, 1fr); }
   .st-hint { bottom: auto; top: 112px; }
@@ -100,7 +102,7 @@
 .pl-clear text { fill: #e8b65e; font-size: 11px; font-weight: 600; paint-order: stroke; stroke: rgba(10, 10, 12, .8); stroke-width: 3px; }
 @media (max-width: 760px) {
   .st-plan { top: auto; bottom: 16px; inset-inline-start: 12px; }
-  .st-root[data-sheet] .st-plan { bottom: calc(50dvh + 12px); }
+  .st-root[data-sheet] .st-plan { bottom: calc(var(--sheet-h, 50dvh) + 12px); }
   .st-plan button { min-height: 40px; }
 }
 

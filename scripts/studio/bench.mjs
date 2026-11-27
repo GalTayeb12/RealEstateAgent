@@ -22,6 +22,11 @@ const slug = flags.slug ?? "yarkon-twin-shell";
 const item = (id, catalog, x, y, rot) => ({ type: "add", node: { id, kind: "item", catalog: { id: catalog, version: 1 }, transform: { x, y, z: 0, rot }, slots: {}, locked: false } });
 const LIVING = [item("sofa", "sofa-03", 4.0, 4.5, Math.PI), item("table", "coffee-table-modern-01", 4.0, 2.9, 0),
   item("chair", "armchair-modern-01", 6.6, 2.4, Math.PI / 2), item("side", "side-table-01", 6.1, 4.4, Math.PI)];
+// --furnish: furnish every room (dry-run AI) and view from the living room toward the dining area;
+// --mobile: emulate a mid phone (390x844, DPR 3, touch). Emulated numbers are NOT phone measurements.
+const FURNISH = "furnish" in flags;
+const MOBILE = "mobile" in flags;
+const VIEW = (flags.view ?? "7.6,2.3,1.5708").split(",").map(Number);
 if (!paths.length) paths.push(STUDIO ? `/studio/${slug}?debug` : "/walk/yarkon");
 
 const initScript = () => {
@@ -63,14 +68,16 @@ const initScript = () => {
 const browser = await chromium.launch({
   channel: "msedge",
   headless: true,
-  args: ["--enable-gpu", "--use-angle=d3d11", "--ignore-gpu-blocklist", "--enable-unsafe-swiftshader", ...(flags.uncapped ? ["--disable-gpu-vsync", "--disable-frame-rate-limit"] : [])],
+  args: ["--enable-gpu", "--use-angle=d3d11", "--ignore-gpu-blocklist", "--enable-unsafe-swiftshader", ...(flags.hp ? ["--force_high_performance_gpu"] : []), ...(flags.uncapped ? ["--disable-gpu-vsync", "--disable-frame-rate-limit"] : [])],
 });
 
 const results = [];
 for (const p of paths) {
-  const ctx = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext(MOBILE
+    ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Mobile Safari/537.36" }
+    : { viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   if (STUDIO) {
-    const token = jwt.sign({ userId: "bench", email: "bench@example.test", role: "admin" }, process.env.JWT_SECRET ?? "studio-bench-dummy", { expiresIn: "1h" });
+    const token = jwt.sign({ userId: `bench-${Date.now()}`, email: "bench@example.test", role: "admin" }, process.env.JWT_SECRET ?? "studio-bench-dummy", { expiresIn: "1h" });
     await ctx.addCookies([{ name: "hq_session", value: token, domain: new URL(base).hostname, path: "/" }]);
   }
   const page = await ctx.newPage();
@@ -89,7 +96,20 @@ for (const p of paths) {
       if (ao !== undefined) st.setLighting({ ao: ao === "1" });
       for (const c of cmds) st.dispatch(c);
       window.__studioInput.teleport = { x: 4.0, y: 0.4, yaw: 0 };
-    }, { cmds: LIVING, tier: flags.tier, ao: flags.ao });
+    }, { cmds: FURNISH ? [] : LIVING, tier: flags.tier, ao: flags.ao });
+    if (FURNISH) {
+      // --furnish: the whole apartment through the free dry-run planner (the M10-M12 furnished scene)
+      for (const prompt of ["living room", "dining", "bedroom", "kitchen"]) {
+        await page.evaluate(async (prompt) => {
+          const s = window.__studio.getState();
+          const res = await fetch("/api/studio/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ baselineId: s.doc.baseline.id, doc: s.doc, prompt }) });
+          const j = await res.json();
+          if (j.batch) s.dispatch(j.batch);
+        }, prompt);
+      }
+      await page.evaluate(([x, y, yaw]) => { window.__studioInput.teleport = { x, y, yaw }; }, VIEW);
+      await page.waitForTimeout(6000);
+    }
     await page.waitForTimeout(4000);
   }
   await page.waitForTimeout(2000);
@@ -121,10 +141,10 @@ for (const p of paths) {
       jsHeapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(0) : null,
     };
   });
-  results.push({ path: p, tier: flags.tier ?? null, ao: flags.ao ?? null, loadMs, transferredMB: +(bytes.total / 1048576).toFixed(1), glbMB: +(bytes.glb / 1048576).toFixed(1), ...m });
+  results.push({ path: p, furnished: FURNISH, mobile: MOBILE, items: STUDIO ? await page.evaluate(() => Object.values(window.__studio.getState().doc.nodes).filter((n) => n.kind === "item").length) : null, tier: flags.tier ?? null, ao: flags.ao ?? null, loadMs, transferredMB: +(bytes.total / 1048576).toFixed(1), glbMB: +(bytes.glb / 1048576).toFixed(1), ...m });
   console.log(JSON.stringify(results[results.length - 1]));
   await ctx.close();
 }
 await browser.close();
-const out = { kind: "desktop measured (headless Edge, ANGLE/D3D11, 1920x1080, DPR 1)", date: new Date().toISOString(), results };
+const out = { kind: MOBILE ? "mobile EMULATED on desktop GPU (390x844 DPR 3) - not a phone measurement" : "desktop measured (headless Edge, ANGLE/D3D11, 1920x1080, DPR 1)", date: new Date().toISOString(), results };
 if (flags.out) writeFileSync(flags.out, JSON.stringify(out, null, 2));

@@ -11,6 +11,28 @@ Desktop High >=60 fps; mid mobile Low >=30 fps; furnished scene <=1.2M tris desk
 
 ## Results log
 
+### M13 - hardening (2026-11-27) - budgets MET (desktop measured; mobile EMULATED, phone not measured)
+Scene: the whole apartment furnished by the free dry-run planner (27 items: living, dining, bedroom, L kitchen), camera in the living room toward the dining area. `npm run studio:bench -- --tier=<t> --ao=1` (`--mobile` for the phone emulation); raw JSON in `results/m13/bench-*.json`. Desktop = headless Edge on the RTX 4070 Laptop GPU, 1920x1080, DPR 1, vsync off, `next dev`.
+
+| Config | FPS (vsync off) | Frame p50 / p95 | Draw calls (before M13 -> after) | Triangles | Budget |
+|---|---|---|---|---|---|
+| High + AO | 134 -> **229** | 4.4 / 5.0 ms | 583 -> **236** | 333k | >=60 fps, <=350 draws, <=1.2M tris: MET |
+| Medium | 219 -> **417** | 2.4 / 2.9 ms | 523 -> **187** | 332k | MET |
+| Low | 363 -> **506** | 1.9 / 2.5 ms | 192 -> **117** | 163k | MET |
+| Phone, EMULATED (Pixel 7 class, DPR 3, starts on Medium) | 490 (desktop GPU, not a phone fps) | 2.0 / 2.6 ms | 484 -> **166** | 315k | <=200 draws, <=500k tris: MET; first load 6.2 MB transferred (<=8 MB): MET; >=30 fps: NOT MEASURED (needs a physical phone) |
+| Reference `/walk/yarkon` (unchanged) | 319 | 2.7 / 7.4 ms | 196 (same as M0) | 1.33M | - |
+
+How: (1) the shell's fixed parts (trims, skirting, sills, frames, downlight rims) are merged per material; (2) ~180 shell meshes no longer cast into the sun shadow map - two invisible merged proxies (walls + fixed parts, ceilings) cast for them; (3) each item's meshes are merged per material (sofa legs and welts, cabinet fronts and handles); (4) the 8 floor shadow overlays are one mesh. Before/after shots (`results/m13/batching-before-after-*.webp`): lighting and shadows identical (the dining table still sits in the facade's shadow). The first attempt put the proxies on a separate layer and lost the wall shadows (three.js tests layers against the VIEW camera in the shadow pass too) - caught by the shot, fixed.
+
+Accessibility: `npm run studio:a11y` (axe-core 4.12, WCAG 2.0/2.1/2.2 A+AA + best practice), 9 UI states x en/he (walk, design, selection panel, catalog, AI panel, kitchen panel, photo panel, plan, admin catalog): **0 violations** (was: unnamed swatch listbox [serious], studio outside a landmark [moderate]). Keyboard focus ring added (axe does not test it). Contrast of UI over the live canvas is not computable by axe ("incomplete" in `results/m13/a11y.json`).
+
+Visual regression: `npm run studio:vr` - 9 fixed views (5 walkthrough cameras over the furnished design, plan, design UI en + he, `/walk/yarkon`); a view fails when >0.5 % of pixels move by >16/255. Repeated runs: 0.000 % on every view (deterministic). Baselines are GPU-specific (`results/m13/vr/baseline`); refresh with `--update` only after looking at them.
+
+Mobile (EMULATED): `npm run studio:e2e:mobile` en + he with real CDP multi-touch: layout fits, touch targets >=24 px (all >=40 px), tap selects + bottom sheet, one-finger drag, two-finger twist (90 degrees, one undo), plan pinch, axe on the phone layout: all PASS.
+
+### M12 revision (M13, 2026-11-27): the background shader warm-up is now opt-in
+A reload or navigation while the warm-up compile was running stalled the page about 55 s (measured 55.7 s vs 0.3 s without it, on both GPUs): the GPU process cannot drop a context with a pending ANGLE compile. The warm-up now runs only with `?warm` (benchmarks). Consequence for the M12 gate: the FIRST photo of a visit includes the compile - measured 1080p / 128 spp on the RTX 4070: **146 s** on a first-ever visit, **105 s** for a returning visitor (browser shader cache); every later photo in the visit: 37-45 s as below (tracer cached). The "<60 s" gate therefore holds from the second photo of a visit only. Fix candidates: PROGRESS next steps.
+
 ### M12 - path-traced still (2026-11-27) - gate MET
 Gate (MASTER_PLAN): still render under 60 s on the RTX 4070 laptop. Measured, headless Edge 1920x1080, ANGLE/D3D11 on the RTX 4070 Laptop GPU, 128 spp + denoise, shader warmed in the background first:
 
